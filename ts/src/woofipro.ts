@@ -933,7 +933,7 @@ export default class woofipro extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: NullableDict, market: Market = undefined): FundingRate {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -1856,7 +1856,7 @@ export default class woofipro extends Exchange {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString (params, 'algoType');
-        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const paramsChildOrders = this.safeList (params, 'childOrders');
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
@@ -2092,7 +2092,7 @@ export default class woofipro extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const paramsChildOrders = this.safeList (params, 'childOrders');
         const isConditional = (triggerPrice !== undefined) || (paramsChildOrders !== undefined);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
@@ -2708,7 +2708,7 @@ export default class woofipro extends Exchange {
         return this.parseBalance (data);
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2756,7 +2756,8 @@ export default class woofipro extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        return [ currency, this.safeList (data, 'rows', []) ];
+        const rows: Dict[] = this.safeList (data, 'rows', []);
+        return rows;
     }
 
     override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2807,9 +2808,11 @@ export default class woofipro extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
-        const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
-        const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const rows = await this.getAssetHistoryRows (code, since, limit, params);
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -2908,9 +2911,11 @@ export default class woofipro extends Exchange {
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         const request: Dict = {};
-        const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
-        const currency = this.safeValue (currencyRows, 0);
-        const rows = this.safeList (currencyRows, 1);
+        const rows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         //
         //     {
         //         "rows":[],
@@ -2922,11 +2927,7 @@ export default class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        let rowsList: Dict[] = [];
-        if (rows !== undefined) {
-            rowsList = rows;
-        }
-        return this.parseTransactions (rowsList, currency, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit, params);
     }
 
     async getWithdrawNonce (params: Dict = {}): Promise<Num> {
@@ -3529,10 +3530,8 @@ export default class woofipro extends Exchange {
             let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;
-            let apiKey = this.apiKey;
-            if (this.apiKey.indexOf ('ed25519:') < 0) {
-                apiKey = 'ed25519:' + this.apiKey;
-            }
+            const hasKeyPrefix = this.apiKey.indexOf ('ed25519:') >= 0;
+            const apiKey = (hasKeyPrefix) ? this.apiKey : ('ed25519:' + this.apiKey);
             const authHeaders: Dict = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,

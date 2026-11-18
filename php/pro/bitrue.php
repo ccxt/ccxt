@@ -468,7 +468,7 @@ class bitrue extends \ccxt\async\bitrue {
                 throw new ExchangeError($this->id . ' findSwapMarketByWsBaseQuote() market ' . $symbolId . ' has no baseId or quoteId');
             }
             if ($baseId . $quoteId === $wsBaseQuote) {
-                return $candidate;
+                return $this->market($symbolId);
             }
         }
         return null;

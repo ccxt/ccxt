@@ -420,8 +420,12 @@ class bithumb(Exchange, ImplicitAPI):
         marketId = self.safe_string(market, 'id')
         if (marketId is not None) and (marketId.find('-') >= 0):
             return marketId
-        quoteId = self.safe_string_2(market, 'quoteId', 'quote', '')
-        baseId = self.safe_string_2(market, 'baseId', 'base', '')
+        quoteId = self.safe_string(market, 'quoteId')
+        if quoteId is None:
+            quoteId = self.safe_string(market, 'quote', '')
+        baseId = self.safe_string(market, 'baseId')
+        if baseId is None:
+            baseId = self.safe_string(market, 'base', '')
         return quoteId + '-' + baseId
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -561,7 +565,6 @@ class bithumb(Exchange, ImplicitAPI):
             results = promises
             for i in range(0, len(quotes)):
                 quote = quotes[i]
-                quoteId = quote
                 response = self.safe_dict(results, i)
                 data = self.safe_dict(response, 'data', {})
                 extension = self.safe_dict(quoteCurrencies, quote, {})
@@ -586,7 +589,7 @@ class bithumb(Exchange, ImplicitAPI):
                         'quote': quote,
                         'settle': None,
                         'baseId': currencyId,
-                        'quoteId': quoteId,
+                        'quoteId': quote,
                         'settleId': None,
                         'type': 'spot',
                         'spot': True,
@@ -1912,9 +1915,8 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-            marketDefined = market
-            base = self.safe_string(marketDefined, 'base')
-            quote = self.safe_string(marketDefined, 'quote')
+            base = self.safe_string(market, 'base')
+            quote = self.safe_string(market, 'quote')
             if (base is None) or (quote is None):
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a market with defined base and quote')
             request['order_id'] = id
@@ -2428,9 +2430,8 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-            marketDefined = market
-            base = self.safe_string(marketDefined, 'base')
-            quote = self.safe_string(marketDefined, 'quote')
+            base = self.safe_string(market, 'base')
+            quote = self.safe_string(market, 'quote')
             if (base is None) or (quote is None):
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a market with defined base and quote')
             side_in_params = ('side' in paramsRequest)
@@ -3162,9 +3163,7 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Nonce': nonce,
                     'OPEN-API-PARTNER': 'CCXT',
                 }
-        headersResult = requestHeaders
-        bodyResult = requestBody
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:

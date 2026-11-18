@@ -450,7 +450,7 @@ public class Independentreserve extends IndependentreserveApi
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
             Object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
             Object responses = (CompletableFuture.allOf(((CompletableFuture<?>) baseCurrenciesPromise), ((CompletableFuture<?>) quoteCurrenciesPromise), ((CompletableFuture<?>) limitsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) baseCurrenciesPromise).join(), ((CompletableFuture<?>) quoteCurrenciesPromise).join(), ((CompletableFuture<?>) limitsPromise).join())))).join();
-            Object limits = this.safeValue(responses, 2);
+            Map<String, Object> limits = this.safeDict(responses, 2, null);
             //
             //     {
             //         "Xbt": 0.0001,
@@ -460,14 +460,14 @@ public class Independentreserve extends IndependentreserveApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<Object> baseCurrencyIds = this.toArray(this.safeValue(responses, 0));
-            List<Object> quoteCurrencyIds = this.toArray(this.safeValue(responses, 1));
-            for (var i = 0; i < ((List<?>)baseCurrencyIds).size(); i++)
+            List<Object> baseCurrencyIds = this.toArray(this.safeList(responses, 0, null));
+            List<Object> quoteCurrencyIds = this.toArray(this.safeList(responses, 1, null));
+            for (var i = 0; i < baseCurrencyIds.size(); i++)
             {
                 String baseId = this.safeString(baseCurrencyIds, i, "");
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 Double minAmount = this.safeNumber(limits, baseId, (Object) null);
-                for (var j = 0; j < ((List<?>)quoteCurrencyIds).size(); j++)
+                for (var j = 0; j < quoteCurrencyIds.size(); j++)
                 {
                     String quoteId = this.safeString(quoteCurrencyIds, j, "");
                     String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
@@ -541,9 +541,9 @@ public class Independentreserve extends IndependentreserveApi
             put( "info", response );
         }};
         List<Object> accounts = this.toArray(response);
-        for (var i = 0; i < ((List<?>)accounts).size(); i++)
+        for (var i = 0; i < accounts.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(accounts, i, null);
             String currencyId = this.safeString(balance, "CurrencyCode");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -910,11 +910,11 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -947,11 +947,11 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -991,7 +991,7 @@ public class Independentreserve extends IndependentreserveApi
             {
                 market = this.market(symbol);
             }
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1069,7 +1069,7 @@ public class Independentreserve extends IndependentreserveApi
                 put( "numberOfRecentTradesToRetrieve", 50 );
             }};
             Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
-            List<Object> trades = (List<Object>) this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1103,7 +1103,7 @@ public class Independentreserve extends IndependentreserveApi
             //
             Map<String, Object> fees = new HashMap<String, Object>() {{}};
             List<Object> rows = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object fee = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String currencyId = this.safeString(fee, "CurrencyCode");
@@ -1119,13 +1119,13 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, market.get("base"), new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = this.safeDict(fees, market.get("base"), new HashMap<String, Object>() {{}});
                 result.put(symbol, new HashMap<String, Object>() {{
-        put( "info", Independentreserve.this.safeDict(fee, "info", (Object) null) );
+        put( "info", Independentreserve.this.safeDict(fee, "info", null) );
         put( "symbol", symbol );
         put( "maker", Independentreserve.this.safeNumber(fee, "fee", (Object) null) );
         put( "taker", Independentreserve.this.safeNumber(fee, "fee", (Object) null) );
@@ -1371,8 +1371,8 @@ public class Independentreserve extends IndependentreserveApi
         //        "Transaction": null
         //    }
         //
-        Map<String, Object> amount = (Map<String, Object>) this.safeDict(transaction, "Amount", (Object) null);
-        Map<String, Object> destination = (Map<String, Object>) this.safeDict(transaction, "Destination", (Object) null);
+        Map<String, Object> amount = this.safeDict(transaction, "Amount", null);
+        Map<String, Object> destination = this.safeDict(transaction, "Destination", null);
         String currencyId = this.safeString(transaction, "PrimaryCurrencyCode");
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");
@@ -1436,7 +1436,7 @@ public class Independentreserve extends IndependentreserveApi
             Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
             Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);
             List<String> keys = new ArrayList<String>(paramsDict.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String value = this.safeString(paramsDict, key, "");
@@ -1448,7 +1448,7 @@ public class Independentreserve extends IndependentreserveApi
             query.put("apiKey", this.apiKey);
             query.put("nonce", nonce);
             query.put("signature", signature.toUpperCase());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 query.put((String)key, (paramsDict == null || key == null ? null : paramsDict.get(key)));

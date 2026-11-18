@@ -746,12 +746,12 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	// when state is trade the price and volume fields describe the fill, not the order:
 	// fall back to the average fill price and let the order volume derive from filled + remaining
 	var isTrade bool = (rawStatus != nil && *rawStatus == "trade")
-	var price *string = func() *string {
-		if isTrade {
-			return this.SafeString(order, "avg_price")
-		}
-		return this.SafeString(order, "price")
-	}()
+	var price *string
+	if isTrade {
+		price = this.SafeString(order, "avg_price")
+	} else {
+		price = this.SafeString(order, "price")
+	}
 	var amount *string = func() *string {
 		if isTrade {
 			return nil
@@ -874,12 +874,12 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		}
 		return this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 	}()
-	var order any = func() any {
-		if orderId == nil {
-			return nil
-		}
-		return this.SafeDict(orders, orderId)
-	}()
+	var order map[string]any
+	if orderId == nil {
+		order = nil
+	} else {
+		order = this.SafeDictMap(orders, orderId)
+	}
 	if order != nil {
 		// paid_fee is cumulative, so the cached fee is only a fallback
 		var parsedFee map[string]any = ccxt.SafeMapTyped(parsed, "fee")

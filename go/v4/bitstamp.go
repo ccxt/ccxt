@@ -2058,12 +2058,12 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(params, "until")
 	var untilIsDefined bool = (until != nil)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	if limit != nil {
 		if since != nil {
 			var start int64 = this.ParseToInt(float64(*since) / 1000)
@@ -2075,17 +2075,17 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 					if (untilSeconds - start) < ((duration * *limit) - 1) {
 						return untilSeconds
 					}
-					return this.Sum(start, (duration**limit)-1)
+					return (start + (duration * *limit) - 1)
 				}()
 			} else {
-				request["end"] = this.Sum(start, (duration**limit)-1)
+				request["end"] = start + (duration * *limit) - 1
 			}
 		} else if untilIsDefined {
 			var untilEnd int64 = this.ParseToInt(float64(*until) / 1000)
 			request["end"] = untilEnd
 			request["start"] = untilEnd - (duration * *limit) - 1
 		}
-		request["limit"] = mathMin(limit, 1000) // min 1, max 1000
+		request["limit"] = min(*limit, 1000) // min 1, max 1000
 	} else {
 		if since == nil {
 			request["limit"] = 1000
@@ -2100,7 +2100,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			if untilIsDefined {
 				request["end"] = this.ParseToInt(float64(*until) / 1000)
 			} else {
-				request["end"] = this.Sum(startDefault, (duration*1000)-1)
+				request["end"] = startDefault + (duration * 1000) - 1
 			}
 			request["limit"] = 1000
 		}
@@ -2691,12 +2691,12 @@ func (this *Bitstamp) editOrderBody(ch chan AsyncResult[Order], id string, symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitstamp) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitstamp) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitstamp) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2831,7 +2831,7 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 			panic(r.Err)
 		}
 	}
-	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
@@ -2888,7 +2888,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
@@ -3558,12 +3558,12 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		if IsEqual(market, nil) {
 			market = this.GetMarketFromTrade(item)
 		}
-		var direction string = func() string {
-			if this.SafeString(parsedTrade, "side") != nil && *this.SafeString(parsedTrade, "side") == "buy" {
-				return "in"
-			}
-			return "out"
-		}()
+		var direction string
+		if this.SafeString(parsedTrade, "side") != nil && *this.SafeString(parsedTrade, "side") == "buy" {
+			direction = "in"
+		} else {
+			direction = "out"
+		}
 		return this.SafeLedgerEntry(map[string]any{
 			"info":             item,
 			"id":               parsedTrade["id"],
@@ -3586,7 +3586,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		var direction any = nil
 		var transactionCurrency *string = this.SafeString(parsedTransaction, "currency")
 		var hasTransactionCurrency bool = !(InOp(item, "amount")) && (transactionCurrency != nil)
-		var currencyResolved any = currency
+		var currencyResolved map[string]any = currency
 		if hasTransactionCurrency {
 			currencyResolved = this.Currency(this.SafeString(parsedTransaction, "currency"))
 		}

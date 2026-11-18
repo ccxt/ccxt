@@ -1173,7 +1173,7 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = await self.publicGetApiV1ExchangeInfo(params)
-        coins = self.safe_list(response, 'coins')
+        coins = self.safe_list(response, 'coins', [])
         #
         #     {
         #         ...
@@ -3431,8 +3431,7 @@ class hashkey(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use the trigger parameter (True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
-        isTrigger = defaultValue
-        isTriggerStop, paramsStop = self.handle_option_bool_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
+        isTriggerStop, paramsStop = self.handle_option_bool_and_params_2(params, methodName, 'stop', 'trigger', defaultValue)
         return [isTriggerStop, paramsStop]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -3696,7 +3695,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "ETHUSDT-PERPETUAL",

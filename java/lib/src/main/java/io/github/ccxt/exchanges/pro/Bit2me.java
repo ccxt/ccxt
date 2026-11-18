@@ -161,7 +161,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -224,7 +224,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade(data, market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -276,7 +276,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         Map<String, Object> fee = null;
-        Map<String, Object> rawFee = (Map<String, Object>) this.safeDict(trade, "fee", (Object) null);
+        Map<String, Object> rawFee = this.safeDict(trade, "fee", null);
         if (!java.util.Objects.equals(rawFee, null))
         {
             String feeRate = null;
@@ -328,11 +328,11 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
-            Object unifiedSymbol = null;
+            String unifiedSymbol = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                unifiedSymbol = market.get("symbol");
+                unifiedSymbol = java.util.Objects.toString(market.get("symbol"), null);
                 messageHash = ((messageHash + ":") + unifiedSymbol);
             }
             List<Object> orders = (List<Object>) (this.subscribePrivate("my-orders", messageHash, parameters)).join();
@@ -341,7 +341,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             {
                 finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, unifiedSymbol, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, java.util.Objects.toString(unifiedSymbol, null), since, finalLimit, true);
+            return this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -373,7 +373,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(data, (Map<String, Object>) null);
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -471,11 +471,11 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String messageHash = "myTrades";
-            Object unifiedSymbol = null;
+            String unifiedSymbol = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                unifiedSymbol = market.get("symbol");
+                unifiedSymbol = java.util.Objects.toString(market.get("symbol"), null);
                 messageHash = ((messageHash + ":") + unifiedSymbol);
             }
             List<Object> trades = (List<Object>) (this.subscribePrivate("my-trades", messageHash, parameters)).join();
@@ -484,7 +484,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             {
                 finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, unifiedSymbol, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, java.util.Objects.toString(unifiedSymbol, null), since, finalLimit, true);
+            return this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -511,7 +511,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
         if (java.util.Objects.equals(this.myTrades, null))
         {
@@ -556,8 +556,8 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> balances = (List<Object>) this.safeList(data, "balance", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<Object> balances = this.safeList(data, "balance", new ArrayList<Object>(Arrays.asList()));
         this.balance = this.parseBalanceList(balances);
         client.resolve(this.balance, "balance");
     }
@@ -599,7 +599,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             request.put("type", orderType);
             request.put("clientOrderId", clientOrderId);
             // the response carries no request id, it is matched by the client order id, and an error only by the symbol
-            Map<String, Object> pending = (Map<String, Object>) this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(pending, clientOrderId, market.get("id"));
             this.options.put("pendingWsOrders", pending);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
@@ -663,12 +663,12 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
         String clientOrderId = this.safeString(data, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            Map<String, Object> pending = (Map<String, Object>) this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
             this.options.put("pendingWsOrders", this.omit(pending, clientOrderId));
             this.settleRequest(client, ("added-order:" + clientOrderId), order, (Object) null);
         }
@@ -714,7 +714,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String orderId = this.safeString(data, "orderId");
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -775,11 +775,11 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> deleted = (List<Object>) this.safeList(data, "ordersDeleted", new ArrayList<Object>(Arrays.asList()));
-        List<Object> notDeleted = (List<Object>) this.safeList(data, "ordersNotDeletedReasons", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<Object> deleted = this.safeList(data, "ordersDeleted", new ArrayList<Object>(Arrays.asList()));
+        List<Object> notDeleted = this.safeList(data, "ordersNotDeletedReasons", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)deleted).size(); i++)
+        for (var i = 0; i < deleted.size(); i++)
         {
             Object entry = (deleted == null || i < 0 || i >= deleted.size() ? null : deleted.get(i));
             ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -788,7 +788,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                 put( "status", Bit2me.this.parseOrderStatus(Bit2me.this.safeString(entry, "status")) );
             }}, (Map<String, Object>) null));
         }
-        for (var i = 0; i < ((List<?>)notDeleted).size(); i++)
+        for (var i = 0; i < notDeleted.size(); i++)
         {
             Object entry = (notDeleted == null || i < 0 || i >= notDeleted.size() ? null : notDeleted.get(i));
             ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -847,10 +847,10 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> ids = (List<Object>) this.safeList(data, "cancelledOrders", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<Object> ids = this.safeList(data, "cancelledOrders", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("info", message);
@@ -879,15 +879,15 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 // the token is valid for one minute, it is only used to open the session
                 Map<String, Object> response = (this.privatePostV1SigninApikey(parameters)).join();
                 //
                 //     { "accessToken": { "token": "header.payload.signature", "expirationTime": 1794378427 } }
                 //
-                Map<String, Object> accessToken = (Map<String, Object>) this.safeDict(response, "accessToken", new HashMap<String, Object>() {{}});
+                Map<String, Object> accessToken = this.safeDict(response, "accessToken", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", "authenticate" );
                     put( "token", Bit2me.this.safeString(accessToken, "token") );
@@ -939,7 +939,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         //     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
         //
         String eventVar = this.safeString(message, "event");
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
+        Map<String, Object> error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
         String errorMessage = this.safeString(error, "message");
         String feedback = ((this.id + " ") + this.json(message));
@@ -957,9 +957,9 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         {
             // the error carries no client order id, reject every order of the symbol still waiting for a response
             String marketId = this.safeString(message, "symbol");
-            Map<String, Object> pending = (Map<String, Object>) this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
             List<String> clientOrderIds = new ArrayList<String>(pending.keySet());
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 String clientOrderId = (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i));
                 if (java.util.Objects.equals((pending == null || clientOrderId == null ? null : pending.get(clientOrderId)), marketId))
@@ -980,7 +980,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         } else if (java.util.Objects.equals(eventVar, "subscribe"))
         {
             // a refused subscription names the channel and the symbol it was asked for
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(message, "subscription", new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = this.safeDict(message, "subscription", new HashMap<String, Object>() {{}});
             String name = this.safeString(subscription, "name");
             String marketId = this.safeString(message, "symbol");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1000,10 +1000,10 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                     // the private channels are account-wide, a symbol-scoped watchOrders / watchMyTrades waits on orders:SYMBOL / myTrades:SYMBOL
                     String scopedPrefix = (messageHash + ":");
                     List<Object> pendingHashes = new ArrayList<Object>(client.futures.keySet());
-                    for (var i = 0; i < ((List<?>)pendingHashes).size(); i++)
+                    for (var i = 0; i < pendingHashes.size(); i++)
                     {
-                        Object pendingHash = (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
-                        if (((String)pendingHash).startsWith(scopedPrefix))
+                        String pendingHash = (String) (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
+                        if ((pendingHash.startsWith(((String)scopedPrefix))))
                         {
                             client.reject(exception, pendingHash);
                         }
@@ -1029,8 +1029,8 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             this.handleAuthenticate(client, message);
             return;
         }
-        Object error = this.safeValue(message, "error");
-        if (!java.util.Objects.equals(error, null))
+        boolean error = (this.safeValue(message, "error")) != null;
+        if (error)
         {
             this.handleErrorMessage(client, message);
             return;

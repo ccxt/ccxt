@@ -920,7 +920,7 @@ class whitebit(Exchange, ImplicitAPI):
             entry = currencyIds[i]
             splitEntry = entry.split(' ')
             currencyId = splitEntry[0]
-            feeInfo = self.safe_value(response, entry)
+            feeInfo = self.safe_dict(response, entry)
             code = self.safe_currency_code(currencyId)
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
                 depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
@@ -1067,11 +1067,10 @@ class whitebit(Exchange, ImplicitAPI):
         # Process all markets from the loaded markets cache
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        markets = self.markets
-        marketIds = list(markets.keys())
+        marketIds = list(self.markets.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_value(markets, marketId)
+            market = self.safe_dict(self.markets, marketId)
             marketSymbol = self.safe_string(market, 'symbol')
             if (market is None) or (market is None) or (marketSymbol is None) or (marketSymbol == ''):
                 continue  # Skip invalid markets silently
@@ -2726,7 +2725,7 @@ class whitebit(Exchange, ImplicitAPI):
             if amount is None:
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an amount when the ticker is fiat')
             request['amount'] = amount
-            uniqueId = self.safe_value(params, 'uniqueId')
+            uniqueId = self.safe_string(params, 'uniqueId')
             if uniqueId is None:
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat')
             response = await self.v4PrivatePostMainAccountFiatDepositUrl(self.extend(request, params))
@@ -2971,7 +2970,7 @@ class whitebit(Exchange, ImplicitAPI):
         if tag is not None:
             request['memo'] = tag
         if self.is_fiat(code):
-            provider = self.safe_value(paramsWithdrawTag, 'provider')
+            provider = self.safe_string(paramsWithdrawTag, 'provider')
             if provider is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
@@ -3361,7 +3360,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_funding_rates(data, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # {
         #     "ticker_id":"ADA_PERP",
@@ -4031,7 +4030,7 @@ class whitebit(Exchange, ImplicitAPI):
         publicHeaders = {}
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.safe_value(self.urls['api'], version), accessibility)
+        apiUrl = self.safe_string(self.safe_dict(self.urls['api'], version), accessibility)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + pathWithParams
@@ -4060,10 +4059,7 @@ class whitebit(Exchange, ImplicitAPI):
         requestBody = None
         if isPrivate:
             requestBody = privateBody
-        requestHeaders = publicHeaders
-        if isPrivate:
-            requestHeaders = privateHeaders
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders if (isPrivate) else publicHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 418) or (code == 429):

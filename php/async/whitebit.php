@@ -950,7 +950,7 @@ class whitebit extends Exchange {
             $entry = $currencyIds[$i];
             $splitEntry = explode(' ', $entry);
             $currencyId = $splitEntry[0];
-            $feeInfo = $this->safe_value($response, $entry);
+            $feeInfo = $this->safe_dict($response, $entry);
             $code = $this->safe_currency_code($currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
@@ -1117,11 +1117,10 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        $markets = $this->markets;
-        $marketIds = is_array($markets) ? array_keys($markets) : array();
+        $marketIds = is_array($this->markets) ? array_keys($this->markets) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_value($markets, $marketId);
+            $market = $this->safe_dict($this->markets, $marketId);
             $marketSymbol = $this->safe_string($market, 'symbol');
             if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -3031,7 +3030,7 @@ class whitebit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             $request['amount'] = $amount;
-            $uniqueId = $this->safe_value($params, 'uniqueId');
+            $uniqueId = $this->safe_string($params, 'uniqueId');
             if ($uniqueId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -3314,7 +3313,7 @@ class whitebit extends Exchange {
             $request['memo'] = $tag;
         }
         if ($this->is_fiat($code)) {
-            $provider = $this->safe_value($paramsWithdrawTag, 'provider');
+            $provider = $this->safe_string($paramsWithdrawTag, 'provider');
             if ($provider === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -3745,7 +3744,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -4493,7 +4492,7 @@ class whitebit extends Exchange {
         $publicHeaders = array();
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->safe_value($this->urls['api'], $version), $accessibility);
+        $apiUrl = $this->safe_string($this->safe_dict($this->urls['api'], $version), $accessibility);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -4527,11 +4526,7 @@ class whitebit extends Exchange {
         if ($isPrivate) {
             $requestBody = $privateBody;
         }
-        $requestHeaders = $publicHeaders;
-        if ($isPrivate) {
-            $requestHeaders = $privateHeaders;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => ($isPrivate) ? $privateHeaders : $publicHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

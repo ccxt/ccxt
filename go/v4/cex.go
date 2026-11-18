@@ -839,7 +839,7 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 		request["toDateISO"] = this.Iso8601(until)
 	}
 	if limit != nil {
-		request["pageSize"] = mathMin(limit, 10000) // has a bug, still returns more trades
+		request["pageSize"] = min(*limit, 10000) // has a bug, still returns more trades
 	}
 
 	r1 := <-this.PublicPostGetTradeHistory(this.Extend(request, paramsUntil))
@@ -1814,12 +1814,12 @@ func (this *Cex) createOrderBody(ch chan AsyncResult[Order], symbol string, type
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Cex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Cex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2203,7 +2203,7 @@ func (this *Cex) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 			transfer = StructBox(r1.Value, TransferEntryToMap)
 		}
 	}
-	var fillResponseFromRequest any = this.HandleOption("transfer", "fillResponseFromRequest", true)
+	var fillResponseFromRequest bool = this.HandleOption("transfer", "fillResponseFromRequest", true) == true
 	var filled map[string]any = map[string]any{}
 	if fillResponseFromRequest == true {
 		filled["fromAccount"] = fromAccount
@@ -2232,9 +2232,11 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[Transf
 	}
 	var currency map[string]any = this.Currency(code)
 	var fromMain bool = (fromAccount == "")
-	var targetAccount string = fromAccount
+	var targetAccount string
 	if fromMain {
 		targetAccount = toAccount
+	} else {
+		targetAccount = fromAccount
 	}
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{

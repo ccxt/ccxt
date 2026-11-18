@@ -1165,12 +1165,11 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        let ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        let ohlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             ohlcv = new ArrayCacheByTimestamp(limit);
-            symbolOhlcvs[timeframe] = ohlcv;
+            this.ohlcvs[symbol][timeframe] = ohlcv;
         }
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
@@ -1524,13 +1523,17 @@ export default class pacifica extends pacificaRest {
         return message;
     }
     requestId() {
-        return this.uuid(); // uuid v4
+        // millisecond timestamp plus 3 random digits stays a safe integer
+        const ts = this.milliseconds().toString();
+        const randomPart = this.randNumber(3).toString();
+        return this.parseToInt(ts + randomPart);
     }
     wrapAsPostAction(operationType, request) {
         if (operationType === undefined) {
             throw new ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
-        const requestId = this.requestId();
+        // the venue requires a full uuid v4 request id
+        const requestId = this.uuid();
         const postParams = {};
         postParams[operationType] = request;
         const payload = {

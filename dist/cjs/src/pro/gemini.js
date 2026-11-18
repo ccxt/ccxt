@@ -247,7 +247,7 @@ class gemini extends gemini$1["default"] {
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         const storesForSymbols = {};
         for (let i = 0; i < trades.length; i++) {
-            const rawTrade = this.safeValue(trades, i);
+            const rawTrade = this.safeDict(trades, i, {});
             const marketId = this.safeString(rawTrade, 'symbol', '').toLowerCase();
             const market = this.safeMarket(marketId);
             const symbol = this.safeString(market, 'symbol', '');
@@ -265,9 +265,9 @@ class gemini extends gemini$1["default"] {
         const symbols = Object.keys(storesForSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const stored = storesForSymbols[symbol];
+            const symbolStore = storesForSymbols[symbol];
             const messageHash = 'trades:' + symbol;
-            client.resolve(stored, messageHash);
+            client.resolve(symbolStore, messageHash);
         }
     }
     /**
@@ -347,8 +347,7 @@ class gemini extends gemini$1["default"] {
         const symbol = this.safeSymbol(marketId, market);
         const changes = this.safeList(message, 'changes', []);
         const timeframe = this.findTimeframe(timeframeId);
-        const ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsBySymbol === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
         let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
@@ -362,8 +361,7 @@ class gemini extends gemini$1["default"] {
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
         for (let i = 0; i < changesLength; i++) {
-            const index = changesLength - i - 1;
-            const parsed = this.parseOHLCV(this.safeValue(changes, index), market);
+            const parsed = this.parseOHLCV(this.safeValue(changes, changesLength - i - 1), market);
             stored.append(parsed);
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -480,8 +478,8 @@ class gemini extends gemini$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols = undefined, params = {}) {
-        return this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        return await this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
     }
     handleBidsAsksForMultidata(client, rawBidAskChanges, timestamp, nonce) {
         //
@@ -940,7 +938,7 @@ class gemini extends gemini$1["default"] {
             const collectedEventsOfTrades = [];
             const eventsLength = events.length;
             for (let i = 0; i < events.length; i++) {
-                const event = this.safeValue(events, i);
+                const event = this.safeDict(events, i, {});
                 const eventType = this.safeString(event, 'type');
                 const side = this.safeString(event, 'side');
                 const isOrderBook = (eventType === 'change') && (side !== undefined) && this.inArray(side, ['ask', 'bid']);

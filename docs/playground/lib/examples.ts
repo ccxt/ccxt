@@ -232,20 +232,28 @@ foreach ($ids as $id) {
     }
 }
 `,
-      rust: `use ccxt::{Params, TypedExchangeExt};
+      rust: `use ccxt::{ExchangeVisitor, Params, TypedExchange};
 
-#[tokio::main]
-async fn main() {
-    let ids = ["binance", "kraken", "coinbase", "bitfinex", "okx"];
-    // ccxt::from_id builds any exchange by its id as a Box<dyn TypedExchange>;
-    // the typed unified methods come from the TypedExchangeExt trait.
-    // Fan out all five requests concurrently, like Promise.all.
-    let rows = futures::future::join_all(ids.iter().map(|id| async move {
-        let mut exchange = ccxt::from_id(id, None).expect("unknown exchange id");
+// with_exchange builds the exchange named by an id and hands the concrete type here.
+struct Last(&'static str);
+
+impl ExchangeVisitor for Last {
+    type Output = String;
+    async fn visit<E: TypedExchange + 'static>(self, mut exchange: E) -> String {
+        let id = self.0;
         match exchange.fetch_ticker("BTC/USDT", Params::none()).await {
             Ok(ticker) => format!("{id:<10} {:?}", ticker.last),
             Err(e) => format!("{id:<10} (no BTC/USDT: {})", e.kind),
         }
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let ids = ["binance", "kraken", "coinbase", "bitfinex", "okx"];
+    // Fan out all five requests concurrently, like Promise.all.
+    let rows = futures::future::join_all(ids.iter().map(|&id| async move {
+        ccxt::exchanges::with_exchange(id, None, Last(id)).await.expect("unknown exchange id")
     }))
     .await;
     println!("{}", rows.join("\\n"));

@@ -604,8 +604,7 @@ class mercado extends mercado$1["default"] {
                 }
                 const amountString = this.numberToString(amount);
                 const priceString = this.numberToString(price);
-                const cost = this.parseToNumeric(Precise["default"].stringMul(amountString, priceString));
-                request['cost'] = this.priceToPrecision(market['symbol'], cost);
+                request['cost'] = this.priceToPrecision(market['symbol'], this.parseToNumeric(Precise["default"].stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, params));
             }
             else {
@@ -616,7 +615,7 @@ class mercado extends mercado$1["default"] {
         // TODO: replace this with a call to parseOrder for unification
         return this.safeOrder({
             'info': response,
-            'id': this.safeString(this.safeValue(this.safeValue(response, 'response_data'), 'order'), 'order_id'),
+            'id': this.safeString(this.safeDict(this.safeDict(response, 'response_data'), 'order'), 'order_id'),
         }, market);
     }
     /**
@@ -1012,7 +1011,7 @@ class mercado extends mercado$1["default"] {
     ordersToTrades(orders) {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeList(this.safeValue(orders, i), 'trades', []);
+            const trades = this.safeList(this.safeDict(orders, i), 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push(trades[y]);
             }
@@ -1075,7 +1074,7 @@ class mercado extends mercado$1["default"] {
         //
         //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
-        const errorMessage = this.safeValue(response, 'error_message');
+        const errorMessage = this.safeString(response, 'error_message');
         if (errorMessage !== undefined) {
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }

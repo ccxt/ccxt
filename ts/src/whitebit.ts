@@ -927,7 +927,7 @@ export default class whitebit extends Exchange {
             const entry = currencyIds[i];
             const splitEntry = entry.split (' ');
             const currencyId = splitEntry[0];
-            const feeInfo = this.safeValue (response, entry);
+            const feeInfo = this.safeDict (response, entry);
             const code = this.safeCurrencyCode (currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const depositWithdrawFee = this.safeDict (depositWithdrawFees, code);
@@ -1086,12 +1086,11 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        const markets = this.markets;
-        const marketIds = Object.keys (markets);
+        const marketIds = Object.keys (this.markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue (markets, marketId);
-            const marketSymbol = this.safeString (market, 'symbol');
+            const market: NullableDict = this.safeDict (this.markets, marketId);
+            const marketSymbol: Str = this.safeString (market, 'symbol');
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
@@ -1486,7 +1485,7 @@ export default class whitebit extends Exchange {
             try {
                 const response = await this.v4PrivatePostOrders (this.extend (request, paramsOmitted));
                 // Search for order in active orders response (array format)
-                const orders = this.toArray (response);
+                const orders: Dict[] = this.toArray (response);
                 for (let i = 0; i < orders.length; i++) {
                     const order = orders[i];
                     const orderId = this.safeString (order, 'orderId', '');
@@ -2908,7 +2907,7 @@ export default class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             request['amount'] = amount;
-            const uniqueId = this.safeValue (params, 'uniqueId');
+            const uniqueId = this.safeString (params, 'uniqueId');
             if (uniqueId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -3171,7 +3170,7 @@ export default class whitebit extends Exchange {
             request['memo'] = tag;
         }
         if (this.isFiat (code)) {
-            const provider = this.safeValue (paramsWithdrawTag, 'provider');
+            const provider = this.safeString (paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -3408,7 +3407,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records: Dict[] = this.safeList (response, 'records', []);
         let recordsList: Dict[] = [];
         if (records !== undefined) {
             recordsList = records;
@@ -3582,7 +3581,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -3691,7 +3690,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const data = this.safeList (response, 'records', []);
+        const data: Dict[] = this.safeList (response, 'records', []);
         return this.parseFundingHistories (data, market, since, limit);
     }
 
@@ -4294,7 +4293,7 @@ export default class whitebit extends Exchange {
         const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.safeValue (this.urls['api'], version), accessibility);
+        const apiUrl = this.safeString (this.safeDict (this.urls['api'], version), accessibility);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4328,11 +4327,7 @@ export default class whitebit extends Exchange {
         if (isPrivate) {
             requestBody = privateBody;
         }
-        let requestHeaders: Dict = publicHeaders;
-        if (isPrivate) {
-            requestHeaders = privateHeaders;
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (isPrivate) ? privateHeaders : publicHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {

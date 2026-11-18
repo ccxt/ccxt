@@ -1369,7 +1369,7 @@ export default class backpack extends Exchange {
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    filterStockStructures (entries: List): List {
+    filterStockStructures (entries: Dict[]): List {
         const result: List = [];
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
@@ -1727,7 +1727,7 @@ export default class backpack extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "fundingRate": "0.0001",
@@ -1846,7 +1846,7 @@ export default class backpack extends Exchange {
         //     ]
         //
         const rates: List = [];
-        const rawRates = this.toArray (response);
+        const rawRates: Dict[] = this.toArray (response);
         for (let i = 0; i < rawRates.length; i++) {
             const rate = rawRates[i];
             const datetime = this.safeString (rate, 'intervalEndTimestamp');

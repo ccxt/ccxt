@@ -1482,12 +1482,12 @@ func (this *Bitteam) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Bitteam) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitteam) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitteam) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitteam) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2963,13 +2963,11 @@ func (this *Bitteam) HandleErrors(code int64, reason string, url string, method 
 	if code != 200 {
 		if code == 404 {
 			if (strings.Index(url, "/ccxt/order/") >= 0) && (method == "GET") {
-				var parts []string = strings.Split(url, "/order/")
-				var orderId string = *this.SafeString(parts, 1, "")
+				var orderId string = *this.SafeString(strings.Split(url, "/order/"), 1, "")
 				panic(OrderNotFound(this.Id + " order " + orderId + " not found"))
 			}
 			if strings.Index(url, "/cmc/orderbook/") >= 0 {
-				var parts []string = strings.Split(url, "/cmc/orderbook/")
-				var symbolId string = *this.SafeString(parts, 1, "")
+				var symbolId string = *this.SafeString(strings.Split(url, "/cmc/orderbook/"), 1, "")
 				panic(BadSymbol(this.Id + " symbolId " + symbolId + " not found"))
 			}
 		}

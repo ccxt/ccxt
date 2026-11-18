@@ -193,7 +193,7 @@ class hollaex extends \ccxt\async\hollaex {
         $data = $this->safe_list($message, 'data', array());
         $parsedTrades = $this->parse_trades($data, $market);
         for ($i = 0; $i < count($parsedTrades); $i++) {
-            $stored->append($this->safe_value($parsedTrades, $i));
+            $stored->append($this->safe_dict($parsedTrades, $i));
         }
         if ($channel !== null) {
             $messageHash = $channel . ':' . $marketIdValue;
@@ -407,7 +407,7 @@ class hollaex extends \ccxt\async\hollaex {
         $stored = $this->orders;
         $marketIds = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $order = $this->safe_value($rawOrders, $i);
+            $order = $this->safe_dict($rawOrders, $i, array());
             $parsed = $this->parse_order($order);
             $stored->append($parsed);
             $symbol = $this->safe_string($order, 'symbol');

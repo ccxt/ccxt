@@ -129,7 +129,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String symbol = this.safeString(market, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(message, "data", null);
             String timestamp = this.safeString(data, "timestamp");
             Long timestampMs = this.parse8601(timestamp);
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
@@ -219,11 +219,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
+        for (var i = 0; i < parsedTrades.size(); i++)
         {
-            stored.append(this.safeValue(parsedTrades, i));
+            stored.append(this.safeDict(parsedTrades, i, null));
         }
         if (!java.util.Objects.equals(channel, null))
         {
@@ -298,10 +298,10 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         // }
         //
         String channel = this.safeString(message, "topic");
-        List<Object> rawTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        Integer dataLength = ((List<?>)rawTrades).size();
+        Integer dataLength = rawTrades.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
@@ -313,7 +313,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+        for (var i = 0; i < rawTrades.size(); i++)
         {
             Object trade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, (Map<String, Object>) null);
@@ -329,7 +329,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         // non-symbol specific
         client.resolve(this.myTrades, channel);
         List<String> keys = new ArrayList<String>(marketIds.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!java.util.Objects.equals(channel, null))
@@ -440,14 +440,14 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //       }
         //
         String channel = this.safeString(message, "topic");
-        Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> dataDict = this.safeDict(message, "data", null);
+        List<Object> rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(dataDict, null))
         {
             rawOrders = new ArrayList<Object>(Arrays.asList(dataDict));
         }
         // usually the first message is an empty array
-        if ((((List<?>)rawOrders).size() == 0))
+        if ((rawOrders.size() == 0))
         {
             return;
         }
@@ -458,9 +458,9 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
+        for (var i = 0; i < rawOrders.size(); i++)
         {
-            Object order = this.safeValue(rawOrders, i);
+            Map<String, Object> order = this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, (Map<String, Object>) null);
             stored.append(parsed);
             String symbol = this.safeString(order, "symbol");
@@ -474,7 +474,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         // non-symbol specific
         client.resolve(this.orders, channel);
         List<String> keys = new ArrayList<String>(marketIds.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!java.util.Objects.equals(channel, null))
@@ -523,16 +523,16 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //     }
         //
         String messageHash = this.safeString(message, "topic");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(data.keySet());
         Long timestamp = this.safeTimestamp(message, "time");
         this.balance.put("info", data);
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", this.iso8601(timestamp));
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(key.split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Object account = this.account();

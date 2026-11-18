@@ -209,7 +209,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if maxTopics is not None:
             maxTopicsResolved = self.parse_to_int(maxTopics)
         pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
-        pageLimit = self.parse_to_int(100)
+        pageLimit = 100
         if pageLimitOption < 100:
             pageLimit = self.parse_to_int(pageLimitOption)
         collected = []
@@ -417,12 +417,12 @@ class binance(PredictionExchange, ImplicitAPI):
         seen = {}
         collected = []
         queriesLength = len(queries)
-        limitValue = self.parse_to_int(20)
+        limitValue = 20
         if limit is not None:
             limitValue = self.parse_to_int(limit)
         limitResolved = limitValue
         if limitValue > 50:
-            limitResolved = self.parse_to_int(50)
+            limitResolved = 50
         for qi in range(0, queriesLength):
             request = {
                 'query': queries[qi],
@@ -732,8 +732,7 @@ class binance(PredictionExchange, ImplicitAPI):
         #
         #     { "marketId": 5567895, "lastTradePrice": "0.52" }
         #
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         # the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         # any other outcome of a binary market mirrors as 1 - price
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
@@ -1458,7 +1457,7 @@ class binance(PredictionExchange, ImplicitAPI):
             'fee': fee,
         }, outcomeObjResolved)
 
-    async def fetch_wallet(self, methodName: str, params: dict = {}) -> object:
+    async def fetch_wallet(self, methodName: str, params: dict = {}) -> dict:
         """
         fetch wallet for user and save the one match the walletAddress user provided
 

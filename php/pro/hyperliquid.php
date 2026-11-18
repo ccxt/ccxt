@@ -575,6 +575,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watch the private liquidations of a trading pair
          *
@@ -587,7 +591,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2081,7 +2085,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $message;
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;

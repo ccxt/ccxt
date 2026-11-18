@@ -1,9 +1,9 @@
 import ndaxRest from '../ndax.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class ndax extends ndaxRest {
     describe(): Dict;
-    requestId(): number;
+    requestId(): int;
     /**
      * @method
      * @name ndax#watchTicker

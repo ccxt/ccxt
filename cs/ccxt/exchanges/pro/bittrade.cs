@@ -41,13 +41,13 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual string? requestId()
+    public virtual Int64 requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return requestId.ToString();
+        return requestId;
     }
 
     /**
@@ -58,7 +58,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -77,13 +77,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "params", parameters },
@@ -139,7 +139,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -159,13 +159,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "params", parameters },
@@ -239,7 +239,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -261,13 +261,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "timeframe", timeframeVar },
@@ -334,7 +334,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (((limit != null)) && ((limit != 150)))
@@ -359,13 +359,13 @@ public partial class bittrade : ccxt.bittrade
             { "hostname", this.hostname },
         };
         string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-        string requestId = this.requestId();
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "limit", limitValue },
@@ -440,22 +440,22 @@ public partial class bittrade : ccxt.bittrade
                 { "hostname", this.hostname },
             };
             string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
-            string requestId = this.requestId();
+            Int64 requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },
-                { "id", requestId },
+                { "id", requestId.ToString() },
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             Dictionary<string, object> snapshotSubscription = new Dictionary<string, object>() {
-                { "id", requestId },
+                { "id", requestId.ToString() },
                 { "messageHash", messageHash },
                 { "symbol", symbol },
                 { "limit", limit },
                 { "params", parameters },
                 { "method", this.handleOrderBookSnapshot },
             };
-            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId, request, requestId, snapshotSubscription));
+            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId.ToString(), request, requestId.ToString(), snapshotSubscription));
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {

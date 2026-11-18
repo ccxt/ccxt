@@ -1780,7 +1780,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -3880,7 +3880,6 @@ class bingx(Exchange, ImplicitAPI):
         #         "workingType": ""
         #     }
         #
-        info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
         orderData = newOrder if (newOrder is not None) else order
         positionSide = self.safe_string_2(orderData, 'positionSide', 'ps')
@@ -3939,7 +3938,7 @@ class bingx(Exchange, ImplicitAPI):
                 takeProfitPrice = stopPrice
                 triggerPrice = None
         return self.safe_order({
-            'info': info,
+            'info': order,
             'id': self.safe_string_n(orderData, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': self.safe_string_n(orderData, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': self.safe_symbol(marketId, marketResolved, '-', marketType),
@@ -5336,7 +5335,7 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_list(self.safe_dict(response, 'data'), 'data')
+        data = self.safe_list(self.safe_dict(response, 'data'), 'data', [])
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
@@ -6966,9 +6965,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody
-        headersResult = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def nonce(self) -> int:
         return self.milliseconds()

@@ -480,7 +480,7 @@ export default class bitvavo extends Exchange {
         return this.parseMarkets (response);
     }
 
-    override parseMarkets (markets: any) {
+    override parseMarkets (markets: List) {
         const result: Market[] = [];
         const defaultFees = this.safeDict (this.fees, 'trading', {});
         const feesByCategory = this.safeDict (this.fees, 'byCategory', {});
@@ -2757,6 +2757,6 @@ export default class bitvavo extends Exchange {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeValue (config, 'cost', 1);
+        return this.safeInteger (config, 'cost', 1);
     }
 }

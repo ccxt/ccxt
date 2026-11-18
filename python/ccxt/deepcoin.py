@@ -391,10 +391,9 @@ class deepcoin(Exchange, ImplicitAPI):
         instType = self.safe_string(params, 'instType')
         paramsOmitted = self.omit(params, 'instType')
         type = self.safe_string(paramsOmitted, 'type')
-        paramsExtended = paramsOmitted
         if (type is None) and (instType is not None):
-            paramsExtended = self.extend(paramsOmitted, {'type': instType})
-        return super(deepcoin, self).handle_market_type_and_params(methodName, market, paramsExtended, defaultValue)
+            return super(deepcoin, self).handle_market_type_and_params(methodName, market, self.extend(paramsOmitted, {'type': instType}), defaultValue)
+        return super(deepcoin, self).handle_market_type_and_params(methodName, market, paramsOmitted, defaultValue)
 
     def convert_to_instrument_type(self, type: Str) -> Str:
         exchangeTypes = self.safe_dict(self.options, 'exchangeType', {})
@@ -679,7 +678,9 @@ class deepcoin(Exchange, ImplicitAPI):
         if until is not None:
             request['after'] = until
         calculateUntil = self.safe_bool(paramsPaginate, 'calculateUntil', False)
-        keysToOmit = ['price', 'until', 'calculateUntil'] if (calculateUntil) else ['price', 'until']
+        keysToOmit = ['price', 'until']
+        if calculateUntil:
+            keysToOmit.append('calculateUntil')
         paramsOmitted = self.omit(paramsPaginate, keysToOmit)
         if calculateUntil:
             if since is not None:
@@ -1667,15 +1668,13 @@ class deepcoin(Exchange, ImplicitAPI):
 
     def handle_type_post_only_and_time_in_force(self, type: Str, params: dict) -> list:
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 'post_only', params)
-        typePostOnly = type
-        if postOnly:
-            typePostOnly = 'post_only'
         timeInForce = self.handle_time_in_force(paramsPostOnly)
         paramsOmitted = self.omit(paramsPostOnly, 'timeInForce')
-        typeValue = typePostOnly
         if timeInForce == 'IOC':
-            typeValue = 'ioc'
-        return [typeValue, paramsOmitted]
+            return ['ioc', paramsOmitted]
+        if postOnly:
+            return ['post_only', paramsOmitted]
+        return [type, paramsOmitted]
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
@@ -2649,7 +2648,7 @@ class deepcoin(Exchange, ImplicitAPI):
         entry = self.safe_dict(rates, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrumentId": "ETHUSDT",

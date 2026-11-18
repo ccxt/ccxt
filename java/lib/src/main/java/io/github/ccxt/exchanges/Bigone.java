@@ -600,7 +600,7 @@ public class Bigone extends BigoneApi
             //     ],
             // }
             //
-            List<Object> currenciesData = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesData);
         });
 
@@ -612,9 +612,9 @@ public class Bigone extends BigoneApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         String name = this.safeString(rawCurrency, "name");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "binding_gateways", new ArrayList<Object>(Arrays.asList()));
-        String currencyMaxPrecision = (String) this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        List<Object> chains = this.safeList(rawCurrency, "binding_gateways", new ArrayList<Object>(Arrays.asList()));
+        String currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "gateway_name");
@@ -624,7 +624,7 @@ public class Bigone extends BigoneApi
             String minDepositAmount = this.safeString(chain, "min_deposit_amount");
             String minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             String withdrawalFee = this.safeString(chain, "withdrawal_fee");
-            String precision = (String) this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
+            String precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (!java.util.Objects.equals(networkCode, null))
             {
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -650,7 +650,7 @@ public class Bigone extends BigoneApi
                 networks.put(networkCode, mapLiteral1);
             }
         }
-        Integer chainLength = ((List<?>)chains).size();
+        Integer chainLength = chains.size();
         String type = null;
         if (Boolean.TRUE.equals(this.safeBool(rawCurrency, "is_fiat", false)))
         {
@@ -707,8 +707,8 @@ public class Bigone extends BigoneApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
-            Object promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> response = (Map<String, Object>) this.safeDict(promisesResult, 0, (Object) null);
+            List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Map<String, Object> response = this.safeDict(promisesResult, 0, null);
             Object contractResponse = this.safeValue(promisesResult, 1);
             //
             //     {
@@ -762,13 +762,13 @@ public class Bigone extends BigoneApi
             //        ...
             //    ]
             //
-            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
-                Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base_asset", new HashMap<String, Object>() {{}});
-                Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(market, "quote_asset", new HashMap<String, Object>() {{}});
+                Map<String, Object> baseAsset = this.safeDict(market, "base_asset", new HashMap<String, Object>() {{}});
+                Map<String, Object> quoteAsset = this.safeDict(market, "quote_asset", new HashMap<String, Object>() {{}});
                 String baseId = this.safeString(baseAsset, "symbol");
                 String quoteId = this.safeString(quoteAsset, "symbol");
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -829,7 +829,7 @@ public class Bigone extends BigoneApi
                     yield j39v2; } })));
             }
             List<Object> contractMarkets = this.toArray(contractResponse);
-            for (var i = 0; i < ((List<?>)contractMarkets).size(); i++)
+            for (var i = 0; i < contractMarkets.size(); i++)
             {
                 Object market = (contractMarkets == null || i < 0 || i >= contractMarkets.size() ? null : contractMarkets.get(i));
                 String baseId = this.safeString(market, "baseCurrency");
@@ -954,8 +954,8 @@ public class Bigone extends BigoneApi
         String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         String symbol = this.safeSymbol(marketId, market, "-", marketType);
         String close = this.safeString2(ticker, "close", "latestPrice");
-        Map<String, Object> bid = (Map<String, Object>) this.safeDict(ticker, "bid", new HashMap<String, Object>() {{}});
-        Map<String, Object> ask = (Map<String, Object>) this.safeDict(ticker, "ask", new HashMap<String, Object>() {{}});
+        Map<String, Object> bid = this.safeDict(ticker, "bid", new HashMap<String, Object>() {{}});
+        Map<String, Object> ask = this.safeDict(ticker, "ask", new HashMap<String, Object>() {{}});
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1026,12 +1026,12 @@ public class Bigone extends BigoneApi
                 //         }
                 //     }
                 //
-                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> ticker = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTicker(ticker, market);
             } else
             {
                 Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), paramsMarketType)).join();
-                Map<String, Object> spotTicker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
+                Map<String, Object> spotTicker = this.safeDict(tickers, symbol, null);
                 return spotTicker;
             }
         }).thenApply(Ticker::new);
@@ -1137,14 +1137,14 @@ public class Bigone extends BigoneApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(data, "Timestamp", 0.000001);
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
             return timestamp;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1227,7 +1227,7 @@ public class Bigone extends BigoneApi
                 //         }
                 //     }
                 //
-                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderbook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrderBook(orderbook, market.get("symbol"), (Long) null, "bids", "asks", "price", "quantity", 2);
             }
         }).thenApply(OrderBook::new);
@@ -1238,7 +1238,7 @@ public class Bigone extends BigoneApi
     {
         List<String> bidsAsksKeys = new ArrayList<String>(bidsAsks.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
+        for (var i = 0; i < bidsAsksKeys.size(); i++)
         {
             String price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
             Object amount = (bidsAsks == null || price == null ? null : bidsAsks.get(price));
@@ -1249,8 +1249,8 @@ public class Bigone extends BigoneApi
 
     public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, String symbol, Long limit)
     {
-        Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", new HashMap<String, Object>() {{}});
-        Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", new HashMap<String, Object>() {{}});
+        Map<String, Object> responseBids = this.safeDict(orderbook, "bids", new HashMap<String, Object>() {{}});
+        Map<String, Object> responseAsks = this.safeDict(orderbook, "asks", new HashMap<String, Object>() {{}});
         List<Object> bids = (List<Object>) this.parseContractBidsAsks(responseBids);
         List<Object> asks = (List<Object>) this.parseContractBidsAsks(responseAsks);
         return new HashMap<String, Object>() {{
@@ -1403,13 +1403,12 @@ public class Bigone extends BigoneApi
             String makerCode = makerCurrencyCode;
             if (!java.util.Objects.equals(takerFeeCost, null))
             {
-                String takerCode = takerCurrencyCode;
                 HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
                 mapLiteral3.put("cost", makerFeeCost);
                 mapLiteral3.put("currency", makerCode);
                 HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
                 mapLiteral4.put("cost", takerFeeCost);
-                mapLiteral4.put("currency", takerCode);
+                mapLiteral4.put("currency", takerCurrencyCode);
                 result.put("fees", new ArrayList<Object>(Arrays.asList(mapLiteral3, mapLiteral4)));
             } else
             {
@@ -1420,10 +1419,9 @@ public class Bigone extends BigoneApi
             }
         } else if (!java.util.Objects.equals(takerFeeCost, null))
         {
-            String takerCode2 = takerCurrencyCode;
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("cost", takerFeeCost);
-            mapLiteral6.put("currency", takerCode2);
+            mapLiteral6.put("currency", takerCurrencyCode);
             result.put("fee", mapLiteral6);
         } else
         {
@@ -1482,7 +1480,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1585,7 +1583,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1598,10 +1596,10 @@ public class Bigone extends BigoneApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        List<Object> balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String symbol = this.safeString(balance, "asset_symbol");
             String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1913,7 +1911,7 @@ public class Bigone extends BigoneApi
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -1954,7 +1952,7 @@ public class Bigone extends BigoneApi
             //        "created_at":"2019-01-29T06:05:56Z",
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -1995,11 +1993,11 @@ public class Bigone extends BigoneApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> cancelled = (List<Object>) this.safeList(data, "cancelled", new ArrayList<Object>(Arrays.asList()));
-            List<Object> failed = (List<Object>) this.safeList(data, "failed", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> cancelled = this.safeList(data, "cancelled", new ArrayList<Object>(Arrays.asList()));
+            List<Object> failed = this.safeList(data, "failed", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)cancelled).size(); i++)
+            for (var i = 0; i < cancelled.size(); i++)
             {
                 Object orderId = (cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i));
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -2008,7 +2006,7 @@ public class Bigone extends BigoneApi
                     put( "status", "canceled" );
                 }}, (Map<String, Object>) null));
             }
-            for (var i = 0; i < ((List<?>)failed).size(); i++)
+            for (var i = 0; i < failed.size(); i++)
             {
                 Object orderId = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -2045,7 +2043,7 @@ public class Bigone extends BigoneApi
                 put( "id", id );
             }};
             Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -2104,7 +2102,7 @@ public class Bigone extends BigoneApi
             //        "page_token":"dxzef",
             //    }
             //
-            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2177,7 +2175,7 @@ public class Bigone extends BigoneApi
             //         "page_token":"dxfv"
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2345,15 +2343,15 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer dataLength = ((List<?>)data).size();
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer dataLength = data.size();
             if (((dataLength == null || dataLength < 1)))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned empty address response")) ;
             }
             Map<String,Object> chainsIndexedById = this.indexBy(data, "chain");
             Object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
-            Map<String, Object> addressObject = (Map<String, Object>) this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
+            Map<String, Object> addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
             String address = this.safeString(addressObject, "value");
             String tag = this.safeString(addressObject, "memo");
             this.checkAddress(address, (String) null, (String) null);
@@ -2528,7 +2526,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            List<Object> deposits = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2587,7 +2585,7 @@ public class Bigone extends BigoneApi
             //         "page_token":"dxvf"
             //     }
             //
-            List<Object> withdrawals = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2615,7 +2613,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             String guid = this.safeString(parameters, "guid", this.uuid());
@@ -2634,7 +2632,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(response, currency);
-            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
@@ -2743,7 +2741,7 @@ public class Bigone extends BigoneApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 

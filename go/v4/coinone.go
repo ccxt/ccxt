@@ -1121,7 +1121,7 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"target_currency": market["base"],
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 200)
+		request["size"] = min(*limit, 200)
 	}
 
 	r1 := <-this.V2PublicGetTradesQuoteCurrencyTargetCurrency(this.Extend(request, params))
@@ -1355,12 +1355,12 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 	}
-	var marketResolved any = func() any {
-		if symbol != nil {
-			return this.SafeMarket(symbol, market, "/")
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if symbol != nil {
+		marketResolved = this.SafeMarket(symbol, market, "/")
+	} else {
+		marketResolved = market
+	}
 	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
 	if timestamp == nil {
 		timestamp = this.SafeInteger2(order, "ordered_at", "updated_at") // v2.1 sends milliseconds
@@ -1578,12 +1578,12 @@ func (this *Coinone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinone) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinone) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinone) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinone) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1776,8 +1776,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		}, params))
 		var payload string = this.StringToBase64(json)
 		requestBody = SafeStringPtr(payload)
-		var secret string = strings.ToUpper(this.Secret)
-		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(strings.ToUpper(this.Secret)), sha512)
 		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",
 			"X-COINONE-PAYLOAD":   payload,

@@ -1335,9 +1335,9 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		}
 	}
 	for i := 0; i < len(instrumentsResponses); i++ {
-		var instrumentsResult []any = SafeListTyped(instrumentsResponses[i], "result")
+		var instrumentsResult []map[string]any = this.SafeListMapsTyped(instrumentsResponses[i], "result")
 		for k := 0; k < len(instrumentsResult); k++ {
-			var market any = instrumentsResult[k]
+			var market map[string]any = instrumentsResult[k]
 			var kind *string = this.SafeString(market, "kind")
 			var isSpot bool = (kind != nil && *kind == "spot")
 			var id *string = this.SafeString(market, "instrument_name")
@@ -1387,12 +1387,12 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					if option {
 						strike = this.SafeNumber(market, "strike")
 						optionType = this.SafeString(market, "option_type")
-						var letter string = func() string {
-							if optionType != nil && *optionType == "call" {
-								return "C"
-							}
-							return "P"
-						}()
+						var letter string
+						if optionType != nil && *optionType == "call" {
+							letter = "C"
+						} else {
+							letter = "P"
+						}
 						symbol = Add(Add(Add(Add(symbol, "-"), this.NumberToString(strike)), "-"), letter)
 					}
 				}
@@ -2038,12 +2038,12 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var now int64 = this.Milliseconds()
 	// at max, it provides 5000 bars, but we set generous default here
 	var defaultLimit int = 1000
-	var windowLimit int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultLimit)
-		}
-		return *limit
-	}()
+	var windowLimit int64
+	if limit == nil {
+		windowLimit = int64(defaultLimit)
+	} else {
+		windowLimit = *limit
+	}
 	var limitResolved any = func() any {
 		if (since == nil) && (limit == nil) {
 			return defaultLimit
@@ -2054,10 +2054,10 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if since == nil {
 			return nil
 		}
-		return mathMax(*since-1, 0)
+		return max(*since-1, 0)
 	}()
 	if since == nil {
-		request["start_timestamp"] = (now - (((windowLimit - 1) * duration) * 1000))
+		request["start_timestamp"] = now - (windowLimit-1)*duration*1000
 		request["end_timestamp"] = now
 	} else {
 		request["start_timestamp"] = sinceResolved
@@ -2248,7 +2248,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["start_timestamp"] = since
 	}
 	if limit != nil {
-		request["count"] = mathMin(limit, 1000) // default 10
+		request["count"] = min(*limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
 	var paramsOmitted map[string]any = func() map[string]any {
@@ -2395,30 +2395,30 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var fees []any = SafeListTyped(result, "fees")
+	var fees []map[string]any = this.SafeListMapsTyped(result, "fees")
 	var perpetualFee map[string]any = map[string]any{}
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = fees[i]
-		var instrumentType *string = this.SafeString(fee, "instrument_type")
+		var feeEntry map[string]any = fees[i]
+		var instrumentType *string = this.SafeString(feeEntry, "instrument_type")
 		if instrumentType != nil && *instrumentType == "future" {
 			futureFee = map[string]any{
-				"info":  fee,
-				"maker": this.SafeNumber(fee, "maker_fee"),
-				"taker": this.SafeNumber(fee, "taker_fee"),
+				"info":  feeEntry,
+				"maker": this.SafeNumber(feeEntry, "maker_fee"),
+				"taker": this.SafeNumber(feeEntry, "taker_fee"),
 			}
 		} else if instrumentType != nil && *instrumentType == "perpetual" {
 			perpetualFee = map[string]any{
-				"info":  fee,
-				"maker": this.SafeNumber(fee, "maker_fee"),
-				"taker": this.SafeNumber(fee, "taker_fee"),
+				"info":  feeEntry,
+				"maker": this.SafeNumber(feeEntry, "maker_fee"),
+				"taker": this.SafeNumber(feeEntry, "taker_fee"),
 			}
 		} else if instrumentType != nil && *instrumentType == "option" {
 			optionFee = map[string]any{
-				"info":  fee,
-				"maker": this.SafeNumber(fee, "maker_fee"),
-				"taker": this.SafeNumber(fee, "taker_fee"),
+				"info":  feeEntry,
+				"maker": this.SafeNumber(feeEntry, "maker_fee"),
+				"taker": this.SafeNumber(feeEntry, "taker_fee"),
 			}
 		}
 	}
@@ -2816,12 +2816,12 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["type"] = "trailing_stop"
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
 	} else if isStopOrder {
-		var triggerPrice *string = func() *string {
-			if stopLossPrice != nil {
-				return stopLossPrice
-			}
-			return takeProfitPrice
-		}()
+		var triggerPrice *string
+		if stopLossPrice != nil {
+			triggerPrice = stopLossPrice
+		} else {
+			triggerPrice = takeProfitPrice
+		}
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["trigger"] = trigger
 		if isStopLossOrder {
@@ -2930,7 +2930,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+	var order map[string]any = this.Extend(this.SafeDict(result, "order"), map[string]any{
 		"trades": this.SafeList(result, "trades", []any{}),
 	})
 
@@ -2986,9 +2986,9 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if isTrailingAmountOrder {
-		paramsOmitted = this.Omit(params, "trigger_offset")
+		paramsOmitted = this.OmitDict(params, "trigger_offset")
 	}
 	if isTrailingAmountOrder {
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
@@ -3000,7 +3000,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var response map[string]any = r1.Value
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+	var order map[string]any = this.Extend(this.SafeDict(result, "order"), map[string]any{
 		"trades": this.SafeList(result, "trades", []any{}),
 	})
 
@@ -3018,12 +3018,12 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deribit) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deribit) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3724,12 +3724,12 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	var marketResolved map[string]any = this.SafeMarket(contract, market)
-	var side string = func() string {
-		if this.SafeString(position, "direction") != nil && *this.SafeString(position, "direction") == "buy" {
-			return "long"
-		}
-		return "short"
-	}()
+	var side string
+	if this.SafeString(position, "direction") != nil && *this.SafeString(position, "direction") == "buy" {
+		side = "long"
+	} else {
+		side = "short"
+	}
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")
@@ -4485,19 +4485,19 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var now int64 = this.Milliseconds()
 	var month int64 = (30 * 24) * 60 * 60 * 1000
 	var defaultSince int64 = now - month
-	var sinceResolved int64 = func() int64 {
-		if since == nil {
-			return defaultSince
-		}
-		return *since
-	}()
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = defaultSince
+	} else {
+		sinceResolved = *since
+	}
 	var time int64 = now
 	if since != nil {
 		time = this.ParseToInt(*since + month)
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
-		"start_timestamp": (sinceResolved - 1),
+		"start_timestamp": sinceResolved - 1,
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_timestamp")
 	var paramsUntil map[string]any = func() map[string]any {
@@ -4520,7 +4520,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
-		var maxUntil int64 = this.ParseToInt(this.Sum(sinceResolved, *limit*duration))
+		var maxUntil int64 = this.ParseToInt(sinceResolved + *limit*duration)
 		request["end_timestamp"] = func() int64 {
 			if endTimestamp < maxUntil {
 				return endTimestamp

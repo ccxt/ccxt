@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitfinex::BitfinexCore;
+use super::bitfinex::Bitfinex;
 use crate::exchange::ExchangeRuntime;
 
-impl BitfinexCore {
+impl Bitfinex {
     /// Auto-generated wrapper for the `publicGetConfConfig` implicit endpoint.
     pub async fn public_get_conf_config(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_conf_config".into()), optional_args).await

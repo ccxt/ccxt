@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::coinone::CoinoneCore;
+use super::coinone::Coinone;
 use crate::exchange::ExchangeRuntime;
 
-impl CoinoneCore {
+impl Coinone {
     /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
     pub async fn public_get_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orderbook".into()), optional_args).await

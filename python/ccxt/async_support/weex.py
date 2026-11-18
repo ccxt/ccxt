@@ -1224,7 +1224,7 @@ class weex(Exchange, ImplicitAPI):
             response = [response]
         results = []
         for i in range(0, len(response)):
-            rawTicker = self.safe_value(response, i)
+            rawTicker = self.safe_dict(response, i, {})
             # book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             marketId = self.safe_string(rawTicker, 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, marketType)
@@ -1597,7 +1597,7 @@ class weex(Exchange, ImplicitAPI):
                 historyLimit = self.parse_to_int(maxHistoricalLimit)
                 if limit is not None and limit is not None and limit != 0:
                     historyLimit = self.parse_to_int(min(limit, maxHistoricalLimit))
-                timeDelta = self.parse_to_int(historyLimit * duration)
+                timeDelta = historyLimit * duration
                 if (since is None) and (until is None):
                     endTime = now
                     startTime = now - timeDelta
@@ -1737,7 +1737,7 @@ class weex(Exchange, ImplicitAPI):
         if realizedPnl is not None:
             tradeMarketType = 'swap'
         marketResolved = self.safe_market(tradeMarketId if (market is None) else None, market, None, tradeMarketType)
-        isSpot = None
+        isSpot = False
         if market is None:
             isSpot = tradeMarketType == 'spot'
         else:
@@ -1856,7 +1856,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
         timestamp = self.safe_integer(contract, 'time')
