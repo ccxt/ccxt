@@ -5535,6 +5535,7 @@ export default class mexc extends Exchange {
             'collateral': this.parseNumber(collateralString),
             'side': side,
             'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'realizedPnl': this.safeNumber(position, 'realised'),
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
             'marginMode': marginType,

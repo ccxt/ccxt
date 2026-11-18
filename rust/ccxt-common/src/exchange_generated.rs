@@ -1572,7 +1572,7 @@ pub trait ExchangeBase:
             while { if !__for_first_80 { i += 1; } __for_first_80 = false; i < (markets.len() as i64) } {
             let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, markets.get(i as usize).cloned().unwrap_or(Value::Null));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market != Value::Null) {
+            if (market != Value::Null) && (self.safe_string_k(market.clone(), "id", &[]) != Value::Null) {
                 result.push(market);
             }
         }

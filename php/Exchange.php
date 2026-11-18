@@ -4118,7 +4118,7 @@ class BaseExchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if ($market !== null) {
+            if ($market !== null && $this->safe_string($market, 'id') !== null) {
                 $result[] = $market;
             }
         }

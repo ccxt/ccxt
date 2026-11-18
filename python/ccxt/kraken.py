@@ -14,6 +14,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import RestrictedLocation
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -586,6 +587,7 @@ class kraken(Exchange, ImplicitAPI):
                     ':IInsufficient funds': InsufficientFunds,
                     ':Cancel pending': CancelPending,
                     ':Rate limit exceeded': RateLimitExceeded,
+                    'trading restricted for': RestrictedLocation,  # {"error":["EAccount:Invalid permissions:EUR/JPY trading restricted for AE."]}
                 },
             },
         })

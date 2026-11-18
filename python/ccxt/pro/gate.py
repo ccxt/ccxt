@@ -1770,14 +1770,26 @@ class gate(ccxt.async_support.gate):
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
             self.liquidations = ArrayCache(limit)
         cache = self.liquidations
+        liquidationsBySymbol = {}
         for i in range(0, len(rawLiquidations)):
             rawLiquidation = rawLiquidations[i]
             liquidation = self.parse_ws_liquidation(rawLiquidation)
             cache.append(liquidation)
+            newLiquidations.append(liquidation)
             symbol = self.safe_string(liquidation, 'symbol')
-            symbolLiquidations = self.safe_list(cache, symbol, [])
-            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
-        client.resolve(newLiquidations, 'myLiquidations')
+            if symbol is not None:
+                symbolLiquidations = self.safe_list(liquidationsBySymbol, symbol)
+                if symbolLiquidations is None:
+                    symbolLiquidations = []
+                symbolLiquidations.append(liquidation)
+                liquidationsBySymbol[symbol] = symbolLiquidations
+        symbols = list(liquidationsBySymbol.keys())
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            client.resolve(liquidationsBySymbol[symbol], 'myLiquidations::' + symbol)
+        numNewLiquidations = len(newLiquidations)
+        if numNewLiquidations > 0:
+            client.resolve(newLiquidations, 'myLiquidations')
 
     def parse_ws_liquidation(self, liquidation: dict, market: Market = None) -> Liquidation:
         #
@@ -1809,7 +1821,8 @@ class gate(ccxt.async_support.gate):
         #    }
         #
         marketId = self.safe_string(liquidation, 'contract')
-        marketResolved = self.safe_market(marketId, market)
+        # liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        marketResolved = self.safe_market(marketId, market, '_', 'contract')
         timestamp = self.safe_integer(liquidation, 'time_ms')
         originalSize = self.safe_string(liquidation, 'size')
         left = self.safe_string(liquidation, 'left')
@@ -1824,7 +1837,7 @@ class gate(ccxt.async_support.gate):
             'quoteValue': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        })
+        }, marketResolved)
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #

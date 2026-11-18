@@ -655,6 +655,7 @@ public partial class kraken : Exchange
                     { ":IInsufficient funds", typeof(InsufficientFunds) },
                     { ":Cancel pending", typeof(CancelPending) },
                     { ":Rate limit exceeded", typeof(RateLimitExceeded) },
+                    { "trading restricted for", typeof(RestrictedLocation) },
                 } },
             } },
         });

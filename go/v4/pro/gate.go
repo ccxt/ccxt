@@ -2764,15 +2764,37 @@ func (this *Gate) HandleLiquidation(client any, message map[string]any) {
 		this.Liquidations = ccxt.NewArrayCache(limit)
 	}
 	var cache ccxt.WsArrayCache = this.Liquidations
+	var liquidationsBySymbol map[string]any = map[string]any{}
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation any = rawLiquidations[i]
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
 		cache.Append(liquidation)
+		newLiquidations = append(newLiquidations, liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
-		var symbolLiquidations any = this.SafeList(cache, symbol, []any{})
-		client.(ccxt.ClientInterface).Resolve(symbolLiquidations, ccxt.Add("myLiquidations::", symbol))
+		if symbol != nil {
+			var symbolLiquidations any = this.SafeList(liquidationsBySymbol, symbol)
+			if ccxt.IsEqual(symbolLiquidations, nil) {
+				symbolLiquidations = []any{}
+			}
+			ccxt.AppendToArray(&symbolLiquidations, liquidation)
+			ccxt.AddElementToObject(liquidationsBySymbol, symbol, symbolLiquidations)
+		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newLiquidations, "myLiquidations")
+	var symbols []string = nil
+	if liquidationsBySymbol != nil {
+		symbols = make([]string, 0, len(liquidationsBySymbol))
+		for objectKey := range liquidationsBySymbol {
+			symbols = append(symbols, objectKey)
+		}
+	}
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = symbols[i]
+		client.(ccxt.ClientInterface).Resolve(liquidationsBySymbol[symbol], "myLiquidations::"+symbol)
+	}
+	var numNewLiquidations int = len(newLiquidations)
+	if numNewLiquidations > 0 {
+		client.(ccxt.ClientInterface).Resolve(newLiquidations, "myLiquidations")
+	}
 }
 func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	//
@@ -2806,7 +2828,8 @@ func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(liquidation, "contract")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	// liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", "contract")
 	var timestamp *int64 = this.SafeInteger(liquidation, "time_ms")
 	var originalSize *string = this.SafeString(liquidation, "size")
 	var left *string = this.SafeString(liquidation, "left")
@@ -2821,7 +2844,7 @@ func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 		"quoteValue":   nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-	})
+	}, marketResolved)
 }
 func (this *Gate) HandleErrorMessage(client any, message map[string]any) bool {
 	//

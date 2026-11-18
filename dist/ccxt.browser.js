@@ -179656,7 +179656,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         for(let i = 0; i < markets.length; i++){
             const market = this.parseMarket(markets[i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market !== undefined) {
+            if (market !== undefined && this.safeString(market, 'id') !== undefined) {
                 result.push(market);
             }
         }
@@ -408828,7 +408828,8 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
                     ':Invalid nonce': _base_errors_js__rspack_import_2.InvalidNonce,
                     ':IInsufficient funds': _base_errors_js__rspack_import_2.InsufficientFunds,
                     ':Cancel pending': _base_errors_js__rspack_import_2.CancelPending,
-                    ':Rate limit exceeded': _base_errors_js__rspack_import_2.RateLimitExceeded
+                    ':Rate limit exceeded': _base_errors_js__rspack_import_2.RateLimitExceeded,
+                    'trading restricted for': _base_errors_js__rspack_import_2.RestrictedLocation
                 }
             }
         });
@@ -447177,6 +447178,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             'collateral': this.parseNumber(collateralString),
             'side': side,
             'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'realizedPnl': this.safeNumber(position, 'realised'),
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
             'marginMode': marginType,
@@ -570804,15 +570806,31 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             this.liquidations = new _base_ws_Cache_js__rspack_import_2/* .ArrayCache */.I3(limit);
         }
         const cache = this.liquidations;
+        const liquidationsBySymbol = {};
         for(let i = 0; i < rawLiquidations.length; i++){
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             cache.append(liquidation);
+            newLiquidations.push(liquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            const symbolLiquidations = this.safeList(cache, symbol, []);
-            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol);
+            if (symbol !== undefined) {
+                let symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
+                if (symbolLiquidations === undefined) {
+                    symbolLiquidations = [];
+                }
+                symbolLiquidations.push(liquidation);
+                liquidationsBySymbol[symbol] = symbolLiquidations;
+            }
         }
-        client.resolve(newLiquidations, 'myLiquidations');
+        const symbols = Object.keys(liquidationsBySymbol);
+        for(let i = 0; i < symbols.length; i++){
+            const symbol = symbols[i];
+            client.resolve(liquidationsBySymbol[symbol], 'myLiquidations::' + symbol);
+        }
+        const numNewLiquidations = newLiquidations.length;
+        if (numNewLiquidations > 0) {
+            client.resolve(newLiquidations, 'myLiquidations');
+        }
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
@@ -570844,7 +570862,8 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         //    }
         //
         const marketId = this.safeString(liquidation, 'contract');
-        const marketResolved = this.safeMarket(marketId, market);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        const marketResolved = this.safeMarket(marketId, market, '_', 'contract');
         const timestamp = this.safeInteger(liquidation, 'time_ms');
         const originalSize = this.safeString(liquidation, 'size');
         const left = this.safeString(liquidation, 'left');
@@ -570859,7 +570878,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp)
-        });
+        }, marketResolved);
     }
     handleErrorMessage(client, message) {
         //
@@ -629362,122 +629381,120 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         }
         const data = this.safeDict(response, 'data', {});
         const list = this.safeList(data, 'list', []);
-        const result = [];
-        for(let i = 0; i < list.length; i++){
-            const market = list[i];
-            const baseId = this.safeString(market, 'baseAsset');
-            const quoteId = this.safeString(market, 'quoteAsset');
-            const id = this.safeString(market, 'symbol');
-            const lowercaseId = this.safeStringLower(market, 'symbol');
-            const settleId = this.safeString(market, 'marginAsset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            if (base === undefined || quote === undefined) {
-                continue;
-            }
-            const settle = this.safeCurrencyCode(settleId);
-            const symbol = base + '/' + quote;
-            const filters = this.safeList(market, 'filters', []);
-            const filtersByType = this.indexBy(filters, 'filterType');
-            const status = this.safeString(market, 'spotTradingEnable');
-            let active = status === '1';
-            const permissions = this.safeList(market, 'permissions', []);
-            for(let j = 0; j < permissions.length; j++){
-                if (this.safeString(permissions, j) === 'TRD_GRP_003') {
-                    active = false;
-                    break;
-                }
-            }
-            const marginTradingEnable = this.safeString(market, 'marginTradingEnable');
-            let costMin = undefined;
-            const precision = {
-                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
-                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
-                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision')))
-            };
-            const limits = {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined
-                },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined
-                },
-                'cost': {
-                    'min': costMin,
-                    'max': undefined
-                }
-            };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                limits['price'] = {
-                    'min': this.safeNumber(filter, 'minPrice'),
-                    'max': this.safeNumber(filter, 'maxPrice')
-                };
-                precision['price'] = filter['tickSize'];
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
-                precision['amount'] = this.safeNumber(filter, 'stepSize');
-                limits['amount'] = {
-                    'min': this.safeNumber(filter, 'minQty'),
-                    'max': this.safeNumber(filter, 'maxQty')
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
-                limits['market'] = {
-                    'min': this.safeNumber(filter, 'minQty'),
-                    'max': this.safeNumber(filter, 'maxQty')
-                };
-            }
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'spot',
-                'spot': true,
-                'margin': marginTradingEnable === '1',
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': precision,
-                'limits': limits,
-                'created': undefined,
-                'info': market
-            };
-            if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'MIN_NOTIONAL', {});
-                costMin = this.safeNumber2(filter, 'minNotional', 'notional');
-            }
-            result.push(entry);
+        return this.parseMarkets(list);
+    }
+    parseMarket(market) {
+        const baseId = this.safeString(market, 'baseAsset');
+        const quoteId = this.safeString(market, 'quoteAsset');
+        const id = this.safeString(market, 'symbol');
+        const lowercaseId = this.safeStringLower(market, 'symbol');
+        const settleId = this.safeString(market, 'marginAsset');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        if (base === undefined || quote === undefined) {
+            return undefined;
         }
-        return result;
+        const settle = this.safeCurrencyCode(settleId);
+        const symbol = base + '/' + quote;
+        const filters = this.safeList(market, 'filters', []);
+        const filtersByType = this.indexBy(filters, 'filterType');
+        const status = this.safeString(market, 'spotTradingEnable');
+        let active = status === '1';
+        const permissions = this.safeList(market, 'permissions', []);
+        for(let j = 0; j < permissions.length; j++){
+            if (this.safeString(permissions, j) === 'TRD_GRP_003') {
+                active = false;
+                break;
+            }
+        }
+        const marginTradingEnable = this.safeString(market, 'marginTradingEnable');
+        let costMin = undefined;
+        const precision = {
+            'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+            'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
+            'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+            'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision')))
+        };
+        const limits = {
+            'leverage': {
+                'min': undefined,
+                'max': undefined
+            },
+            'amount': {
+                'min': undefined,
+                'max': undefined
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined
+            },
+            'cost': {
+                'min': costMin,
+                'max': undefined
+            }
+        };
+        if ('PRICE_FILTER' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits['price'] = {
+                'min': this.safeNumber(filter, 'minPrice'),
+                'max': this.safeNumber(filter, 'maxPrice')
+            };
+            precision['price'] = filter['tickSize'];
+        }
+        if ('LOT_SIZE' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
+            precision['amount'] = this.safeNumber(filter, 'stepSize');
+            limits['amount'] = {
+                'min': this.safeNumber(filter, 'minQty'),
+                'max': this.safeNumber(filter, 'maxQty')
+            };
+        }
+        if ('MARKET_LOT_SIZE' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
+            limits['market'] = {
+                'min': this.safeNumber(filter, 'minQty'),
+                'max': this.safeNumber(filter, 'maxQty')
+            };
+        }
+        const entry = {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'spot',
+            'spot': true,
+            'margin': marginTradingEnable === '1',
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': precision,
+            'limits': limits,
+            'created': undefined,
+            'info': market
+        };
+        if ('MIN_NOTIONAL' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'MIN_NOTIONAL', {});
+            costMin = this.safeNumber2(filter, 'minNotional', 'notional');
+        }
+        return entry;
     }
     /**
      * @method

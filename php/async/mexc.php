@@ -5727,6 +5727,7 @@ class mexc extends Exchange {
             'collateral' => $this->parse_number($collateralString),
             'side' => $side,
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'realizedPnl' => $this->safe_number($position, 'realised'),
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,

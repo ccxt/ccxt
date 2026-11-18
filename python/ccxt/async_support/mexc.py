@@ -5221,6 +5221,7 @@ class mexc(Exchange, ImplicitAPI):
             'collateral': self.parse_number(collateralString),
             'side': side,
             'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'realizedPnl': self.safe_number(position, 'realised'),
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginType,
