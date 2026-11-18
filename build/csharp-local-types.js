@@ -905,9 +905,9 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
     'orderRequestWs': 'List<object>', 'ordersToTrades': 'List<object>', 'parseAccountPositions': 'List<object>', 'parseAccounts': 'List<object>',
     'parseAddress': 'List<object>', 'parseBinaryMarketToOutcomes': 'List<object>', 'parseCancelOrders': 'List<object>', 'parseContractBidsAsks': 'List<object>',
-    'parseCreateEditOrderArgs': 'List<object>', 'parseDepositMethodIds': 'List<object>', 'parseEventToMarkets': 'List<object>', 'parseEvents': 'List<object>',
+    'parseCreateEditOrderArgs': 'List<object>', 'parseDepositMethodIds': 'List<Dictionary<string, object>>', 'parseEventToMarkets': 'List<object>', 'parseEvents': 'List<object>',
     'parseMarginModifications': 'List<object>', 'parseOrderBookBidAsk': 'List<object>', 'parseOrderBookBidsAsks': 'List<object>', 'parseOrderSideAndReduceOnly': 'List<object>',
-    'parseOrderTypeTimeInForceAndPostOnly': 'List<object>', 'parsePortfolioDetails': 'List<object>', 'parseSearchQueries': 'List<object>', 'parseVolatilityHistory': 'List<object>',
+    'parseOrderTypeTimeInForceAndPostOnly': 'List<object>', 'parsePortfolioDetails': 'List<Dictionary<string, object>>', 'parseSearchQueries': 'List<object>', 'parseVolatilityHistory': 'List<Dictionary<string, object>>',
     // parsePositions: the BaseExchange declaration (single return `filterByArrayPositions
     // (result, 'symbol', symbols, false)` — the `false` literal proves IList<object>) and
     // krakenfutures' override returning its own `List<object> result`.
@@ -1083,7 +1083,9 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
 // the mapped collection type for a method declaration, or undefined to leave the printer's
 // own decision (async methods and every other name)
 function collectionReturnType (csharp, node, own) {
-    if (own !== 'object') {
+    // a `Dict[]` annotation prints List<object>; only the dict-list mapping may narrow it
+    const dictListName = (own === 'List<object>') && collectionReturnMethodType (node?.name?.text) === 'List<Dictionary<string, object>>';
+    if (own !== 'object' && !dictListName) {
         return undefined;
     }
     if (node?.kind !== ts.SyntaxKind.MethodDeclaration || node.name === undefined) {
@@ -1491,7 +1493,9 @@ export function installCsharpCollectionReturns (transpiler) {
         const mapped = collectionReturnType (csharp, enclosing, 'object');
         // a proven per-declaration method, or a callee whose signature already returns mapped,
         // hands back the mapped box on every path, so the boundary cast would be an identity box
-        if (mapped === undefined || !node.expression || csharp84c6ReturnIsTyped (csharp, node.expression, mapped) || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
+        const accumulator = (mapped === 'List<Dictionary<string, object>>') && node.expression?.kind === ts.SyntaxKind.Identifier
+            && dictListAccumulator (csharp, (indexScope (csharp, enclosing).identifiers.get (node.expression.text) ?? []).find ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n)?.parent);
+        if (mapped === undefined || !node.expression || accumulator || csharp84c6ReturnIsTyped (csharp, node.expression, mapped) || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression keeps its upstream shape; the cast only names the box
@@ -1500,6 +1504,17 @@ export function installCsharpCollectionReturns (transpiler) {
         trailingComment = trailingComment ? ' ' + trailingComment : trailingComment;
         const value = csharp.printNode (node.expression, identation).trim ();
         return leadingComment + csharp.getIden (identation) + csharp.RETURN_TOKEN + ` ((${mapped})((object)(${value})))` + csharp.LINE_TERMINATOR + trailingComment;
+    };
+    const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamDeclaration (node, identation);
+        if (node?.declarations?.length === 1 && dictListCallLocal (node.declarations[0])) {
+            return printed.replace (/^(\s*)List<object> (\w+) = this\./, '$1List<Dictionary<string, object>> $2 = this.');
+        }
+        if (node?.declarations?.length !== 1 || !dictListAccumulator (csharp, node.declarations[0])) {
+            return printed;
+        }
+        return printed.replace (/^(\s*)List<object> (\w+) = new List<object>\(\) \{\}/, '$1List<Dictionary<string, object>> $2 = new List<Dictionary<string, object>>() {}');
     };
     csharp._collectionReturnsPatched = true;
 }
@@ -8373,6 +8388,55 @@ function pushBuiltListElementType (csharp, scope, declaration, context) {
         return undefined; // a list nothing was ever added to proves no element box
     }
     return { elementType, pushes };
+}
+
+// `const x = this.<dict-list method> (...)` read only by `return x`: the local takes the
+// call's retyped box (no other use could need List<object>)
+function dictListCallLocal (declaration) {
+    const call = stripParens (declaration?.initializer);
+    const callee = call?.expression;
+    const scope = enclosingFunction (declaration);
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || collectionReturnMethodType (callee.name?.text) !== 'List<Dictionary<string, object>>' || scope === undefined) {
+        return false;
+    }
+    const uses = [];
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === declaration.name.text && n !== declaration.name) {
+            uses.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return uses.length > 0 && uses.every ((use) => use.parent?.kind === ts.SyntaxKind.ReturnStatement && enclosingFunction (use) === scope);
+}
+
+// `const result = []` returned by a method mapped to List<Dictionary<string, object>>: every
+// push proves a dictionary and every other use is a bare `return result`, so the list is
+// built with the mapped element type and the return needs no boundary cast
+function dictListAccumulator (csharp, declaration) {
+    const DICT_LIST = 'List<Dictionary<string, object>>';
+    const scope = enclosingFunction (declaration);
+    const empty = stripParens (declaration?.initializer);
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || empty?.kind !== ts.SyntaxKind.ArrayLiteralExpression || empty.elements.length !== 0
+            || scope?.kind !== ts.SyntaxKind.MethodDeclaration || collectionReturnType (csharp, scope, 'object') !== DICT_LIST) {
+        return false;
+    }
+    let pushed = false;
+    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []) {
+        const parent = use.parent;
+        if (use === declaration.name || (parent?.kind === ts.SyntaxKind.ReturnStatement && enclosingFunction (use) === scope)) {
+            continue;
+        }
+        const call = parent?.parent;
+        if (parent?.kind !== ts.SyntaxKind.PropertyAccessExpression || parent.expression !== use || parent.name?.text !== 'push'
+                || call?.kind !== ts.SyntaxKind.CallExpression || call.expression !== parent || call.arguments?.length !== 1
+                || elementValueType (csharp, call.arguments[0], undefined) !== 'Dictionary<string, object>') {
+            return false;
+        }
+        pushed = true;
+    }
+    return pushed;
 }
 
 // ---- element reads of a narrowed string-list PARAMETER -----------------------------
