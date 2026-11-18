@@ -4104,9 +4104,7 @@ export default class aster extends Exchange {
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
                 }
-                const leverageBracketsDict = this.safeDict (this.options, 'leverageBrackets', {});
-                leverageBracketsDict[symbol] = result;
-                this.options['leverageBrackets'] = leverageBracketsDict;
+                this.options['leverageBrackets'][symbol] = result;
             }
         }
         return this.options['leverageBrackets'];

@@ -2058,14 +2058,10 @@ export default class coinbase extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             if (code !== undefined) {
-                const networksDict1 = this.safeDict (this.options, 'networks', {});
-                networksDict1[code] = (name as string).toLowerCase ();
-                this.options['networks'] = networksDict1;
+                this.options['networks'][code] = (name as string).toLowerCase ();
             }
             if (code !== undefined) {
-                const networksByIdDict2 = this.safeDict (this.options, 'networksById', {});
-                networksByIdDict2[code] = (name as string).toLowerCase ();
-                this.options['networksById'] = networksByIdDict2;
+                this.options['networksById'][code] = (name as string).toLowerCase ();
             }
             let type: Str = 'fiat';
             if (assetId !== undefined) {

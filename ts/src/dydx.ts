@@ -2583,8 +2583,6 @@ export default class dydx extends Exchange {
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';
         this.options['chainId'] = 11155111;
-        const feeDenomDict = this.safeDict (this.options, 'feeDenom', {});
-        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
-        this.options['feeDenom'] = feeDenomDict;
+        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
     }
 }

@@ -1954,16 +1954,12 @@ export default class htx extends Exchange {
                 constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
-                const futureMarketIdsForSymbolsDict1 = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
-                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol;
-                this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1;
+                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        const futureMarketIdsForSymbolsDict2 = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
-        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId;
-        this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2;
+        this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId;
         return symbolOrMarketId;
     }
 

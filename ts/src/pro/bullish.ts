@@ -108,9 +108,7 @@ export default class bullish extends bullishRest {
         const cookies: Dict = {
             'JWT_COOKIE': token,
         };
-        const wsDict = this.safeDict (this.options, 'ws', {});
-        wsDict['cookies'] = cookies;
-        this.options['ws'] = wsDict;
+        this.options['ws']['cookies'] = cookies;
         const id = this.requestId ().toString ();
         const message: Dict = {
             'jsonrpc': '2.0',
