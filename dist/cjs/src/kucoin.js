@@ -1636,7 +1636,7 @@ class kucoin extends kucoin$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        let fetchTickersFees = undefined;
+        let fetchTickersFees = true;
         let paramsRequest = undefined;
         [fetchTickersFees, paramsRequest] = this.handleOptionBoolAndParams(params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = false;
@@ -4866,8 +4866,7 @@ class kucoin extends kucoin$1["default"] {
         //           },
         // }
         //
-        let data = this.safeDict(response, 'data', {});
-        data = this.safeList(data, 'data', []);
+        const data = this.safeList(this.safeDict(response, 'data', {}), 'data', []);
         return this.parseOrders(data);
     }
     /**
@@ -11158,9 +11157,8 @@ class kucoin extends kucoin$1["default"] {
                 'clientOid': this.safeString(clientOrderIds, i),
             });
         }
-        const idsList = this.toArray(ids);
-        for (let i = 0; i < idsList.length; i++) {
-            const orderId = this.safeString(idsList, i);
+        for (let i = 0; i < ids.length; i++) {
+            const orderId = this.safeString(ids, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
@@ -11971,7 +11969,7 @@ class kucoin extends kucoin$1["default"] {
             let partner = this.safeDict(this.options, 'partner', {});
             const isUtaFuturePrivate = isUtaPrivate && (tradeType === 'FUTURES');
             const isFuturePartner = isFuturePrivate || isUtaFuturePrivate;
-            partner = isFuturePartner ? this.safeValue(partner, 'future', partner) : this.safeValue(partner, 'spot', partner);
+            partner = isFuturePartner ? this.safeDict(partner, 'future', partner) : this.safeDict(partner, 'spot', partner);
             const partnerId = this.safeString(partner, 'id');
             const partnerSecret = this.safeString2(partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {

@@ -719,10 +719,10 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var pairs []any = SafeListTyped(data, "pairs")
+	var pairs []map[string]any = this.SafeListMapsTyped(data, "pairs")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(pairs); i++ {
-		var pair any = pairs[i]
+		var pair map[string]any = pairs[i]
 		var marketId *string = this.SafeString(pair, "name")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -786,15 +786,15 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var windowLimit any = func() any {
-		if limit == nil {
-			return 1000
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
+	var windowLimit int64
+	if limit == nil {
+		windowLimit = 1000
+	} else {
+		windowLimit = *limit
+	}
+	var limitResolved *int64 = func() *int64 {
 		if since == nil {
-			return windowLimit
+			return Int64PtrTyped(windowLimit)
 		}
 		return limit
 	}()
@@ -805,7 +805,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	var sinceResolved any = func() any {
 		if since == nil {
-			return (this.Milliseconds() - windowMs)
+			return this.Milliseconds() - windowMs
 		}
 		return since
 	}()
@@ -1059,12 +1059,12 @@ func (this *Bitbank) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitbank) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitbank) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitbank) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitbank) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

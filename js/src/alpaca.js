@@ -1067,8 +1067,7 @@ export default class alpaca extends Exchange {
         const parts = uuid.split('-');
         const random_id = parts.join('');
         const defaultClientId = this.implodeParams(clientOrderIdprefix, { 'id': random_id });
-        const clientOrderId = this.safeString(params, 'clientOrderId', defaultClientId);
-        return clientOrderId;
+        return this.safeString(params, 'clientOrderId', defaultClientId);
     }
     /**
      * @method
@@ -1764,11 +1763,9 @@ export default class alpaca extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let addressValue = address;
         const tagSuffix = this.safeString(params, 'tag', '');
-        if (tagSuffix !== '') {
-            addressValue = address + ':' + tagSuffix;
-        }
+        const taggedAddress = address + ':' + tagSuffix;
+        const addressValue = (tagSuffix !== '') ? taggedAddress : address;
         const request = {
             'asset': currency['id'],
             'address': addressValue,

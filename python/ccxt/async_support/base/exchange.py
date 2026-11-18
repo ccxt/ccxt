@@ -753,7 +753,7 @@ class BaseExchange(SyncExchange):
 
     async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}):
         if self.has['watchMyLiquidationsForSymbols'] is not None and self.has['watchMyLiquidationsForSymbols'] is not False:
-            return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+            return await self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchMyLiquidations() is not supported yet')
 
     async def watch_my_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}):
@@ -1118,7 +1118,7 @@ class BaseExchange(SyncExchange):
         fees = await self.fetch_deposit_withdraw_fees([code], params)
         return self.safe_dict(fees, code)
 
-    async def fetch_cross_borrow_rate(self, code: str, params={}):
+    async def fetch_cross_borrow_rate(self, code: str, params: dict = {}):
         await self.load_markets()
         if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
@@ -2246,7 +2246,7 @@ class Exchange(BaseExchange):
         order = await self.fetchOrder(id, symbol, params)
         return self.safe_string(order, 'status')
 
-    async def fetch_unified_order(self, order: object, params: dict = {}):
+    async def fetch_unified_order(self, order: Order, params: dict = {}):
         return await self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
@@ -2451,7 +2451,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order: Order, params: dict = {}):
-        return await self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return await self.cancel_order(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         if (self.has['fetchOpenOrders'] is not None and self.has['fetchOpenOrders'] is not False) and (self.has['fetchClosedOrders'] is not None and self.has['fetchClosedOrders'] is not False):

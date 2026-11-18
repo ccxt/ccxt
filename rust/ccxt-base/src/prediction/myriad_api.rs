@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::myriad::MyriadCore;
+use super::myriad::Myriad;
 use crate::exchange::ExchangeRuntime;
 
-impl MyriadCore {
+impl Myriad {
     /// Auto-generated wrapper for the `myriadPublicGetQuestions` implicit endpoint.
     pub async fn myriad_public_get_questions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("myriad_public_get_questions".into()), optional_args).await

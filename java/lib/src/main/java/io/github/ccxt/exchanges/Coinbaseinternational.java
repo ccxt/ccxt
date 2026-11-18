@@ -721,7 +721,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Long timestamp = this.safeInteger(response, "result");
             return timestamp;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -833,7 +833,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            List<Object> instruments = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> instruments = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(instruments);
         });
 
@@ -1008,7 +1008,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            List<Object> currencies = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -1046,9 +1046,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Double precision = this.parseNumber(this.parsePrecision(decimals));
         Double networkFee = this.safeNumber(currency, "network_fee", (Object) null);
         Double withdrawalFee = this.safeNumber(currency, "withdrawal_fee", (Object) null);
-        List<Object> rawNetworks = (List<Object>) this.safeList(currency, "coinbase_networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawNetworks = this.safeList(currency, "coinbase_networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)rawNetworks).size(); i++)
+        for (var i = 0; i < rawNetworks.size(); i++)
         {
             Object rawNetwork = (rawNetworks == null || i < 0 || i >= rawNetworks.size() ? null : rawNetworks.get(i));
             String networkId = this.safeString(rawNetwork, "resource_name");
@@ -1143,7 +1143,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "instrument_name", market.get("id") );
                 put( "resolution", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals(this.safeBool2(marketInfo, "is_cbe_routed", "is_csr", false)))
             {
                 throw new NotSupported((this.id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")) ;
@@ -1197,7 +1197,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "jsonrpc": "2.0"
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> candles = (List<Object>) this.convertTradingViewToOHLCV(((Object)result), "ticks", "open", "high", "low", "close", "volume", true);
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, java.util.Objects.requireNonNullElse(limit, 100L), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1258,7 +1258,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> market = this.market(symbol);
             Long duration = (((long) this.parseTimeframe("1h")) * 1000L);
             Long now = this.milliseconds();
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
@@ -1269,7 +1269,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             request.put("end_timestamp", now);
             if (!java.util.Objects.equals(limit, null))
             {
-                Object endTimestamp = this.sum(sinceResolved, (limit * duration));
+                Long endTimestamp = (Long) this.sum(sinceResolved, (limit * duration));
                 request.put("end_timestamp", endTimestamp);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1301,7 +1301,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            List<Object> rawRates = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawRates = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rawRates, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -1381,7 +1381,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires a symbols argument")) ;
             }
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
                 String symbol = this.safeString(symbolsResolved, i);
                 if (java.util.Objects.equals(symbol, null))
@@ -1454,7 +1454,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1487,7 +1487,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     }
         //
         Long timestamp = this.safeInteger(ticker, "timestamp");
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", new HashMap<String, Object>() {{}});
+        Map<String, Object> stats = this.safeDict(ticker, "stats", new HashMap<String, Object>() {{}});
         Double last = this.safeNumber(ticker, "last_price", (Object) null);
         String marketId = this.safeString(ticker, "instrument_name");
         Double quoteVolume = this.safeNumber(stats, "volume_notional", (Object) null);
@@ -1557,9 +1557,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     {
                         throw new BadRequest((this.id + " fetchOrderBook() limit must be between 1 and 10000")) ;
                     }
-                    for (var i = 0; i < ((List<?>)depths).size(); i++)
+                    for (var i = 0; i < depths.size(); i++)
                     {
-                        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, this.parseToInt((depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)))))
+                        if ((limit <= this.parseToInt((depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)))))
                         {
                             request.put("depth", this.safeInteger(depths, i, 0));
                             break;
@@ -1614,7 +1614,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             return this.parseOrderBook(result, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
@@ -1900,11 +1900,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (!this.isNativeDeribitCredentials())
             {
                 // Account summaries are arrays; retain the gateway info shape without dropping balances.
-                List<Object> summaries = (List<Object>) this.safeList(result, "summaries", (Object) null);
+                List<Object> summaries = this.safeList(result, "summaries", null);
                 if (!java.util.Objects.equals(summaries, null))
                 {
                     return this.parseBalanceList(summaries);
@@ -1921,17 +1921,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object summaries = new ArrayList<Object>(Arrays.asList(response));
+        List<Object> summaries = new ArrayList<Object>(Arrays.asList(response));
         if ((response instanceof List))
         {
-            summaries = response;
+            summaries = (List<Object>) response;
         } else if (this.isNativeDeribitCredentials())
         {
-            summaries = this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
+            summaries = (List<Object>) this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
         }
-        for (var i = 0; i < ((List<?>)summaries).size(); i++)
+        for (var i = 0; i < summaries.size(); i++)
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(summaries, i, (Object) null);
+            Map<String, Object> data = this.safeDict(summaries, i, null);
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1979,7 +1979,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
@@ -2038,8 +2038,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> transfers = (List<Object>) this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> transfers = this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -2077,7 +2077,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //
         Long transactionTimestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "currency");
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(transfer, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> info = this.safeDict(transfer, "info", new HashMap<String, Object>() {{}});
         Double amount = this.safeNumber(transfer, "change", (Object) null);
         String fromAccount = this.safeString(transfer, "username");
         String toAccount = this.safeString(info, "other_user");
@@ -2160,7 +2160,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> position = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
@@ -2306,7 +2306,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             if (this.isEmpty(symbols))
             {
                 return this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
@@ -2349,7 +2349,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
@@ -2407,14 +2407,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> logs = (List<Object>) this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> logs = this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
             if (!this.isNativeDeribitCredentials())
             {
                 return this.parseTransactions(logs, currency, since, limit, new HashMap<String, Object>() {{}});
             }
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)logs).size(); i++)
+            for (var i = 0; i < logs.size(); i++)
             {
                 Object transaction = (logs == null || i < 0 || i >= logs.size() ? null : logs.get(i));
                 String transactionType = this.safeString(transaction, "type");
@@ -2523,7 +2523,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     }
         //
         Long transactionTimestamp = this.safeInteger(transaction, "timestamp");
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(transaction, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> info = this.safeDict(transaction, "info", new HashMap<String, Object>() {{}});
         String transactionType = this.safeString(transaction, "type");
         String transactionId = this.safeString(transaction, "id");
         String currencyId = this.safeString(transaction, "currency");
@@ -2781,9 +2781,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             order.put("trades", trades);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -2941,7 +2941,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         mapLiteral5.put("average", average);
         mapLiteral5.put("status", this.parseOrderStatus(this.safeStringLower(order, "order_state")));
         mapLiteral5.put("fee", fee);
-        mapLiteral5.put("trades", this.safeList(order, "trades", (Object) null));
+        mapLiteral5.put("trades", this.safeList(order, "trades", null));
         return this.safeOrder(mapLiteral5, marketResolved);
     }
 
@@ -3039,7 +3039,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3201,9 +3201,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             order.put("trades", trades);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -3269,7 +3269,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3356,7 +3356,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         ]
             //     }
             //
-            List<Object> rawOrders = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawOrders = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3428,7 +3428,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("end_timestamp", (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds());
                 if (this.isNativeDeribitCredentials())
                 {
-                    ((Map<String,Object>)request).remove("include_old");
+                    request.remove("include_old");
                 }
                 response = (this.privateGetGetUserTradesByInstrumentAndTime(this.extend(request, paramsOmitted))).join();
             } else
@@ -3490,8 +3490,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3642,7 +3642,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseLeverage(result, market);
         }).thenApply(Leverage::new);
 
@@ -3738,14 +3738,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
     {
-        Object uri = null;
+        String uri = null;
         if ((!java.util.Objects.equals(url, null)) && (!java.util.Objects.equals(method, null)))
         {
             uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
-            Object quesPos = ((String)uri).indexOf("?");
+            Object quesPos = uri.indexOf("?");
             if ((((Integer) quesPos) > 0))
             {
-                uri = (uri == null ? null : ((String)uri).substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? ((String)uri).length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), ((String)uri).length())));
+                uri = (uri == null ? null : uri.substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? uri.length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), uri.length())));
             }
         }
         String nonce = this.randomBytes(16);
@@ -3836,7 +3836,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String accessToken = this.safeString(result, "access_token");
             Long expiresIn = this.safeInteger(result, "expires_in");
             if (java.util.Objects.equals(accessToken, null))
@@ -3854,7 +3854,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             this.options.put("v2AccessToken", accessToken);
             this.options.put("v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -4085,7 +4085,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             return null;  // fallback to default error handler
         }
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(response, "error", null);
         if (java.util.Objects.equals(error, null))
         {
             return null;

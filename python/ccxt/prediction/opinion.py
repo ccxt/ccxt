@@ -711,8 +711,8 @@ class opinion(PredictionExchange, ImplicitAPI):
         for i in range(0, outcomesLength):
             outcomeObj = self.outcome(outcomes[i])
             priceIndex = i * 2
-            priceResponse = self.safe_value(responses, priceIndex)
-            bookResponse = self.safe_value(responses, self.sum(priceIndex, 1))
+            priceResponse = self.safe_dict(responses, priceIndex)
+            bookResponse = self.safe_dict(responses, self.sum(priceIndex, 1))
             response = {'price': priceResponse, 'book': bookResponse}
             ticker = self.parse_prediction_ticker(response, outcomeObj)
             symbolKey = self.safe_string(ticker, 'outcome')

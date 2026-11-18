@@ -266,7 +266,7 @@ class gemini extends \ccxt\async\gemini {
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $storesForSymbols = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $rawTrade = $this->safe_value($trades, $i);
+            $rawTrade = $this->safe_dict($trades, $i, array());
             $marketId = strtolower($this->safe_string($rawTrade, 'symbol', ''));
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_string($market, 'symbol', '');
@@ -284,9 +284,9 @@ class gemini extends \ccxt\async\gemini {
         $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $stored = $storesForSymbols[$symbol];
+            $symbolStore = $storesForSymbols[$symbol];
             $messageHash = 'trades:' . $symbol;
-            $client->resolve($stored, $messageHash);
+            $client->resolve($symbolStore, $messageHash);
         }
     }
 
@@ -372,8 +372,7 @@ class gemini extends \ccxt\async\gemini {
         $symbol = $this->safe_symbol($marketId, $market);
         $changes = $this->safe_list($message, 'changes', array());
         $timeframe = $this->find_timeframe($timeframeId);
-        $ohlcvsBySymbol = $this->safe_dict($this->ohlcvs, $symbol);
-        if ($ohlcvsBySymbol === null) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
@@ -387,8 +386,7 @@ class gemini extends \ccxt\async\gemini {
         $changesLength = count($changes);
         // reverse order of array to store candles in ascending order
         for ($i = 0; $i < $changesLength; $i++) {
-            $index = $changesLength - $i - 1;
-            $parsed = $this->parse_ohlcv($this->safe_value($changes, $index), $market);
+            $parsed = $this->parse_ohlcv($this->safe_value($changes, $changesLength - $i - 1), $market);
             $stored->append($parsed);
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
@@ -507,6 +505,10 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * watches best bid & ask for $symbols
          *
@@ -516,7 +518,7 @@ class gemini extends \ccxt\async\gemini {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params);
+        return Async\await($this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params));
     }
 
     public function handle_bids_asks_for_multidata(Client $client, array $rawBidAskChanges, ?int $timestamp, ?int $nonce) {
@@ -990,7 +992,7 @@ class gemini extends \ccxt\async\gemini {
             $collectedEventsOfTrades = array();
             $eventsLength = count($events);
             for ($i = 0; $i < count($events); $i++) {
-                $event = $this->safe_value($events, $i);
+                $event = $this->safe_dict($events, $i, array());
                 $eventType = $this->safe_string($event, 'type');
                 $side = $this->safe_string($event, 'side');
                 $isOrderBook = ($eventType === 'change') && ($side !== null) && $this->in_array($side, array( 'ask', 'bid' ));

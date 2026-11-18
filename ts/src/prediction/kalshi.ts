@@ -898,8 +898,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
         const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
@@ -1223,7 +1222,7 @@ export default class kalshi extends Exchange {
         //         "ticker": "KXGDPSHAREMANU-29"
         //     }
         //
-        const candles = this.safeList (response, 'candlesticks', []);
+        const candles: Dict[] = this.safeList (response, 'candlesticks', []);
         const usableCandles: Dict[] = [];
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
@@ -1353,8 +1352,7 @@ export default class kalshi extends Exchange {
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
         const marketInfo = this.safeDict (outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
@@ -1623,13 +1621,13 @@ export default class kalshi extends Exchange {
         const response = await this.kalshiPrivateGetPortfolioSettlements (this.extend (request, params));
         const rawSettlements = this.safeList (response, 'settlements', []);
         const rawSettlementsLength = rawSettlements.length;
-        const parsed: any[] = [];
+        const parsed: Dict[] = [];
         for (let i = 0; i < rawSettlementsLength; i++) {
             parsed.push (this.parseSettlement (rawSettlements[i]));
         }
         const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
         const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < parsed.length; i++) {
             const settlement = parsed[i];
             if ((wantedOutcome === undefined) || (this.safeString (settlement, 'outcome') === wantedOutcome)) {

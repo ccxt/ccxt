@@ -217,7 +217,7 @@ class testMainClass:
             return True
         skip_message = None
         supported_by_exchange = (method_name in exchange.has) and (exchange.has[method_name] is not None) and (exchange.has[method_name] is not False)
-        if not is_load_markets and ((len(self.only_specific_tests) > 0) and (exchange.in_array(method_name, self.only_specific_tests) is not True)):
+        if not is_load_markets and ((len(self.only_specific_tests) > 0) and not exchange.in_array(method_name, self.only_specific_tests)):
             skip_message = '[INFO] IGNORED_TEST'
         elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test and not is_constructor_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message

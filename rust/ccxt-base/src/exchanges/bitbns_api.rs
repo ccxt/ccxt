@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitbns::BitbnsCore;
+use super::bitbns::Bitbns;
 use crate::exchange::ExchangeRuntime;
 
-impl BitbnsCore {
+impl Bitbns {
     /// Auto-generated wrapper for the `wwwGetOrderFetchMarkets` implicit endpoint.
     pub async fn www_get_order_fetch_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("www_get_order_fetch_markets".into()), optional_args).await

@@ -949,7 +949,7 @@ public class Ndax extends NdaxApi
 
     public OrderBook parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        Long nonce = this.safeInteger(this.safeList(orderbook, 0, (Object) null), 0);
+        Long nonce = this.safeInteger(this.safeList(orderbook, 0, null), 0);
         Long latestTimestamp = this.safeInteger(new ArrayList<Object>(Arrays.asList(timestamp)), 0);
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -963,7 +963,7 @@ public class Ndax extends NdaxApi
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(orderbook)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
-            Object level = this.safeValue(orderbook, i);
+            List<Object> level = this.safeList(orderbook, i, null);
             Long newTimestamp = this.safeInteger(level, 2);
             if ((!java.util.Objects.equals(newTimestamp, null)) && ((java.util.Objects.equals(latestTimestamp, null)) || ((newTimestamp != null && (latestTimestamp == null || newTimestamp > latestTimestamp)))))
             {
@@ -1013,7 +1013,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", market.get("id") );
@@ -1168,8 +1168,7 @@ public class Ndax extends NdaxApi
             //         }
             //     ]
             //
-            Object tickers = this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}});
-            return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
+            return this.filterByArrayTickers(this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}}), "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
 
     }
@@ -1569,7 +1568,7 @@ public class Ndax extends NdaxApi
             //     [ 449 ] // comma-separated list of account ids
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 String accountId = this.safeString(response, i);
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1593,7 +1592,7 @@ public class Ndax extends NdaxApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "ProductId");
             if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)))
             {
@@ -1629,7 +1628,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1777,7 +1776,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1956,7 +1955,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             Long orderType = this.safeInteger(this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{}}), this.capitalize(type));
@@ -2034,7 +2033,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
@@ -2095,7 +2094,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2185,7 +2184,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2287,7 +2286,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> market = null;
@@ -2377,7 +2376,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2475,7 +2474,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> market = null;
@@ -2629,7 +2628,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             Map<String,Object> grouped = this.groupBy(response, "ChangeReason");
-            List<Object> trades = (List<Object>) this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2654,7 +2653,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = this.currency((String) (code));
@@ -2765,7 +2764,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = null;
@@ -2837,7 +2836,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = null;
@@ -3000,7 +2999,7 @@ public class Ndax extends NdaxApi
                 type = "withdrawal";
             }
         }
-        Object templateForm = this.parseJson(this.safeValue2(transaction, "TemplateForm", "DepositInfo"));
+        Object templateForm = this.parseJson(this.safeString2(transaction, "TemplateForm", "DepositInfo"));
         Long updated = this.safeInteger(transaction, "LastUpdateTimeStamp");
         if (!java.util.Objects.equals(templateForm, null))
         {
@@ -3081,7 +3080,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, (Object) null), "id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(this.safeString(this.safeDict(this.accounts, 0, null), "id")));
             Long accountId = (Long) this.safeInteger2(paramsWithdrawTag, "accountId", "AccountId", defaultAccountId);
             Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = this.currency((String) (code));
@@ -3103,8 +3102,8 @@ public class Ndax extends NdaxApi
             //         ]
             //     }
             //
-            List<Object> templateTypes = (List<Object>) this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> firstTemplateType = (Map<String, Object>) this.safeDict(templateTypes, 0, (Object) null);
+            List<Object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstTemplateType = this.safeDict(templateTypes, 0, null);
             if (java.util.Objects.equals(firstTemplateType, null))
             {
                 throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + currency.get("code"))) ;

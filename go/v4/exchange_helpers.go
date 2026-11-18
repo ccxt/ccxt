@@ -105,10 +105,23 @@ func EvalTruthy(val any) bool {
 	// Check types of val
 
 	switch v := val.(type) {
-	case int, int32, int64, uint, uint32, uint64:
+	// one type per case: in a multi-type case v stays boxed and never equals the untyped constant
+	case int:
 		return v != 0
-	case float32, float64:
-		return v != 0.0
+	case int32:
+		return v != 0
+	case int64:
+		return v != 0
+	case uint:
+		return v != 0
+	case uint32:
+		return v != 0
+	case uint64:
+		return v != 0
+	case float32:
+		return v != 0 && v == v
+	case float64:
+		return v != 0 && v == v
 	case string:
 		return v != ""
 	case bool:
@@ -1579,14 +1592,41 @@ func Join(slice any, sep any) string {
 	case []string:
 		strSlice = v
 	case []any:
-		for _, elem := range v {
-			strSlice = append(strSlice, ToString(elem))
-		}
+		strSlice = joinElemStrings(v)
 	default:
 		return ""
 	}
 
 	return strings.Join(strSlice, sepStr)
+}
+
+// joinElemStrings is Join's per-element conversion of a []any (nil for a nil slice)
+func joinElemStrings(v []any) []string {
+	var strSlice []string
+	for _, elem := range v {
+		strSlice = append(strSlice, ToString(elem))
+	}
+	return strSlice
+}
+
+// joinListValue is the []string Join reads from a list box: nil only where the box itself is nil,
+// the joined elements of a []any / []string, and an empty slice for every kind Join prints as ""
+func joinListValue(value any) []string {
+	if value == nil {
+		return nil
+	}
+	switch v := derefScalar(value).(type) {
+	case []string:
+		if v == nil {
+			return []string{}
+		}
+		return v
+	case []any:
+		if s := joinElemStrings(v); s != nil {
+			return s
+		}
+	}
+	return []string{}
 }
 
 // Split splits a string into a slice of substrings separated by a separator

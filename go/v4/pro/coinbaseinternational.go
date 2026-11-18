@@ -110,7 +110,7 @@ func (this *Coinbaseinternational) Describe() map[string]any {
 	})
 }
 func (this *Coinbaseinternational) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }
@@ -121,9 +121,10 @@ func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) any {
 		return "wss://www.deribit.com/ws/api/v2"
 	}
 	if isPrivate == true {
-		return this.UrlsApi["wsPrivate"]
+		return this.SafeString(this.Urls["api"], "wsPrivate", "")
+	} else {
+		return this.SafeString(this.Urls["api"], "ws", "")
 	}
-	return this.UrlsApi["ws"]
 }
 func (this *Coinbaseinternational) Ping(client any) any {
 	var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
@@ -131,7 +132,7 @@ func (this *Coinbaseinternational) Ping(client any) any {
 	if isPrivateClient && (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) {
 		// re-authenticate in-band before the session expires, also while no watch call is pending
 		// retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
-		this.Options["wsAuthRefreshAt"] = this.Sum(this.Milliseconds(), 60000)
+		this.Options["wsAuthRefreshAt"] = this.Milliseconds() + 60000
 		var requestId int64 = this.RequestId()
 		this.Options["wsAuthRequestId"] = requestId
 		var params map[string]any = map[string]any{
@@ -779,9 +780,9 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 			ccxt.AddElementToObject(position, "side", "long")
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
-			this.Positions.(ccxt.Appender).Append(shortPosition)
+			this.Positions.Append(shortPosition)
 		}
-		this.Positions.(ccxt.Appender).Append(position)
+		this.Positions.Append(position)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Positions, channel)
 }
@@ -1367,7 +1368,7 @@ func (this *Coinbaseinternational) HandleTicker(client any, message map[string]a
 func (this *Coinbaseinternational) HandleBidAsk(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var ticker any = this.ParseWsBidAsk(data)
+	var ticker map[string]any = this.ParseWsBidAsk(data)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
@@ -1375,7 +1376,7 @@ func (this *Coinbaseinternational) HandleBidAsk(client any, message map[string]a
 	var channel *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
 }
-func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
@@ -1619,13 +1620,13 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsed any = this.ParseWsOHLCV(data, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolved, messageHash)
 }
@@ -2131,7 +2132,7 @@ func (this *Coinbaseinternational) HandleDelta(bookside any, delta any) {
 func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas any) {
 	var deltasLength int = ccxt.GetArrayLength(deltas)
 	for i := 0; i < deltasLength; i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {
@@ -2270,14 +2271,14 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
 	var expiresIn int64 = *this.SafeInteger(result, "expires_in", 900)
 	var ratio *float64 = this.SafeNumber(this.Options, "wsAuthRefreshRatio")
-	var refreshRatio float64 = func() float64 {
-		if ratio == nil {
-			return 0.8
-		}
-		return *ratio
-	}()
+	var refreshRatio float64
+	if ratio == nil {
+		refreshRatio = 0.8
+	} else {
+		refreshRatio = *ratio
+	}
 	var now int64 = this.Milliseconds()
-	this.Options["wsAuthRefreshAt"] = this.Sum(now, this.ParseToInt(float64((expiresIn*1000))*refreshRatio))
+	this.Options["wsAuthRefreshAt"] = now + this.ParseToInt(float64((expiresIn*1000))*refreshRatio)
 	client.(ccxt.ClientInterface).SetLastPong(now)
 	client.(ccxt.ClientInterface).Resolve(result, "authenticated")
 }
@@ -2496,9 +2497,9 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 			request["label"] = *brokerId + "-" + this.Uuid22()
 		}
 	}
-	var paramsRequest any = this.Omit(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"})
+	var paramsRequest map[string]any = this.OmitDict(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"})
 	if this.IsNativeDeribitCredentials() == true {
-		paramsRequest = this.Omit(paramsRequest, []any{"reduceOnly", "reduce_only"})
+		paramsRequest = this.OmitDict(paramsRequest, []any{"reduceOnly", "reduce_only"})
 	}
 
 	r1 := <-this.RequestWsAsync("private/"+side, this.Extend(request, paramsRequest), true)
@@ -3089,12 +3090,12 @@ func (this *Coinbaseinternational) setCancelOnDisconnectBody(ch chan ccxt.AsyncR
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("setCancelOnDisconnect", params)
-	var method string = func() string {
-		if enabled == true {
-			return "private/enable_cancel_on_disconnect"
-		}
-		return "private/disable_cancel_on_disconnect"
-	}()
+	var method string
+	if enabled == true {
+		method = "private/enable_cancel_on_disconnect"
+	} else {
+		method = "private/disable_cancel_on_disconnect"
+	}
 
 	r := <-this.RequestWsAsync(method, paramsResolved, true)
 	if r.Err != nil {
@@ -3163,12 +3164,12 @@ func (this *Coinbaseinternational) unsubscribeAllWsBody(ch chan ccxt.AsyncResult
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("unsubscribeAllWs", params)
-	var method string = func() string {
-		if isPrivate == true {
-			return "private/unsubscribe_all"
-		}
-		return "public/unsubscribe_all"
-	}()
+	var method string
+	if isPrivate == true {
+		method = "private/unsubscribe_all"
+	} else {
+		method = "public/unsubscribe_all"
+	}
 
 	r := <-this.RequestWsAsync(method, paramsResolved, isPrivate)
 	if r.Err != nil {

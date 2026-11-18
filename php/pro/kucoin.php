@@ -100,7 +100,7 @@ class kucoin extends \ccxt\async\kucoin {
         ));
     }
 
-    public function negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
+    public function negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()): PromiseInterface {
         return Async\async(self::do_negotiate(...))($privateChannel, $isFuturesMethod, $params);
     }
 
@@ -183,7 +183,7 @@ class kucoin extends \ccxt\async\kucoin {
         return null;
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -843,7 +843,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
-    public function watch_multi_helper(string $methodName, string $channelName, bool $isFuturesChannel, ?array $symbols = null, $params = array()) {
+    public function watch_multi_helper(string $methodName, string $channelName, bool $isFuturesChannel, ?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_multi_helper(...))($methodName, $channelName, $isFuturesChannel, $symbols, $params);
     }
 
@@ -3106,8 +3106,7 @@ class kucoin extends \ccxt\async\kucoin {
         if ($this->positions === null) {
             return null;
         }
-        $cache = $this->positions.hashmap;
-        $symbolCache = $this->safe_dict($cache, $symbol, array());
+        $symbolCache = $this->safe_dict($this->positions.hashmap, $symbol, array());
         $values = is_array($symbolCache) ? array_values($symbolCache) : array();
         return $this->safe_dict($values, 0);
     }
@@ -3289,7 +3288,10 @@ class kucoin extends \ccxt\async\kucoin {
             }
         }
         $position = $this->extend($currentPosition, $newPosition);
-        $cache->append($position);
+        // the cache exists once watchPosition(s) set it up
+        if ($cache !== null) {
+            $cache->append($position);
+        }
         $client->resolve($position, $messageHash);
     }
 

@@ -554,8 +554,14 @@ func (this *Bithumb) GetGen2MarketId(market any) any {
 	if (marketId != nil) && (strings.Index(*marketId, "-") >= 0) {
 		return marketId
 	}
-	var quoteId *string = this.SafeString2(market, "quoteId", "quote", "")
-	var baseId *string = this.SafeString2(market, "baseId", "base", "")
+	var quoteId *string = this.SafeString(market, "quoteId")
+	if quoteId == nil {
+		quoteId = this.SafeString(market, "quote", "")
+	}
+	var baseId *string = this.SafeString(market, "baseId")
+	if baseId == nil {
+		baseId = this.SafeString(market, "base", "")
+	}
 	return *quoteId + "-" + *baseId
 }
 
@@ -605,8 +611,8 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			var marketId *string = this.SafeString(entry, "market")
 			var baseId any = nil
 			var quoteId any = nil
-			var base any = nil
-			var quote any = nil
+			var base *string = nil
+			var quote *string = nil
 			if marketId != nil {
 				var parts []string = strings.Split(*marketId, "-")
 				// to match gen 1, the quoteId is the first currency derived from the market id
@@ -618,11 +624,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				}()
 				quoteId = parts[0]
 				base = this.SafeCurrencyCode(baseId)
-				if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
-					quote = *derefPtr
-				} else {
-					quote = nil
-				}
+				quote = this.SafeCurrencyCode(quoteId)
 			}
 			if (base == nil) || (quote == nil) {
 				continue
@@ -699,7 +701,6 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var results []any = ListTyped(r1.Value)
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
-			var quoteId any = quote
 			var response map[string]any = SafeMapTyped(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
 			var extension map[string]any = this.SafeDictMap(quoteCurrencies, quote, map[string]any{})
@@ -734,7 +735,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					"quote":          quote,
 					"settle":         nil,
 					"baseId":         currencyId,
-					"quoteId":        quoteId,
+					"quoteId":        quote,
 					"settleId":       nil,
 					"type":           "spot",
 					"spot":           true,
@@ -1579,11 +1580,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes132823 []any = r1.Value
-			if retRes132823 == nil {
+			var retRes133323 []any = r1.Value
+			if retRes133323 == nil {
 				ch <- AsyncResult[[]OHLCV]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes132823)}
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133323)}
 			}
 			return nil
 		}
@@ -1593,7 +1594,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		// the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
 		var count any = 200
 		if limit != nil {
-			count = mathMin(limit, 200)
+			count = min(*limit, 200)
 		}
 		if (limit != nil) || (since != nil) || (until != nil) {
 			request["count"] = count
@@ -2073,12 +2074,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	}
 	request["side"] = sideRequest
 	var timeInForceRaw *string = this.SafeString2(params, "timeInForce", "time_in_force")
-	var timeInForce string = func() string {
-		if timeInForceRaw == nil {
-			return "GTC"
-		}
-		return *timeInForceRaw
-	}()
+	var timeInForce string
+	if timeInForceRaw == nil {
+		timeInForce = "GTC"
+	} else {
+		timeInForce = *timeInForceRaw
+	}
 	var paramsTimeInForce map[string]any = func() map[string]any {
 		if timeInForceRaw == nil {
 			return params
@@ -2089,9 +2090,9 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var isPostOnly bool = postOnly || (timeInForce == "PO")
-	var paramsOrder any = paramsPostOnly
+	var paramsOrder map[string]any = paramsPostOnly
 	if isPostOnly {
-		paramsOrder = this.Omit(paramsPostOnly, "postOnly")
+		paramsOrder = this.OmitDict(paramsPostOnly, "postOnly")
 	}
 	if isPostOnly {
 		request["time_in_force"] = "post_only"
@@ -2113,12 +2114,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(this.Omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			paramsOrder = paramsRequiresPrice
 			var amountString *string = this.NumberToString(amount)
-			var cost any = func() any {
-				if costParam == nil {
-					return amountString
-				}
-				return costParam
-			}()
+			var cost *string
+			if costParam == nil {
+				cost = amountString
+			} else {
+				cost = costParam
+			}
 			if createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (costParam == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2136,9 +2137,9 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	var paramsRequest any = func() any {
+	var paramsRequest map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(paramsOrder, "clientOrderId")
+			return this.OmitDict(paramsOrder, "clientOrderId")
 		}
 		return paramsOrder
 	}()
@@ -2401,7 +2402,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		market = this.Market(symbol)
 	}
 	var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-	var paramsOmitted any = this.Omit(paramsGeneration, "twap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "twap")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var data any = nil
@@ -2445,9 +2446,9 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 			data = this.SafeDict(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
-			var paramsClientOrderId any = func() any {
+			var paramsClientOrderId map[string]any = func() map[string]any {
 				if clientOrderId != nil {
-					return this.Omit(paramsOmitted, []any{"clientOrderId"})
+					return this.OmitDict(paramsOmitted, []any{"clientOrderId"})
 				}
 				return paramsOmitted
 			}()
@@ -2490,9 +2491,8 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 		}
-		var marketDefined any = market
-		var base *string = this.SafeString(marketDefined, "base")
-		var quote *string = this.SafeString(marketDefined, "quote")
+		var base *string = this.SafeString(market, "base")
+		var quote *string = this.SafeString(market, "quote")
 		if (base == nil) || (quote == nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires a market with defined base and quote"))
 		}
@@ -2736,12 +2736,12 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		symbol = SafeStringPtr(*base + "/" + *quote)
 	}
 	var marketId *string = this.SafeString(order, "market")
-	var marketResolved any = func() any {
-		if symbol == nil {
-			return this.SafeMarket(marketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if symbol == nil {
+		marketResolved = this.SafeMarket(marketId, market)
+	} else {
+		marketResolved = market
+	}
 	if symbol == nil {
 		symbol = this.SafeString(marketResolved, "symbol")
 	}
@@ -2751,7 +2751,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	if feeCost != nil {
 		var currency *string = nil
-		if !IsEqual(marketResolved, nil) {
+		if marketResolved != nil {
 			currency = this.SafeString(marketResolved, "quote")
 		}
 		fee = map[string]any{
@@ -2831,12 +2831,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "generation", 2)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var response map[string]any = nil
@@ -2927,16 +2927,16 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	}
 	var request map[string]any = map[string]any{}
 	var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-	var paramsOmitted any = this.Omit(paramsGeneration, "twap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "twap")
 	var clientOrderIds any = nil
 	if twap != nil && *twap {
 		clientOrderIds = nil
 	} else {
 		clientOrderIds = this.SafeList2(paramsOmitted, "client_order_ids", "clientOrderIds")
 	}
-	var paramsRequest any = func() any {
+	var paramsRequest map[string]any = func() map[string]any {
 		if clientOrderIds != nil {
-			return this.Omit(paramsOmitted, []any{"clientOrderIds"})
+			return this.OmitDict(paramsOmitted, []any{"clientOrderIds"})
 		}
 		return paramsOmitted
 	}()
@@ -3123,12 +3123,12 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
  * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bithumb) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3143,7 +3143,7 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "cancelOrder", "generation", 2)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3186,9 +3186,8 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 		}
-		var marketDefined any = market
-		var base *string = this.SafeString(marketDefined, "base")
-		var quote *string = this.SafeString(marketDefined, "quote")
+		var base *string = this.SafeString(market, "base")
+		var quote *string = this.SafeString(market, "quote")
 		if (base == nil) || (quote == nil) {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a market with defined base and quote"))
 		}
@@ -3233,12 +3232,12 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bithumb) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3309,7 +3308,7 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order an
 		"side": this.SafeString(order, "side"),
 	}
 
-	r := <-this.CancelOrderAsync(this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), this.Extend(request, params))
+	r := <-this.CancelOrderAsync(*this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), this.Extend(request, params))
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3362,18 +3361,18 @@ func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
 	var tagWithdrawTag *string = this.SafeString(paramsGeneration, "tag")
-	var paramsWithdrawTag any = this.Omit(paramsGeneration, "tag")
+	var paramsWithdrawTag map[string]any = this.OmitDict(paramsGeneration, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var network *string = this.SafeString2(paramsWithdrawTag, "network", "net_type")
-	var paramsNetwork any = this.Omit(paramsWithdrawTag, "network")
+	var paramsNetwork map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var destinationRequest *string = nil
 	var requiresDestination bool = ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
-	var paramsDestination any = paramsNetwork
+	var paramsDestination map[string]any = paramsNetwork
 	if requiresDestination {
-		paramsDestination = this.Omit(paramsNetwork, []any{"destination", "secondary_address"})
+		paramsDestination = this.OmitDict(paramsNetwork, []any{"destination", "secondary_address"})
 	}
 	if requiresDestination {
 		var destination *string = this.SafeString2(paramsNetwork, "destination", "secondary_address")
@@ -3386,7 +3385,7 @@ func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		}
 	}
 	var receiverType *string = this.SafeString2(paramsDestination, "receiver_type", "cust_type_cd")
-	var paramsReceiverType any = this.Omit(paramsDestination, []any{"receiver_type", "cust_type_cd"})
+	var paramsReceiverType map[string]any = this.OmitDict(paramsDestination, []any{"receiver_type", "cust_type_cd"})
 	if generation == 2 {
 		if code == "KRW" {
 			var twoFactorType *string = this.SafeString(paramsReceiverType, "two_factor_type")
@@ -4259,13 +4258,11 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var headersResult map[string]any = requestHeaders
-	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResult,
-		"headers": headersResult,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

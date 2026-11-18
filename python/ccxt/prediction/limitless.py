@@ -268,7 +268,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     if pageMarketsLength == 0:
                         break
                     for i in range(0, pageMarketsLength):
-                        raw = self.safe_value(page_markets, i)
+                        raw = self.safe_dict(page_markets, i)
                         allRaw.append(raw)
                     allRawCount = len(allRaw)
                     if pageMarketsLength < pageSize or allRawCount >= maxMarkets:
@@ -1130,8 +1130,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(slugs)):
             slug = slugs[i]
             detailIndex = i * 2
-            detail = self.safe_value(responses, detailIndex)
-            book = self.safe_value(responses, self.sum(detailIndex, 1))
+            detail = self.safe_dict(responses, detailIndex)
+            book = self.safe_dict(responses, self.sum(detailIndex, 1))
             tickerInput = {'market': detail, 'book': book}
             grouped = self.safe_list(outcomesBySlug, slug, [])
             for j in range(0, len(grouped)):
@@ -1250,18 +1250,18 @@ class limitless(PredictionExchange, ImplicitAPI):
         bids = []
         asks = []
         for bi in range(0, len(bidsSource)):
-            priceStr = self.safe_string(self.safe_value(bidsSource, bi), 'price')
+            priceStr = self.safe_string(self.safe_dict(bidsSource, bi), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(self.safe_value(bidsSource, bi), 'size')
+            sizeStr = self.safe_string(self.safe_dict(bidsSource, bi), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             bids.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
         for ai in range(0, len(asksSource)):
-            priceStr = self.safe_string(self.safe_value(asksSource, ai), 'price')
+            priceStr = self.safe_string(self.safe_dict(asksSource, ai), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(self.safe_value(asksSource, ai), 'size')
+            sizeStr = self.safe_string(self.safe_dict(asksSource, ai), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             asks.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
@@ -2817,7 +2817,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         postParams = self.omit(searchParams, ['tags'])
         return self.apply_event_fetch_params(result, postParams, queries)
 
-    async def fetch_raw_active_markets(self, params: dict = {}, categoryId: Str = None) -> list[object]:
+    async def fetch_raw_active_markets(self, params: dict = {}, categoryId: Str = None) -> list[dict]:
         """
  @ignore
         pages the active-markets listing(or a single category's listing), bounded by limit (or options.fetchMarketsLimit)

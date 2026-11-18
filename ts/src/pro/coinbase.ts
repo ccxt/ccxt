@@ -448,7 +448,7 @@ export default class coinbase extends coinbaseRest {
         const newTickers: Ticker[] = [];
         for (let i = 0; i < events.length; i++) {
             const tickersObj = this.safeDict (events, i);
-            const tickers = this.safeList (tickersObj, 'tickers', []);
+            const tickers: Dict[] = this.safeList (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
                 const ticker = tickers[j];
                 const wsMarketId = this.safeString (ticker, 'product_id');
@@ -571,11 +571,11 @@ export default class coinbase extends coinbaseRest {
         //         ]
         //     }
         //
-        const events = this.safeList (message, 'events', []);
+        const events: Dict[] = this.safeList (message, 'events', []);
         const timeframe = '5m';
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            const candles = this.safeList (event, 'candles', []);
+            const candles: Dict[] = this.safeList (event, 'candles', []);
             for (let j = 0; j < candles.length; j++) {
                 const candle = candles[j];
                 const marketId = this.safeString (candle, 'product_id');
@@ -830,7 +830,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const currentEvent = this.safeDict (events, i);
-            const currentTrades = this.safeList (currentEvent, 'trades');
+            const currentTrades: Dict[] | undefined = this.safeList (currentEvent, 'trades');
             if (currentTrades === undefined) {
                 continue;
             }
@@ -885,7 +885,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const event = this.safeDict (events, i);
-            const responseOrders = this.safeList (event, 'orders');
+            const responseOrders: Dict[] | undefined = this.safeList (event, 'orders');
             if (responseOrders === undefined) {
                 continue;
             }

@@ -176,8 +176,8 @@ public partial class testMainClass
             object isRequired = getValue(reqCreds, credential);
             if ((isEqual(isRequired, true)) && (isEqual(getExchangeProp(exchange, credential), null)))
             {
-                object fullKey = add(add(exchangeId, "_"), credential);
-                string credentialEnvName = ((string)fullKey).ToUpper(); // example: KRAKEN_APIKEY
+                string? fullKey = ((string)(add(add(exchangeId, "_"), credential)));
+                string credentialEnvName = fullKey.ToUpper(); // example: KRAKEN_APIKEY
                 object envVars = getEnvVars();
                 object credentialValue = (inOp(envVars, credentialEnvName)) ? getValue(envVars, credentialEnvName) : null;
                 if ((credentialValue != null) && !isEqual(credentialValue, ""))
@@ -191,8 +191,8 @@ public partial class testMainClass
     public virtual void expandSettings(BaseExchange exchange)
     {
         object exchangeId = exchange.id;
-        object keysGlobal = add(getRootDir(), "keys.json");
-        object keysLocal = add(getRootDir(), "keys.local.json");
+        string? keysGlobal = ((string)(add(getRootDir(), "keys.json")));
+        string? keysLocal = ((string)(add(getRootDir(), "keys.local.json")));
         object keysGlobalExists = ioFileExists(keysGlobal);
         object keysLocalExists = ioFileExists(keysLocal);
         object globalSettings = new Dictionary<string, object>() {};
@@ -236,7 +236,7 @@ public partial class testMainClass
             this.loadCredentialsFromEnv(exchange);
         }
         // skipped tests
-        object skippedFile = add(getRootDir(), "skip-tests.json");
+        string? skippedFile = ((string)(add(getRootDir(), "skip-tests.json")));
         object skippedSettings = ioFileRead(skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, new Dictionary<string, object>() {});
         object skippedSettingsForExchange = this.skippedSettingsForExchange;
@@ -273,7 +273,7 @@ public partial class testMainClass
         return add(message, res);
     }
 
-    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, bool? isPublic)
+    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, object isPublic)
     {
         // todo: temporary skip for c#
         if (((string)methodName).IndexOf("OrderBook", StringComparison.Ordinal) >= 0 && isEqual(this.ext, "cs"))
@@ -292,13 +292,13 @@ public partial class testMainClass
         bool isConstructorTest = (isEqual(methodName, "afterConstruct"));
         bool isFeatureTest = (isEqual(methodName, "features"));
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (isPublic != true && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
+        if (!isTrue(isPublic) && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
         {
             return true;
         }
         string? skipMessage = null;
         bool supportedByExchange = (inOp(exchange.has, methodName)) && (!isEqual(getValue(exchange.has, methodName), null)) && (!isEqual(getValue(exchange.has, methodName), false));
-        if (!isLoadMarkets && ((getArrayLength(this.onlySpecificTests) > 0) && (!isEqual(exchange.inArray(methodName, this.onlySpecificTests), true))))
+        if (!isLoadMarkets && ((getArrayLength(this.onlySpecificTests) > 0) && !isTrue(exchange.inArray(methodName, this.onlySpecificTests))))
         {
             skipMessage = "[INFO] IGNORED_TEST";
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest)
@@ -341,7 +341,7 @@ public partial class testMainClass
         }
         dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         // add to the list of successed tests
-        if (isPublic == true)
+        if (isTrue(isPublic))
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
         }
@@ -412,7 +412,7 @@ public partial class testMainClass
         return finalSkips;
     }
 
-    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, bool? isPublic = null)
+    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, object isPublic = null)
     {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
@@ -505,7 +505,7 @@ public partial class testMainClass
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                    if (isPublic == true && isTrue(isAuthError))
+                    if (isTrue(isPublic) && isTrue(isAuthError))
                     {
                         if (isTrue(this.info))
                         {
@@ -594,7 +594,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runTests(BaseExchange exchange, object tests, bool? isPublicTest)
+    public async virtual Task<object> runTests(BaseExchange exchange, object tests, object isPublicTest)
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         List<object> promises = new List<object>() {};
@@ -618,7 +618,7 @@ public partial class testMainClass
                 failedMethods.Add(testName);
             }
         }
-        string testPrefixString = isPublicTest == true ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+        string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
         if ((failedMethods?.Count ?? 0) > 0)
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
@@ -689,7 +689,7 @@ public partial class testMainClass
         return code;
     }
 
-    public virtual object getMarketsFromExchange(BaseExchange exchange, bool? spot = null)
+    public virtual object getMarketsFromExchange(BaseExchange exchange, object spot = null)
     {
         spot ??= true;
         Dictionary<string, object> res = new Dictionary<string, object>() {};
@@ -699,10 +699,10 @@ public partial class testMainClass
         {
             string? key = ((string)keys[i]);
             object market = getValue(markets, key);
-            if (spot == true && (isEqual(getValue(market, "spot"), true)))
+            if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
-            } else if (spot != true && (!isEqual(getValue(market, "spot"), true)))
+            } else if (!isTrue(spot) && (!isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
             }
@@ -710,14 +710,14 @@ public partial class testMainClass
         return res;
     }
 
-    public virtual object getValidSymbol(BaseExchange exchange, bool? spot = null)
+    public virtual object getValidSymbol(BaseExchange exchange, object spot = null)
     {
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         List<object> codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
         List<object> spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
         List<object> swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
-        List<object> targetSymbols = spot == true ? spotSymbols : swapSymbols;
+        List<object> targetSymbols = isTrue(spot) ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if ((symbol == null))
@@ -1592,7 +1592,7 @@ public partial class testMainClass
         }
     }
 
-    public virtual void assertStaticError(bool? cond, object message, object calculatedOutput, object storedOutput, object key = null)
+    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1603,7 +1603,7 @@ public partial class testMainClass
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (cond == true)
+        if (isTrue(cond))
         {
             return;
         }
@@ -1624,7 +1624,7 @@ public partial class testMainClass
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        object filename = add(add(add(getRootDir(), "./ts/src/test/static/markets/"), id), ".json");
+        string? filename = ((string)(add(add(add(getRootDir(), "./ts/src/test/static/markets/"), id), ".json")));
         object content = ioFileRead(filename);
         return content;
     }
@@ -1633,7 +1633,7 @@ public partial class testMainClass
     {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
-        object filename = add(add(add(getRootDir(), "./ts/src/test/static/events/"), id), ".json");
+        string? filename = ((string)(add(add(add(getRootDir(), "./ts/src/test/static/events/"), id), ".json")));
         if (!isTrue(ioFileExists(filename)))
         {
             return null;
@@ -1643,7 +1643,7 @@ public partial class testMainClass
 
     public virtual object loadCurrenciesFromFile(object id)
     {
-        object filename = add(add(add(getRootDir(), "./ts/src/test/static/currencies/"), id), ".json");
+        string? filename = ((string)(add(add(add(getRootDir(), "./ts/src/test/static/currencies/"), id), ".json")));
         object content = ioFileRead(filename);
         return content;
     }
@@ -1803,7 +1803,7 @@ public partial class testMainClass
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
         List<object> keys = new List<object>(((IDictionary<string,object>)target).Keys);
-        object count = 0;
+        Int64? count = 0;
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -1811,7 +1811,7 @@ public partial class testMainClass
             {
                 continue;
             }
-            count = add(count, 1);
+            count = (count + 1);
         }
         return count;
     }
@@ -2030,7 +2030,7 @@ public partial class testMainClass
         return true;  // c# requ
     }
 
-    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, bool? strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         object res = true;
@@ -2041,8 +2041,8 @@ public partial class testMainClass
         {
             if (isTrue(this.info))
             {
-                object errorMessage = add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
-                dump(("[TEST_FAILURE_DETAIL]" + (errorMessage)));
+                string? errorMessage = ((string)(add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)")));
+                dump(("[TEST_FAILURE_DETAIL]" + errorMessage));
             }
             throw e;
         }
@@ -2355,7 +2355,7 @@ public partial class testMainClass
         return false;
     }
 
-    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, bool? sequential = null)
+    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
@@ -2398,7 +2398,7 @@ public partial class testMainClass
             }
         }
         await exchange.sleep(50);
-        if (sequential == true)
+        if (isTrue(sequential))
         {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side
@@ -2601,7 +2601,7 @@ public partial class testMainClass
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public virtual BaseExchange initOfflineExchange(object exchangeName, bool? isWs = null)
+    public virtual BaseExchange initOfflineExchange(object exchangeName, object isWs = null)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the

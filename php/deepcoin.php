@@ -380,11 +380,10 @@ class deepcoin extends Exchange {
         $instType = $this->safe_string($params, 'instType');
         $paramsOmitted = $this->omit($params, 'instType');
         $type = $this->safe_string($paramsOmitted, 'type');
-        $paramsExtended = $paramsOmitted;
         if (($type === null) && ($instType !== null)) {
-            $paramsExtended = $this->extend($paramsOmitted, array( 'type' => $instType ));
+            return parent::handle_market_type_and_params($methodName, $market, $this->extend($paramsOmitted, array( 'type' => $instType )), $defaultValue);
         }
-        return parent::handle_market_type_and_params($methodName, $market, $paramsExtended, $defaultValue);
+        return parent::handle_market_type_and_params($methodName, $market, $paramsOmitted, $defaultValue);
     }
 
     public function convert_to_instrument_type(?string $type): ?string {
@@ -691,7 +690,10 @@ class deepcoin extends Exchange {
             $request['after'] = $until;
         }
         $calculateUntil = $this->safe_bool($paramsPaginate, 'calculateUntil', false);
-        $keysToOmit = ($calculateUntil) ? array( 'price', 'until', 'calculateUntil' ) : array( 'price', 'until' );
+        $keysToOmit = array( 'price', 'until' );
+        if ($calculateUntil) {
+            $keysToOmit[] = 'calculateUntil';
+        }
         $paramsOmitted = $this->omit($paramsPaginate, $keysToOmit);
         if ($calculateUntil) {
             if ($since !== null) {
@@ -1778,17 +1780,15 @@ class deepcoin extends Exchange {
 
     public function handle_type_post_only_and_time_in_force(?string $type, array $params): array {
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
-        $typePostOnly = $type;
-        if ($postOnly) {
-            $typePostOnly = 'post_only';
-        }
         $timeInForce = $this->handle_time_in_force($paramsPostOnly);
         $paramsOmitted = $this->omit($paramsPostOnly, 'timeInForce');
-        $typeValue = $typePostOnly;
         if ($timeInForce === 'IOC') {
-            $typeValue = 'ioc';
+            return array( 'ioc', $paramsOmitted );
         }
-        return array( $typeValue, $paramsOmitted );
+        if ($postOnly) {
+            return array( 'post_only', $paramsOmitted );
+        }
+        return array( $type, $paramsOmitted );
     }
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): array {
@@ -2839,7 +2839,7 @@ class deepcoin extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "instrumentId": "ETHUSDT",

@@ -1417,7 +1417,7 @@ export default class coinsph extends Exchange {
         let orderType = this.safeString(paramsOmitted, 'type', type);
         orderType = this.encodeOrderType(orderType);
         const paramsType = this.omit(paramsOmitted, 'type');
-        let paramsQuote = undefined;
+        let paramsQuote = paramsType;
         const orderSide = this.encodeOrderSide(side);
         const request = {
             'symbol': market['id'],
@@ -1425,7 +1425,7 @@ export default class coinsph extends Exchange {
             'side': orderSide,
         };
         const options = this.safeDict(this.options, 'createOrder', {});
-        const newOrderRespTypes = this.safeValue(options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeDict(options, 'newOrderRespType', {});
         let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
@@ -1478,8 +1478,7 @@ export default class coinsph extends Exchange {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
-        const paramsBase = (paramsQuote !== undefined) ? paramsQuote : paramsType;
-        const paramsRequest = this.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        const paramsRequest = this.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));

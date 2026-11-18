@@ -284,7 +284,7 @@ export default class delta extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name delta#addMargin

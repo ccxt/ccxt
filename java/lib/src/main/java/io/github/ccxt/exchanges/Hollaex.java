@@ -441,13 +441,13 @@ public class Hollaex extends HollaexApi
             //         "status": true
             //     }
             //
-            Map<String, Object> pairs = (Map<String, Object>) this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
+            Map<String, Object> pairs = this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(pairs.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.safeDict(pairs, key, (Object) null);
+                Map<String, Object> market = this.safeDict(pairs, key, null);
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
                 Object baseCode = this.commonCurrencyCode(baseId.toUpperCase());
@@ -587,7 +587,7 @@ public class Hollaex extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Map<String, Object> coins = (Map<String, Object>) this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
+            Map<String, Object> coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
             List<Object> values = new ArrayList<Object>(coins.values());
             return this.parseCurrencies(values);
         });
@@ -598,20 +598,20 @@ public class Hollaex extends HollaexApi
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-        List<Object> withdrawalLimits = (List<Object>) this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
+        List<Object> withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
         String type = "other";
         if (java.util.Objects.equals(rawType, "blockchain"))
         {
             type = "crypto";
         }
-        Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<String> networkIds = new ArrayList<String>(rawNetworks.keySet());
-        for (var j = 0; j < ((List<?>)networkIds).size(); j++)
+        for (var j = 0; j < networkIds.size(); j++)
         {
             String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId, (Object) null);
+            Map<String, Object> networkEntry = this.safeDict(rawNetworks, networkId, null);
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
@@ -681,10 +681,10 @@ public class Hollaex extends HollaexApi
             Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> marketIds = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> orderbook = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 result.put(symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bids", "asks", 0, 1, 2));
@@ -737,7 +737,7 @@ public class Hollaex extends HollaexApi
             //         // ...
             //     }
             //
-            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, market.get("id"), (Object) null);
+            Map<String, Object> orderbook = this.safeDict(response, market.get("id"), null);
             Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
             return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
@@ -823,14 +823,14 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
+    public Map<String, Object> parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> keys = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object ticker = this.safeValue(tickers, key);
+            Map<String, Object> ticker = this.safeDict(tickers, key, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             String symbol = (String) market.get("symbol");
@@ -934,7 +934,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, market.get("id"), new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, market.get("id"), new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1048,13 +1048,13 @@ public class Hollaex extends HollaexApi
             //         ...
             //     }
             //
-            Map<String, Object> firstTier = (Map<String, Object>) this.safeDict(response, "1", new HashMap<String, Object>() {{}});
-            Map<String, Object> fees = (Map<String, Object>) this.safeDict(firstTier, "fees", new HashMap<String, Object>() {{}});
-            Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(fees, "maker", new HashMap<String, Object>() {{}});
-            Map<String, Object> takerFees = (Map<String, Object>) this.safeDict(fees, "taker", new HashMap<String, Object>() {{}});
+            Map<String, Object> firstTier = this.safeDict(response, "1", new HashMap<String, Object>() {{}});
+            Map<String, Object> fees = this.safeDict(firstTier, "fees", new HashMap<String, Object>() {{}});
+            Map<String, Object> makerFees = this.safeDict(fees, "maker", new HashMap<String, Object>() {{}});
+            Map<String, Object> takerFees = this.safeDict(fees, "taker", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -1172,7 +1172,7 @@ public class Hollaex extends HollaexApi
         }
         Object currenciesById = this.currencies_by_id;
         List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = this.safeString(currencyIds, i, "");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1441,7 +1441,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1498,7 +1498,7 @@ public class Hollaex extends HollaexApi
         String amount = this.safeString(order, "size");
         String filled = this.safeString(order, "filled");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        Map<String, Object> meta = (Map<String, Object>) this.safeDict(order, "meta", new HashMap<String, Object>() {{}});
+        Map<String, Object> meta = this.safeDict(order, "meta", new HashMap<String, Object>() {{}});
         Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
@@ -1556,7 +1556,7 @@ public class Hollaex extends HollaexApi
             request.put("size", this.amountToPrecision(symbol, amount));
             request.put("type", type);
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")), (Object) null);
-            Map<String, Object> meta = (Map<String, Object>) this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
+            Map<String, Object> meta = this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
             Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
@@ -1743,7 +1743,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1850,7 +1850,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> wallet = (List<Object>) this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
+            List<Object> wallet = this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
             List<Object> addresses = null;
             if (java.util.Objects.equals(network, null))
             {
@@ -1923,7 +1923,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1981,8 +1981,8 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> transaction = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
         });
 
@@ -2047,7 +2047,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2273,15 +2273,15 @@ public class Hollaex extends HollaexApi
     put( "percentage", false );
 }});
         }
-        Map<String, Object> withdrawalFees = (Map<String, Object>) this.safeDict(fee, "withdrawal_fees", (Object) null);
+        Map<String, Object> withdrawalFees = this.safeDict(fee, "withdrawal_fees", null);
         if (!java.util.Objects.equals(withdrawalFees, null))
         {
             List<String> keys = new ArrayList<String>(withdrawalFees.keySet());
-            Integer keysLength = ((List<?>)keys).size();
+            Integer keysLength = keys.size();
             for (var i = 0; (keysLength != null && i < keysLength); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> value = (Map<String, Object>) this.safeDict(withdrawalFees, key, (Object) null);
+                Map<String, Object> value = this.safeDict(withdrawalFees, key, null);
                 String currencyId = this.safeString(value, "symbol");
                 String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 String networkCode = this.networkIdToCode(key, currencyCode);
@@ -2351,7 +2351,7 @@ public class Hollaex extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Map<String, Object> coins = (Map<String, Object>) this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
+            Map<String, Object> coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFees(coins, codes, "symbol");
         }).thenApply(DepositWithdrawFees::new);
 

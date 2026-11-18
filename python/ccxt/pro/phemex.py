@@ -60,22 +60,22 @@ class phemex(ccxt.async_support.phemex):
         precise.reduce()
         return str(precise)
 
-    def from_ep(self, ep: object, market: Market = None) -> Str:
+    def from_ep(self, ep: Str, market: Market = None) -> Str:
         if (ep is None) or (market is None):
             return ep
         return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
-    def from_ev(self, ev: object, market: Market = None) -> Str:
+    def from_ev(self, ev: Str, market: Market = None) -> Str:
         if (ev is None) or (market is None):
             return ev
         return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
-    def from_er(self, er: object, market: Market = None) -> Str:
+    def from_er(self, er: Str, market: Market = None) -> Str:
         if (er is None) or (market is None):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId

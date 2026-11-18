@@ -1723,25 +1723,25 @@ class deribit(Exchange, ImplicitAPI):
         futureFee = {}
         optionFee = {}
         for i in range(0, len(fees)):
-            fee = fees[i]
-            instrumentType = self.safe_string(fee, 'instrument_type')
+            feeEntry = fees[i]
+            instrumentType = self.safe_string(feeEntry, 'instrument_type')
             if instrumentType == 'future':
                 futureFee = {
-                    'info': fee,
-                    'maker': self.safe_number(fee, 'maker_fee'),
-                    'taker': self.safe_number(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': self.safe_number(feeEntry, 'maker_fee'),
+                    'taker': self.safe_number(feeEntry, 'taker_fee'),
                 }
             elif instrumentType == 'perpetual':
                 perpetualFee = {
-                    'info': fee,
-                    'maker': self.safe_number(fee, 'maker_fee'),
-                    'taker': self.safe_number(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': self.safe_number(feeEntry, 'maker_fee'),
+                    'taker': self.safe_number(feeEntry, 'taker_fee'),
                 }
             elif instrumentType == 'option':
                 optionFee = {
-                    'info': fee,
-                    'maker': self.safe_number(fee, 'maker_fee'),
-                    'taker': self.safe_number(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': self.safe_number(feeEntry, 'maker_fee'),
+                    'taker': self.safe_number(feeEntry, 'taker_fee'),
                 }
         parsedFees = {}
         symbols = self.symbols
@@ -2154,7 +2154,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        order = self.extend(self.safe_value(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
+        order = self.extend(self.safe_dict(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
         return self.parse_order(order, market)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
@@ -2197,7 +2197,7 @@ class deribit(Exchange, ImplicitAPI):
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
         response = self.privateGetEdit(self.extend(request, paramsOmitted))
         result = self.safe_dict(response, 'result', {})
-        order = self.extend(self.safe_value(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
+        order = self.extend(self.safe_dict(result, 'order'), {'trades': self.safe_list(result, 'trades', [])})
         return self.parse_order(order)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -3209,7 +3209,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, sinceResolved, limit)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",

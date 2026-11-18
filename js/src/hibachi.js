@@ -383,7 +383,7 @@ export default class hibachi extends Exchange {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        const rows = this.safeList(response, 'futureContracts');
+        const rows = this.safeList(response, 'futureContracts', []);
         return this.parseMarkets(rows);
     }
     hardcodedCurrencies() {
@@ -1012,9 +1012,7 @@ export default class hibachi extends Exchange {
         const market = this.market(symbol);
         const takerFee = this.safeNumber(market, 'taker', 0);
         const makerFee = this.safeNumber(market, 'maker', 0);
-        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
-        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
+        const feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFee), this.numberToString(makerFee)));
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -1887,7 +1885,7 @@ export default class hibachi extends Exchange {
         }
         return this.safeLedgerEntry({
             'id': this.safeString(item, 'id'),
-            'currency': this.currency('USDT'),
+            'currency': 'USDT',
             'account': this.numberToString(this.accountId),
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,

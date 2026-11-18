@@ -2196,8 +2196,7 @@ class bittrade extends Exchange {
             if ($method !== 'POST') {
                 $request = $this->extend($request, $query);
             }
-            $requestSorted = $this->keysort($request);
-            $auth = $this->urlencode($requestSorted);
+            $auth = $this->urlencode($this->keysort($request));
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             $payload = $method . "\n" . $this->hostname . "\n" . $url . "\n" . $auth;

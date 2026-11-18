@@ -2220,7 +2220,7 @@ public class Htx extends HtxApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long marketStatus = this.safeInteger(data, "marketStatus");
                 if ((marketStatus != null && marketStatus == 1))
                 {
@@ -2252,7 +2252,7 @@ public class Htx extends HtxApi
                 //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 String heartbeatKey = "heartbeat";
                 String etaKey = "estimated_recovery_time";
                 if (java.util.Objects.equals(subType, "linear"))
@@ -2301,7 +2301,7 @@ public class Htx extends HtxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTime", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchTime", new HashMap<String, Object>() {{}});
             String defaultType = this.safeString(this.options, "defaultType", "spot");
             String type = this.safeString(options, "type", defaultType);
             type = this.safeString(parameters, "type", type);
@@ -2323,7 +2323,7 @@ public class Htx extends HtxApi
             //     {"status":"ok","ts":1637504164707}
             //
             return this.safeInteger2(response, "data", "ts");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -2386,8 +2386,8 @@ public class Htx extends HtxApi
             //         "success":true
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -2415,7 +2415,7 @@ public class Htx extends HtxApi
                 throw new ExchangeError((this.id + " markets not loaded")) ;
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsValue).size(); i++)
+            for (var i = 0; i < symbolsValue.size(); i++)
             {
                 String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
                 result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
@@ -2460,7 +2460,7 @@ public class Htx extends HtxApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2525,7 +2525,7 @@ public class Htx extends HtxApi
             List<Object> allMarkets = new ArrayList<Object>(Arrays.asList());
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             List<String> keys = new ArrayList<String>(((Map<String, Object>)types).keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (Boolean.TRUE.equals(this.safeBool(types, key, false)))
@@ -2543,10 +2543,10 @@ public class Htx extends HtxApi
                     }
                 }
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < ((List<?>)responses).size(); i++)
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            for (var i = 0; i < responses.size(); i++)
             {
-                allMarkets = (List<Object>) this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
+                allMarkets = (List<Object>) this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
             }
             return allMarkets;
         });
@@ -2683,14 +2683,14 @@ public class Htx extends HtxApi
             //         "ts":1640736207263
             //     }
             //
-            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer numMarkets = ((List<?>)markets).size();
+            List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer numMarkets = markets.size();
             if (((numMarkets == null || numMarkets < 1)))
             {
                 throw new OperationFailed(((this.id + " fetchMarkets() returned an empty response: ") + this.json(response))) ;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String marketType = null;
@@ -2853,7 +2853,7 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(createdDate, null))
                 {
                     List<String> createdArray = this.stringToCharsArray(createdDate);
-                    Integer createdLength = ((List<?>)createdArray).size();
+                    Integer createdLength = createdArray.size();
                     if (((createdLength != null && createdLength >= 8)))
                     {
                         String yearPart = (((this.safeString(createdArray, 0, "") + this.safeString(createdArray, 1, "")) + this.safeString(createdArray, 2, "")) + this.safeString(createdArray, 3, ""));
@@ -2937,7 +2937,7 @@ public class Htx extends HtxApi
         {
             this.options.put("futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         }
-        Map<String, Object> futureMarketIdsForSymbols = (Map<String, Object>) this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+        Map<String, Object> futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         if (futureMarketIdsForSymbols.containsKey(symbolOrMarketId))
         {
             return (futureMarketIdsForSymbols == null || symbolOrMarketId == null ? null : futureMarketIdsForSymbols.get(symbolOrMarketId));
@@ -2949,10 +2949,10 @@ public class Htx extends HtxApi
             put( "quarter", "CQ" );
             put( "next_quarter", "NQ" );
         }};
-        for (var i = 0; i < ((List<?>)futureMarkets).size(); i++)
+        for (var i = 0; i < futureMarkets.size(); i++)
         {
-            Map<String, Object> market = (Map<String, Object>) this.safeDict(futureMarkets, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> market = this.safeDict(futureMarkets, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String contractType = this.safeString(info, "contract_type");
             String contractSuffix = this.safeString(futuresCharsMaps, contractType, "");
             if (java.util.Objects.equals(contractSuffix, ""))
@@ -3189,7 +3189,7 @@ public class Htx extends HtxApi
             //         "ts":1637502670059
             //     }
             //
-            Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
+            Map<String, Object> tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             ticker.put("timestamp", timestamp);
@@ -3376,8 +3376,8 @@ public class Htx extends HtxApi
             {
                 throw new NotSupported((((this.id + " fetchLastPrices() does not support ") + type) + " markets yet")) ;
             }
-            Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLastPrices(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(LastPrices::new);
 
@@ -3499,7 +3499,7 @@ public class Htx extends HtxApi
                 {
                     throw new BadSymbol(((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
                 }
-                Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", (Object) null);
+                Map<String, Object> tick = this.safeDict(response, "tick", null);
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
                 result.put("nonce", this.safeInteger(tick, "version"));
@@ -3754,7 +3754,7 @@ public class Htx extends HtxApi
                 put( "order-id", id );
             }};
             Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -3961,10 +3961,10 @@ public class Htx extends HtxApi
             //         "ts": 1781066959396
             //     }
             //
-            Object trades = this.safeValue(response, "data");
-            if (!(trades instanceof List))
+            List<Object> trades = this.safeList(response, "data", null);
+            if (java.util.Objects.equals(trades, null))
             {
-                trades = this.safeList(trades, "trades", (Object) null);
+                trades = (List<Object>) this.safeList(this.safeDict(response, "data", null), "trades", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -4051,12 +4051,12 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)trades).size(); j++)
+                List<Object> trades = this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
+                for (var j = 0; j < trades.size(); j++)
                 {
                     Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
@@ -4135,7 +4135,7 @@ public class Htx extends HtxApi
             }
             Boolean isContract = (java.util.Objects.equals(market.get("contract"), true));
             String marketType = (String) market.get("type");
-            Long contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000L; // only used for from/to calculation
+            Long contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000; // only used for from/to calculation
             Long rangeLimit = limit;
             if (Boolean.TRUE.equals(isContract))
             {
@@ -4154,13 +4154,13 @@ public class Htx extends HtxApi
                     if (java.util.Objects.equals(since, null))
                     {
                         Long now = this.seconds();
-                        request.put("from", (now - (duration * (contractLimit - 1L))));
+                        request.put("from", (now - (((long) duration) * ((contractLimit - 1L)))));
                         calcualtedEnd = now;
                     } else
                     {
                         Long start = this.parseToInt((((double) since) / ((double) 1000)));
                         request.put("from", start);
-                        calcualtedEnd = this.sum(start, (duration * (contractLimit - 1L)));
+                        calcualtedEnd = this.sum(start, (((long) duration) * ((contractLimit - 1L))));
                     }
                     request.put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
                 }
@@ -4278,7 +4278,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, rangeLimit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -4311,7 +4311,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> data = this.safeList(response, "data", null);
             return this.parseAccounts(data, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -4328,7 +4328,7 @@ public class Htx extends HtxApi
         //     }
         //
         String typeId = this.safeString(account, "type");
-        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String type = this.safeString(accountsById, typeId, typeId);
         return new HashMap<String, Object>() {{
             put( "info", account );
@@ -4371,15 +4371,15 @@ public class Htx extends HtxApi
                     accountType = "margin";
                 }
             }
-            Object marketId = null;
+            String marketId = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 marketId = this.marketId((String) (symbol));
             }
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
+            for (var i = 0; i < accounts.size(); i++)
             {
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", (Object) null);
+                Map<String, Object> account = this.safeDict(accounts, i, null);
+                Map<String, Object> info = this.safeDict(account, "info", null);
                 String subtype = this.safeString(info, "subtype");
                 String typeFromAccount = this.safeString(account, "type");
                 if (java.util.Objects.equals(accountType, "margin"))
@@ -4393,9 +4393,9 @@ public class Htx extends HtxApi
                     return this.safeString(account, "id");
                 }
             }
-            Map<String, Object> defaultAccount = (Map<String, Object>) this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> defaultAccount = this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
             return this.safeString(defaultAccount, "id");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -4449,7 +4449,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             this.options.put("networkNamesByChainIds", new HashMap<String, Object>() {{}});
             this.options.put("networkChainIdsByNames", new HashMap<String, Object>() {{}});
             return this.parseCurrencies(data);
@@ -4479,9 +4479,9 @@ public class Htx extends HtxApi
         {
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code, new HashMap<String, Object>() {{}});
         }
-        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chainEntry = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
@@ -4556,7 +4556,7 @@ public class Htx extends HtxApi
             return null;
         }
         List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkNamesByChainIds"))) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer keysLength = ((List<?>)keys).size();
+        Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
@@ -4565,7 +4565,7 @@ public class Htx extends HtxApi
         return (String) (super.networkIdToCode(networkTitle, currencyCode));
     }
 
-    public Object networkCodeToId(String networkCode, String currencyCode)
+    public String networkCodeToId(String networkCode, String currencyCode)
     {
         if (java.util.Objects.equals(networkCode, null))
         {
@@ -4576,15 +4576,15 @@ public class Htx extends HtxApi
             return super.networkCodeToId(networkCode, (String) null);
         }
         List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkChainIdsByNames"))) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer keysLength = ((List<?>)keys).size();
+        Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
-        Map<String, Object> uniqueNetworkIds = (Map<String, Object>) this.safeDict(this.options.get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
+        Map<String, Object> uniqueNetworkIds = this.safeDict(this.options.get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
         if (uniqueNetworkIds.containsKey(networkCode))
         {
-            return (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
+            return (String) (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
         } else
         {
             Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
@@ -4818,16 +4818,16 @@ public class Htx extends HtxApi
             //     }
             //
             Map<String, Object> finalResponse = response;
-            Object result = new HashMap<String, Object>() {{
+            Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }};
             Object data = this.safeValue(response, "data");
             if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
             {
-                List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)details).size(); i++)
+                List<Object> details = this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
+                for (var i = 0; i < details.size(); i++)
                 {
-                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
+                    Map<String, Object> balance = this.safeDict(details, i, null);
                     String currencyId = this.safeString(balance, "currency");
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     Map<String, Object> account = this.account();
@@ -4835,7 +4835,7 @@ public class Htx extends HtxApi
                     account.put("total", this.safeString(balance, "equity"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        ((Map<String, Object>)result).put(code, account);
+                        result.put(code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -4845,38 +4845,38 @@ public class Htx extends HtxApi
                 {
                     for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
                     {
-                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
-                        List<Object> balances = (List<Object>) this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
+                        Map<String, Object> entry = this.safeDict(data, i, null);
+                        List<Object> balances = this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
                         Map<String, Object> subResult = new HashMap<String, Object>() {{}};
-                        for (var j = 0; j < ((List<?>)balances).size(); j++)
+                        for (var j = 0; j < balances.size(); j++)
                         {
-                            Object balance = (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
+                            Map<String, Object> balance = (Map<String, Object>) (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
                             String currencyId = this.safeString(balance, "currency");
                             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                             if (!java.util.Objects.equals(code, null))
                             {
-                                subResult.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, subResult));
+                                subResult.put(code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
                         List<String> subCodes = new ArrayList<String>(subResult.keySet());
-                        for (var j = 0; j < ((List<?>)subCodes).size(); j++)
+                        for (var j = 0; j < subCodes.size(); j++)
                         {
                             String subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
-                            result = this.mergeBalanceAccount((Map<String, Object>) (result), subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
+                            result = (Map<String, Object>) this.mergeBalanceAccount(result, subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
                         }
                     }
                     result = this.safeBalance(result);
                 } else
                 {
-                    List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-                    for (var i = 0; i < ((List<?>)balances).size(); i++)
+                    List<Object> balances = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                    for (var i = 0; i < balances.size(); i++)
                     {
-                        Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                        Map<String, Object> balance = (Map<String, Object>) (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                         String currencyId = this.safeString(balance, "currency");
                         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            ((Map<String, Object>)result).put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (result)));
+                            result.put(code, this.parseMarginBalanceHelper(balance, code, result));
                         }
                     }
                     result = this.safeBalance(result);
@@ -4885,7 +4885,7 @@ public class Htx extends HtxApi
             {
                 for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
                 {
-                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+                    Map<String, Object> balance = this.safeDict(data, i, null);
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     Map<String, Object> account = this.account();
@@ -4893,7 +4893,7 @@ public class Htx extends HtxApi
                     account.put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        ((Map<String, Object>)result).put(code, account);
+                        result.put(code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -5134,8 +5134,11 @@ public class Htx extends HtxApi
             //         "ts": 1780967407144
             //     }
             //
-            Object rawOrder = this.safeValue(response, "data");
-            Object order = (((rawOrder instanceof List))) ? this.safeDict(rawOrder, 0, (Object) null) : rawOrder;
+            Map<String, Object> order = this.safeDict(response, "data", null);
+            if (java.util.Objects.equals(order, null))
+            {
+                order = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
+            }
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -5146,7 +5149,7 @@ public class Htx extends HtxApi
         Map<String, Object> account = null;
         if (result.containsKey(code))
         {
-            account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
+            account = (Map<String, Object>) this.safeDict(result, code, null);
         } else
         {
             account = this.account();
@@ -5238,7 +5241,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -5368,8 +5371,11 @@ public class Htx extends HtxApi
                     }
                 }
             }
-            Object rawOrders = this.safeValue(response, "data");
-            Object orders = (((rawOrders instanceof List))) ? rawOrders : this.safeList(rawOrders, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "data", null);
+            if (java.util.Objects.equals(orders, null))
+            {
+                orders = (List<Object>) this.safeList(this.safeDict(response, "data", null), "orders", new ArrayList<Object>(Arrays.asList()));
+            }
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -6016,8 +6022,11 @@ public class Htx extends HtxApi
             //         "ts": 1780739390596
             //     }
             //
-            Object rawOrders = this.safeValue(response, "data");
-            Object orders = (((rawOrders instanceof List))) ? rawOrders : this.safeList(rawOrders, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "data", null);
+            if (java.util.Objects.equals(orders, null))
+            {
+                orders = (List<Object>) this.safeList(this.safeDict(response, "data", null), "orders", new ArrayList<Object>(Arrays.asList()));
+            }
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6330,7 +6339,7 @@ public class Htx extends HtxApi
             }
         }
         String average = this.safeString(order, "trade_avg_price");
-        Object trades = this.safeValue(order, "trades");
+        List<Object> trades = this.safeList(order, "trades", null);
         Object reduceOnly = null;
         if (Boolean.TRUE.equals(isLinearOrder))
         {
@@ -6487,11 +6496,11 @@ public class Htx extends HtxApi
             }};
             Object orderType = (typeStr == null ? null : ((String)typeStr).replaceFirst("buy-", ""));
             orderType = (orderType == null ? null : ((String)orderType).replaceFirst("sell-", ""));
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
             String triggerPrice = this.safeStringN(paramsMarginMode, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price")));
             if (java.util.Objects.equals(triggerPrice, null))
             {
-                Map<String, Object> stopOrderTypes = (Map<String, Object>) this.safeDict(options, "stopOrderTypes", new HashMap<String, Object>() {{}});
+                Map<String, Object> stopOrderTypes = this.safeDict(options, "stopOrderTypes", new HashMap<String, Object>() {{}});
                 if (stopOrderTypes.containsKey(orderType))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice for a trigger order")) ;
@@ -6533,7 +6542,7 @@ public class Htx extends HtxApi
             String clientOrderId = this.safeString2(paramsPostOnly, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+                Map<String, Object> broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                 String brokerId = this.safeString(broker, "id", "");
                 request.put("client-order-id", (brokerId + this.uuid()));
             } else
@@ -6591,14 +6600,14 @@ public class Htx extends HtxApi
             {
                 request.put("amount", this.amountToPrecision(symbol, amount));
             }
-            Map<String, Object> limitOrderTypes = (Map<String, Object>) this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
+            Map<String, Object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
             if (limitOrderTypes.containsKey(orderType))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
             Object paramsOmitted = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
             return this.extend(request, paramsOmitted);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -6665,8 +6674,8 @@ public class Htx extends HtxApi
             {
                 request.put("time_in_force", timeInForce.toLowerCase());
             }
-            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(query, "stopLoss", (Object) null);
-            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(query, "takeProfit", (Object) null);
+            Map<String, Object> stopLoss = this.safeDict(query, "stopLoss", null);
+            Map<String, Object> takeProfit = this.safeDict(query, "takeProfit", null);
             Double stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice", (Object) null);
             Double stopLossOrderPrice = this.safeNumber(stopLoss, "price", (Object) null);
             String stopLossType = this.safeString(stopLoss, "type");
@@ -6841,7 +6850,7 @@ public class Htx extends HtxApi
                 request.put("lever_rate", this.safeIntegerN(query, new ArrayList<Object>(Arrays.asList("leverRate", "lever_rate", "leverage")), 1));
             }
         }
-        Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+        Map<String, Object> broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
         String brokerId = this.safeString(broker, "id");
         request.put("channel_code", brokerId);
         Object paramsOmitted = this.omit(query, new ArrayList<Object>(Arrays.asList("reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged")));
@@ -7119,7 +7128,7 @@ public class Htx extends HtxApi
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -7135,7 +7144,7 @@ public class Htx extends HtxApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
@@ -7255,15 +7264,15 @@ public class Htx extends HtxApi
                 result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                Object data = this.safeValue(response, "data");
-                if ((data instanceof List))
+                List<Object> data = this.safeList(response, "data", null);
+                if (!java.util.Objects.equals(data, null))
                 {
                     result = data;
                 } else
                 {
-                    Map<String, Object> batchData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    List<Object> success = (List<Object>) this.safeList(batchData, "success", new ArrayList<Object>(Arrays.asList()));
-                    List<Object> errors = (List<Object>) this.safeList(batchData, "errors", new ArrayList<Object>(Arrays.asList()));
+                    Map<String, Object> batchData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    List<Object> success = this.safeList(batchData, "success", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> errors = this.safeList(batchData, "errors", new ArrayList<Object>(Arrays.asList()));
                     result = this.arrayConcat(success, errors);
                 }
             }
@@ -7464,7 +7473,7 @@ public class Htx extends HtxApi
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
                 {
-                    List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                     result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
@@ -7696,7 +7705,7 @@ public class Htx extends HtxApi
             {
                 return this.parseCancelOrders(response);
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "data", null);
             return this.parseCancelOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7764,9 +7773,9 @@ public class Htx extends HtxApi
             success = this.safeList(orders, "success", new ArrayList<Object>(Arrays.asList()));
         }
         List<Object> failed = (List<Object>) this.safeList2(orders, "errors", "failed", new ArrayList<Object>(Arrays.asList()));
-        List<Object> data = (List<Object>) this.safeList(orders, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(orders, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -7785,7 +7794,7 @@ public class Htx extends HtxApi
                 put( "status", "canceled" );
             }}, (Map<String, Object>) null));
         }
-        for (var i = 0; i < ((List<?>)failed).size(); i++)
+        for (var i = 0; i < failed.size(); i++)
         {
             Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -7846,7 +7855,7 @@ public class Htx extends HtxApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+                Map<String, Object> data = this.safeDict(response, "data", null);
                 return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
     }}, (Map<String, Object>) null)));
@@ -7919,7 +7928,7 @@ public class Htx extends HtxApi
                 {
                     return this.parseCancelOrders(response);
                 }
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+                Map<String, Object> data = this.safeDict(response, "data", null);
                 return this.parseCancelOrders(data);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -8003,7 +8012,7 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8030,7 +8039,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object parsed = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
             return this.indexBy(parsed, "network");
         });
@@ -8059,9 +8068,9 @@ public class Htx extends HtxApi
             List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
-            Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, (Map<String, Object>) (indexedAddresses), true);
-            return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
+            Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
+            return this.safeDict(indexedAddresses, selectedNetworkCode, null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -8094,12 +8103,12 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object allAddresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> allAddresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
             List<Object> addresses = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)allAddresses).size(); i++)
+            for (var i = 0; i < allAddresses.size(); i++)
             {
-                Object address = (allAddresses == null || i < 0 || i >= ((List<?>)allAddresses).size() ? null : ((List<?>)allAddresses).get(i));
+                Object address = (allAddresses == null || i < 0 || i >= allAddresses.size() ? null : allAddresses.get(i));
                 Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(this.safeString(address, "note"), note));
                 Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(this.safeString(address, "network"), networkCode));
                 if (Boolean.TRUE.equals(noteMatch) && Boolean.TRUE.equals(networkMatch))
@@ -8128,7 +8137,7 @@ public class Htx extends HtxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100L : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100 : limit;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -8175,7 +8184,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limitValue, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -8197,7 +8206,7 @@ public class Htx extends HtxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100L : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null) || (limit > 100)))) ? 100 : limit;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -8242,7 +8251,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limitValue, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -8422,7 +8431,7 @@ public class Htx extends HtxApi
                 amountPrecision = "0";
             }
             Double amountValue = this.parseNumber(amountPrecision);
-            Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
             Map<String, Object> paramsFee = paramsNetwork;
             if (Boolean.TRUE.equals(includeFee))
@@ -8436,7 +8445,7 @@ public class Htx extends HtxApi
                 {
                     Object currencies = (this.fetchCurrencies(new HashMap<String, Object>() {{}})).join();
                     this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-                    Map<String, Object> targetNetwork = (Map<String, Object>) this.safeDict(currency.get("networks"), networkCode, new HashMap<String, Object>() {{}});
+                    Map<String, Object> targetNetwork = this.safeDict(currency.get("networks"), networkCode, new HashMap<String, Object>() {{}});
                     fee = this.safeNumber(targetNetwork, "fee", (Object) null);
                     if (java.util.Objects.equals(fee, null))
                     {
@@ -8503,7 +8512,7 @@ public class Htx extends HtxApi
         //         "transfer_time": 1770357494000
         //     }
         //
-        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String id = this.safeString2(transfer, "transfer_id", "data");
         String currencyId = this.safeString(transfer, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -8729,7 +8738,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -8782,7 +8791,7 @@ public class Htx extends HtxApi
             //     ]
             // }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIsolatedBorrowRates(data);
         }).thenApply(IsolatedBorrowRates::new);
 
@@ -8815,9 +8824,9 @@ public class Htx extends HtxApi
         //
         String marketId = this.safeString(info, "symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        List<Object> currencies = (List<Object>) this.safeList(info, "currencies", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> baseData = (Map<String, Object>) this.safeDict(currencies, 0, (Object) null);
-        Map<String, Object> quoteData = (Map<String, Object>) this.safeDict(currencies, 1, (Object) null);
+        List<Object> currencies = this.safeList(info, "currencies", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> baseData = this.safeDict(currencies, 0, null);
+        Map<String, Object> quoteData = this.safeDict(currencies, 1, null);
         String baseId = this.safeString(baseData, "currency");
         String quoteId = this.safeString(quoteData, "currency");
         return new HashMap<String, Object>() {{
@@ -8931,10 +8940,10 @@ public class Htx extends HtxApi
             } else
             {
                 Object cursor = this.safeValue(data, "current_page");
-                List<Object> result = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)result).size(); i++)
+                List<Object> result = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+                for (var i = 0; i < result.size(); i++)
                 {
-                    Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                     Helpers.addElementToObject(entry, "current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -9059,7 +9068,7 @@ public class Htx extends HtxApi
             Map<String, Object> result = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -9131,7 +9140,7 @@ public class Htx extends HtxApi
             //         "ts": 1643346173103
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
@@ -9212,7 +9221,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> interest = this.parseBorrowInterests(data, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -9296,7 +9305,7 @@ public class Htx extends HtxApi
         Map<String, Object> signedHeaders = null;
         String signedBody = null;
         Object pathString = path;
-        Object url = "/";
+        String url = "/";
         Boolean isArrayParams = (parameters instanceof List);
         Object query = new HashMap<String, Object>() {{}};
         if (!Boolean.TRUE.equals(isArrayParams))
@@ -9310,7 +9319,7 @@ public class Htx extends HtxApi
             String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
             if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "private")))
             {
-                url = ((java.util.function.BinaryOperator<Object>) (hx4J40v3A, hx4J40v3B) -> { Object hx4J40v3P = hx4J40v3A instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3A; Object hx4J40v3Q = hx4J40v3B instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3B; if (hx4J40v3P instanceof Long hx4J40v3l && hx4J40v3Q instanceof Long hx4J40v3r) { return hx4J40v3l + hx4J40v3r; } if (hx4J40v3P instanceof Double || hx4J40v3Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v3D = hx4J40v3o -> { if (hx4J40v3o instanceof Double || hx4J40v3o instanceof Float || hx4J40v3o instanceof Long || hx4J40v3o instanceof Integer || hx4J40v3o instanceof java.math.BigDecimal) { return ((Number) hx4J40v3o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v3o)); } catch (NumberFormatException hx4J40v3e) { return 0.0; } }; return hx4J40v3D.applyAsDouble(hx4J40v3P) + hx4J40v3D.applyAsDouble(hx4J40v3Q); } if (hx4J40v3P instanceof String || hx4J40v3Q instanceof String) { return String.valueOf(hx4J40v3P) + String.valueOf(hx4J40v3Q); } return null; }).apply(url, this.version);
+                url = (url + this.version);
             } else if ((java.util.Objects.equals(apiName, "v2Public")) || (java.util.Objects.equals(apiName, "v2Private")))
             {
                 url = (url + "v2");
@@ -9372,9 +9381,9 @@ public class Htx extends HtxApi
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
-            url = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(this.implodeParams(baseApiUrl, new HashMap<String, Object>() {{
+            url = (this.implodeParams(baseApiUrl, new HashMap<String, Object>() {{
     put( "hostname", Htx.this.hostname );
-}}), url);
+}}) + url);
         } else
         {
             // signing implementation for the new endpoints
@@ -9394,7 +9403,7 @@ public class Htx extends HtxApi
                 }
             }
             hostname = hostnames;
-            url = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(url, this.implodeParams(path, parameters));
+            url = (url + this.implodeParams(path, parameters));
             if (java.util.Objects.equals(access, "public"))
             {
                 if (((Map<String, Object>)query).size() > 0)
@@ -9406,7 +9415,7 @@ public class Htx extends HtxApi
                 this.checkRequiredCredentials(true);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
-                    Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+                    Map<String, Object> options = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                     String id = this.safeString(options, "id", "AA03022abc");
                     if (!Boolean.TRUE.equals(isArrayParams))
                     {
@@ -9483,9 +9492,9 @@ public class Htx extends HtxApi
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
-            url = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(this.implodeParams(baseApiUrl2, new HashMap<String, Object>() {{
+            url = (this.implodeParams(baseApiUrl2, new HashMap<String, Object>() {{
     put( "hostname", finalHostname );
-}}), url);
+}}) + url);
         }
         Map<String, Object> headersResolved = signedHeaders;
         String bodyResolved = signedBody;
@@ -9530,11 +9539,11 @@ public class Htx extends HtxApi
             String codeError = this.safeString(response, "code");
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
         }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-        List<Object> errorsList = (List<Object>) this.safeList(data, "errors", (Object) null);
+        Map<String, Object> data = this.safeDict(response, "data", null);
+        List<Object> errorsList = this.safeList(data, "errors", null);
         if (!java.util.Objects.equals(errorsList, null))
         {
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(errorsList, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(errorsList, 0, null);
             String errcode = this.safeString(first, "err_code");
             String errmessage = this.safeString(first, "err_msg");
             String feedBack = ((this.id + " ") + body);
@@ -9632,7 +9641,7 @@ public class Htx extends HtxApi
                 request.put("symbol", market.get("id"));
                 response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, paramsUntil))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -9678,7 +9687,7 @@ public class Htx extends HtxApi
             {
                 request.put("contract_code", market.get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 List<Object> marginModeAndParams = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
@@ -9929,7 +9938,7 @@ public class Htx extends HtxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbolsNormalized, 0);
@@ -9964,13 +9973,13 @@ public class Htx extends HtxApi
                     throw new NotSupported((this.id + " fetchPositions() not support this market type")) ;
                 }
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "ts");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                Object position = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (position), (Map<String, Object>) null);
+                Map<String, Object> position = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(position, (Map<String, Object>) null);
                 ((List<Object>)result).add(this.extend(parsed, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
@@ -10040,7 +10049,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data");
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                Map<String, Object> linearPosition = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> linearPosition = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 return this.parsePosition(linearPosition, market);
             }
             Object account = null;
@@ -10049,15 +10058,15 @@ public class Htx extends HtxApi
                 account = data;
             } else
             {
-                account = this.safeDict(data, 0, (Object) null);
+                account = this.safeDict(data, 0, null);
             }
             Object omitted = this.omit(account, new ArrayList<Object>(Arrays.asList("positions")));
-            List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
             Object position = null;
             if (Boolean.TRUE.equals((this.safeBool(market, "future", false))) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
             {
                 String marketId = this.safeString(market, "id");
-                for (var i = 0; i < ((List<?>)positions).size(); i++)
+                for (var i = 0; i < positions.size(); i++)
                 {
                     Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                     if (java.util.Objects.equals(this.safeString(entry, "contract_code"), marketId))
@@ -10068,7 +10077,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                position = this.safeDict(positions, 0, (Object) null);
+                position = this.safeDict(positions, 0, null);
             }
             Long timestamp = this.safeInteger(response, "ts");
             Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (this.extend(position, omitted)), market);
@@ -10224,7 +10233,7 @@ public class Htx extends HtxApi
             //         "ok": true
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -10277,7 +10286,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "contract_code");
         }).thenApply(LeverageTiers::new);
 
@@ -10288,13 +10297,13 @@ public class Htx extends HtxApi
         String currencyId = this.safeString(info, "trade_partition");
         String marketId = this.safeString(info, "contract_code");
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        List<Object> brackets = (List<Object>) this.safeList(info, "list", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)brackets).size(); i++)
+        List<Object> brackets = this.safeList(info, "list", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < brackets.size(); i++)
         {
-            Map<String, Object> item = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
+            Map<String, Object> item = this.safeDict(brackets, i, null);
             String leverage = this.safeString(item, "lever_rate");
-            List<Object> ladders = (List<Object>) this.safeList(item, "ladders", new ArrayList<Object>(Arrays.asList()));
-            for (var k = 0; k < ((List<?>)ladders).size(); k++)
+            List<Object> ladders = this.safeList(item, "ladders", new ArrayList<Object>(Arrays.asList()));
+            for (var k = 0; k < ladders.size(); k++)
             {
                 Object bracket = (ladders == null || k < 0 || k >= ladders.size() ? null : ladders.get(k));
                 String adjustFactor = this.safeString(bracket, "adjust_factor");
@@ -10437,8 +10446,8 @@ public class Htx extends HtxApi
             //        "ts": 1648227062944
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            List<Object> tick = (List<Object>) this.safeList(data, "tick", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "data", null);
+            List<Object> tick = this.safeList(data, "tick", null);
             return this.parseOpenInterestsHistory(tick, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
@@ -10467,7 +10476,7 @@ public class Htx extends HtxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbolsNormalized, 0);
@@ -10492,7 +10501,7 @@ public class Htx extends HtxApi
             {
                 throw new NotSupported((this.id + " fetchOpenInterests() does not currently support linear markets")) ;
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
@@ -10604,13 +10613,13 @@ public class Htx extends HtxApi
             Long timestamp = this.safeInteger(response, "ts");
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.extend(this.parseOpenInterest(result, market), new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }});
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> openInterest = (Map<String, Object>) this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             openInterest.put("timestamp", timestamp);
             openInterest.put("datetime", this.iso8601(timestamp));
@@ -10810,8 +10819,8 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> loan = this.safeDict(data, 0, null);
             Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -10859,8 +10868,8 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            List<Object> data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> loan = this.safeDict(data, 0, null);
             Map<String, Object> transaction = this.parseMarginLoan(loan, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -11040,13 +11049,13 @@ public class Htx extends HtxApi
             //
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                List<Object> dataLinear = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                List<Object> settlementsLinear = (List<Object>) this.parseSettlements(dataLinear, market);
+                List<Object> dataLinear = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> settlementsLinear = this.parseSettlements(dataLinear, market);
                 return this.sortBy(settlementsLinear, "timestamp");
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            List<Object> settlementRecord = (List<Object>) this.safeList(data, "settlement_record", (Object) null);
-            List<Object> settlements = (List<Object>) this.parseSettlements(settlementRecord, market);
+            Map<String, Object> data = this.safeDict(response, "data", null);
+            List<Object> settlementRecord = this.safeList(data, "settlement_record", null);
+            List<Object> settlements = this.parseSettlements(settlementRecord, market);
             return this.sortBy(settlements, "timestamp");
         });
 
@@ -11107,7 +11116,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> data = this.safeList(response, "data", null);
             return this.parseDepositWithdrawFees(data, codes, "currency");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -11146,12 +11155,12 @@ public class Htx extends HtxApi
         //              "instStatus": "normal"
         //          }
         //
-        List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeString(currency, "code");
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
-            Map<String, Object> chainEntry = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
+            Map<String, Object> chainEntry = this.safeDict(chains, j, null);
             String networkId = this.safeString(chainEntry, "chain");
             String withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             String networkCode = this.networkIdToCode(networkId, code);
@@ -11244,8 +11253,8 @@ public class Htx extends HtxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(settlements)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; }); i++)
         {
-            Map<String, Object> settlement = (Map<String, Object>) this.safeDict(settlements, i, (Object) null);
-            List<Object> list = (List<Object>) this.safeList(settlement, "list", (Object) null);
+            Map<String, Object> settlement = this.safeDict(settlements, i, null);
+            List<Object> list = this.safeList(settlement, "list", null);
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 Map<String, Object> parsedSettlement = this.parseSettlement(settlement, (Map<String, Object>) (market));
@@ -11257,9 +11266,9 @@ public class Htx extends HtxApi
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }};
-                for (var j = 0; j < ((List<?>)list).size(); j++)
+                for (var j = 0; j < list.size(); j++)
                 {
-                    Map<String, Object> item = (Map<String, Object>) this.safeDict(list, j, (Object) null);
+                    Map<String, Object> item = this.safeDict(list, j, null);
                     Map<String, Object> parsedSettlement = this.parseSettlement(item, (Map<String, Object>) (market));
                     ((List<Object>)result).add(this.extend(parsedSettlement, timestampDetails));
                 }
@@ -11403,7 +11412,7 @@ public class Htx extends HtxApi
             //         "ts": 1604312615051
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -11528,7 +11537,7 @@ public class Htx extends HtxApi
             }
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrder(data, market);
             }
             if (java.util.Objects.equals(response, null))
@@ -11616,7 +11625,7 @@ public class Htx extends HtxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbolsNormalized, 0);
@@ -11651,7 +11660,7 @@ public class Htx extends HtxApi
                     throw new NotSupported((this.id + " fetchPositionsADLRank() not support this market type")) ;
                 }
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 

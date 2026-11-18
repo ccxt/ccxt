@@ -1474,7 +1474,7 @@ class btse extends Exchange {
         return $this->parse_funding_rates($rows, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // ticker/24hr contract rows
         //     {
@@ -2525,7 +2525,7 @@ class btse extends Exchange {
             $request['symbol'] = $this->futures_request_id($this->market($symbol));
             $response = $this->privateDeleteFuturesApiV23Order($this->extend($request, $paramsMarketType));
         }
-        return $this->parse_orders($response, $market);
+        return $this->parse_orders($this->to_array($response), $market);
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array()) {
@@ -3719,14 +3719,14 @@ class btse extends Exchange {
             $row = $this->safe_dict($rows, $i);
             $status = $this->safe_string($row, 'status');
             if ($status !== null) {
-                $message = $this->safe_string($row, 'message');
-                $embedded = $this->parse_json($message);
+                $rowMessage = $this->safe_string($row, 'message');
+                $embedded = $this->parse_json($rowMessage);
                 if ($embedded !== null) {
-                    $message = $this->safe_string($embedded, 'default_msg', $message);
+                    $rowMessage = $this->safe_string($embedded, 'default_msg', $rowMessage);
                 }
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $rowMessage, $feedback);
             }
         }
         return null;

@@ -1525,7 +1525,7 @@ public class OrderRouterTest
             this.features = new dict() { { "spot", new dict() { { "createOrder", new dict() { { "timeInForce", new list() { "GTC", "IOC" } } } } } } };
         }
 
-        public override async Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+        public override async Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
         {
             this.calls.Add("fetchOrder:" + id);
             await Task.CompletedTask;
@@ -1542,7 +1542,7 @@ public class OrderRouterTest
             return new ccxt.Order(new dict() { { "id", id }, { "status", "closed" }, { "filled", 0.0 }, { "average", 0.0 }, { "cost", 0.0 } });
         }
 
-        public override async Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+        public override async Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
         {
             this.calls.Add("cancelOrder:" + id);
             await Task.CompletedTask;
@@ -1553,7 +1553,7 @@ public class OrderRouterTest
             return new ccxt.Order(new dict() { { "id", id }, { "status", "canceled" } });
         }
 
-        public override Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
+        public override Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, IDictionary<string, object> parameters2 = null)
         {
             this.calls.Add("loadMarkets");
             return Task.FromResult((IDictionary<string, object>)this.markets);
@@ -1576,7 +1576,7 @@ public class OrderRouterTest
         //  execute would place one
         public OrderRouter invalidateDuringRead = null;
 
-        public override async Task<ccxt.Balances> FetchBalance(object parameters = null)
+        public override async Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
         {
             this.calls.Add("fetchBalance");
             await Task.CompletedTask;
@@ -1595,7 +1595,7 @@ public class OrderRouterTest
             });
         }
 
-        public override async Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+        public override async Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
         {
             var size = amount;
             this.calls.Add("createOrder:" + type + ":" + side + ":" + size.ToString(CultureInfo.InvariantCulture));

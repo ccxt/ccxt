@@ -892,8 +892,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper(market, 'label', this.safeStringUpper(market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601(this.safeString(raw, 'updated_time'));
@@ -1344,8 +1343,7 @@ export default class kalshi extends Exchange {
         const amountFp = this.safeNumber2(trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber(trade, 'count', amountFp);
         const rawSide = this.safeStringLower(trade, 'taker_side');
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const marketInfo = this.safeDict(outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower(outcomeObj, 'label', this.safeStringLower(marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome');

@@ -3193,7 +3193,7 @@ class binance(Exchange, ImplicitAPI):
         responseCurrencies = self.safe_value(results, 0)
         marginablesById = None
         if fetchMargins:
-            responseMarginables = self.safe_value(results, 1)
+            responseMarginables = self.safe_list(results, 1)
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 
@@ -4848,7 +4848,7 @@ class binance(Exchange, ImplicitAPI):
     def parse_tickers_for_rolling(self, response: object, symbols: Strings) -> Tickers:
         results = []
         for i in range(0, len(response)):
-            marketId = self.safe_string(self.safe_value(response, i), 'symbol')
+            marketId = self.safe_string(self.safe_dict(response, i), 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, 'spot')
             parsedTicker = self.parse_ticker(self.safe_value(response, i))
             parsedTicker['symbol'] = tickerMarket['symbol']
@@ -7570,7 +7570,8 @@ class binance(Exchange, ImplicitAPI):
                     request['isIsolated'] = True
                 response = self.sapiGetMarginAllOrders(self.extend(request, paramsPaginate))
             elif stock:
-                response = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
+                equityResponse = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
+                response = self.safe_list(equityResponse, 'rows', [])
             else:
                 response = self.privateGetAllOrders(self.extend(request, paramsPaginate))
         #
@@ -7779,9 +7780,6 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        if stock:
-            result = self.safe_list(response, 'rows', [])
-            return self.parse_orders(result, market, since, limitResolved)
         return self.parse_orders(response, market, since, limitResolved)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -10378,8 +10376,8 @@ class binance(Exchange, ImplicitAPI):
             linearFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
             feeTiers = self.safe_value(self.safe_value(self.safe_value(self.fees, 'linear'), 'trading'), 'tiers')
-            maker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
-            taker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
+            maker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
+            taker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
@@ -10410,8 +10408,8 @@ class binance(Exchange, ImplicitAPI):
             inverseFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
             feeTiers = self.safe_value(self.safe_value(self.safe_value(self.fees, 'inverse'), 'trading'), 'tiers')
-            maker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
-            taker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
+            maker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
+            taker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
@@ -10589,7 +10587,7 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(paramsSubType, 'type')
-        response = None
+        response: List
         if self.is_linear(type, subType):
             response = self.fapiPublicGetPremiumIndex(query)
         elif self.is_inverse(type, subType):
@@ -10598,7 +10596,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         # fetchFundingRate, fetchFundingRates
@@ -10815,7 +10813,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
@@ -11029,7 +11027,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)
@@ -13203,7 +13201,7 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rows = self.safe_list(response, 'rows')
+        rows = self.safe_list(response, 'rows', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -14702,7 +14700,7 @@ class binance(Exchange, ImplicitAPI):
             market = self.market(symbolsNormalized[0])
         type = 'swap'
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingIntervals', market, params, 'linear')
-        response = None
+        response: List
         if self.is_linear(type, subType):
             response = self.fapiPublicGetFundingInfo(paramsSubType)
         elif self.is_inverse(type, subType):

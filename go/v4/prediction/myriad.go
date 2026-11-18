@@ -432,7 +432,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan ccxt.AsyncResult[[]map[strin
 	// track the running count with an explicit counter (avoids inline array .length / .slice,
 	// which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
 	var collected int = 0
-	var page any = 1
+	var page int = 1
 	for true {
 
 		r := <-this.MyriadPublicGetMarkets(this.Extend(map[string]any{
@@ -462,7 +462,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan ccxt.AsyncResult[[]map[strin
 				collected = len(allRawMarkets)
 			}
 		}
-		page = this.Sum(page, 1)
+		page = page + 1
 		if (limit != nil && int64(rawMarketsLength) < *limit) || (maxMarkets == nil || int64(collected) >= *maxMarkets) {
 			break
 		}
@@ -733,7 +733,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan ccxt.AsyncResult[[]map[str
 	var allRawQuestions []any = []any{}
 	var seen map[string]any = map[string]any{}
 	var collected int = 0
-	var page any = 1
+	var page int = 1
 	for true {
 		var request map[string]any = map[string]any{
 			"limit": limit,
@@ -775,7 +775,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan ccxt.AsyncResult[[]map[str
 				collected = len(allRawQuestions)
 			}
 		}
-		page = this.Sum(page, 1)
+		page = page + 1
 		if (limit != nil && int64(rawQuestionsLength) < *limit) || (maxQuestions == nil || int64(collected) >= *maxQuestions) {
 			break
 		}
@@ -1116,12 +1116,12 @@ func (this *Myriad) ethRpcBody(ch chan ccxt.AsyncResult[any], rpcUrl any, method
 	ch <- ccxt.AsyncResult[any]{Value: this.SafeValue(response, "result")}
 	return nil
 }
-func (this *Myriad) EnsureErc20AllowanceAsync(rpcUrl any, networkId any, token any, owner any, spender any) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) EnsureErc20AllowanceAsync(rpcUrl *string, networkId *string, token *string, owner any, spender *string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.ensureErc20AllowanceBody(ch, rpcUrl, networkId, token, owner, spender)
 	return ch
 }
-func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpcUrl any, networkId any, token any, owner any, spender any) any {
+func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpcUrl *string, networkId *string, token *string, owner any, spender *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// allowance(owner, spender)
@@ -1289,12 +1289,12 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.Predi
 		}
 		return ccxt.SafeStringPtr(ccxt.ToLower(side))
 	}()
-	var typeStr string = func() string {
-		if ccxt.IsEqual(typeVar, nil) {
-			return "limit"
-		}
-		return ccxt.ToLower(typeVar)
-	}()
+	var typeStr string
+	if ccxt.IsEqual(typeVar, nil) {
+		typeStr = "limit"
+	} else {
+		typeStr = ccxt.ToLower(typeVar)
+	}
 	if this.SafeString(parsed, "side") == nil {
 		parsed["side"] = sideStr
 	}
@@ -1339,12 +1339,12 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 	var marketId *string = this.SafeString(info, "marketId")
 	var outcomeId *int64 = this.SafeInteger(info, "outcomeId", 0)
 	var trader string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-	var typeStr string = func() string {
-		if ccxt.IsEqual(typeVar, nil) {
-			return "limit"
-		}
-		return ccxt.ToLower(typeVar)
-	}()
+	var typeStr string
+	if ccxt.IsEqual(typeVar, nil) {
+		typeStr = "limit"
+	} else {
+		typeStr = ccxt.ToLower(typeVar)
+	}
 	var sideStr string = ccxt.ToLower(side)
 	var sideInt int = func() int {
 		if sideStr == "buy" {
@@ -1798,7 +1798,7 @@ func (this *Myriad) ClobOrderMessage(rawOrder any) map[string]any {
  * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
  * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
  */
-func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any {
+func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var orderResponse map[string]any = ccxt.SafeMapTyped(params, "orderResponse")
@@ -1826,7 +1826,7 @@ func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any 
 		for i := 0; i < responsesLength; i++ {
 			var current map[string]any = this.SafeDictMap(orderResponses, i, map[string]any{})
 			var currentId *string = this.SafeStringN(current, []any{"orderHash", "hash", "id"})
-			if (currentId != nil) && (ccxt.IsEqual(currentId, id)) {
+			if (currentId != nil) && (*currentId == id) {
 				return current
 			}
 		}
@@ -1913,7 +1913,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 	} else {
 		outcome = this.SafeString(market, "outcome")
 	}
-	var outcomeObj any = market
+	var outcomeObj map[string]any = market
 	if outcome == nil {
 		// the REST order has no top-level networkId; order book lives on the default network
 		var networkId *string = this.SafeString2(order, "networkId", "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
@@ -2084,7 +2084,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		"address": trader,
 	}
 	var outcomeObj any = nil
-	var outcomeSymbol any = nil
+	var outcomeSymbol *string = nil
 	var rowOutcomeId *string = nil
 	if outcome != nil {
 
@@ -2097,11 +2097,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		} else {
 			outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 		}
-		if derefPtr := this.SafeString(outcomeObj, "outcome", outcome); derefPtr != nil {
-			outcomeSymbol = *derefPtr
-		} else {
-			outcomeSymbol = nil
-		}
+		outcomeSymbol = this.SafeString(outcomeObj, "outcome", outcome)
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["market_id"] = this.SafeString(info, "marketId")
 		request["network_id"] = this.SafeString(info, "networkId")
@@ -2185,12 +2181,12 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
  * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CancelOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2214,11 +2210,17 @@ func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 		fetched = r.Raw
 	}
 	var fetchedInfo map[string]any = ccxt.SafeMapTyped(fetched, "info")
-	var rawOrder any = this.SafeDict(fetched, "order", map[string]any{})
-	var rawOrderKeys []string = ccxt.ObjectKeys(rawOrder)
+	var rawOrder map[string]any = this.SafeDictMap(fetched, "order", map[string]any{})
+	var rawOrderKeys []string = nil
+	if rawOrder != nil {
+		rawOrderKeys = make([]string, 0, len(rawOrder))
+		for objectKey := range rawOrder {
+			rawOrderKeys = append(rawOrderKeys, objectKey)
+		}
+	}
 	var rawOrderKeysLength int = len(rawOrderKeys)
 	if rawOrderKeysLength == 0 {
-		rawOrder = this.SafeDict(fetchedInfo, "order", map[string]any{})
+		rawOrder = this.SafeDictMap(fetchedInfo, "order", map[string]any{})
 	}
 	var networkId *string = this.SafeStringN(fetched, []any{"networkId", "network_id"})
 	if networkId == nil {
@@ -2360,12 +2362,12 @@ func (this *Myriad) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Myriad) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2375,15 +2377,15 @@ func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	if this.PrivateKey == "" {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrders() requires a privateKey to sign the cancellations"))
 	}
-	var paramsForLookup any = params
+	var paramsForLookup map[string]any = params
 	var networkIdParam *string = this.SafeString2(params, "networkId", "network_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"})
-	var idsLength int = ccxt.GetArrayLength(ids)
+	var idsLength int = len(ids)
 	var signedOrders []any = []any{}
 	var wrappers []any = []any{}
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
 	for i := 0; i < idsLength; i++ {
-		var id *string = ccxt.SafeStringPtr(ccxt.GetValue(ids, i))
+		var id string = ids[i]
 		var fetched any = this.GetOrderResponseFromParams(id, paramsForLookup)
 		if ccxt.IsEqual(fetched, nil) {
 
@@ -2396,11 +2398,17 @@ func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 			fetched = r.Raw
 		}
 		var fetchedInfo map[string]any = ccxt.SafeMapTyped(fetched, "info")
-		var rawOrder any = this.SafeDict(fetched, "order", map[string]any{})
-		var rawOrderKeys []string = ccxt.ObjectKeys(rawOrder)
+		var rawOrder map[string]any = this.SafeDictMap(fetched, "order", map[string]any{})
+		var rawOrderKeys []string = nil
+		if rawOrder != nil {
+			rawOrderKeys = make([]string, 0, len(rawOrder))
+			for objectKey := range rawOrder {
+				rawOrderKeys = append(rawOrderKeys, objectKey)
+			}
+		}
 		var rawOrderKeysLength int = len(rawOrderKeys)
 		if rawOrderKeysLength == 0 {
-			rawOrder = this.SafeDict(fetchedInfo, "order", map[string]any{})
+			rawOrder = this.SafeDictMap(fetchedInfo, "order", map[string]any{})
 		}
 		var fetchedNetworkId *string = this.SafeStringN(fetched, []any{"networkId", "network_id"})
 		if fetchedNetworkId == nil {
@@ -2561,7 +2569,7 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 	var requestedTradingModel *string = this.SafeStringLower2(params, "tradingModel", "trading_model")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"tradingModel", "trading_model"})
 	var outcomeObj any = nil
-	var outcomeSymbol any = nil
+	var outcomeSymbol *string = nil
 	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcome)
@@ -2573,11 +2581,7 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		} else {
 			outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 		}
-		if derefPtr := this.SafeString(outcomeObj, "outcome", outcome); derefPtr != nil {
-			outcomeSymbol = *derefPtr
-		} else {
-			outcomeSymbol = nil
-		}
+		outcomeSymbol = this.SafeString(outcomeObj, "outcome", outcome)
 		if requestedTradingModel == nil {
 			var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 			requestedTradingModel = this.SafeStringLower(info, "tradingModel")
@@ -3028,7 +3032,7 @@ func (this *Myriad) ParseMarketToEvent(raw any, market any) map[string]any {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
+func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]any {
 	eventSlug := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = eventSlug
 	var networkId *string = this.SafeString(raw, "networkId")
@@ -3847,10 +3851,10 @@ func (this *Myriad) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	}
 	// price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
 	var chart any = nil
-	var chartsList any = this.SafeList(selectedOutcome, "price_charts")
+	var chartsList []any = ccxt.SafeListTyped(selectedOutcome, "price_charts")
 	if chartsList != nil {
-		for i := 0; i < ccxt.GetArrayLength(chartsList); i++ {
-			var chartObj any = ccxt.GetValue(chartsList, i)
+		for i := 0; i < len(chartsList); i++ {
+			var chartObj any = chartsList[i]
 			if this.SafeString(chartObj, "timeframe") == bucketKey || (this.SafeString(chartObj, "timeframe") != nil && bucketKey != nil && *this.SafeString(chartObj, "timeframe") == *bucketKey) {
 				chart = chartObj
 				break
@@ -4377,20 +4381,20 @@ func (this *Myriad) ParseEvent(rawEvent any) map[string]any {
 		"info":             rawEvent,
 	})
 }
-func (this *Myriad) RequestId(url any) int64 {
+func (this *Myriad) RequestId(url *string) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if existing == nil {
 		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
 	var options any = this.Options["requestId"]
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	if !ccxt.IsEqual(url, nil) {
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
+	if url != nil {
 		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	}
 	return newValue
 }
-func (this *Myriad) FromWei(wei *string) any {
+func (this *Myriad) FromWei(wei *string) *float64 {
 	if wei == nil {
 		return nil
 	}
@@ -4405,12 +4409,12 @@ func (this *Myriad) MarketOutcomeToSymbol(networkId *string, marketId *string, o
 	var outcomeObj map[string]any = ccxt.SafeMapTyped(this.Outcomes_by_id, ocId)
 	return this.SafeString(outcomeObj, "outcome")
 }
-func (this *Myriad) ConnectCentrifugoAsync(url any) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) ConnectCentrifugoAsync(url *string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.connectCentrifugoBody(ch, url)
 	return ch
 }
-func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url any) any {
+func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
@@ -4903,10 +4907,10 @@ func (this *Myriad) HandleTrades(client any, data any) {
 		if ccxt.IsEqual(takerTrader, myWallet) {
 			myLegs = append(myLegs, trade)
 		}
-		var makers []any = ccxt.SafeListTyped(data, "makers")
+		var makers []map[string]any = this.SafeListMapsTyped(data, "makers")
 		var makersLength int = len(makers)
 		for i := 0; i < makersLength; i++ {
-			var maker any = makers[i]
+			var maker map[string]any = makers[i]
 			var makerTrader *string = this.SafeStringLower(maker, "trader")
 			if ccxt.IsEqual(makerTrader, myWallet) {
 				var makerSym any = this.MarketOutcomeToSymbol(networkId, marketId, this.SafeString(maker, "outcome"))
@@ -5147,11 +5151,11 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
-	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
+	var outcomes []map[string]any = this.SafeListMapsTyped(data, "outcomes")
 	var outcomesLength int = len(outcomes)
-	var cachedTickers any = this.SafeDict(this.Options, "wsTickers", map[string]any{})
+	var cachedTickers map[string]any = this.SafeDictMap(this.Options, "wsTickers", map[string]any{})
 	for i := 0; i < outcomesLength; i++ {
-		var oc any = outcomes[i]
+		var oc map[string]any = outcomes[i]
 		var outcomeId *string = this.SafeString(oc, "outcome")
 		var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
 		if sym == nil {
@@ -5466,7 +5470,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	var posId *string = nil
 	if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
 		posId = ccxt.SafeStringPtr(*networkId + ":" + *marketId + "/" + *outcomeId)
-		var balances any = this.SafeDict(this.Options, "positionBalances", map[string]any{})
+		var balances map[string]any = this.SafeDictMap(this.Options, "positionBalances", map[string]any{})
 		var prior *string = this.SafeString(balances, posId, "0")
 		var updated *string = ccxt.Precise.StringAdd(prior, deltaShares)
 		if posId != nil {
@@ -5492,8 +5496,8 @@ func (this *Myriad) HandlePosition(client any, data any) {
 		"collateral":    nil,
 		"unrealizedPnl": nil,
 	})
-	var stored any = this.Positions
-	stored.(ccxt.Appender).Append(parsed)
+	var stored ccxt.WsArrayCache = this.Positions
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "positions")
 }
 func (this *Myriad) WalletAddressFromKeys() string {

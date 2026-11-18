@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
         }
         if ((getValue(exchange.has, method) == null) || (getValue(exchange.has, method) is false))
         {
-            object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
+            string? m2 = ((string)((add(add(add(exchange.id, " does not support "), method), "() method"))));
             Console.WriteLine(m2);
             return false;
         }

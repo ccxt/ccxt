@@ -1425,7 +1425,7 @@ class btse(Exchange, ImplicitAPI):
                 rows.append(row)
         return self.parse_funding_rates(rows, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # ticker/24hr contract rows
         #     {
@@ -2384,7 +2384,7 @@ class btse(Exchange, ImplicitAPI):
             # sent, and it identifies contracts by the short symbol form
             request['symbol'] = self.futures_request_id(self.market(symbol))
             response = self.privateDeleteFuturesApiV23Order(self.extend(request, paramsMarketType))
-        return self.parse_orders(response, market)
+        return self.parse_orders(self.to_array(response), market)
 
     def cancel_all_orders_after(self, timeout: Int, params: dict = {}):
         """
@@ -3503,13 +3503,13 @@ class btse(Exchange, ImplicitAPI):
             row = self.safe_dict(rows, i)
             status = self.safe_string(row, 'status')
             if status is not None:
-                message = self.safe_string(row, 'message')
-                embedded = self.parse_json(message)
+                rowMessage = self.safe_string(row, 'message')
+                embedded = self.parse_json(rowMessage)
                 if embedded is not None:
-                    message = self.safe_string(embedded, 'default_msg', message)
+                    rowMessage = self.safe_string(embedded, 'default_msg', rowMessage)
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], rowMessage, feedback)
         return None
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params={}):
@@ -3559,7 +3559,7 @@ class btse(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def futures_request_id(self, market: dict):
+    def futures_request_id(self, market: Market):
         # the futures v3 trading api identifies contracts by the short trade-currency
         # form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         # from the raw market info so that cached markets resolve it as well

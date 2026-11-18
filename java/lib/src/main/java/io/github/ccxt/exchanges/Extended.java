@@ -529,7 +529,7 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
 
             Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
-            Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
+            Map<String, Object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", null);
             if ((java.util.Objects.equals(currenciesByNumericId, null)) || Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(reload, false)))
             {
                 this.options.put("currenciesByNumericId", this.indexByStringifiedNumericId((Map<String, Object>) (this.currencies)));
@@ -547,10 +547,10 @@ public class Extended extends ExtendedApi
             return null;
         }
         List<String> keys = new ArrayList<String>(input.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> item = (Map<String, Object>) this.safeDict(input, key, new HashMap<String, Object>() {{}});
+            Map<String, Object> item = this.safeDict(input, key, new HashMap<String, Object>() {{}});
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))
             {
@@ -680,7 +680,7 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -727,7 +727,7 @@ public class Extended extends ExtendedApi
         //       "createdAt": 1752829532673
         //     }
         //
-        Map<String, Object> tradingConfig = (Map<String, Object>) this.safeDict(market, "tradingConfig", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradingConfig = this.safeDict(market, "tradingConfig", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "assetName", "");
         if (((String)baseId).indexOf("SPOT") >= 0)
@@ -872,7 +872,7 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -985,7 +985,7 @@ public class Extended extends ExtendedApi
             //       }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
@@ -1011,7 +1011,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     ((List<Object>)marketIds).add(market.get("id"));
@@ -1036,14 +1036,14 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                Map<String, Object> marketData = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+                Map<String, Object> marketData = this.safeDict(data, i, null);
                 String marketId = this.safeString(marketData, "name");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
+                Map<String, Object> stats = this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(stats, market);
                 String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -1162,7 +1162,7 @@ public class Extended extends ExtendedApi
             //       }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, market.get("symbol"), timestamp, "bid", "ask", "price", "qty", 2);
             if (!java.util.Objects.equals(limit, null))
@@ -1213,7 +1213,7 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1282,14 +1282,14 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
@@ -1368,14 +1368,14 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -1564,7 +1564,7 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1619,14 +1619,14 @@ public class Extended extends ExtendedApi
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Long sinceResolved = since;
             if ((!java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(since, null)))
             {
-                sinceResolved = (endTime - (((limitResolved * 60L) * 60L) * 1000L));
+                sinceResolved = (endTime - ((((limitResolved * 60L) * 60L) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market", market.get("id"));
@@ -1650,14 +1650,14 @@ public class Extended extends ExtendedApi
             //       }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
@@ -1718,14 +1718,14 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = since;
             if ((!java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(since, null)))
             {
-                sinceResolved = (endTime - ((limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))) * 1000L));
+                sinceResolved = (endTime - (((limitResolved * ((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h")))) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market", market.get("id"));
@@ -1746,7 +1746,7 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterestsHistory(data, market, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); })), limitResolved);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
@@ -1818,7 +1818,7 @@ public class Extended extends ExtendedApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalanceList(data);
         }).thenApply(Balances::new);
 
@@ -1831,7 +1831,7 @@ public class Extended extends ExtendedApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1877,7 +1877,7 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseAccount(data);
         });
 
@@ -1921,7 +1921,7 @@ public class Extended extends ExtendedApi
             //       }
             //     ]}
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(data, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -1981,14 +1981,14 @@ public class Extended extends ExtendedApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
@@ -2115,14 +2115,14 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
@@ -2303,14 +2303,14 @@ public class Extended extends ExtendedApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
@@ -2379,7 +2379,7 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Boolean validSignature = (Boolean) this.safeBool(data, "validSignature", (Object) null);
             Long now = this.milliseconds();
             String status = "pending";
@@ -2450,8 +2450,8 @@ public class Extended extends ExtendedApi
         {
             return this.safeString(currency, "code");
         }
-        Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", new HashMap<String, Object>() {{}});
-        Map<String, Object> currencyByNumericId = (Map<String, Object>) this.safeDict(currenciesByNumericId, assetId, (Object) null);
+        Map<String, Object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new HashMap<String, Object>() {{}});
+        Map<String, Object> currencyByNumericId = this.safeDict(currenciesByNumericId, assetId, null);
         if (!java.util.Objects.equals(currencyByNumericId, null))
         {
             return this.safeString(currencyByNumericId, "code");
@@ -2583,8 +2583,8 @@ public class Extended extends ExtendedApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -2620,11 +2620,11 @@ public class Extended extends ExtendedApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsed = this.parseTradingFee(fee, (Map<String, Object>) null);
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -2690,7 +2690,7 @@ public class Extended extends ExtendedApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverage((Map<String, Object>) (this.safeDict(data, 0, new HashMap<String, Object>() {{}})), market);
         }).thenApply(Leverage::new);
 
@@ -2728,7 +2728,7 @@ public class Extended extends ExtendedApi
             //         "data": {}
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         });
 
@@ -2806,7 +2806,7 @@ public class Extended extends ExtendedApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -2827,7 +2827,7 @@ public class Extended extends ExtendedApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
-            return this.safeDict(positions, 0, (Object) null);
+            return this.safeDict(positions, 0, null);
         }).thenApply(Position::new);
 
     }
@@ -2895,14 +2895,14 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
@@ -3004,7 +3004,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "account", (Object) null);
+            Map<String, Object> cachedAccount = this.safeDict(this.options, "account", null);
             if (!java.util.Objects.equals(cachedAccount, null))
             {
                 return this.safeDict(this.options, "account", new HashMap<String, Object>() {{}});
@@ -3067,7 +3067,7 @@ public class Extended extends ExtendedApi
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
         String recipient = this.safeString(parameters, "recipient", address);
-        Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> currencyInfo = this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
         String collateralId = this.safeString(parameters, "collateralId", this.safeString2(currencyInfo, "starkexId", "l1Id"));
         Long resolution = this.safeInteger(parameters, "resolution", this.safeInteger2(currencyInfo, "starkexResolution", "l1Resolution"));
         String starkKey = this.safeString(account, "l2Key");
@@ -3101,7 +3101,7 @@ public class Extended extends ExtendedApi
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
         String fromL2Key = this.safeString2(parameters, "fromL2Key", "senderPublicKey", this.safeString(account, "l2Key"));
-        Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> currencyInfo = this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
         String collateralId = this.safeString2(parameters, "assetId", "collateralId", this.safeString2(currencyInfo, "starkexId", "l1Id"));
         Long resolution = this.safeInteger(parameters, "resolution", this.safeInteger2(currencyInfo, "starkexResolution", "l1Resolution"));
         if ((java.util.Objects.equals(fromVault, null)) || (java.util.Objects.equals(fromL2Key, null)) || (java.util.Objects.equals(collateralId, null)) || (java.util.Objects.equals(resolution, null)))
@@ -3201,8 +3201,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             String starkKey = this.safeString(account, "l2Key");
             String collateralPosition = this.safeString(account, "l2Vault");
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> l2Config = (Map<String, Object>) this.safeDict(info, "l2Config", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> l2Config = this.safeDict(info, "l2Config", new HashMap<String, Object>() {{}});
             String syntheticId = this.safeString(l2Config, "syntheticId");
             String collateralId = this.safeString(l2Config, "collateralId");
             Long syntheticResolution = this.safeInteger(l2Config, "syntheticResolution");
@@ -3264,8 +3264,8 @@ public class Extended extends ExtendedApi
             String takeProfitTriggerPrice = this.safeString(paramsBuilder, "takeProfitPrice");
             Boolean isStopLossOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsBuilder, "stopLoss", (Object) null);
-            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsBuilder, "takeProfit", (Object) null);
+            Map<String, Object> stopLoss = this.safeDict(paramsBuilder, "stopLoss", null);
+            Map<String, Object> takeProfit = this.safeDict(paramsBuilder, "takeProfit", null);
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
@@ -3376,7 +3376,7 @@ public class Extended extends ExtendedApi
                 h2kMap5.put("amount", amountString);
                 return h2kMap5;
             }
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3418,7 +3418,7 @@ public class Extended extends ExtendedApi
 
             this.checkRequiredCredentials(true);
             Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
-            Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
+            Map<String, Object> request = this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v1PrivatePostUserOrder(request)).join();
             //
             //     {
@@ -3429,7 +3429,7 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> market = this.market(symbol);
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             data.put("timestamp", now);
@@ -3473,7 +3473,7 @@ public class Extended extends ExtendedApi
                 HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
                 mapLiteral13.put("id", id);
                 Map<String, Object> response = (this.v1PrivateGetUserOrdersId(mapLiteral13)).join();
-                Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(amountValue, null))
                 {
                     amountValue = this.safeNumber(order, "qty", (Object) null);
@@ -3516,7 +3516,7 @@ public class Extended extends ExtendedApi
             mapLiteral15.put("expiryEpochMillis", expiryEpochMillis);
             Map<String, Object> requestParams = this.extend(paramsExtended, mapLiteral15);
             Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amountValue, priceValue, requestParams)).join();
-            Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
+            Map<String, Object> request = this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> editResponse = (this.v1PrivatePostUserOrder(request)).join();
             //
             //     {
@@ -3527,7 +3527,7 @@ public class Extended extends ExtendedApi
             //         }
             //     }
             //
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(editResponse, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> responseData = this.safeDict(editResponse, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> market = this.market(symbol);
             Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             responseData.put("timestamp", now);
@@ -3638,7 +3638,7 @@ public class Extended extends ExtendedApi
             Boolean hasClientOrderIds = !java.util.Objects.equals(clientOrderIds, null);
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
-                Integer clientOrderIdsLength = ((List<?>)clientOrderIds).size();
+                Integer clientOrderIdsLength = clientOrderIds.size();
                 if ((clientOrderIdsLength != null && clientOrderIdsLength > 0))
                 {
                     request.put("externalOrderIds", clientOrderIds);
@@ -3757,7 +3757,7 @@ public class Extended extends ExtendedApi
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("externalId", clientOrderId);
                 response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted))).join();
-                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -3827,7 +3827,7 @@ public class Extended extends ExtendedApi
             //       ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3902,14 +3902,14 @@ public class Extended extends ExtendedApi
             //       }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> pagination = this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
                     HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
@@ -4039,9 +4039,9 @@ public class Extended extends ExtendedApi
         String amount = this.safeString(order, "qty");
         String filled = this.safeString(order, "filledQty");
         String feeCost = this.safeString(order, "payedFee");
-        Map<String, Object> trigger = (Map<String, Object>) this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(order, "takeProfit", new HashMap<String, Object>() {{}});
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(order, "stopLoss", new HashMap<String, Object>() {{}});
+        Map<String, Object> trigger = this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
+        Map<String, Object> takeProfit = this.safeDict(order, "takeProfit", new HashMap<String, Object>() {{}});
+        Map<String, Object> stopLoss = this.safeDict(order, "stopLoss", new HashMap<String, Object>() {{}});
         Map<String, Object> fee = new HashMap<String, Object>();
         fee.put("cost", feeCost);
         fee.put("currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle"));
@@ -4091,11 +4091,11 @@ public class Extended extends ExtendedApi
         return value;
     }
 
-    public Object getExtendedDecimalToBase16(String value)
+    public String getExtendedDecimalToBase16(String value)
     {
         String decimalString = value;
         List<String> hexChars = new ArrayList<String>(Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
-        Object result = "";
+        String result = "";
         while (Precise.stringGt(decimalString, "0"))
         {
             Long remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
@@ -4158,7 +4158,7 @@ public class Extended extends ExtendedApi
     {
         Object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
-        Map<String, Object> expiration = (Map<String, Object>) this.safeDict(settlement, "expiration", new HashMap<String, Object>() {{}});
+        Map<String, Object> expiration = this.safeDict(settlement, "expiration", new HashMap<String, Object>() {{}});
         Object withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(withdrawalTypeHash, this.convertToBigInt(this.safeString(settlement, "recipient", "0")), this.convertToBigInt(this.safeString(settlement, "positionId", "0")), this.convertToBigInt(this.safeString(settlement, "collateralId", "0")), this.convertToBigInt(this.safeString(settlement, "amount", "0")), this.convertToBigInt(this.safeString(expiration, "seconds", "0")), this.convertToBigInt(this.safeString(settlement, "salt", "0"))))));
         return this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, this.convertToBigInt(starkKey), withdrawalHash)));
     }
@@ -4184,7 +4184,7 @@ public class Extended extends ExtendedApi
         String status = this.safeStringLower(response, "status");
         if (java.util.Objects.equals(status, "error"))
         {
-            Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+            Map<String, Object> error = this.safeDict(response, "error", null);
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);

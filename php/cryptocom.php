@@ -3130,7 +3130,7 @@ class cryptocom extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //                 {
         //                     "v": "-0.000001884",

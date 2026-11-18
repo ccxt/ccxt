@@ -3881,8 +3881,6 @@ class predictfun extends predictfun$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        const existingHeaders = {};
-        const headersValue = existingHeaders;
         const authHeaders = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3925,7 +3923,7 @@ class predictfun extends predictfun$1["default"] {
             authHeaders['Content-Type'] = 'application/json';
             bodyValue = this.json(params);
         }
-        const headersExtended = this.extend(headersValue, authHeaders);
+        const headersExtended = this.extend({}, authHeaders);
         return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }
