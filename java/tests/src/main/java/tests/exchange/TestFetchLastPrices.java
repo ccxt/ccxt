@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchLastPrices extends BaseTest {
-    public CompletableFuture<Object> testFetchLastPrices(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchLastPrices(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -30,18 +30,18 @@ public class TestFetchLastPrices extends BaseTest {
             response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLastPrices", new Object[]{(List<String>) null, new HashMap<String, Object>() {{}}})).join();
         } catch(Exception e)
         {
-            response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLastPrices", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+            response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLastPrices", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
             checkedSymbol = symbol;
         }
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, checkedSymbol);
-        Object values = Helpers.objectValues(response);
+        List<Object> values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Boolean atLeastOnePassed = false;
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
             // todo: symbol check here
-            TestLastPrice.testLastPrice(exchange, skippedProperties, method, (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i)), ((String)checkedSymbol));
-            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (Helpers.isGreaterThan(exchange.safeNumber((values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i)), "price", (Object) null), 0));
+            TestLastPrice.testLastPrice(exchange, skippedProperties, method, (values == null || i < 0 || i >= values.size() ? null : values.get(i)), (String) (((String)checkedSymbol)));
+            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (Helpers.isGreaterThan(exchange.safeNumber((values == null || i < 0 || i >= values.size() ? null : values.get(i)), "price", (Object) null), 0));
         }
         Assert(atLeastOnePassed, (((((exchange.id + " ") + method) + " ") + checkedSymbol) + " at least one symbol should pass the test"));
         return true;

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.90'
+__version__ = '4.5.93'
 
 # -----------------------------------------------------------------------------
 
@@ -76,6 +76,7 @@ from ccxt.async_support.binanceus import binanceus                              
 from ccxt.async_support.binanceusdm import binanceusdm                          # noqa: F401
 from ccxt.async_support.bingx import bingx                                      # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
+from ccxt.async_support.bit2me import bit2me                                    # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
@@ -99,7 +100,6 @@ from ccxt.async_support.bullish import bullish                                  
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
 from ccxt.async_support.bybitid import bybitid                                  # noqa: F401
-from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
@@ -182,6 +182,7 @@ exchanges = [
     'binanceusdm',
     'bingx',
     'bit2c',
+    'bit2me',
     'bitbank',
     'bitbns',
     'bitfinex',
@@ -205,7 +206,6 @@ exchanges = [
     'bybit',
     'bybiteu',
     'bybitid',
-    'bydfi',
     'cex',
     'coinbase',
     'coinbaseexchange',

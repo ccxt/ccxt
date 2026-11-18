@@ -1966,6 +1966,12 @@ abstract class kucoin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function utav2_get_market_orderbook($params = array()) {
+        return $this->request('market/orderbook', array('utaV2'), 'GET', $params, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function utaprivate_get_market_orderbook($params = array()) {
         return $this->request('market/orderbook', array('utaPrivate'), 'GET', $params, array("cost" => 6));
     }
@@ -4128,6 +4134,12 @@ abstract class kucoin extends \ccxt\async\Exchange {
      */
     public function utaV2GetMarketFundingRate($params = array()) {
         return $this->request('market/funding-rate', array('utaV2'), 'GET', $params, array("cost" => 6));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function utaV2GetMarketOrderbook($params = array()) {
+        return $this->request('market/orderbook', array('utaV2'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

@@ -237,7 +237,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		var medianPrice *string = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
 		var medianLow *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
 		var medianHigh *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
-		Assert(ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh), Add("last price should be within 1% of the bid/ask median price", logText))
+		var lastPriceIsBetween bool = ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh)
+		Assert(lastPriceIsBetween, Add("last price should be within 1% of the bid/ask median price", logText))
 	}
 	var percentage any = ccxt.DerefScalar(exchange.SafeString(entry, "percentage"))
 	var change any = ccxt.DerefScalar(exchange.SafeString(entry, "change"))

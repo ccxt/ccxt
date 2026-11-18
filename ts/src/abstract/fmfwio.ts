@@ -129,7 +129,7 @@ abstract class hitbtc extends _hitbtc {
         return this.request ('public/futures/candles/open_interest/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
     }
 
-    override privateGetSpotBalance (params = {}): Promise<Dict> {
+    override privateGetSpotBalance (params = {}): Promise<List> {
         return this.request ('spot/balance', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
@@ -205,7 +205,7 @@ abstract class hitbtc extends _hitbtc {
         return this.request ('margin-settings', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
-    override privateGetFuturesBalance (params = {}): Promise<Dict> {
+    override privateGetFuturesBalance (params = {}): Promise<List> {
         return this.request ('futures/balance', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
@@ -261,7 +261,7 @@ abstract class hitbtc extends _hitbtc {
         return this.request ('user/api-keys', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
-    override privateGetWalletBalance (params = {}): Promise<Dict> {
+    override privateGetWalletBalance (params = {}): Promise<List> {
         return this.request ('wallet/balance', [ 'private' ], 'GET', params, { 'cost': 30 });
     }
 

@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class bithumb(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bithumb, self).describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
@@ -371,6 +371,9 @@ class bithumb(Exchange, ImplicitAPI):
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'generation': 2,  # either API generation 1 or 2
@@ -411,14 +414,14 @@ class bithumb(Exchange, ImplicitAPI):
 
     def amount_to_precision(self, symbol: Str, amount: object) -> Str:
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
+        return self.decimal_to_precision(amount, TRUNCATE, self.safe_value(market['precision'], 'amount'), DECIMAL_PLACES)
 
     def get_gen2_market_id(self, market: Market) -> str:
         marketId = self.safe_string(market, 'id')
         if (marketId is not None) and (marketId.find('-') >= 0):
             return marketId
-        quoteId = self.safe_string_2(market, 'quoteId', 'quote')
-        baseId = self.safe_string_2(market, 'baseId', 'base')
+        quoteId = self.safe_string_2(market, 'quoteId', 'quote', '')
+        baseId = self.safe_string_2(market, 'baseId', 'base', '')
         return quoteId + '-' + baseId
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -625,7 +628,7 @@ class bithumb(Exchange, ImplicitAPI):
                     result.append(entry)
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: object) -> Balances:
         #
         # generation 1
         #
@@ -659,7 +662,7 @@ class bithumb(Exchange, ImplicitAPI):
                 code = codes[i]
                 account = self.account()
                 currency = self.currency(code)
-                lowerCurrencyId = self.safe_string_lower(currency, 'id')
+                lowerCurrencyId = self.safe_string_lower(currency, 'id', '')
                 account['total'] = self.safe_string(balances, 'total_' + lowerCurrencyId)
                 account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
                 account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
@@ -721,7 +724,7 @@ class bithumb(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -959,7 +962,9 @@ class bithumb(Exchange, ImplicitAPI):
             # Bithumb v2 ticker payloads are inconsistent for all-market calls,
             # so we aggregate 300 markets per request only when symbols are not provided.
             marketIds = []
-            symbolsForMarketIds = self.symbols if (symbols is None) else symbols
+            symbolsForMarketIds = self.symbols
+            if symbols is not None:
+                symbolsForMarketIds = symbols
             symbolsForMarketIdsLength = len(symbolsForMarketIds)
             for i in range(0, symbolsForMarketIdsLength):
                 market = self.market(symbolsForMarketIds[i])
@@ -1017,9 +1022,9 @@ class bithumb(Exchange, ImplicitAPI):
             responses = promises
             responsesLength = len(responses)
             for i in range(0, responsesLength):
-                response = responses[i]
-                if self.is_dictionary(response) and ('data' in response) and (response['data'] is not None):
-                    response = response['data']
+                response = self.safe_value(responses, i)
+                if self.is_dictionary(response) and (self.safe_value(response, 'data') is not None):
+                    response = self.safe_value(response, 'data')
                 expectedMarketId = None
                 requestedMarketIds = self.safe_list(marketIdsChunks, i, [])
                 firstMarketId = self.safe_string(requestedMarketIds, 0)
@@ -1249,6 +1254,8 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param int [params.until]: generation 2 only, timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: generation 2 only, default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1259,21 +1266,42 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = []
         if generation == 2:
+            paginate, paramsPaginate = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+            if paginate:
+                return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
+            until = self.safe_integer(paramsGeneration, 'until')
+            requestParams = self.omit(paramsGeneration, ['until', 'paginate'])
             request['market'] = self.get_gen2_market_id(market)
+            # the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            count = 200
             if limit is not None:
-                request['count'] = limit
+                count = min(limit, 200)
+            if (limit is not None) or (since is not None) or (until is not None):
+                request['count'] = count
+            # the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            # and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            to = None
+            if until is not None:
+                to = self.sum(until, 1000)  # `to` is exclusive with second precision, keep the candle that opens at `until`
+            if since is not None:
+                duration = self.parse_timeframe(timeframe) * 1000
+                sinceEnd = self.sum(since, duration * count)
+                if (to is None) or (sinceEnd < to):
+                    to = sinceEnd
+            if to is not None:
+                request['to'] = self.ymdhms(self.sum(to, 32400000), ' ')
             if timeframe == '1d':
-                response = self.publicGetV1CandlesDays(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesDays(self.extend(request, requestParams))
             elif timeframe == '1w':
-                response = self.publicGetV1CandlesWeeks(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesWeeks(self.extend(request, requestParams))
             elif timeframe == '1M':
-                response = self.publicGetV1CandlesMonths(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesMonths(self.extend(request, requestParams))
             else:
                 timeframeInteger = self.safe_integer(self.timeframes, timeframe)
                 if timeframeInteger is None:
                     raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe)
                 request['unit'] = timeframeInteger
-                response = self.publicGetV1CandlesMinutesUnit(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesMinutesUnit(self.extend(request, requestParams))
             #
             #     [
             #         {
@@ -1744,8 +1772,7 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'createMarketBuyOrderWithCost', 'generation', 2)
         if generation != 2:
             raise BadRequest(self.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API')
-        paramsGeneration['createMarketBuyOrderRequiresPrice'] = False
-        return self.create_order(symbol, 'market', 'buy', cost, None, paramsGeneration)
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(paramsGeneration, {'createMarketBuyOrderRequiresPrice': False}))
 
     def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params: dict = {}) -> Order:
         """
@@ -2174,11 +2201,7 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         if generation == 2:
             twap = self.safe_bool(paramsGeneration, 'twap', False)
-            if twap:
-                paramsGeneration['state'] = 'progress'
-            else:
-                paramsGeneration['state'] = 'wait'
-            orders = self.fetch_orders(symbol, since, limit, paramsGeneration)
+            orders = self.fetch_orders(symbol, since, limit, self.extend(paramsGeneration, {'state': 'progress' if twap else 'wait'}))
             return self.filter_by_since_limit(orders, since, limit)
         else:
             if symbol is None:
@@ -2478,9 +2501,9 @@ class bithumb(Exchange, ImplicitAPI):
 
     def cancel_unified_order(self, order: Order, params: dict = {}) -> Order:
         request = {
-            'side': order['side'],
+            'side': self.safe_string(order, 'side'),
         }
-        return self.cancel_order((order['id']), order['symbol'], self.extend(request, params))
+        return self.cancel_order(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), self.extend(request, params))
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
@@ -2512,7 +2535,8 @@ class bithumb(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'withdraw', 'generation', 2)
-        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(paramsGeneration, 'tag')
+        tagWithdrawTag = self.safe_string(paramsGeneration, 'tag')
+        paramsWithdrawTag = self.omit(paramsGeneration, 'tag')
         self.check_address(address, code, tagWithdrawTag)
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'net_type')
         paramsNetwork = self.omit(paramsWithdrawTag, 'network')
@@ -3045,7 +3069,7 @@ class bithumb(Exchange, ImplicitAPI):
             finalNumberStr = finalNumberStr.replace(',', '')
         return finalNumberStr
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def urlencode_with_array_brackets(self, query: dict) -> str:
@@ -3053,7 +3077,7 @@ class bithumb(Exchange, ImplicitAPI):
         result = ''
         for i in range(0, len(keys)):
             key = keys[i]
-            value = query[key]
+            value = self.safe_value(query, key)
             if isinstance(value, list):
                 encodedKey = self.encode_uri_component(key) + '[]'
                 for j in range(0, len(value)):
@@ -3075,7 +3099,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        requestHeaders = None
+        requestHeaders = {}
         requestBody = None
         endpoint = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], apiName)
@@ -3091,7 +3115,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'OPEN-API-PARTNER': 'CCXT',
             }
             if hasQuery:
-                url += '?' + self.urlencode(query)
+                url = self.implode_hostname(apiUrl) + endpoint + '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             isVersionedApi = (endpoint.startswith('/v1/') or endpoint.startswith('/v2/'))
@@ -3105,7 +3129,7 @@ class bithumb(Exchange, ImplicitAPI):
                     'nonce': self.uuid(),
                     'timestamp': self.milliseconds(),
                 }
-                auth = None
+                auth = ''
                 if (method != 'GET') and (method != 'DELETE'):
                     requestHeaders['Content-Type'] = 'application/json'
                     if hasQuery:
@@ -3113,10 +3137,9 @@ class bithumb(Exchange, ImplicitAPI):
                         auth = self.urlencode_with_array_brackets(query)
                 elif hasQuery:
                     auth = self.urlencode_with_array_brackets(query)
-                    url += '?' + auth
+                    url = self.implode_hostname(apiUrl) + endpoint + '?' + auth
                 if hasQuery:
-                    authString = '' if (auth is None) else auth
-                    request['query_hash'] = self.hash(self.encode(authString), 'sha512')
+                    request['query_hash'] = self.hash(self.encode(auth), 'sha512')
                     request['query_hash_alg'] = 'SHA512'
                 token = self.jwt(request, self.encode(self.secret), 'sha256')
                 requestHeaders['Authorization'] = 'Bearer ' + token
@@ -3127,9 +3150,9 @@ class bithumb(Exchange, ImplicitAPI):
                 # bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 bodyParts = encodedBody.split('%20')
                 requestBody = '+'.join(bodyParts)
-                nonce = str(self.nonce())
-                auth = endpoint + "\0" + requestBody + "\0" + nonce  # eslint-disable-line quotes
-                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+                nonce = self.number_to_string(self.nonce())
+                authPayload = endpoint + "\0" + requestBody + "\0" + nonce  # eslint-disable-line quotes
+                signature = self.hmac(self.encode(authPayload), self.encode(self.secret), hashlib.sha512)
                 signature64 = self.string_to_base64(signature)
                 requestHeaders = {
                     'Accept': 'application/json',
@@ -3143,7 +3166,7 @@ class bithumb(Exchange, ImplicitAPI):
         bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         # generation 2:
@@ -3160,21 +3183,20 @@ class bithumb(Exchange, ImplicitAPI):
             if message is not None:
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
             raise ExchangeError(feedback)
-        if 'status' in response:
-            # generation 1:
-            #
-            #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            #
-            status = self.safe_string(response, 'status')
+        # generation 1:
+        #
+        #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+        #
+        status = self.safe_string(response, 'status')
+        if status is not None:
             message = self.safe_string(response, 'message')
-            if status is not None:
-                if status == '0000':
-                    return None  # no error
-                elif message == '거래 진행중인 내역이 존재하지 않습니다.':
-                    # https://github.com/ccxt/ccxt/issues/9017
-                    return None  # no error
-                feedback = self.id + ' ' + message
-                self.throw_exactly_matched_exception(self.exceptions, status, feedback)
-                self.throw_exactly_matched_exception(self.exceptions, message, feedback)
-                raise ExchangeError(feedback)
+            if status == '0000':
+                return None  # no error
+            elif message == '거래 진행중인 내역이 존재하지 않습니다.':
+                # https://github.com/ccxt/ccxt/issues/9017
+                return None  # no error
+            feedback = self.id + ' ' + message
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
+            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            raise ExchangeError(feedback)
         return None

@@ -1,12 +1,13 @@
 import toobitRest from '../toobit.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class toobit extends toobitRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): {
         ping: number;
     };
-    handleMessage(client: Client, message: any): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessage(client: Client, message: Dict): void;
     handleIncomingPong(client: Client, pongTimestamp: Int): void;
     /**
      * @method
@@ -178,9 +179,10 @@ export default class toobit extends toobitRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, type: string, symbols?: Strings): void;
     loadPositionsSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
-    handlePositions(client: Client, message: any): void;
+    handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
     authenticate(params?: Dict): Promise<void>;
+    setWsOptions(entry: Dict): void;
     keepAliveListenKey(params?: Dict): Promise<void>;
     getUserStreamUrl(): string;
     handleErrorMessage(client: Client, message: Dict): Bool;

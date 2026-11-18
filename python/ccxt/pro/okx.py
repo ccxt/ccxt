@@ -17,7 +17,7 @@ from ccxt.base.errors import InvalidNonce
 
 class okx(ccxt.async_support.okx):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(okx, self).describe(), {
             'has': {
                 'ws': True,
@@ -109,17 +109,15 @@ class okx(ccxt.async_support.okx):
             },
         })
 
-    def get_url(self, channel: Str, access: str = 'public') -> str:
+    def get_url(self, channel: str, access: str = 'public') -> str:
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        if channel is None:
-            raise ArgumentsRequired(self.id + ' getUrl() requires a channel argument')
         isSandbox = self.options['sandboxMode']
         sandboxSuffix = ''
         if isSandbox is True:
             sandboxSuffix = '?brokerId=9999'
         isBusiness = (access == 'business')
         isPublic = (access == 'public')
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         if isBusiness or (channel.find('candle') > -1) or (channel == 'orders-algo'):
             return url + '/business' + sandboxSuffix
         elif isPublic:
@@ -166,7 +164,7 @@ class okx(ccxt.async_support.okx):
         messageHashResolved = messageHash
         if symbol is not None:
             market = self.market(symbol)
-            messageHashResolved += ':' + market['id']
+            messageHashResolved = messageHash + ':' + self.safe_string(market, 'id', '')
             firstArgument['instId'] = market['id']
         request = {
             'op': 'subscribe',
@@ -347,7 +345,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         fr = await self.watch_funding_rates([symbolValue], params)
-        return fr[symbolValue]
+        return self.safe_value(fr, symbolValue)
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -417,7 +415,7 @@ class okx(ccxt.async_support.okx):
             symbol = fundingRate['symbol']
             if symbol is not None:
                 self.fundingRates[symbol] = fundingRate
-            client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol'])
+            client.resolve(fundingRate, 'funding-rate' + ':' + self.safe_string(fundingRate, 'symbol', ''))
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -490,7 +488,7 @@ class okx(ccxt.async_support.okx):
         market = self.market(symbol)
         symbolValue = market['symbol']
         ticker = await self.watch_mark_prices([symbolValue], paramsChannel)
-        return ticker[symbolValue]
+        return self.safe_value(ticker, symbolValue)
 
     async def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -677,7 +675,7 @@ class okx(ccxt.async_support.okx):
         data = self.safe_list(message, 'data', [])
         ticker = self.safe_dict(data, 0, {})
         parsedTicker = self.parse_ws_bid_ask(ticker, market)
-        symbol = parsedTicker['symbol']
+        symbol = self.safe_string(parsedTicker, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = parsedTicker
         messageHash = 'bidask::' + symbol
@@ -794,7 +792,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(rawLiquidations)):
             rawLiquidation = rawLiquidations[i]
             liquidation = self.parse_ws_liquidation(rawLiquidation)
-            symbol = self.safe_string(liquidation, 'symbol')
+            symbol = self.safe_string(liquidation, 'symbol', '')
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
                 self.liquidations = ArrayCache(limit)
@@ -889,7 +887,7 @@ class okx(ccxt.async_support.okx):
             if eventType != 'liquidation':
                 return
             liquidation = self.parse_ws_my_liquidation(rawLiquidation)
-            symbol = self.safe_string(liquidation, 'symbol')
+            symbol = self.safe_string(liquidation, 'symbol', '')
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
                 self.liquidations = ArrayCache(limit)
@@ -1139,8 +1137,7 @@ class okx(ccxt.async_support.okx):
                 if symbol is not None and timeframe is not None:
                     self.ohlcvs[symbol][timeframe] = stored
             stored.append(parsed)
-            messageHash = channel + ':' + market['id']
-            client.resolve(stored, messageHash)
+            client.resolve(stored, channel + ':' + self.safe_string(market, 'id', ''))
             # for multiOHLCV we need special object, as opposed to other "multi"
             # methods, because OHLCV response item does not contain symbol
             # or timeframe, thus otherwise it would be unrecognizable
@@ -1200,10 +1197,9 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             messageHashes.append(depth + ':' + symbol)
-            marketId = self.market_id(symbol)
             topic = {
                 'channel': depth,
-                'instId': marketId,
+                'instId': self.market_id(symbol),
             }
             topics.append(topic)
         request = {
@@ -1219,7 +1215,7 @@ class okx(ccxt.async_support.okx):
             if self.safe_string(client.subscriptions, messageHashes[i]) == 'resync':
                 # okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
                 resyncTopics.append(topics[i])
-                resyncHashes.append('unsubscribe:orderbook:' + symbolsNormalized[i])
+                resyncHashes.append('unsubscribe:orderbook:' + self.safe_string(symbolsNormalized, i, ''))
                 resyncNeeded = True
         if resyncNeeded:
             unsubscribeRequest = {
@@ -1331,15 +1327,13 @@ class okx(ccxt.async_support.okx):
         #
         asks = self.safe_list(message, 'asks', [])
         bids = self.safe_list(message, 'bids', [])
-        storedAsks = orderbook['asks']
-        storedBids = orderbook['bids']
-        self.handle_deltas(storedAsks, asks)
-        self.handle_deltas(storedBids, bids)
+        self.handle_deltas(orderbook['asks'], asks)
+        self.handle_deltas(orderbook['bids'], bids)
         marketId = self.safe_string(message, 'instId')
         symbol = self.safe_symbol(marketId, market)
         seqId = self.safe_integer(message, 'seqId')
         prevSeqId = self.safe_integer(message, 'prevSeqId')
-        nonce = orderbook['nonce']
+        nonce = self.safe_integer(orderbook, 'nonce')
         if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
             error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
             del client.subscriptions[messageHash]
@@ -1459,24 +1453,33 @@ class okx(ccxt.async_support.okx):
         if action == 'snapshot':
             for i in range(0, len(data)):
                 update = data[i]
-                orderbook = self.order_book({}, limit)
-                self.orderbooks[symbol] = orderbook
-                orderbook['symbol'] = symbol
-                self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                # reset the existing orderbook instead of replacing it: a consumer
+                # holds a reference to the old object and would never see updates
+                # after a re-subscription snapshot
+                if not (symbol in self.orderbooks):
+                    self.orderbooks[symbol] = self.order_book({}, limit)
+                snapshotBook = self.orderbooks[symbol]
+                timestamp = self.safe_integer(update, 'ts')
+                # rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                # price and amount only, matching handleDelta, so countOrIdKey
+                # points past the row on purpose
+                snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4)
+                snapshot['nonce'] = self.safe_integer(update, 'seqId')
+                snapshotBook.reset(snapshot)
                 if not (messageHash in client.subscriptions):
                     break
-                client.resolve(orderbook, messageHash)
+                client.resolve(snapshotBook, messageHash)
         elif action == 'update':
             if symbol in self.orderbooks:
-                orderbook = self.orderbooks[symbol]
+                updatedBook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     update = data[i]
-                    self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                    self.handle_order_book_message(client, update, updatedBook, messageHash, market)
                     if not (messageHash in client.subscriptions):
                         # a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         client.subscriptions[messageHash] = 'resync'
                         break
-                    client.resolve(orderbook, messageHash)
+                    client.resolve(updatedBook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
             # watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             # shared order-book cache when watchOrderBook subscribed to this
@@ -1484,13 +1487,13 @@ class okx(ccxt.async_support.okx):
             if messageHash in client.subscriptions:
                 if not (symbol in self.orderbooks):
                     self.orderbooks[symbol] = self.order_book({}, limit)
-                orderbook = self.orderbooks[symbol]
+                bboBook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     update = data[i]
                     timestamp = self.safe_integer(update, 'ts')
                     snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
-                    orderbook.reset(snapshot)
-                    client.resolve(orderbook, messageHash)
+                    bboBook.reset(snapshot)
+                    client.resolve(bboBook, messageHash)
         if channel == 'bbo-tbt':
             self.handle_bid_ask(client, message)
         return message
@@ -1637,9 +1640,24 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_dict(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773); the free/used/total aggregates are rebuilt from the
+        # merged currencies by safeBalance
         balance = self.parseTradingBalance(message)
-        newBalance = self.deep_extend(self.balance, balance)
-        self.balance = self.safe_balance(newBalance)
+        if self.balance is None:
+            self.balance = {}
+        reserved = ['free', 'used', 'total']
+        keys = list(balance.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[key] = self.safe_value(balance, key)
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, channel)
 
     def order_to_trade(self, order: dict, market: Market = None) -> Trade:
@@ -1840,7 +1858,8 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            if position['contracts'] == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
+            contracts = self.safe_number(position, 'contracts')
+            if contracts == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
                 position['side'] = 'long'
                 shortPosition = self.clone(position)
                 shortPosition['side'] = 'short'
@@ -1977,7 +1996,7 @@ class okx(ccxt.async_support.okx):
             for i in range(0, len(parsed)):
                 order = parsed[i]
                 stored.append(order)
-                symbol = order['symbol']
+                symbol = self.safe_string(order, 'symbol', '')
                 market = self.market(symbol)
                 marketIds.append(market['id'])
             client.resolve(stored, channel)
@@ -2064,7 +2083,7 @@ class okx(ccxt.async_support.okx):
             rawTrade = filteredOrders[i]
             trade = self.order_to_trade(rawTrade)
             myTrades.append(trade)
-            symbol = trade['symbol']
+            symbol = self.safe_string(trade, 'symbol')
             if symbol is not None:
                 symbols[symbol] = True
         if channel is not None:
@@ -2147,7 +2166,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, {})
+            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, '')
         orders = self.parse_orders(args, None, None, None)
         first = self.safe_dict(orders, 0, {})
         client.resolve(first, messageHash)
@@ -2253,7 +2272,7 @@ class okx(ccxt.async_support.okx):
         }
         for i in range(0, idsLength):
             arg = self.extend(instParams, {
-                'ordId': ids[i],
+                'ordId': self.safe_string(ids, i),
             })
             args.append(arg)
         request = {
@@ -2316,7 +2335,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, {})
+            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, '')
         orders = self.parse_orders(args, None, None, None)
         client.resolve(orders, messageHash)
 
@@ -2406,7 +2425,11 @@ class okx(ccxt.async_support.okx):
             return False
         return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'pong':
+            self.handle_pong(client, message)
+
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is not True:
             return
         #
@@ -2448,10 +2471,6 @@ class okx(ccxt.async_support.okx):
         #
         #
         #
-        if isinstance(message, str):
-            if message == 'pong':
-                self.handle_pong(client, message)
-            return
         # const table = this.safeString (message, 'table');
         # if (table === undefined) {
         event = self.safe_string_2(message, 'event', 'op')
@@ -2531,9 +2550,8 @@ class okx(ccxt.async_support.okx):
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
         # watchOHLCV subscribes through subscribe () under channel:marketId
-        if symbol is not None:
-            self.clean_unsubscription(client, channel + ':' + self.market_id(symbol), None)
-        if (symbol is not None) and (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
+        self.clean_unsubscription(client, channel + ':' + self.market_id(symbol), None)
+        if timeframe in self.ohlcvs[symbol]:
             del self.ohlcvs[symbol][timeframe]
 
     def handle_unsubscription_ticker(self, client: Client, symbol: str, channel: str):
@@ -2555,9 +2573,13 @@ class okx(ccxt.async_support.okx):
         # }
         # arg might be an array or list
         arg = self.safe_dict(message, 'arg', {})
-        channel = self.safe_string(arg, 'channel', '')
+        channel = self.safe_string(arg, 'channel')
+        if channel is None:
+            return
         marketId = self.safe_string(arg, 'instId')
         symbol = self.safe_symbol(marketId)
+        if symbol is None:
+            return
         if channel == 'trades' or channel == 'trades-all':
             self.handle_un_subscription_trades(client, symbol, channel)
         elif channel.startswith('bbo') or channel.startswith('book'):

@@ -28,6 +28,8 @@ pub mod binanceus;
 pub mod binanceusdm;
 #[cfg(feature = "bingx")]
 pub mod bingx;
+#[cfg(feature = "bit2me")]
+pub mod bit2me;
 #[cfg(feature = "bitfinex")]
 pub mod bitfinex;
 #[cfg(feature = "bitget")]
@@ -56,8 +58,6 @@ pub mod bybit;
 pub mod bybiteu;
 #[cfg(feature = "bybitid")]
 pub mod bybitid;
-#[cfg(feature = "bydfi")]
-pub mod bydfi;
 #[cfg(feature = "cex")]
 pub mod cex;
 #[cfg(feature = "coinbase")]

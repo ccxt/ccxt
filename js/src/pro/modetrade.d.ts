@@ -2,7 +2,7 @@ import modetradeRest from '../modetrade.js';
 import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class modetrade extends modetradeRest {
-    describe(): any;
+    describe(): Dict;
     requestId(url: string): number;
     watchPublic(messageHash: string, message: Dict): Promise<any>;
     /**
@@ -128,7 +128,7 @@ export default class modetrade extends modetradeRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
+    setPositionsCache(client: Client, symbols?: Strings): void;
     loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
     handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: NullableDict, market?: Market): Position;

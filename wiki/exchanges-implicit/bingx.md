@@ -324,6 +324,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 ## agent
 
+**Base URL**: `https://open-api.{hostname}/openApi`
+
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `agentV1PrivateGetAccountInviteAccountList` | GET | `account/inviteAccountList` | 5 |
@@ -336,6 +338,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `agentV1PrivateGetAccountSuperiorCheck` | GET | `account/superiorCheck` | 5 |
 
 ## wealth
+
+**Base URL**: `https://open-api.{hostname}/openApi`
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |

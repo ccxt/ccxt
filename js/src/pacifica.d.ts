@@ -5,7 +5,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  * @augments Exchange
  */
 export default class pacifica extends Exchange {
-    describe(): any;
+    describe(): Dict;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
@@ -608,11 +608,11 @@ export default class pacifica extends Exchange {
      */
     revokeBuilderCode(builderCode: string, params?: Dict): Promise<Dict>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     sortJsonKeys(value: any): any;
     prepareMessage(header: Dict, payload: Dict): string;
     signMessage(header: Dict, payload: Dict, privateKey: string): string;
-    postActionRequest(operationType: Str, sigPayload: Dict, params: Dict): Dict;
+    postActionRequest(operationType: string, sigPayload: Dict, params: Dict): Dict;
 }

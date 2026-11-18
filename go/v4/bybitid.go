@@ -13,7 +13,7 @@ func newBybitid() *Bybitid {
 	return p
 }
 
-func (this *Bybitid) Describe() any {
+func (this *Bybitid) Describe() map[string]any {
 	// Bybit Indonesia serves the same v5 API as the global exchange, with the
 	// same product categories (spot, linear, inverse, option) but its own
 	// listings and accounts, so only the identity and hostname differ here.

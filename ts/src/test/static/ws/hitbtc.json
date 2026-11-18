@@ -662,6 +662,282 @@
                     }
                 ]
             }
+        ],
+        "watchBalance": [
+            {
+                "description": "spot balance batch followed by a second batch - batches arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773); frame shape from the documented spot_balance notification",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://api.hitbtc.com/api/3/ws/trading",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "result": true
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": true,
+                        "id": 9001
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": true,
+                        "id": 9002
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "result": true,
+                        "id": 9003
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "spot_balance",
+                        "params": [
+                            {
+                                "currency": "BTC",
+                                "available": "0.50000000",
+                                "reserved": "0.10000000"
+                            },
+                            {
+                                "currency": "USDT",
+                                "available": "1000.00",
+                                "reserved": "250.00"
+                            }
+                        ]
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "spot_balance",
+                        "params": [
+                            {
+                                "currency": "BTC",
+                                "available": "0.75000000",
+                                "reserved": "0.00000000"
+                            },
+                            {
+                                "currency": "USDT",
+                                "available": "1000.00",
+                                "reserved": "250.00"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "login",
+                        "params": {
+                            "type": "HS256",
+                            "api_key": "key",
+                            "timestamp": 1,
+                            "signature": "SIGNATURE"
+                        }
+                    },
+                    {
+                        "method": "spot_balance_subscribe",
+                        "params": {
+                            "mode": "batches"
+                        },
+                        "id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature",
+                    "id"
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "currency": "BTC",
+                            "available": "0.75000000",
+                            "reserved": "0.00000000"
+                        },
+                        {
+                            "currency": "USDT",
+                            "available": "1000.00",
+                            "reserved": "250.00"
+                        }
+                    ],
+                    "BTC": {
+                        "free": 0.75,
+                        "used": 0,
+                        "total": 0.75
+                    },
+                    "USDT": {
+                        "free": 1000,
+                        "used": 250,
+                        "total": 1250
+                    },
+                    "free": {
+                        "BTC": 0.75,
+                        "USDT": 1000
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "USDT": 250
+                    },
+                    "total": {
+                        "BTC": 0.75,
+                        "USDT": 1250
+                    }
+                }
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "5m candles snapshot resolves the per-timeframe hash (candles/M5::BTC/USDT); options.lastNonce makes the request id deterministic so the subscribe ack matches it; frames captured live",
+                "input": [
+                    "BTC/USDT",
+                    "5m",
+                    null,
+                    2
+                ],
+                "options": {
+                    "lastNonce": 9000000000000
+                },
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "candles/M5",
+                            "subscriptions": [
+                                "BTCUSDT"
+                            ]
+                        },
+                        "id": 9000000000001
+                    },
+                    {
+                        "ch": "candles/M5",
+                        "snapshot": {
+                            "BTCUSDT": [
+                                {
+                                    "t": 1793679600000,
+                                    "o": "76887.49",
+                                    "c": "76846.34",
+                                    "h": "76887.49",
+                                    "l": "76846.34",
+                                    "v": "0.08152",
+                                    "q": "6267.1295423"
+                                },
+                                {
+                                    "t": 1793679900000,
+                                    "o": "77043.16",
+                                    "c": "77043.16",
+                                    "h": "77043.16",
+                                    "l": "77043.16",
+                                    "v": "0.09498",
+                                    "q": "7317.5593368"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "id": 9000000000001,
+                        "ch": "candles/M5",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ],
+                            "limit": 2
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1793679600000,
+                        76887.49,
+                        76887.49,
+                        76846.34,
+                        76846.34,
+                        0.08152
+                    ],
+                    [
+                        1793679900000,
+                        77043.16,
+                        77043.16,
+                        77043.16,
+                        77043.16,
+                        0.09498
+                    ]
+                ]
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "trades unsubscribe resolves on hitbtc's answer to the request id, which lists the symbols still subscribed on the channel; options.lastNonce makes the request id deterministic; frame shape from a live unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "options": {
+                    "lastNonce": 9000000000000
+                },
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "trades",
+                            "subscriptions": []
+                        },
+                        "id": 9000000000001
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "unsubscribe",
+                        "id": 9000000000001,
+                        "ch": "trades",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "1h candles unsubscribe on the candles/H1 channel, resolved by the answer to the request id; options.lastNonce makes the request id deterministic; frame shape from a live unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ],
+                "options": {
+                    "lastNonce": 9000000000000
+                },
+                "url": "wss://api.hitbtc.com/api/3/ws/public",
+                "messages": [
+                    {
+                        "result": {
+                            "ch": "candles/H1",
+                            "subscriptions": []
+                        },
+                        "id": 9000000000001
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "unsubscribe",
+                        "id": 9000000000001,
+                        "ch": "candles/H1",
+                        "params": {
+                            "symbols": [
+                                "BTCUSDT"
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }

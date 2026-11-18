@@ -24,25 +24,36 @@
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 use hmac::{Hmac, Mac};
-use sha2::{Sha256, Sha512, Digest as Sha2Digest};
+use sha2::{Sha256, Sha384, Sha512, Digest as Sha2Digest};
 use sha1::Sha1;
 use md5::Md5;
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use crate::{Value, ExchangeError, Result};
 
-type HmacSha256 = Hmac<Sha256>;
-type HmacSha512 = Hmac<Sha512>;
-type HmacSha1   = Hmac<Sha1>;
-type HmacMd5    = Hmac<Md5>;
 
 /// Callback type used by derived exchanges to provide their `describe()` data.
 pub type DescribeCallback = Arc<dyn Fn() -> Value + Send + Sync>;
 
 // HTTP/JSON timing counters — accumulated by `fetch_typed`, read+reset
 // by the CLI / benchmarks via `take_http_timings()`.
-static HTTP_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-static JSON_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-static HTTP_CALLS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+#[derive(Default)]
+struct HttpTimings { http_nanos: u64, json_nanos: u64, http_calls: u64 }
+
+// One owner thread holds the three counters; a caller hands it an add and never
+// waits, so there is no lock on the HTTP path. A read is ordered behind every
+// add this thread already posted.
+static TIMINGS: std::sync::LazyLock<crate::value::OwnerThread<HttpTimings>> =
+    std::sync::LazyLock::new(|| {
+        crate::value::OwnerThread::spawn("ccxt-http-timings", HttpTimings::default())
+    });
+
+fn timings_add(http_calls: u64, http_nanos: u64, json_nanos: u64) {
+    TIMINGS.post(move |t| {
+        t.http_calls += http_calls;
+        t.http_nanos += http_nanos;
+        t.json_nanos += json_nanos;
+    });
+}
 
 tokio::task_local! {
     // URLs whose WS drive loop is active on the current task's call stack. A
@@ -50,32 +61,96 @@ tokio::task_local! {
     // getBook, htx's snapshot req) must NOT start a second drive loop — that
     // would block the outer loop on a hash the outer loop is responsible for
     // resolving. Instead it just sends its subscribe frame and returns; the
-    // outer loop processes the reply. Task-local so it survives task migration.
-    static WS_DRIVEN_URLS: std::sync::Mutex<std::collections::HashSet<String>>;
+    // outer loop processes the reply. Task-local so it survives task migration;
+    // immutable, so a nested drive extends it with its own scope, not a lock.
+    static WS_DRIVEN_URLS: Vec<String>;
 }
 
 /// Snapshot + reset the global HTTP/JSON timings. Returns
 /// `(http_nanos, json_nanos, http_calls)` and zeroes them.
 pub fn take_http_timings() -> (u64, u64, u64) {
-    use std::sync::atomic::Ordering::Relaxed;
-    (
-        HTTP_NANOS.swap(0, Relaxed),
-        JSON_NANOS.swap(0, Relaxed),
-        HTTP_CALLS.swap(0, Relaxed),
-    )
+    TIMINGS.run(|t| (
+        std::mem::take(&mut t.http_nanos),
+        std::mem::take(&mut t.json_nanos),
+        std::mem::take(&mut t.http_calls),
+    ))
 }
 
 // ── Internals (Rust-typed runtime state, not exposed to transpiled code) ─────
+
+// ── Rate limiter: one owner task, channel hand-off ──────────────────────────
+// The leaky bucket is stateful and must serialize requests, so a single task
+// owns it and every caller hands it a request and awaits the reply. No lock is
+// held across the sleep and the bucket refill is never observed half-applied.
+pub struct ThrottleHandle {
+    tx: std::sync::OnceLock<tokio::sync::mpsc::UnboundedSender<ThrottleJob>>,
+}
+
+struct ThrottleJob {
+    refill_rate: f64,
+    capacity:    f64,
+    delay_ms:    f64,
+    cost:        f64,
+    reply:       tokio::sync::oneshot::Sender<()>,
+}
+
+impl Default for ThrottleHandle {
+    fn default() -> Self { ThrottleHandle { tx: std::sync::OnceLock::new() } }
+}
+
+impl ThrottleHandle {
+    fn sender(&self) -> &tokio::sync::mpsc::UnboundedSender<ThrottleJob> {
+        self.tx.get_or_init(|| {
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<ThrottleJob>();
+            tokio::spawn(async move {
+                let mut tokens: f64 = 0.0;
+                let mut last_ms: i64 = 0;
+                while let Some(job) = rx.recv().await {
+                    let n = now_ms();
+                    if last_ms == 0 { last_ms = n; }
+                    tokens = (tokens + job.refill_rate * (n - last_ms).max(0) as f64).min(job.capacity);
+                    last_ms = n;
+                    if tokens < 0.0 {
+                        let wait = ((-tokens) / job.refill_rate).max(job.delay_ms);
+                        tokio::time::sleep(std::time::Duration::from_millis(wait.ceil() as u64)).await;
+                        let n2 = now_ms();
+                        tokens = (tokens + job.refill_rate * (n2 - last_ms).max(0) as f64).min(job.capacity);
+                        last_ms = n2;
+                    }
+                    tokens -= job.cost;
+                    let _ = job.reply.send(());
+                }
+            });
+            tx
+        })
+    }
+
+    /// Queues one request on the bucket's owner and returns once it has been
+    /// served (which is what serializes concurrent callers on one instance).
+    pub(crate) async fn wait(&self, refill_rate: f64, capacity: f64, delay_ms: f64, cost: f64) {
+        let (reply, done) = tokio::sync::oneshot::channel::<()>();
+        let job = ThrottleJob { refill_rate, capacity, delay_ms, cost, reply };
+        if self.sender().send(job).is_err() { return; }
+        let _ = done.await;
+    }
+}
+
+fn now_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0)
+}
 
 pub struct Internals {
     pub http_client:    Option<reqwest::Client>,
     pub describe_cb:    Option<DescribeCallback>,
     pub last_rest_ts:   i64,
     pub headers:        HashMap<String, String>,
-    /// Leaky-bucket rate-limiter state, `(tokens, last_refill_ms)`, shared and
-    /// interior-mutable so the `&self` async `throttle()` can serialize requests
-    /// on one exchange instance. See `Exchange::throttle`.
-    pub throttle:       std::sync::Arc<tokio::sync::Mutex<(f64, i64)>>,
+    /// Leaky-bucket rate-limiter state, `(tokens, last_refill_ms)`, owned by one
+    /// task so the `&self` async `throttle()` can serialize requests on one
+    /// exchange instance without a lock. See `ThrottleHandle`.
+    pub throttle:       ThrottleHandle,
     /// Cached dispatch table built from `self.api`. Maps the snake-case
     /// implicit API name (e.g. `public_get_exchange_info`) to
     /// `(path, api_scope, http_verb, endpoint_config)`.
@@ -159,7 +234,7 @@ pub trait DerivedExchange {
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
 // (its fields — `reqwest::Client`, `Arc<dyn Fn + Send + Sync>`,
-// `Arc<tokio::Mutex<_>>`, maps, `Vec<String>` — are all thread-safe). No manual
+// `ThrottleHandle`, maps, `Vec<String>` — are all thread-safe). No manual
 // `unsafe impl` and no `PhantomPinned` are needed now that dispatch is static
 // (review #1: thread safety is compiler-proven, not asserted).
 
@@ -177,7 +252,7 @@ impl Default for Internals {
             describe_cb:      None,
             last_rest_ts:     0,
             headers:          HashMap::new(),
-            throttle:         std::sync::Arc::new(tokio::sync::Mutex::new((0.0, 0))),
+            throttle:         ThrottleHandle::default(),
             implicit_api:     HashMap::new(),
             dispatch_stack:      Vec::new(),
             dynamic_dispatch_miss: None,
@@ -189,6 +264,7 @@ impl Default for Internals {
 //
 // Every transpiler-visible field is `Value`. Both camelCase and snake_case
 // names appear because the TS source uses both interchangeably.
+// Plain-map state below is single-owner (no lock, no tag), so the Rust transpiler emits native reads.
 
 #[derive(Clone)]
 pub struct Exchange {
@@ -256,6 +332,7 @@ pub struct Exchange {
     pub ws_socks_proxy:      Value,
 
     // market data caches
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub markets:           Value,
     pub markets_by_id:     Value,
     pub currencies:        Value,
@@ -275,6 +352,7 @@ pub struct Exchange {
     pub exceptions:        Value,
     pub urls:              Value,
     pub api:               Value,
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub options:           Value,
     pub headers:           Value,
     pub accounts:          Value,
@@ -295,6 +373,7 @@ pub struct Exchange {
     pub bidsasks:          Value,
     pub ohlcvs:            Value,
     pub clients:           Value,
+    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
     pub liquidations:      Value,
     pub myLiquidations:    Value,
@@ -351,6 +430,72 @@ pub struct Exchange {
 
     // private runtime state (typed)
     pub internals: Internals,
+}
+
+/// Base fields holding a plain, single-owner dict container.
+///
+/// Each one is a dict or `Null` for the whole life of the exchange and the
+/// runtime never tags it (`__cacheKind` / `__book_id` / `__ws_subs_url` /
+/// `__live_id`), so reading and writing them is the stdlib map op and nothing
+/// else. The Rust transpiler emits those ops natively for the generated
+/// tiers; the test below holds the invariant they are proven from.
+pub const PLAIN_DICT_FIELDS: [&str; 3] = ["options", "markets", "balance"];
+
+/// The container invariant above, checked against the real constructor and
+/// against the runtime's own write-through helper.
+#[cfg(test)]
+mod plain_dict_container_proof {
+    use super::*;
+
+    fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Value {
+        match name {
+            "options" => &mut ex.options,
+            "markets" => &mut ex.markets,
+            "balance" => &mut ex.balance,
+            other => panic!("not a plain-dict field: {other}"),
+        }
+    }
+
+    #[test]
+    fn fields_hold_a_dict_or_null() {
+        let mut ex = Exchange::new(None);
+        for name in PLAIN_DICT_FIELDS {
+            let v = slot(&mut ex, name).clone();
+            assert!(v.as_map().is_some() || v.is_null(), "{name} is neither a dict nor null");
+        }
+    }
+
+    #[test]
+    fn literal_key_entry_matches_get_value_mut() {
+        // `if let Value::Dict(bind) = get_value_mut(&mut f, &Value::Str("k"..))`
+        // against the emitted `entry("k").or_insert(Null)` and the same head test.
+        let seeds: [Option<Value>; 3] = [None, Some(Value::Int(7)), Some(Value::Map(HashMap::new()))];
+        for start in [Value::Null, Value::Map(HashMap::new())] {
+            for seed in &seeds {
+                let mut base = start.clone();
+                if let (Some(v), Value::Dict(m)) = (seed.clone(), &mut base) {
+                    std::sync::Arc::make_mut(m).insert("k".to_string(), v);
+                }
+
+                let mut helper = base.clone();
+                let from_helper = crate::runtime::get_value_mut(&mut helper, &Value::Str("k".into())).clone();
+                // What the emitted `if let Value::Dict(bind)` lets the body see.
+                let seen_helper = if from_helper.as_map().is_some() { from_helper } else { Value::Null };
+
+                let mut native = base;
+                let mut seen_native = Value::Null;
+                if let Value::Dict(m) = &mut native {
+                    let entry = std::sync::Arc::make_mut(m).entry("k".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(inner) = entry {
+                        seen_native = Value::Dict(inner.clone());
+                    }
+                }
+
+                assert_eq!(seen_helper, seen_native, "head binding diverged (seed {seed:?})");
+                assert_eq!(helper, native, "slot state diverged (seed {seed:?})");
+            }
+        }
+    }
 }
 
 impl Default for Exchange {
@@ -930,25 +1075,18 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
-            Ok(v) => Value::Str(v.into()),
-            Err(_) => Value::Null,
+        match hmac_raw(&dbytes, &sbytes, &h) {
+            Some(raw) => digest_value(&raw, &digest),
+            None => Value::Null,
         }
     }
 
     pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
-        let dbytes = data;
-        let sbytes = secret;
-        let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
-            "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "sha1"   => { let mut m = HmacSha1::new_from_slice(sbytes).unwrap();   m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "md5"    => { let mut m = HmacMd5::new_from_slice(sbytes).unwrap();    m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            other    => return Err(ExchangeError::new("BadRequest", format!("unknown hmac: {other}"))),
-        };
+        let raw = hmac_raw(data, secret, hash)
+            .ok_or_else(|| ExchangeError::new("BadRequest", format!("unknown hmac: {}", hash.to_ascii_lowercase())))?;
         Ok(match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         })
     }
 
@@ -960,20 +1098,14 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        let raw = hash_raw(&dbytes, &a);
-        match digest.as_ref() {
-            // `binary` → a byte-array Value (consumed by another crypto step).
-            "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-            "base64" => Value::Str(B64.encode(&raw).into()),
-            _        => Value::Str(hex::encode(&raw).into()),
-        }
+        digest_value(&hash_raw(&dbytes, &a), &digest)
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
         let raw = hash_raw(data, algo);
         match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         }
     }
 
@@ -990,13 +1122,13 @@ impl Exchange {
     }
     pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
-        Value::Str(hex::encode(&bytes).into())
+        Value::Str(hex_encode(&bytes).into())
     }
     pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match hex::decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
+        match hex_decode(&*str_val) {
+            Some(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            None => Value::Null,
         }
     }
 
@@ -1228,31 +1360,48 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // If an ancestor ws_run on this task is already driving `url`, don't
         // start a nested loop — the subscribe frame was sent above; report the
         // current settled state and let the outer loop resolve `hashes`.
-        let nested_same = WS_DRIVEN_URLS
-            .try_with(|s| s.lock().unwrap().contains(&url))
+        let driving = WS_DRIVEN_URLS
+            .try_with(|v| v.iter().any(|u| u == &url))
             .unwrap_or(false);
-        if nested_same {
+        if driving {
             return match client.take_settled(&hashes) {
                 Some(Ok(v)) => v,
                 _ => Value::Null,
             };
         }
-        // Drive the loop, marking `url` for the duration so a nested watch on
-        // the same url takes the branch above. Establish the task-local set on
-        // the first (top-level) drive; nested-different-url calls extend it.
-        if WS_DRIVEN_URLS.try_with(|_| ()).is_ok() {
-            WS_DRIVEN_URLS.with(|s| { s.lock().unwrap().insert(url.clone()); });
-            let r = self.ws_drive_loop(client, hashes, url.clone()).await;
-            WS_DRIVEN_URLS.with(|s| { s.lock().unwrap().remove(&url); });
-            r
-        } else {
-            let mut set = std::collections::HashSet::new();
-            set.insert(url.clone());
-            WS_DRIVEN_URLS
-                .scope(std::sync::Mutex::new(set), self.ws_drive_loop(client, hashes, url.clone()))
-                .await
-        }
+        // Mark `url` for the duration of this drive so a nested watch on the same
+        // url takes the branch above. The inner scope carries the ancestors' urls
+        // plus this one, and restores the outer set on the way out.
+        let mut urls = WS_DRIVEN_URLS.try_with(|v| v.clone()).unwrap_or_default();
+        urls.push(url.clone());
+        WS_DRIVEN_URLS
+            .scope(urls, self.ws_drive_loop(client, hashes, url.clone()))
+            .await
     } }
+
+    /// One inbound frame → the venue's `handle_message`, through the typed
+    /// handle this loop owns. Still hands over the untyped view, so generated
+    /// handlers keep their untyped `handle_message` signature.
+    fn ws_handle_message<'a>(
+        &'a mut self,
+        client: &'a mut crate::pro::ws_client::ClientHandle,
+        message: Value,
+    ) -> std::pin::Pin<Box<dyn ::std::future::Future<Output = ()> + Send + 'a>> {
+        Box::pin(async move {
+            // the base routeMessage of ts/src/base/Exchange.ts: the frame goes to the handler that
+            // takes its shape. The port carries raw bytes as an array of byte values, so a
+            // non-empty array of them is the binary frame (no venue's json array frame is one).
+            let method = match &message {
+                Value::Str(_) => "handle_text_message",
+                Value::Arr(a) if !a.is_empty() && crate::exchange_stubs::is_byte_array(&message) => "handle_binary_message",
+                Value::Arr(_) => "handle_list_message",
+                _ => "handle_message",
+            };
+            let _ = self
+                .dispatch_to_derived(method, vec![client.as_value(), message])
+                .await;
+        })
+    }
 
     /// Read → dispatch → drain loop, split out so `ws_run` can wrap it in the
     /// `WS_DRIVEN_URLS` task-local scope.
@@ -1317,10 +1466,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 let s = msg.to_json().to_string();
                 eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
             }
-            let client_value = crate::pro::ws_client::client_value(&url);
-            let _ = self
-                .dispatch_to_derived("handle_message", vec![client_value, msg])
-                .await;
+            let mut client_handle = crate::pro::ws_client::ClientHandle::from_value(
+                crate::pro::ws_client::client_value(&url));
+            self.ws_handle_message(&mut client_handle, msg).await;
         }
     } }
 
@@ -1410,7 +1558,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         headers: HashMap<String, String>,
         body:    Option<String>,
     ) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
-        let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        timings_add(1, 0, 0);
         self.last_request_url     = Value::Str(url.to_string().into());
         self.last_request_headers = Value::Map(headers.iter()
             .map(|(k, v)| (k.clone(), Value::Str(v.clone().into())))
@@ -1482,8 +1630,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let response_headers_value = Value::Map(response_headers.into_iter().collect());
         self.last_response_headers = response_headers_value.clone();
         let text   = resp.text().await?;
-        HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed);
+        timings_add(0, __http_t0.elapsed().as_nanos() as u64, 0);
         if self.is_verbose() {
             eprintln!("[ccxt] ← {status} {} bytes", text.len());
             const CAP: usize = 16384;
@@ -1500,8 +1647,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Ok(j)  => Value::from_json(&j),
             Err(_) => Value::Null,
         };
-        JSON_NANOS.fetch_add(__json_t0.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed);
+        timings_add(0, 0, __json_t0.elapsed().as_nanos() as u64);
         // Venues also report failures in a 2xx body, so every response goes through
         // the derived handle_errors; a Null result falls back to httpExceptions.
         let handled = crate::exchange::DerivedExchange::handle_errors(
@@ -2165,6 +2311,7 @@ impl Exchange {
 pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
     match algo.to_ascii_lowercase().as_str() {
         "sha256" => { let mut h = Sha256::new(); h.update(data); h.finalize().to_vec() }
+        "sha384" => { let mut h = Sha384::new(); h.update(data); h.finalize().to_vec() }
         "sha512" => { let mut h = Sha512::new(); h.update(data); h.finalize().to_vec() }
         "sha1"   => { let mut h = Sha1::new();   h.update(data); h.finalize().to_vec() }
         "md5"    => { let mut h = Md5::new();    h.update(data); h.finalize().to_vec() }
@@ -2175,6 +2322,32 @@ pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
             h.finalize().to_vec()
         }
         _ => Vec::new(),
+    }
+}
+
+/// The one HMAC dispatch for every hmac path; `None` for an unknown algorithm.
+pub(crate) fn hmac_raw(data: &[u8], secret: &[u8], algo: &str) -> Option<Vec<u8>> {
+    fn mac<D: Mac + hmac::digest::KeyInit>(data: &[u8], secret: &[u8]) -> Vec<u8> {
+        let mut m = <D as Mac>::new_from_slice(secret).expect("HMAC accepts any key length");
+        m.update(data);
+        m.finalize().into_bytes().to_vec()
+    }
+    Some(match algo.to_ascii_lowercase().as_str() {
+        "sha256" => mac::<Hmac<Sha256>>(data, secret),
+        "sha384" => mac::<Hmac<Sha384>>(data, secret),
+        "sha512" => mac::<Hmac<Sha512>>(data, secret),
+        "sha1"   => mac::<Hmac<Sha1>>(data, secret),
+        "md5"    => mac::<Hmac<Md5>>(data, secret),
+        _ => return None,
+    })
+}
+
+/// Formats a raw digest: `binary` is a byte-array Value, `base64`, else hex.
+pub(crate) fn digest_value(raw: &[u8], digest: &str) -> Value {
+    match digest {
+        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
+        "base64" => Value::Str(B64.encode(raw).into()),
+        _        => Value::Str(hex_encode(raw).into()),
     }
 }
 
@@ -2363,10 +2536,39 @@ fn eip712_bytes(v: &Value) -> Vec<u8> {
     match v {
         Value::Str(s) => {
             let h = s.strip_prefix("0x").unwrap_or(s);
-            hex::decode(h).unwrap_or_else(|_| s.as_bytes().to_vec())
+            hex_decode(h).unwrap_or_else(|| s.as_bytes().to_vec())
         }
         _ => value_to_bytes(v),
     }
+}
+
+/// Lowercase hex of `bytes`.
+pub(crate) fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let bytes = bytes.as_ref();
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        out.push(DIGITS[(b >> 4) as usize] as char);
+        out.push(DIGITS[(b & 0x0f) as usize] as char);
+    }
+    out
+}
+
+/// Hex (either case) to bytes; `None` on odd length or a non-hex char.
+pub(crate) fn hex_decode(s: impl AsRef<[u8]>) -> Option<Vec<u8>> {
+    fn nibble(c: u8) -> Option<u8> {
+        match c {
+            b'0'..=b'9' => Some(c - b'0'),
+            b'a'..=b'f' => Some(c - b'a' + 10),
+            b'A'..=b'F' => Some(c - b'A' + 10),
+            _ => None,
+        }
+    }
+    let s = s.as_ref();
+    if s.len() % 2 != 0 {
+        return None;
+    }
+    s.chunks_exact(2).map(|p| Some((nibble(p[0])? << 4) | nibble(p[1])?)).collect()
 }
 
 pub(crate) fn value_to_bytes(v: &Value) -> Vec<u8> {
@@ -2685,5 +2887,41 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod digest_dispatch_tests {
+    use super::*;
+
+    const SHA384_HMAC_JEFE: &str = "af45d2e376484031617f78d2b58a6b1b9c7ef464f5a01b47e42ec3736322445e8e2240ca5e69e2c78b3239ecfab21649";
+
+    #[test]
+    fn every_hmac_path_supports_sha384() {
+        let data = || Value::Str("what do ya want for nothing?".into());
+        let key = || Value::Str("Jefe".into());
+        let ex = Exchange::new(None);
+        let method = ex.hmac(data(), key(), Value::Str("sha384".into()), &[]);
+        let free = crate::runtime::hmac(data(), key(), Value::Str("sha384".into()), Value::Str("hex".into()));
+        let typed = ex.hmac_typed(b"what do ya want for nothing?", b"Jefe", "SHA384", "hex").unwrap();
+        assert_eq!(method, Value::Str(SHA384_HMAC_JEFE.into()));
+        assert_eq!(free, Value::Str(SHA384_HMAC_JEFE.into()));
+        assert_eq!(typed, SHA384_HMAC_JEFE);
+    }
+
+    #[test]
+    fn hash_supports_sha384() {
+        let ex = Exchange::new(None);
+        assert_eq!(ex.hash_typed(b"abc", "sha384", "hex"),
+            "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7");
+    }
+
+    #[test]
+    fn hex_helpers_match_hex_crate_semantics() {
+        assert_eq!(hex_encode([0x00u8, 0xab, 0xff]), "00abff");
+        assert_eq!(hex_decode("00ABff"), Some(vec![0x00, 0xab, 0xff]));
+        assert_eq!(hex_decode("abc"), None);
+        assert_eq!(hex_decode("zz"), None);
+        assert_eq!(hex_decode(""), Some(vec![]));
     }
 }

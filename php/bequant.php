@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bequant as hitbtc;
 
 class bequant extends hitbtc {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bequant',
             'name' => 'Bequant',

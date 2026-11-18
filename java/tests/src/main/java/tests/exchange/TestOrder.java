@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestOrder extends BaseTest {
-    public static void testOrder(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
+    public static void testOrder(BaseExchange exchange, Object skippedProperties, String method, Object entry, String symbol, Object now)
     {
         // prediction-market orders are keyed by an outcome handle, not a `symbol`
         if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
@@ -49,23 +49,23 @@ public class TestOrder extends BaseTest {
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee")); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry, now);
         //
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "timeInForce", new ArrayList<Object>(Arrays.asList("GTC", "GTK", "IOC", "FOK", "PO")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("open", "closed", "canceled")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "side", new ArrayList<Object>(Arrays.asList("buy", "sell")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "postOnly", new ArrayList<Object>(Arrays.asList(true, false)));
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "price", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "stopPrice", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "cost", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "average", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "filled", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "remaining", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "timeInForce", new ArrayList<Object>(Arrays.asList("GTC", "GTK", "IOC", "FOK", "PO")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "status", new ArrayList<Object>(Arrays.asList("open", "closed", "canceled")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "side", new ArrayList<Object>(Arrays.asList("buy", "sell")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "postOnly", new ArrayList<Object>(Arrays.asList(true, false)));
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "price", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "stopPrice", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "cost", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "average", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "filled", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "remaining", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", (String) (exchange.safeString(entry, "remaining")));
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", (String) (exchange.safeString(entry, "filled")));
         if (!(Helpers.inOp(skippedProperties, "trades")))
         {
             Object skippedNew = exchange.deepExtend(skippedProperties, new HashMap<String, Object>() {{
@@ -77,11 +77,11 @@ public class TestOrder extends BaseTest {
             {
                 for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("trades")); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(((Map<String, Object>)entry).get("trades"), i), symbol, now, false);
+                    TestTrade.testTrade(exchange, skippedNew, (String) (method), Helpers.GetValue(((Map<String, Object>)entry).get("trades"), i), (String) (symbol), now, false);
                 }
             }
         }
-        TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, entry, "fee");
+        TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, (String) (method), entry, "fee");
     }
 
 }

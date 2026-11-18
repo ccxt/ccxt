@@ -42,7 +42,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.90';
+const version = '4.5.93';
 
 //-----------------------------------------------------------------------------
 
@@ -58,6 +58,7 @@ import binanceus from  './src/binanceus.js'
 import binanceusdm from  './src/binanceusdm.js'
 import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
+import bit2me from  './src/bit2me.js'
 import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
 import bitfinex from  './src/bitfinex.js'
@@ -81,7 +82,6 @@ import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
 import bybitid from  './src/bybitid.js'
-import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
@@ -163,6 +163,7 @@ import binancecoinmPro from  './src/pro/binancecoinm.js'
 import binanceusPro from  './src/pro/binanceus.js'
 import binanceusdmPro from  './src/pro/binanceusdm.js'
 import bingxPro from  './src/pro/bingx.js'
+import bit2mePro from  './src/pro/bit2me.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
@@ -177,7 +178,6 @@ import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import bybiteuPro from  './src/pro/bybiteu.js'
 import bybitidPro from  './src/pro/bybitid.js'
-import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
@@ -253,6 +253,7 @@ const exchanges = {
     'binanceusdm':            binanceusdm,
     'bingx':                  bingx,
     'bit2c':                  bit2c,
+    'bit2me':                 bit2me,
     'bitbank':                bitbank,
     'bitbns':                 bitbns,
     'bitfinex':               bitfinex,
@@ -276,7 +277,6 @@ const exchanges = {
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
     'bybitid':                bybitid,
-    'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseexchange':       coinbaseexchange,
@@ -358,6 +358,7 @@ const pro = {
     'binanceus':              binanceusPro,
     'binanceusdm':            binanceusdmPro,
     'bingx':                  bingxPro,
+    'bit2me':                 bit2mePro,
     'bitfinex':               bitfinexPro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
@@ -372,7 +373,6 @@ const pro = {
     'bybit':                  bybitPro,
     'bybiteu':                bybiteuPro,
     'bybitid':                bybitidPro,
-    'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
     'coinbaseexchange':       coinbaseexchangePro,
@@ -628,6 +628,7 @@ export {
     binanceusdm,
     bingx,
     bit2c,
+    bit2me,
     bitbank,
     bitbns,
     bitfinex,
@@ -651,7 +652,6 @@ export {
     bybit,
     bybiteu,
     bybitid,
-    bydfi,
     cex,
     coinbase,
     coinbaseexchange,

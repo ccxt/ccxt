@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinmate extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmate',
             'name' => 'CoinMate',
@@ -461,7 +461,7 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
@@ -646,12 +646,12 @@ class coinmate extends Exchange {
             'ask' => $this->safe_number($ticker, 'ask'),
             'vwap' => null,
             'askVolume' => null,
-            'open' => null,
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => null,
+            'percentage' => $this->safe_number($ticker, 'change'),
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'amount'),
             'quoteVolume' => null,
@@ -1343,7 +1343,7 @@ class coinmate extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -1357,8 +1357,9 @@ class coinmate extends Exchange {
         }
         $url = $apiUrl . '/' . $path;
         if ($apiName === 'public') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $publicQuery = $this->extend(array(), $params);
+            if (count($publicQuery) > 0) {
+                $url .= '?' . $this->urlencode($publicQuery);
             }
         } else {
             $this->check_required_credentials();
@@ -1381,7 +1382,7 @@ class coinmate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

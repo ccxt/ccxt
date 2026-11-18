@@ -2,7 +2,7 @@ import asterRest from '../aster.js';
 import type { Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class aster extends asterRest {
-    describe(): any;
+    describe(): Dict;
     getAccountTypeFromUrl(url: string): string;
     /**
      * @method
@@ -141,7 +141,7 @@ export default class aster extends asterRest {
      */
     unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
     handleBidAsk(client: Client, message: Dict): void;
-    parseWsBidAsk(message: Dict, market?: Market): Ticker;
+    parseWsBidAsk(message: Dict, market: Market): Ticker;
     /**
      * @method
      * @name aster#watchTrades

@@ -6,7 +6,6 @@ junit-jupiter = "5.11.1"
 jackson = "2.18.2"
 bouncycastle = "1.78.1"
 netty = "4.1.116.Final"
-msgpack = "0.9.12"
 
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
@@ -14,4 +13,3 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 netty-codec-http = { module = "io.netty:netty-codec-http", version.ref = "netty" }
 netty-handler-proxy = { module = "io.netty:netty-handler-proxy", version.ref = "netty" }
-msgpack-core = { module = "org.msgpack:msgpack-core", version.ref = "msgpack" }

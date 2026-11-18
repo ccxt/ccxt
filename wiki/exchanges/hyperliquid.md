@@ -62,7 +62,7 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reserveRequestWeight](#reserverequestweight)
-* [createAccount](#createaccount)
+* [createSubAccount](#createsubaccount)
 * [createOrdersWs](#createordersws)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -644,6 +644,7 @@ cancels an open order
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
 | params.twap | <code>boolean</code> | No | whether the order to cancel is a twap order, (default is false) |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false) |
 
 
 ```javascript
@@ -673,6 +674,7 @@ cancel multiple orders
 | params.clientOrderId | <code>string</code>, <code>Array&lt;string&gt;</code> | No | client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef) |
 | params.vaultAddress | <code>string</code> | No | the vault address |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false) |
 
 
 ```javascript
@@ -723,6 +725,7 @@ build the request payload for cancelling multiple orders
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No |  |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, (default is false) |
 
 
 ```javascript
@@ -750,6 +753,7 @@ cancel multiple orders for multiple symbols
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.vaultAddress | <code>string</code> | No | the vault address |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.fast | <code>boolean</code> | No | whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false) |
 
 
 ```javascript
@@ -1468,9 +1472,9 @@ hyperliquid.reserveRequestWeight (weight, params?)
 ```
 
 
-<a name="createAccount" id="createaccount"></a>
+<a name="createSubAccount" id="createsubaccount"></a>
 
-### createAccount{docsify-ignore}
+### createSubAccount{docsify-ignore}
 creates a sub-account under the main account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
@@ -1485,7 +1489,7 @@ creates a sub-account under the main account
 
 
 ```javascript
-hyperliquid.createAccount (name, params?)
+hyperliquid.createSubAccount (name, params?)
 ```
 
 

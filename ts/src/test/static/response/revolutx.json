@@ -400,6 +400,308 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "spot +since -limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793543961000,
+                    null,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1793544000000,
+                            "open": "78000",
+                            "high": "78000",
+                            "low": "78000",
+                            "close": "78000",
+                            "volume": "0.00000000"
+                        },
+                        {
+                            "start": 1793544060000,
+                            "open": "77997.87",
+                            "high": "78029.28",
+                            "low": "77966.88",
+                            "close": "77997.87",
+                            "volume": "0.00000000"
+                        },
+                        {
+                            "start": 1793544120000,
+                            "open": "77997.87",
+                            "high": "78115.11",
+                            "low": "77966.89",
+                            "close": "78013.54",
+                            "volume": "0.00000000"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1794238580223,
+                        "region": "EEA"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1793544000000,
+                        78000,
+                        78000,
+                        78000,
+                        78000,
+                        0
+                    ],
+                    [
+                        1793544060000,
+                        77997.87,
+                        78029.28,
+                        77966.88,
+                        77997.87,
+                        0
+                    ],
+                    [
+                        1793544120000,
+                        77997.87,
+                        78115.11,
+                        77966.89,
+                        78013.54,
+                        0
+                    ]
+                ]
+            },
+            {
+                "description": "spot -since +limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1793544120000,
+                            "open": "77997.87",
+                            "high": "78115.11",
+                            "low": "77966.89",
+                            "close": "78013.54",
+                            "volume": "0.00000000"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1794238561936,
+                        "region": "EEA"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1793544120000,
+                        77997.87,
+                        78115.11,
+                        77966.89,
+                        78013.54,
+                        0
+                    ]
+                ]
+            },
+            {
+                "description": "spot +since +limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793543961000,
+                    1,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1793544000000,
+                            "open": "78000",
+                            "high": "78000",
+                            "low": "78000",
+                            "close": "78000",
+                            "volume": "0.00000000"
+                        },
+                        {
+                            "start": 1793544060000,
+                            "open": "77997.87",
+                            "high": "78029.28",
+                            "low": "77966.88",
+                            "close": "77997.87",
+                            "volume": "0.00000000"
+                        },
+                        {
+                            "start": 1793544120000,
+                            "open": "77997.87",
+                            "high": "78115.11",
+                            "low": "77966.89",
+                            "close": "78013.54",
+                            "volume": "0.00000000"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1794238535096,
+                        "region": "EEA"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1793544000000,
+                        78000,
+                        78000,
+                        78000,
+                        78000,
+                        0
+                    ]
+                ]
+            },
+            {
+                "description": "spot +since +limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793544161000,
+                    1
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1793544180000,
+                            "open": "78039.78",
+                            "high": "78060.15",
+                            "low": "77966.92",
+                            "close": "77966.93",
+                            "volume": "0.00000257"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1794238473522,
+                        "region": "EEA"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1793544180000,
+                        78039.78,
+                        78060.15,
+                        77966.92,
+                        77966.93,
+                        0.00000257
+                    ]
+                ]
+            },
+            {
+                "description": "spot with since",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793544161000
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1793544180000,
+                            "open": "78039.78",
+                            "high": "78060.15",
+                            "low": "77966.92",
+                            "close": "77966.93",
+                            "volume": "0.00000257"
+                        },
+                        {
+                            "start": 1793544240000,
+                            "open": "77966.93",
+                            "high": "77966.93",
+                            "low": "77966.93",
+                            "close": "77966.93",
+                            "volume": "0.00000000"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1794235555965,
+                        "region": "EEA"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1793544180000,
+                        78039.78,
+                        78060.15,
+                        77966.92,
+                        77966.93,
+                        0.00000257
+                    ],
+                    [
+                        1793544240000,
+                        77966.93,
+                        77966.93,
+                        77966.93,
+                        77966.93,
+                        0
+                    ]
+                ]
+            },
+            {
+                "description": "spot without args",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC",
+                    "1m"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "start": 1794174720000,
+                            "open": "75218",
+                            "high": "75218",
+                            "low": "75200",
+                            "close": "75200",
+                            "volume": "0.00385249"
+                        },
+                        {
+                            "start": 1794174780000,
+                            "open": "75150",
+                            "high": "75150",
+                            "low": "75000",
+                            "close": "75026.07",
+                            "volume": "0.16829767"
+                        }
+                    ],
+                    "metadata": {
+                        "timestamp": 1794234675656,
+                        "region": "EEA"
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1794174720000,
+                        75218,
+                        75218,
+                        75200,
+                        75200,
+                        0.00385249
+                    ],
+                    [
+                        1794174780000,
+                        75150,
+                        75150,
+                        75000,
+                        75026.07,
+                        0.16829767
+                    ]
+                ]
+            },
+            {
                 "description": "BTC/USD 1h candles",
                 "method": "fetchOHLCV",
                 "input": [
@@ -924,6 +1226,200 @@
                         "time_in_force": "gtc",
                         "created_date": 1787668883216,
                         "updated_date": 1787668901000
+                    }
+                }
+            },
+            {
+                "description": "fetch conditional (trigger) order",
+                "method": "fetchOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "conditional",
+                        "quantity": "0.003",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.003",
+                        "amount": "353.70",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "conditional": {
+                            "trigger_price": "118000.00",
+                            "type": "limit",
+                            "trigger_direction": "le",
+                            "limit_price": "117900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": 0.003,
+                    "price": 117900,
+                    "triggerPrice": 118000,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 0.003,
+                    "timestamp": 1785309833816,
+                    "datetime": "2026-07-29T07:23:53.816Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1785313433816,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": 118000,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "conditional",
+                        "quantity": "0.003",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.003",
+                        "amount": "353.70",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "conditional": {
+                            "trigger_price": "118000.00",
+                            "type": "limit",
+                            "trigger_direction": "le",
+                            "limit_price": "117900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                }
+            },
+            {
+                "description": "fetch TP/SL order with both legs",
+                "method": "fetchOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "sell",
+                        "type": "tpsl",
+                        "quantity": "0.002",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.002",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "take_profit": {
+                            "trigger_price": "125000.00",
+                            "type": "limit",
+                            "trigger_direction": "ge",
+                            "limit_price": "124900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "stop_loss": {
+                            "trigger_price": "115000.00",
+                            "type": "market",
+                            "trigger_direction": "le",
+                            "time_in_force": "ioc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "symbol": "BTC/USD",
+                    "type": null,
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "amount": 0.002,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "timestamp": 1785309833816,
+                    "datetime": "2026-07-29T07:23:53.816Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1785313433816,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": 125000,
+                    "stopLossPrice": 115000,
+                    "info": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "sell",
+                        "type": "tpsl",
+                        "quantity": "0.002",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.002",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "take_profit": {
+                            "trigger_price": "125000.00",
+                            "type": "limit",
+                            "trigger_direction": "ge",
+                            "limit_price": "124900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "stop_loss": {
+                            "trigger_price": "115000.00",
+                            "type": "market",
+                            "trigger_direction": "le",
+                            "time_in_force": "ioc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
                     }
                 }
             }

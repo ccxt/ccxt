@@ -5,7 +5,7 @@ import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, 
  * @augments Exchange
  */
 export default class poloniex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -246,7 +246,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name poloniex#fetchBalance
@@ -273,7 +273,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -299,7 +299,7 @@ export default class poloniex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     prepareRequestForDepositAddress(code: string, params?: Dict): any;
-    parseDepositAddressSpecial(response: Dict, currency: any, networkEntry: Dict): DepositAddress;
+    parseDepositAddressSpecial(response: Dict, currency: Currency, networkEntry: Dict): DepositAddress;
     /**
      * @method
      * @name poloniex#transfer
@@ -481,7 +481,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

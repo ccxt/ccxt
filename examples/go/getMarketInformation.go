@@ -14,9 +14,9 @@ func GetMarket() {
 
 	market := exchange.GetMarket(symbol)
 
-	if *market.Spot {
+	if market.Spot {
 		println("Spot market")
-	} else if *market.Swap {
+	} else if market.Swap {
 		println("Swap market")
 	}
 

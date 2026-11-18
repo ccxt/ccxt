@@ -11,7 +11,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class dydx extends dydxRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -51,9 +51,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_trades',
@@ -80,9 +80,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
@@ -116,7 +116,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         const rawTrades = this.safeList (content, 'trades', []);
         let stored = this.safeValue (this.trades, symbol);
@@ -127,8 +127,7 @@ export default class dydx extends dydxRest {
         }
         const parsedTrades = this.parseTrades (rawTrades, market);
         for (let i = 0; i < parsedTrades.length; i++) {
-            const parsed = parsedTrades[i];
-            stored.append (parsed);
+            stored.append (parsedTrades[i]);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
@@ -178,9 +177,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
@@ -203,9 +202,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
@@ -240,7 +239,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -284,14 +283,14 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString (market, 'symbol', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': this.safeString (market, 'id', '') + '/' + resolution,
         };
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved = limit;
@@ -316,14 +315,14 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString (market, 'symbol', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': this.safeString (market, 'id', '') + '/' + resolution,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
@@ -386,7 +385,7 @@ export default class dydx extends dydxRest {
         const timeframe = this.findTimeframe (interval);
         const marketId = this.safeString (part, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         const candles = this.safeList (content, 'candles');
         const messageHash = 'ohlcv:' + symbol;
@@ -413,7 +412,7 @@ export default class dydx extends dydxRest {
         // }
         //
         try {
-            const msg = this.safeString (message, 'message');
+            const msg = this.safeString (message, 'message', '');
             throw new ExchangeError (this.id + ' ' + msg);
         } catch (e) {
             client.reject (e);

@@ -16,7 +16,7 @@ func newDeribit() *Deribit {
 	return p
 }
 
-func (this *Deribit) Describe() any {
+func (this *Deribit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "deribit",
 		"name":      "Deribit",
@@ -126,7 +126,7 @@ func (this *Deribit) Describe() any {
 				"rest": "https://www.deribit.com",
 			},
 			"www":  "https://www.deribit.com",
-			"doc":  []any{"https://docs.deribit.com/v2", "https://github.com/deribit"},
+			"doc":  []any{"https://docs.deribit.com", "https://github.com/deribit"},
 			"fees": "https://www.deribit.com/pages/information/fees",
 			"referral": map[string]any{
 				"url":      "https://www.deribit.com/reg-1189.4038",
@@ -798,60 +798,52 @@ func (this *Deribit) Describe() any {
 func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
 	var quote string = "USD"
-	var settle any = nil
+	var settle string = ""
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
-	var base any = nil
+	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
+	var hasUsdc bool = (GetIndexOf(symbol, "USDC") > -1)
+	var base *string = nil
 	var expiry any = nil
-	if GetIndexOf(symbol, "/") > -1 {
-		if derefPtr := this.SafeString(symbolBase, 0); derefPtr != nil {
-			base = *derefPtr
-		} else {
-			base = nil
-		}
+	if hasSlash {
+		base = this.SafeString(symbolBase, 0, "")
 		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
 			expiry = *derefPtr
 		} else {
 			expiry = nil
 		}
-		if GetIndexOf(symbol, "USDC") > -1 {
-			base = Add(base, "_USDC")
-		}
 	} else {
-		if derefPtr := this.SafeString(optionParts, 0); derefPtr != nil {
-			base = *derefPtr
-		} else {
-			base = nil
-		}
+		base = this.SafeString(optionParts, 0, "")
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 	}
-	if GetIndexOf(symbol, "USDC") > -1 {
-		quote = "USDC"
-		settle = "USDC"
-	} else {
-		settle = base
-	}
-	var splitBase any = base
 	if base == nil {
 		panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing base"))
 	}
-	if GetIndexOf(base, "_") > -1 {
-		var splitSymbol []string = Split(base, "_")
-		splitBase = this.SafeString(splitSymbol, 0)
+	// the slash form of a usdc instrument carries its settlement currency in the base
+	var baseSuffix string = ""
+	if hasSlash && hasUsdc {
+		baseSuffix = "_USDC"
 	}
-	var strike *string = this.SafeString(optionParts, 2)
-	var optionType *string = this.SafeString(optionParts, 3)
+	var baseResolved string = *base + baseSuffix
+	if hasUsdc {
+		quote = "USDC"
+		settle = "USDC"
+	} else {
+		// no usdc suffix on this path, so the resolved base is the settle currency
+		settle = baseResolved
+	}
+	// the part of the base before the first underscore, or the whole base when it has none
+	var splitBase string = *this.SafeString(strings.Split(baseResolved, "_"), 0, "")
+	var strike string = *this.SafeString(optionParts, 2, "")
+	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
-	var timestamp *int64 = this.Parse8601(datetime)
-	var id any = Add(Add(Add(Add(Add(Add(base, "-"), this.ConvertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType)
-	var symbolExpired any = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType)
 	return map[string]any{
-		"id":             id,
-		"symbol":         symbolExpired,
-		"base":           base,
+		"id":             Add(Add(baseResolved+"-", this.ConvertExpireDateToMarketIdDate(expiry)), ("-" + strike + "-" + optionType)),
+		"symbol":         Add(Add(splitBase+"/"+quote+":"+settle+"-", expiry), ("-" + strike + "-" + optionType)),
+		"base":           baseResolved,
 		"quote":          quote,
 		"settle":         settle,
-		"baseId":         base,
+		"baseId":         baseResolved,
 		"quoteId":        quote,
 		"settleId":       settle,
 		"active":         false,
@@ -865,10 +857,10 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		"margin":         false,
 		"contract":       true,
 		"contractSize":   nil,
-		"expiry":         timestamp,
+		"expiry":         this.Parse8601(datetime),
 		"expiryDatetime": datetime,
 		"optionType": func() string {
-			if optionType != nil && *optionType == "C" {
+			if optionType == "C" {
 				return "call"
 			}
 			return "put"
@@ -909,14 +901,14 @@ func (this *Deribit) SafeMarket(optionalArgs ...any) map[string]any {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
+	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
 
 /**
  * @method
  * @name deribit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.deribit.com/#public-get_time
+ * @see https://docs.deribit.com/api-reference/supporting/public-get_time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -955,7 +947,7 @@ func (this *Deribit) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...
  * @method
  * @name deribit#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.deribit.com/#public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1048,7 +1040,7 @@ func (this *Deribit) CodeFromOptions(methodName string, optionalArgs ...any) *st
  * @method
  * @name deribit#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.deribit.com/#public-status
+ * @see https://docs.deribit.com/api-reference/supporting/public-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1103,7 +1095,7 @@ func (this *Deribit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
  * @method
  * @name deribit#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.deribit.com/#private-get_subaccounts
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -1196,8 +1188,8 @@ func (this *Deribit) ParseAccount(account any) map[string]any {
  * @method
  * @name deribit#fetchMarkets
  * @description retrieves data on all markets for deribit
- * @see https://docs.deribit.com/#public-get_currencies
- * @see https://docs.deribit.com/#public-get_instruments
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1256,12 +1248,7 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		//
 		var currenciesResult []any = SafeListTyped(currenciesResponse, "result")
 		for i := 0; i < len(currenciesResult); i++ {
-			var currencyId *string = this.SafeString(func() any {
-				if i >= 0 && i < len(currenciesResult) {
-					return DerefScalar(currenciesResult[i])
-				}
-				return nil
-			}(), "currency")
+			var currencyId *string = this.SafeString(currenciesResult[i], "currency")
 			var request map[string]any = map[string]any{
 				"currency": currencyId,
 			}
@@ -1348,19 +1335,9 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		}
 	}
 	for i := 0; i < len(instrumentsResponses); i++ {
-		var instrumentsResult []any = SafeListTyped(func() any {
-			if i >= 0 && i < len(instrumentsResponses) {
-				return DerefScalar(instrumentsResponses[i])
-			}
-			return nil
-		}(), "result")
+		var instrumentsResult []any = SafeListTyped(instrumentsResponses[i], "result")
 		for k := 0; k < len(instrumentsResult); k++ {
-			var market any = func() any {
-				if k >= 0 && k < len(instrumentsResult) {
-					return DerefScalar(instrumentsResult[k])
-				}
-				return nil
-			}()
+			var market any = instrumentsResult[k]
 			var kind *string = this.SafeString(market, "kind")
 			var isSpot bool = (kind != nil && *kind == "spot")
 			var id *string = this.SafeString(market, "instrument_name")
@@ -1517,8 +1494,8 @@ func (this *Deribit) ParseBalance(balance any) map[string]any {
  * @method
  * @name deribit#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.deribit.com/#private-get_account_summary
- * @see https://docs.deribit.com/#private-get_account_summaries
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1614,7 +1591,7 @@ func (this *Deribit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
  * @method
  * @name deribit#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.deribit.com/#private-create_deposit_address
+ * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1676,7 +1653,7 @@ func (this *Deribit) createDepositAddressBody(ch chan AsyncResult[DepositAddress
  * @method
  * @name deribit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.deribit.com/#private-get_current_deposit_address
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1822,7 +1799,7 @@ func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @method
  * @name deribit#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.deribit.com/#public-ticker
+ * @see https://docs.deribit.com/api-reference/market-data/public-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1853,7 +1830,7 @@ func (this *Deribit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1892,7 +1869,7 @@ func (this *Deribit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
  * @method
  * @name deribit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -1926,7 +1903,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			var marketBase *string = this.SafeString(market, "base")
 			if (code != nil) && (code != marketBase && (code == nil || marketBase == nil || *code != *marketBase)) {
-				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
+				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency"))
 			}
 			if code == nil {
 				code = this.SafeString(market, "base")
@@ -1942,16 +1919,12 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		"currency": currency["id"],
 	}
 	if typeVar != nil {
-		var requestType *string = nil
 		if typeVar != nil && *typeVar == "spot" {
-			requestType = SafeStringPtr("spot")
+			request["kind"] = "spot"
 		} else if (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "contract") {
-			requestType = SafeStringPtr("future")
+			request["kind"] = "future"
 		} else if typeVar != nil && *typeVar == "option" {
-			requestType = SafeStringPtr("option")
-		}
-		if requestType != nil {
-			request["kind"] = requestType
+			request["kind"] = "option"
 		}
 	}
 
@@ -1993,12 +1966,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(func() any {
-			if i >= 0 && i < len(result) {
-				return DerefScalar(result[i])
-			}
-			return nil
-		}()))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(result[i]))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			tickers[*symbol] = ticker
@@ -2013,7 +1981,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
  * @method
  * @name deribit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2053,11 +2021,11 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes150419 []any = r1.Value
-		if retRes150419 == nil {
+		var retRes150019 []any = r1.Value
+		if retRes150019 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes150419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes150019)}
 		}
 		return nil
 	}
@@ -2196,7 +2164,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	// For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
 	var amount *string = this.SafeString(trade, "amount")
 	var cost *string = Precise.StringMul(amount, priceString)
-	if marketResolved["inverse"] == true {
+	if *this.SafeBool(marketResolved, "inverse", false) {
 		cost = Precise.StringDiv(amount, priceString)
 	}
 	var liquidity *string = this.SafeString(trade, "liquidity")
@@ -2240,8 +2208,8 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) Trade {
 /**
  * @method
  * @name deribit#fetchTrades
- * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
- * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
  * @description get the list of most recent trades for a particular symbol.
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2293,7 +2261,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["end_timestamp"] = until
 	}
 	var response map[string]any = nil
-	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
+	if _, ok := request["end_timestamp"]; (since == nil) && !ok {
 
 		r1 := <-this.PublicGetGetLastTradesByInstrument(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -2344,7 +2312,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
  * @method
  * @name deribit#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://docs.deribit.com/#private-get_account_summary
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -2432,12 +2400,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = func() any {
-			if i >= 0 && i < len(fees) {
-				return DerefScalar(fees[i])
-			}
-			return nil
-		}()
+		var fee any = fees[i]
 		var instrumentType *string = this.SafeString(fee, "instrument_type")
 		if instrumentType != nil && *instrumentType == "future" {
 			futureFee = map[string]any{
@@ -2472,11 +2435,11 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 			"maker":      market["maker"],
 			"taker":      market["taker"],
 		}
-		if market["swap"] == true {
+		if *this.SafeBool(market, "swap", false) {
 			fee = this.Extend(fee, perpetualFee)
-		} else if market["future"] == true {
+		} else if *this.SafeBool(market, "future", false) {
 			fee = this.Extend(fee, futureFee)
-		} else if market["option"] == true {
+		} else if *this.SafeBool(market, "option", false) {
 			fee = this.Extend(fee, optionFee)
 		}
 		parsedFees[symbol] = fee
@@ -2490,7 +2453,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
  * @method
  * @name deribit#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.deribit.com/#public-get_order_book
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2706,18 +2669,18 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) Order {
  * @method
  * @name deribit#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.deribit.com/#private-get_order_state
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deribit) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deribit) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Deribit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Deribit) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2782,8 +2745,8 @@ func (this *Deribit) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
  * @method
  * @name deribit#createOrder
  * @description create a trade order
- * @see https://docs.deribit.com/#private-buy
- * @see https://docs.deribit.com/#private-sell
+ * @see https://docs.deribit.com/api-reference/trading/private-buy
+ * @see https://docs.deribit.com/api-reference/trading/private-sell
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2840,7 +2803,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var isStopOrder bool = isStopLossOrder || isTakeProfitOrder
 	var isLimitOrder bool = (typeVar == "limit") || isStopLimit || isTakeLimit
 	var isMarketOrder bool = (typeVar == "market") || isStopMarket || isTakeMarket
-	var exchangeSpecificPostOnly any = this.SafeValue(params, "post_only")
+	var exchangeSpecificPostOnly *bool = this.SafeBool(params, "post_only")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificPostOnly, params)
 	if isLimitOrder {
 		request["type"] = "limit"
@@ -2967,9 +2930,9 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order any = this.SafeValue(result, "order")
-	var trades any = this.SafeList(result, "trades", []any{})
-	AddElementToObject(order, "trades", trades)
+	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+		"trades": this.SafeList(result, "trades", []any{}),
+	})
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -2979,7 +2942,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @method
  * @name deribit#editOrder
  * @description edit a trade order
- * @see https://docs.deribit.com/#private-edit
+ * @see https://docs.deribit.com/api-reference/trading/private-edit
  * @param {string} id edit order id
  * @param {string} [symbol] unified symbol of the market to edit an order in
  * @param {string} [type] 'market' or 'limit'
@@ -3037,9 +3000,9 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var response map[string]any = r1.Value
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order any = this.SafeValue(result, "order")
-	var trades any = this.SafeList(result, "trades", []any{})
-	AddElementToObject(order, "trades", trades)
+	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+		"trades": this.SafeList(result, "trades", []any{}),
+	})
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order)}
 	return nil
@@ -3049,7 +3012,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
  * @method
  * @name deribit#cancelOrder
  * @description cancels an open order
- * @see https://docs.deribit.com/#private-cancel
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel
  * @param {string} id order id
  * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3093,8 +3056,8 @@ func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @method
  * @name deribit#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.deribit.com/#private-cancel_all
- * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3158,8 +3121,8 @@ func (this *Deribit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @method
  * @name deribit#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.deribit.com/#private-get_open_orders_by_currency
- * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3222,8 +3185,8 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @method
  * @name deribit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.deribit.com/#private-get_order_history_by_currency
- * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3291,7 +3254,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
  * @method
  * @name deribit#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.deribit.com/#private-get_user_trades_by_order
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3374,10 +3337,10 @@ func (this *Deribit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
  * @method
  * @name deribit#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.deribit.com/#private-get_user_trades_by_currency
- * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
- * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
- * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3499,7 +3462,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
  * @method
  * @name deribit#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.deribit.com/#private-get_deposits
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3544,7 +3507,7 @@ func (this *Deribit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3576,7 +3539,7 @@ func (this *Deribit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
  * @method
  * @name deribit#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.deribit.com/#private-get_withdrawals
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3761,13 +3724,12 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	var marketResolved map[string]any = this.SafeMarket(contract, market)
-	var side *string = this.SafeString(position, "direction")
-	side = SafeStringPtr(func() string {
-		if side != nil && *side == "buy" {
+	var side string = func() string {
+		if this.SafeString(position, "direction") != nil && *this.SafeString(position, "direction") == "buy" {
 			return "long"
 		}
 		return "short"
-	}())
+	}()
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")
@@ -3809,7 +3771,7 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) Position {
  * @method
  * @name deribit#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.deribit.com/#private-get_position
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3877,7 +3839,7 @@ func (this *Deribit) fetchPositionBody(ch chan AsyncResult[Position], symbol any
  * @method
  * @name deribit#fetchPositions
  * @description fetch all open positions
- * @see https://docs.deribit.com/#private-get_positions
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.currency] currency code filter for positions
@@ -3961,17 +3923,17 @@ func (this *Deribit) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
  * @method
  * @name deribit#fetchVolatilityHistory
  * @description fetch the historical volatility of an option market based on an underlying asset
- * @see https://docs.deribit.com/#public-get_historical_volatility
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
-func (this *Deribit) FetchVolatilityHistoryAsync(code any, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+func (this *Deribit) FetchVolatilityHistoryAsync(code string, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
 	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.fetchVolatilityHistoryBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Deribit) fetchVolatilityHistoryBody(ch chan AsyncResult[[]map[string]any], code any, optionalArgs ...any) any {
+func (this *Deribit) fetchVolatilityHistoryBody(ch chan AsyncResult[[]map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4029,18 +3991,8 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
 	var volatilityResult []any = SafeListTyped(volatility, "result")
 	var result []any = []any{}
 	for i := 0; i < len(volatilityResult); i++ {
-		var timestamp *int64 = this.SafeInteger(func() any {
-			if i >= 0 && i < len(volatilityResult) {
-				return DerefScalar(volatilityResult[i])
-			}
-			return nil
-		}(), 0)
-		var volatilityObj *float64 = this.SafeNumber(func() any {
-			if i >= 0 && i < len(volatilityResult) {
-				return DerefScalar(volatilityResult[i])
-			}
-			return nil
-		}(), 1)
+		var timestamp *int64 = this.SafeInteger(volatilityResult[i], 0)
+		var volatilityObj *float64 = this.SafeNumber(volatilityResult[i], 1)
 		result = append(result, map[string]any{
 			"info":       volatilityObj,
 			"timestamp":  timestamp,
@@ -4055,7 +4007,7 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
  * @method
  * @name deribit#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://docs.deribit.com/#private-get_transfers
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -4145,8 +4097,8 @@ func (this *Deribit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
  * @method
  * @name deribit#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://docs.deribit.com/#private-submit_transfer_to_user
- * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+ * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+ * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
@@ -4154,12 +4106,12 @@ func (this *Deribit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Deribit) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Deribit) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Deribit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Deribit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4278,7 +4230,7 @@ func (this *Deribit) ParseTransferStatus(status *string) *string {
  * @method
  * @name deribit#withdraw
  * @description make a withdrawal
- * @see https://docs.deribit.com/#private-withdraw
+ * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -4296,14 +4248,7 @@ func (this *Deribit) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
@@ -4364,7 +4309,7 @@ func (this *Deribit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
  * @method
  * @name deribit#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://docs.deribit.com/#public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -4426,7 +4371,7 @@ func (this *Deribit) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
  * @method
  * @name deribit#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://docs.deribit.com/#public-get_funding_rate_value
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -4482,7 +4427,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
  * @method
  * @name deribit#fetchFundingRateHistory
  * @description fetch the current funding rate
- * @see https://docs.deribit.com/#public-get_funding_rate_history
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding rate history for
  * @param {int} [limit] the maximum number of entries to retrieve
@@ -4528,11 +4473,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333319 []any = r1.Value
-		if retRes333319 == nil {
+		var retRes332419 []any = r1.Value
+		if retRes332419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333319)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332419)}
 		}
 		return nil
 	}
@@ -4546,12 +4491,10 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		}
 		return *since
 	}()
-	var time any = func() any {
-		if since == nil {
-			return now
-		}
-		return Add(since, month)
-	}()
+	var time int64 = now
+	if since != nil {
+		time = this.ParseToInt(*since + month)
+	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"start_timestamp": (sinceResolved - 1),
@@ -4563,25 +4506,23 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		}
 		return paramsPaginate
 	}()
-	var endTimestamp any = func() any {
-		if until != nil {
-			return until
-		}
-		return time
-	}()
+	var endTimestamp int64 = time
+	if until != nil {
+		endTimestamp = this.ParseToInt(until)
+	}
 	request["end_timestamp"] = endTimestamp
-	var isPaginationCall bool = (InOp(paramsUntil, "isDeribitPaginationCall"))
+	var isPaginationCall *bool = this.SafeBool(paramsUntil, "isDeribitPaginationCall", false)
 	var paramsOmitted any = paramsUntil
-	if isPaginationCall {
+	if isPaginationCall != nil && *isPaginationCall {
 		paramsOmitted = this.Omit(paramsUntil, "isDeribitPaginationCall")
 	}
-	if isPaginationCall {
+	if isPaginationCall != nil && *isPaginationCall {
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
 		var maxUntil int64 = this.ParseToInt(this.Sum(sinceResolved, *limit*duration))
-		request["end_timestamp"] = func() any {
-			if IsLessThan(endTimestamp, maxUntil) {
+		request["end_timestamp"] = func() int64 {
+			if endTimestamp < maxUntil {
 				return endTimestamp
 			}
 			return maxUntil
@@ -4669,7 +4610,7 @@ func (this *Deribit) ParseFundingRate(contract any, optionalArgs ...any) Funding
  * @method
  * @name deribit#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4705,17 +4646,17 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344919 []any = r1.Value
-		if retRes344919 == nil {
+		var retRes344619 []any = r1.Value
+		if retRes344619 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344919)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344619)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["spot"] == true {
-		panic(NotSupported(Add(Add(this.Id+" fetchLiquidations() does not support ", market["type"]), " markets")))
+	if *this.SafeBool(market, "spot", false) {
+		panic(NotSupported(this.Id + " fetchLiquidations() does not support " + *this.SafeString(market, "type", "") + " markets"))
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -4769,20 +4710,10 @@ func (this *Deribit) AddPaginationCursorToResult(cursor *string, data []any) any
 	if cursor != nil {
 		var dataLength int = len(data)
 		if dataLength > 0 {
-			var first any = func() any {
-				if 0 >= 0 && 0 < len(data) {
-					return DerefScalar(data[0])
-				}
-				return nil
-			}()
-			var last any = func() any {
-				if dataLength-1 >= 0 && dataLength-1 < len(data) {
-					return DerefScalar(data[dataLength-1])
-				}
-				return nil
-			}()
-			AddElementToObject(first, "continuation", cursor)
-			AddElementToObject(last, "continuation", cursor)
+			var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+			var last map[string]any = this.SafeDictMap(data, dataLength-1, map[string]any{})
+			first["continuation"] = *cursor
+			last["continuation"] = *cursor
 			AddElementToObject(data, 0, first)
 			AddElementToObject(data, dataLength-1, last)
 		}
@@ -4794,7 +4725,7 @@ func (this *Deribit) AddPaginationCursorToResult(cursor *string, data []any) any
  * @method
  * @name deribit#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4828,8 +4759,8 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["spot"] == true {
-		panic(NotSupported(Add(Add(this.Id+" fetchMyLiquidations() does not support ", market["type"]), " markets")))
+	if *this.SafeBool(market, "spot", false) {
+		panic(NotSupported(this.Id + " fetchMyLiquidations() does not support " + *this.SafeString(market, "type", "") + " markets"))
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -4910,7 +4841,7 @@ func (this *Deribit) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * @method
  * @name deribit#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://docs.deribit.com/#public-ticker
+ * @see https://docs.deribit.com/api-reference/market-data/public-ticker
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -4941,7 +4872,7 @@ func (this *Deribit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -5066,7 +4997,7 @@ func (this *Deribit) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
  * @method
  * @name deribit#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -5141,7 +5072,7 @@ func (this *Deribit) fetchOptionBody(ch chan AsyncResult[Option], symbol string,
  * @method
  * @name deribit#fetchOptionChain
  * @description fetches data for an underlying asset that is commonly found in an option chain
- * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -5269,7 +5200,7 @@ func (this *Deribit) ParseOption(chain any, optionalArgs ...any) Option {
  * @method
  * @name deribit#fetchOpenInterest
  * @description Retrieves the open interest of a symbol
- * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -5292,7 +5223,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["contract"] != true {
+	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -5374,7 +5305,7 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) OpenIn
 	var openInterest *float64 = this.SafeNumber(interest, "open_interest")
 	var openInterestAmount *float64 = nil
 	var openInterestValue *float64 = nil
-	if (marketResolved["option"] == true) || ((marketResolved["future"] == true) && (marketResolved["linear"] == true)) {
+	if (*this.SafeBool(marketResolved, "option", false)) || ((*this.SafeBool(marketResolved, "future", false)) && (*this.SafeBool(marketResolved, "linear", false))) {
 		openInterestAmount = openInterest
 	} else {
 		openInterestValue = openInterest
@@ -5388,36 +5319,36 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) OpenIn
 		"info":               interest,
 	}, marketResolved)
 }
-func (this *Deribit) Nonce() any {
+func (this *Deribit) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Deribit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Deribit) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var request string = "/" + "api/" + this.Version + "/" + *apiName + "/" + path
-	if apiName != nil && *apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
+	var apiName string = api[0]
+	var request string = "/" + "api/" + this.Version + "/" + apiName + "/" + path
+	if apiName == "public" {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			request += "?" + this.Urlencode(params)
 		}
 	}
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce string = strconv.FormatInt(this.Nonce(), 10)
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var requestBody string = ""
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			request += "?" + this.Urlencode(params)
 		}
 		var requestData string = method + "\n" + request + "\n" + requestBody + "\n" // eslint-disable-line quotes
 		var auth string = timestamp + "\n" + nonce + "\n" + requestData              // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var signedHeaders map[string]any = map[string]any{
-			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
+			"Authorization": "deri-hmac-sha256 id=" + this.ApiKey + ",ts=" + timestamp + ",sig=" + signature + "," + "nonce=" + nonce,
 		}
 		var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 		if baseApiUrl == nil {
@@ -5443,7 +5374,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Deribit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5480,7 +5411,7 @@ func NewDeribit(userConfig map[string]any) *Deribit {
 func (this *Deribit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -5489,7 +5420,7 @@ func (this *Deribit) Init(userConfig map[string]any) {
  * @method
  * @name deribit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.deribit.com/#public-get_time
+ * @see https://docs.deribit.com/api-reference/supporting/public-get_time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -5498,7 +5429,10 @@ func (this *Deribit) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 
@@ -5506,7 +5440,7 @@ func (this *Deribit) FetchTime(params ...any) (int64, error) {
  * @method
  * @name deribit#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.deribit.com/#public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -5523,7 +5457,7 @@ func (this *Deribit) FetchCurrencies(params ...any) (Currencies, error) {
  * @method
  * @name deribit#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.deribit.com/#public-status
+ * @see https://docs.deribit.com/api-reference/supporting/public-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -5540,7 +5474,7 @@ func (this *Deribit) FetchStatus(params ...any) (Status, error) {
  * @method
  * @name deribit#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.deribit.com/#private-get_subaccounts
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -5557,8 +5491,8 @@ func (this *Deribit) FetchAccounts(params ...any) ([]Account, error) {
  * @method
  * @name deribit#fetchMarkets
  * @description retrieves data on all markets for deribit
- * @see https://docs.deribit.com/#public-get_currencies
- * @see https://docs.deribit.com/#public-get_instruments
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -5575,8 +5509,8 @@ func (this *Deribit) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name deribit#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.deribit.com/#private-get_account_summary
- * @see https://docs.deribit.com/#private-get_account_summaries
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -5594,7 +5528,7 @@ func (this *Deribit) FetchBalance(params ...any) (Balances, error) {
  * @method
  * @name deribit#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.deribit.com/#private-create_deposit_address
+ * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -5618,7 +5552,7 @@ func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositA
  * @method
  * @name deribit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.deribit.com/#private-get_current_deposit_address
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -5642,7 +5576,7 @@ func (this *Deribit) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @method
  * @name deribit#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.deribit.com/#public-ticker
+ * @see https://docs.deribit.com/api-reference/market-data/public-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -5666,7 +5600,7 @@ func (this *Deribit) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @method
  * @name deribit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -5691,7 +5625,7 @@ func (this *Deribit) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @method
  * @name deribit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -5719,8 +5653,8 @@ func (this *Deribit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 /**
  * @method
  * @name deribit#fetchTrades
- * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
- * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
  * @description get the list of most recent trades for a particular symbol.
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -5748,7 +5682,7 @@ func (this *Deribit) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @method
  * @name deribit#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://docs.deribit.com/#private-get_account_summary
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -5765,7 +5699,7 @@ func (this *Deribit) FetchTradingFees(params ...any) (TradingFees, error) {
  * @method
  * @name deribit#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.deribit.com/#public-get_order_book
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5790,7 +5724,7 @@ func (this *Deribit) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @method
  * @name deribit#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.deribit.com/#private-get_order_state
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5815,8 +5749,8 @@ func (this *Deribit) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @method
  * @name deribit#createOrder
  * @description create a trade order
- * @see https://docs.deribit.com/#private-buy
- * @see https://docs.deribit.com/#private-sell
+ * @see https://docs.deribit.com/api-reference/trading/private-buy
+ * @see https://docs.deribit.com/api-reference/trading/private-sell
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -5846,7 +5780,7 @@ func (this *Deribit) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name deribit#editOrder
  * @description edit a trade order
- * @see https://docs.deribit.com/#private-edit
+ * @see https://docs.deribit.com/api-reference/trading/private-edit
  * @param {string} id edit order id
  * @param {string} [symbol] unified symbol of the market to edit an order in
  * @param {string} [type] 'market' or 'limit'
@@ -5876,7 +5810,7 @@ func (this *Deribit) EditOrder(id string, symbol string, typeVar string, side st
  * @method
  * @name deribit#cancelOrder
  * @description cancels an open order
- * @see https://docs.deribit.com/#private-cancel
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel
  * @param {string} id order id
  * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5901,8 +5835,8 @@ func (this *Deribit) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @method
  * @name deribit#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.deribit.com/#private-cancel_all
- * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -5926,8 +5860,8 @@ func (this *Deribit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @method
  * @name deribit#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.deribit.com/#private-get_open_orders_by_currency
- * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -5953,8 +5887,8 @@ func (this *Deribit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @method
  * @name deribit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.deribit.com/#private-get_order_history_by_currency
- * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -5980,7 +5914,7 @@ func (this *Deribit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @method
  * @name deribit#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.deribit.com/#private-get_user_trades_by_order
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -6007,10 +5941,10 @@ func (this *Deribit) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @method
  * @name deribit#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.deribit.com/#private-get_user_trades_by_currency
- * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
- * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
- * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -6036,7 +5970,7 @@ func (this *Deribit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @method
  * @name deribit#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.deribit.com/#private-get_deposits
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -6062,7 +5996,7 @@ func (this *Deribit) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @method
  * @name deribit#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.deribit.com/#private-get_withdrawals
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -6088,7 +6022,7 @@ func (this *Deribit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @method
  * @name deribit#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.deribit.com/#private-get_position
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -6112,7 +6046,7 @@ func (this *Deribit) FetchPosition(symbol string, options ...FetchPositionOption
  * @method
  * @name deribit#fetchPositions
  * @description fetch all open positions
- * @see https://docs.deribit.com/#private-get_positions
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.currency] currency code filter for positions
@@ -6139,7 +6073,7 @@ func (this *Deribit) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @method
  * @name deribit#fetchVolatilityHistory
  * @description fetch the historical volatility of an option market based on an underlying asset
- * @see https://docs.deribit.com/#public-get_historical_volatility
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -6163,7 +6097,7 @@ func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatil
  * @method
  * @name deribit#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://docs.deribit.com/#private-get_transfers
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -6189,8 +6123,8 @@ func (this *Deribit) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @method
  * @name deribit#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://docs.deribit.com/#private-submit_transfer_to_user
- * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+ * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+ * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
@@ -6217,7 +6151,7 @@ func (this *Deribit) Transfer(code string, amount float64, fromAccount string, t
  * @method
  * @name deribit#withdraw
  * @description make a withdrawal
- * @see https://docs.deribit.com/#private-withdraw
+ * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -6244,7 +6178,7 @@ func (this *Deribit) Withdraw(code string, amount float64, address string, optio
  * @method
  * @name deribit#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://docs.deribit.com/#public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6268,7 +6202,7 @@ func (this *Deribit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
  * @method
  * @name deribit#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://docs.deribit.com/#public-get_funding_rate_value
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -6294,7 +6228,7 @@ func (this *Deribit) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @method
  * @name deribit#fetchFundingRateHistory
  * @description fetch the current funding rate
- * @see https://docs.deribit.com/#public-get_funding_rate_history
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding rate history for
  * @param {int} [limit] the maximum number of entries to retrieve
@@ -6322,7 +6256,7 @@ func (this *Deribit) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
  * @method
  * @name deribit#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -6349,7 +6283,7 @@ func (this *Deribit) FetchLiquidations(symbol string, options ...FetchLiquidatio
  * @method
  * @name deribit#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -6375,7 +6309,7 @@ func (this *Deribit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @method
  * @name deribit#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://docs.deribit.com/#public-ticker
+ * @see https://docs.deribit.com/api-reference/market-data/public-ticker
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -6399,7 +6333,7 @@ func (this *Deribit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @method
  * @name deribit#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -6423,7 +6357,7 @@ func (this *Deribit) FetchOption(symbol string, options ...FetchOptionOptions) (
  * @method
  * @name deribit#fetchOptionChain
  * @description fetches data for an underlying asset that is commonly found in an option chain
- * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -6447,7 +6381,7 @@ func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOp
  * @method
  * @name deribit#fetchOpenInterest
  * @description Retrieves the open interest of a symbol
- * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}

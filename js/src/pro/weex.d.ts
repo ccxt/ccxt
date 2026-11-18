@@ -2,7 +2,7 @@ import weexRest from '../weex.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class weex extends weexRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): Str;
     subscribePublic(messageHashes: string[], channels: Strings, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, subscribeHash: string, channel: Str, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;

@@ -18,7 +18,7 @@ func newIndodax() *Indodax {
 	return p
 }
 
-func (this *Indodax) Describe() any {
+func (this *Indodax) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "indodax",
 		"name":      "INDODAX",
@@ -348,7 +348,7 @@ func (this *Indodax) Describe() any {
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *Indodax) Nonce() any {
+func (this *Indodax) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
@@ -406,11 +406,11 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp402 := <-this.PublicGetApiPairs(params)
-	if listEp402.Err != nil {
-		panic(listEp402.Err)
+	responseRecv := <-this.PublicGetApiPairs(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp402.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -440,12 +440,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(rawMarkets) {
-				return DerefScalar(rawMarkets[i])
-			}
-			return nil
-		}()
+		var market any = DerefScalar(rawMarkets[i])
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "traded_currency")
 		var quoteId *string = this.SafeString(market, "base_currency")
@@ -674,8 +669,10 @@ func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "server_time")
-	var baseVolume *string = SafeStringPtr(Add("vol_", this.SafeStringLower(market, "baseId")))
-	var quoteVolume *string = SafeStringPtr(Add("vol_", this.SafeStringLower(market, "quoteId")))
+	var baseId string = *this.SafeStringLower(market, "baseId", "")
+	var quoteId string = *this.SafeStringLower(market, "quoteId", "")
+	var baseVolume string = "vol_" + baseId
+	var quoteVolume string = "vol_" + quoteId
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -886,11 +883,11 @@ func (this *Indodax) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"pair": market["id"],
 	}
 
-	listEp847 := <-this.PublicGetApiTradesPair(this.Extend(request, params))
-	if listEp847.Err != nil {
-		panic(listEp847.Err)
+	responseRecv := <-this.PublicGetApiTradesPair(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp847.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
@@ -973,11 +970,11 @@ func (this *Indodax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 	}
 
-	listEp927 := <-this.PublicGetTradingviewHistoryV2(this.Extend(request, paramsOmitted))
-	if listEp927.Err != nil {
-		panic(listEp927.Err)
+	responseRecv := <-this.PublicGetTradingviewHistoryV2(this.Extend(request, paramsOmitted))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp927.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -1046,10 +1043,7 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var side *string = nil
-	if InOp(order, "type") {
-		side = this.SafeString(order, "type")
-	}
+	var side *string = this.SafeString(order, "type")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
 	var symbol any = nil
 	var cost *string = nil
@@ -1061,20 +1055,20 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	if marketResolved != nil {
 		symbol = marketResolved["symbol"]
-		var quoteId *string = SafeStringPtr(marketResolved["quoteId"])
-		var baseId *string = SafeStringPtr(marketResolved["baseId"])
-		if (marketResolved["quoteId"] == "idr") && (InOp(order, "order_rp")) {
-			quoteId = SafeStringPtr("rp")
+		var quoteId string = *this.SafeString(marketResolved, "quoteId", "")
+		var baseId string = *this.SafeString(marketResolved, "baseId", "")
+		if (marketResolved["quoteId"] == "idr") && (this.SafeString(order, "order_rp") != nil) {
+			quoteId = "rp"
 		}
-		if (marketResolved["baseId"] == "idr") && (InOp(order, "remain_rp")) {
-			baseId = SafeStringPtr("rp")
+		if (marketResolved["baseId"] == "idr") && (this.SafeString(order, "remain_rp") != nil) {
+			baseId = "rp"
 		}
-		cost = this.SafeString(order, Add("order_", quoteId))
-		amount = this.SafeString(order, Add("order_", baseId))
-		remaining = this.SafeString(order, Add("remain_", baseId))
+		cost = this.SafeString(order, "order_"+quoteId)
+		amount = this.SafeString(order, "order_"+baseId)
+		remaining = this.SafeString(order, "remain_"+baseId)
 		// filled buy orders on idr-quoted markets carry the executed base amount
 		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-		filled = this.SafeString(order, Add("receive_", baseId))
+		filled = this.SafeString(order, "receive_"+baseId)
 	}
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil
@@ -1114,12 +1108,12 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Indodax) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Indodax) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Indodax) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Indodax) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1218,13 +1212,20 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		return nil
 	}
 	// { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-	var marketIds []string = ObjectKeys(rawOrders)
+	var ordersDict map[string]any = SafeMapTyped(openOrdersResult, "orders")
+	var marketIds []string = nil
+	if ordersDict != nil {
+		marketIds = make([]string, 0, len(ordersDict))
+		for objectKey := range ordersDict {
+			marketIds = append(marketIds, objectKey)
+		}
+	}
 	var exchangeOrders []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var marketOrders any = GetValue(rawOrders, marketId)
+		var marketOrders any = ordersDict[marketId]
 		market = this.SafeMarket(marketId)
-		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
+		var parsedOrders []any = this.ParseOrders(marketOrders, market, since, limit)
 		exchangeOrders = this.ArrayConcat(exchangeOrders, parsedOrders)
 	}
 
@@ -1278,9 +1279,9 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	var historyResult map[string]any = SafeMapTyped(response, "return")
-	var orders any = this.ParseOrders(historyResult["orders"], market)
+	var orders []any = this.ParseOrders(historyResult["orders"], market)
 	orders = this.FilterBy(orders, "status", "closed")
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
@@ -1559,10 +1560,14 @@ func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan AsyncResult[DepositWith
 	//
 	var data map[string]any = SafeMapTyped(response, "return")
 	var result map[string]any = this.DepositWithdrawFee(response)
-	AddElementToObject(result["withdraw"], "fee", this.SafeNumber(data, "withdraw_fee"))
-	AddElementToObject(result["withdraw"], "percentage", false)
-	AddElementToObject(result["deposit"], "fee", 0)
-	AddElementToObject(result["deposit"], "percentage", false)
+	result["withdraw"] = map[string]any{
+		"fee":        this.SafeNumber(data, "withdraw_fee"),
+		"percentage": false,
+	}
+	result["deposit"] = map[string]any{
+		"fee":        0,
+		"percentage": false,
+	}
 
 	ch <- AsyncResult[DepositWithdrawFee]{Value: DepositWithdrawFeeFromMap(this.AssignDefaultDepositWithdrawFees(result, currency))}
 	return nil
@@ -1677,20 +1682,26 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	var transactions []any = []any{}
 	var currency map[string]any = nil
 	if code == nil {
-		var keys []string = nil
+		var withdrawKeys []string = nil
 		if withdraw != nil {
-			keys = make([]string, 0, len(withdraw))
+			withdrawKeys = make([]string, 0, len(withdraw))
 			for objectKey := range withdraw {
-				keys = append(keys, objectKey)
+				withdrawKeys = append(withdrawKeys, objectKey)
 			}
 		}
-		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+		for i := 0; i < len(withdrawKeys); i++ {
+			var key string = withdrawKeys[i]
 			transactions = this.ArrayConcat(transactions, withdraw[key])
 		}
-		keys = ObjectKeys(deposit)
-		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+		var depositKeys []string = nil
+		if deposit != nil {
+			depositKeys = make([]string, 0, len(deposit))
+			for objectKey := range deposit {
+				depositKeys = append(depositKeys, objectKey)
+			}
+		}
+		for i := 0; i < len(depositKeys); i++ {
+			var key string = depositKeys[i]
 			transactions = this.ArrayConcat(transactions, deposit[key])
 		}
 	} else {
@@ -1726,14 +1737,7 @@ func (this *Indodax) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
@@ -1756,8 +1760,8 @@ func (this *Indodax) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"withdraw_address": address,
 		"request_id":       strconv.FormatInt(requestId, 10),
 	}
-	if (tagWithdrawTag != nil) && (tagWithdrawTag != "") {
-		request["withdraw_memo"] = tagWithdrawTag
+	if (tagWithdrawTag != nil) && (tagWithdrawTag == nil || *tagWithdrawTag != "") {
+		request["withdraw_memo"] = *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))
@@ -1962,7 +1966,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		if (address != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)
 			var network any = nil
-			if func() bool { _, ok := networks[marketId]; return ok }() {
+			if _, ok := networks[marketId]; ok {
 				var networkId *string = this.SafeString(networks, marketId)
 				if networkId == nil {
 					panic(ExchangeError(this.Id + " fetchDepositAddresses() missing networkId"))
@@ -2002,35 +2006,35 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ToArray(result))}
 	return nil
 }
-func (this *Indodax) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Indodax) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = apiUrl
+	var url *string = apiUrl
 	var privateBody any = nil
 	var privateHeaders any = nil
-	var isPublic bool = (apiName != nil && *apiName == "public")
+	var isPublic bool = (apiName == "public")
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)
-		url = Add(url, requestPath)
-		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
+		url = SafeStringPtr(*apiUrl + requestPath)
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
+			url = SafeStringPtr(*apiUrl + requestPath + "?" + this.UrlencodeWithArrayRepeat(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		privateBody = this.Urlencode(this.Extend(map[string]any{
 			"method":     path,
 			"timestamp":  this.Nonce(),
-			"recvWindow": GetValue(this.Options, "recvWindow"),
+			"recvWindow": this.Options["recvWindow"],
 		}, params))
 		privateHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
@@ -2053,7 +2057,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Indodax) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Indodax) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -2065,10 +2069,10 @@ func (this *Indodax) HandleErrors(code any, reason any, url any, method any, hea
 		return nil // public endpoints may return []-arrays
 	}
 	var error *string = this.SafeString(response, "error", "")
-	if !(InOp(response, "success")) && (error != nil && *error == "") {
+	var status *string = this.SafeString(response, "success")
+	if (status == nil) && (error != nil && *error == "") {
 		return nil // no 'success' property on public responses
 	}
-	var status *string = this.SafeString(response, "success")
 	if status != nil && *status == "approved" {
 		return nil
 	}
@@ -2095,7 +2099,7 @@ func NewIndodax(userConfig map[string]any) *Indodax {
 func (this *Indodax) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -2113,7 +2117,10 @@ func (this *Indodax) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

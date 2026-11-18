@@ -15,7 +15,7 @@ func newCryptomus() *Cryptomus {
 	return p
 }
 
-func (this *Cryptomus) Describe() any {
+func (this *Cryptomus) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "cryptomus",
 		"name":      "Cryptomus",
@@ -79,7 +79,7 @@ func (this *Cryptomus) Describe() any {
 			"fetchConvertTradeHistory":               false,
 			"fetchCrossBorrowRate":                   false,
 			"fetchCrossBorrowRates":                  false,
-			"fetchCurrencies":                        true,
+			"fetchCurrencies":                        false,
 			"fetchDepositAddress":                    false,
 			"fetchDeposits":                          false,
 			"fetchDepositsWithdrawals":               false,
@@ -120,7 +120,7 @@ func (this *Cryptomus) Describe() any {
 			"fetchOption":                            false,
 			"fetchOptionChain":                       false,
 			"fetchOrder":                             true,
-			"fetchOrderBook":                         true,
+			"fetchOrderBook":                         false,
 			"fetchOrders":                            false,
 			"fetchOrderTrades":                       false,
 			"fetchPosition":                          false,
@@ -133,10 +133,10 @@ func (this *Cryptomus) Describe() any {
 			"fetchPremiumIndexOHLCV":                 false,
 			"fetchSettlementHistory":                 false,
 			"fetchStatus":                            false,
-			"fetchTicker":                            false,
-			"fetchTickers":                           true,
+			"fetchTicker":                            true,
+			"fetchTickers":                           false,
 			"fetchTime":                              false,
-			"fetchTrades":                            true,
+			"fetchTrades":                            false,
 			"fetchTradingFee":                        false,
 			"fetchTradingFees":                       true,
 			"fetchTransactions":                      false,
@@ -173,9 +173,6 @@ func (this *Cryptomus) Describe() any {
 					"v2/user-api/exchange/markets": map[string]any{
 						"cost": 1,
 					},
-					"v2/user-api/exchange/market/price": map[string]any{
-						"cost": 1,
-					},
 					"v2/user-api/exchange/markets/price": map[string]any{
 						"cost": 1,
 					},
@@ -183,9 +180,6 @@ func (this *Cryptomus) Describe() any {
 						"cost": 1,
 					},
 					"v1/exchange/market/order-book/{currencyPair}": map[string]any{
-						"cost": 1,
-					},
-					"v1/exchange/market/tickers": map[string]any{
 						"cost": 1,
 					},
 					"v1/exchange/market/trades/{currencyPair}": map[string]any{
@@ -330,7 +324,9 @@ func (this *Cryptomus) Describe() any {
 				"Insufficient funds.":    InsufficientFunds,
 				"Minimum amount 15 USDT": InvalidOrder,
 			},
-			"broad": map[string]any{},
+			"broad": map[string]any{
+				"Market ": BadSymbol,
+			},
 		},
 		"precisionMode": TICK_SIZE,
 		"requiredCredentials": map[string]any{
@@ -345,7 +341,7 @@ func (this *Cryptomus) Describe() any {
  * @method
  * @name cryptomus#fetchMarkets
  * @description retrieves data on all markets for the exchange
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -389,7 +385,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
 	return nil
 }
-func (this *Cryptomus) ParseMarket(market any) any {
+func (this *Cryptomus) ParseMarket(market any) map[string]any {
 	//
 	//     {
 	//         "id": "01JHN5EFT64YC4HR9KCGM5M65D",
@@ -409,18 +405,8 @@ func (this *Cryptomus) ParseMarket(market any) any {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
 	var parts []string = strings.Split(*marketId, "_")
-	var baseId *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(parts) {
-			return parts[0]
-		}
-		return nil
-	}())
-	var quoteId *string = SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var baseId *string = this.SafeString(parts, 0)
+	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
@@ -528,25 +514,27 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//
 	var coins []any = SafeListTyped(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
-	var groupedArray []any = ObjectValues(groupedById)
+	var groupedArray []any = nil
+	if groupedById != nil {
+		groupedArray = make([]any, 0, len(groupedById))
+		for _, objectValue := range groupedById {
+			groupedArray = append(groupedArray, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(groupedArray)}
 	return nil
 }
 func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 	// currency here is array of networks
-	var id any = nil // all entries have same id, as they were grouped by
+	var id *string = nil // all entries have same id, as they were grouped by
 	var code any = nil
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		// set ID on first loop
 		if id == nil {
-			if derefPtr := this.SafeString(networkEntry, "currency_code"); derefPtr != nil {
-				id = *derefPtr
-			} else {
-				id = nil
-			}
+			id = this.SafeString(networkEntry, "currency_code")
 			if derefPtr := this.SafeCurrencyCode(id); derefPtr != nil {
 				code = *derefPtr
 			} else {
@@ -588,24 +576,22 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 
 /**
  * @method
- * @name cryptomus#fetchTickers
- * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
- * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @name cryptomus#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Cryptomus) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
-	ch := make(chan AsyncResult[map[string]Ticker], 1)
-	go this.fetchTickersBody(ch, optionalArgs...)
+func (this *Cryptomus) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
+func (this *Cryptomus) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
-	_ = symbols
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -614,47 +600,37 @@ func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 			panic(r.Err)
 		}
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": market["id"],
+	}
 
-	r1 := <-this.PublicGetV1ExchangeMarketTickers(params)
+	r1 := <-this.PublicGetV2UserApiExchangeMarketsPrice(this.Extend(request, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
+
 	//
 	//     {
-	//         "data": [
-	//         {
-	//             "currency_pair": "MATIC_USDT",
-	//             "last_price": "0.342",
-	//             "base_volume": "1676.84092771",
-	//             "quote_volume": "573.48033609043"
-	//         },
-	//         ...
+	//         "price": "78450.4"
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
-
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
-	//         "currency_pair": "XMR_USDT",
-	//         "last_price": "158.04829772",
-	//         "base_volume": "0.35185785",
-	//         "quote_volume": "55.523761128544"
+	//         "price": "78450.4"
 	//     }
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(ticker, "currency_pair")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var last *string = this.SafeString(ticker, "last_price")
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
+	var last *string = this.SafeString(ticker, "price")
 	return this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+		"symbol":        marketResolved["symbol"],
 		"timestamp":     nil,
 		"datetime":      nil,
 		"high":          nil,
@@ -671,8 +647,8 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"change":        nil,
 		"percentage":    nil,
 		"average":       nil,
-		"baseVolume":    this.SafeString(ticker, "base_volume"),
-		"quoteVolume":   this.SafeString(ticker, "quote_volume"),
+		"baseVolume":    nil,
+		"quoteVolume":   nil,
 		"info":          ticker,
 	}, marketResolved)
 }
@@ -809,7 +785,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)
@@ -897,10 +873,10 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil
 }
-func (this *Cryptomus) ParseBalance(balance any) map[string]any {
+func (this *Cryptomus) ParseBalanceList(balance []any) map[string]any {
 	//
 	//     {
 	//         "ticker": "AVAX",
@@ -911,7 +887,7 @@ func (this *Cryptomus) ParseBalance(balance any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
-	for i := 0; i < GetArrayLength(balance); i++ {
+	for i := 0; i < len(balance); i++ {
 		var balanceEntry map[string]any = SafeMapTyped(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -979,34 +955,28 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 	var sideBuy bool = (side == "buy")
 	var amountToString *string = this.NumberToString(amount)
 	var priceToString *string = this.NumberToString(price)
-	var costParamparamsCostVariable []any = this.HandleParamString(paramsOmitted, "cost")
-	costParam := func() any {
-		if p, _ := costParamparamsCostVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	paramsCost := GetValue(costParamparamsCostVariable, 1)
+	var paramsCost any = this.Omit(paramsOmitted, "cost")
+	var costParam *string = this.SafeString(paramsOmitted, "cost")
 	var cost any = costParam
 	var response map[string]any = nil
 	if typeVar == "market" {
-		var requiresPriceAndParams any = TupleSlice(this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true))
+		requiresPriceAndParamsSlot0, requiresPriceAndParamsSlot1 := this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var paramsMarket any = paramsCost
 		if sideBuy {
-			paramsMarket = GetValue(requiresPriceAndParams, 1)
+			paramsMarket = requiresPriceAndParamsSlot1
 		}
 		if sideBuy {
-			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(GetValue(requiresPriceAndParams, 0))
+			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(requiresPriceAndParamsSlot0)
 			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
-				if (price == nil) && (IsEqual(cost, nil)) {
+				if (price == nil) && (costParam == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))
-				} else if IsEqual(cost, nil) {
+				} else if costParam == nil {
 					cost = Precise.StringMul(amountToString, priceToString)
 				}
 			} else {
 				cost = func() any {
-					if !IsEqual(cost, nil) && !IsEqual(cost, "") {
-						return cost
+					if (costParam != nil) && (costParam == nil || *costParam != "") {
+						return costParam
 					}
 					return amountToString
 				}()
@@ -1191,13 +1161,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	var result []any = SafeListTyped(response, "result")
 	var orders []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var order any = func() any {
-			if i >= 0 && i < len(result) {
-				return DerefScalar(result[i])
-			}
-			return nil
-		}()
-		orders = append(orders, OrderToMap(this.ParseOrder(order, market)))
+		orders = append(orders, OrderToMap(this.ParseOrder(result[i], market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}
@@ -1529,8 +1493,8 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 		"taker": takerFees,
 	}
 }
-func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Cryptomus) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1538,13 +1502,13 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var endpoint string = this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + endpoint
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var jsonParams string = ""
 		var privateHeaders map[string]any = map[string]any{
@@ -1560,7 +1524,7 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
-		var stringToSign *string = SafeStringPtr(Add(jsonParamsBase64, this.Secret))
+		var stringToSign string = jsonParamsBase64 + this.Secret
 		var signature any = this.Hash(this.Encode(stringToSign), md5)
 		privateHeaders["sign"] = signature
 		var privateBody *string = func() *string {
@@ -1588,20 +1552,21 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Cryptomus) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
-	if InOp(response, "code") {
-		var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
+	var message *string = this.SafeString(response, "message")
+	if codeError != nil {
 		var feedback string = this.Id + " " + body
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
-	} else if InOp(response, "message") {
+	} else if message != nil {
 		//
 		//      {"message":"Minimum amount 15 USDT","state":1}
 		//
-		var message *string = this.SafeString(response, "message")
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
@@ -1619,7 +1584,7 @@ func NewCryptomus(userConfig map[string]any) *Cryptomus {
 func (this *Cryptomus) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -1628,7 +1593,7 @@ func (this *Cryptomus) Init(userConfig map[string]any) {
  * @method
  * @name cryptomus#fetchMarkets
  * @description retrieves data on all markets for the exchange
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1660,25 +1625,25 @@ func (this *Cryptomus) FetchCurrencies(params ...any) (Currencies, error) {
 
 /**
  * @method
- * @name cryptomus#fetchTickers
- * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
- * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @name cryptomus#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+func (this *Cryptomus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
-	opts := FetchTickersOptionsStruct{}
+	opts := FetchTickerOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
 	if r.Err != nil {
-		return Tickers{}, r.Err
+		return Ticker{}, r.Err
 	}
-	var res Tickers = Tickers{Tickers: r.Value}
+	var res Ticker = r.Value
 	return res, nil
 }
 

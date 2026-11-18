@@ -13,7 +13,7 @@ func newKucoinfutures() *Kucoinfutures {
 	return p
 }
 
-func (this *Kucoinfutures) Describe() any {
+func (this *Kucoinfutures) Describe() map[string]any {
 	return this.DeepExtend(this.Kucoin.Describe(), map[string]any{
 		"id":   "kucoinfutures",
 		"name": "KuCoin Futures",
@@ -73,12 +73,7 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan AsyncResult[map[string]Tick
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes5815 map[string]any = StructResultMap(r.Value, TickerMapToMap)
-	if retRes5815 == nil {
-		ch <- AsyncResult[map[string]Ticker]{}
-	} else {
-		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(retRes5815)}
-	}
+	ch <- AsyncResult[map[string]Ticker]{Value: r.Value}
 	return nil
 }
 
@@ -93,12 +88,12 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan AsyncResult[map[string]Tick
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoinfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Kucoinfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

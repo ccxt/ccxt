@@ -13,7 +13,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitopro extends \ccxt\async\bitopro {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -90,11 +90,12 @@ class bitopro extends \ccxt\async\bitopro {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         $messageHash = 'ORDER_BOOK' . ':' . $symbolValue;
+        $marketIdValue = $this->safe_string($market, 'id', '');
         $endPart = null;
         if ($limit === null) {
-            $endPart = $market['id'];
+            $endPart = $marketIdValue;
         } else {
-            $endPart = $market['id'] . ':' . $this->number_to_string($limit);
+            $endPart = $marketIdValue . ':' . $this->number_to_string($limit);
         }
         $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
         return $orderbook->limit();
@@ -201,7 +202,8 @@ class bitopro extends \ccxt\async\bitopro {
             $tradesCache = new ArrayCache($limit);
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $tradesCache->append($trades[$i]);
+            $trade = $trades[$i];
+            $tradesCache->append($trade);
         }
         $this->trades[$symbol] = $tradesCache;
         if ($event !== null) {
@@ -233,7 +235,8 @@ class bitopro extends \ccxt\async\bitopro {
         $messageHash = 'USER_TRADE';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $messageHash . ':' . $market['symbol'];
+            $symbolValue = $market['symbol'];
+            $messageHash = $messageHash . ':' . $symbolValue;
         }
         $wsUrl = $this->safe_string($this->urls['ws'], 'private');
         if ($wsUrl === null) {
@@ -457,17 +460,19 @@ class bitopro extends \ccxt\async\bitopro {
         );
         // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
-        $originalHeaders = $this->options['ws']['options']['headers'];
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsInnerOptions = $this->safe_dict($wsOptions, 'options', array());
+        $originalHeaders = $wsInnerOptions['headers'];
         $headers = array(
             'X-BITOPRO-API' => 'ccxt',
             'X-BITOPRO-APIKEY' => $this->apiKey,
             'X-BITOPRO-PAYLOAD' => $payload,
             'X-BITOPRO-SIGNATURE' => $signature,
         );
-        $this->options['ws']['options']['headers'] = $headers;
+        $wsInnerOptions['headers'] = $headers;
         // instantiate client
         $this->client($url);
-        $this->options['ws']['options']['headers'] = $originalHeaders;
+        $wsInnerOptions['headers'] = $originalHeaders;
     }
 
     public function watch_balance($params = array()): PromiseInterface {
@@ -519,11 +524,18 @@ class bitopro extends \ccxt\async\bitopro {
         $timestamp = $this->safe_integer($message, 'timestamp');
         $datetime = $this->safe_string($message, 'datetime');
         $currencies = is_array($data) ? array_keys($data) : array();
-        $result = array(
-            'info' => $data,
-            'timestamp' => $timestamp,
-            'datetime' => $datetime,
-        );
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance['info'] = $data;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $datetime;
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $this->safe_string($currencies, $i);
             $balance = $this->safe_dict($data, $currency, array());
@@ -533,10 +545,10 @@ class bitopro extends \ccxt\async\bitopro {
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
             if ($code !== null) {
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
-        $this->balance = $this->safe_balance($result);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $event);
     }
 

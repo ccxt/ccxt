@@ -3,11 +3,12 @@
 
 import binance from '../abstract/pro/binancecoinm.js';
 import binancecoinmRest from '../binancecoinm.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class binancecoinm extends binance {
-    override describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new binancecoinmRest ();
         const restDescribe = restInstance.describe ();

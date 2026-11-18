@@ -4,6 +4,8 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -14,34 +16,116 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchOHLCV extends BaseTest {
-    public CompletableFuture<Object> testFetchOHLCV(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchOHLCV(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOHLCV";
         List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
-        // prefer 1m timeframe if available, otherwise return the first one
+        Object logText = TestSharedMethods.logTemplate(exchange, method, new HashMap<String, Object>() {{}});
+        Assert(((List<?>)timeframeKeys).size() > 0, ((((exchange.id + " ") + method) + " - no timeframes found") + logText)); // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
             chosenTimeframeKey = (timeframeKeys == null || 0 >= ((List<?>)timeframeKeys).size() ? null : ((List<?>)timeframeKeys).get(0));
         }
-        Integer limit = 10;
-        Object duration = exchange.parseTimeframe(chosenTimeframeKey);
-        Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
-        Object ohlcvs = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
-        TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
-        Object now = exchange.milliseconds();
-        for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
+        Object durationMs = Helpers.multiply(exchange.parseTimeframe(chosenTimeframeKey), 1000);
+        //
+        // check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
+        //
+        List<Object> sinceArray = new ArrayList<Object>(Arrays.asList(null, Helpers.subtract(exchange.milliseconds(), Helpers.multiply(durationMs, 2800)))); // eg, "since" was a date of 2800 bars back
+        List<Object> limitsArray = new ArrayList<Object>(Arrays.asList(null, 50, 25000));
+        for (var i = 0; i < ((List<?>)sinceArray).size(); i++)
         {
-            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
+            Object sinceCurrent = (sinceArray == null || i < 0 || i >= sinceArray.size() ? null : sinceArray.get(i));
+            for (var j = 0; j < ((List<?>)limitsArray).size(); j++)
+            {
+                Object limit = (limitsArray == null || j < 0 || j >= limitsArray.size() ? null : limitsArray.get(j));
+                Object ohlcvs = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(sinceCurrent), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
+                // we can't expect array to have values, because requested period might have zero bars for valid reason
+                // TestSharedMethods.AssertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+                helperFetchOHLCVChecker(exchange, skippedProperties, (String) (symbol), ohlcvs, (String) (chosenTimeframeKey), sinceCurrent, limit);
+            }
         }
-        // todo: sorted timestamps check
         return true;
         });
 
+    }
+    public static void helperFetchOHLCVChecker(BaseExchange exchange, Object skippedProperties, String symbol, Object ohlcvs, String timeframe, Object since, Object limit)
+    {
+        String method = "fetchOHLCV";
+        Object logText = TestSharedMethods.logTemplate(exchange, method, new HashMap<String, Object>() {{}});
+        Assert((ohlcvs instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + logText));
+        Object now = exchange.milliseconds();
+        for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
+        {
+            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), (String) (symbol), now);
+        }
+        Object durationMs = Helpers.multiply(exchange.parseTimeframe(timeframe), 1000);
+        Integer barsLength = ((List<?>)ohlcvs).size();
+        // check bars amounts, to be between 0 and limit
+        // less then limit
+        if (!java.util.Objects.equals(limit, null))
+        {
+            Assert(Helpers.isLessThanOrEqual(barsLength, limit), ((((((("Returned bars amount (" + String.valueOf(barsLength)) + ") is more than requested (") + String.valueOf(limit)) + ")") + logText) + "") + exchange.json(ohlcvs)));
+        }
+        // ensure bars amount is more than zero
+        if (java.util.Objects.equals(barsLength, 0))
+        {
+            // zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
+            // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should Assert that
+            if (!(Helpers.inOp(skippedProperties, "compareAmountToZero")))
+            {
+                Assert((barsLength != null && barsLength > 0), ("Returned bars amount should be more then zero" + logText));
+            }
+            // exchange was skipped for zero-bars, then just return and don't do any further check, because there were no ohlcv entries
+            return;
+        }
+        // else we continue and check timestamps
+        for (var i = 0; (barsLength != null && i < barsLength); i++)
+        {
+            Object ohlcv = (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i));
+            Object barTs = Helpers.GetValue(ohlcv, 0);
+            // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
+            if (!(Helpers.inOp(skippedProperties, "compareTimestampToSince")))
+            {
+                if ((i == 0) && !java.util.Objects.equals(since, null))
+                {
+                    Assert(Helpers.isGreaterThanOrEqual(barTs, since), ((((("Returned bars earliest timestamp (" + String.valueOf(barTs)) + ") is before than requested since (") + String.valueOf(since)) + ")") + logText));
+                }
+            }
+            // if this is the last bar, then check if it's <= now
+            if ((i == (((long) barsLength) - 1L)))
+            {
+                if (!(Helpers.inOp(skippedProperties, "compareToNow")))
+                {
+                    Assert(Helpers.isLessThanOrEqual(barTs, now), ((((("Returned bars latest timestamp (" + String.valueOf(barTs)) + ") is after than current timestamp (") + String.valueOf(now)) + ")") + logText));
+                }
+                // and ensure the last bar's timestamp does not exceed the requested "since + limit * duration" upper bound
+                if (!(Helpers.inOp(skippedProperties, "compareTimestampToLimit")))
+                {
+                    if (!java.util.Objects.equals(since, null) && !java.util.Objects.equals(limit, null))
+                    {
+                        Object maxExpectedTs = Helpers.add(since, (Helpers.multiply(limit, durationMs)));
+                        Assert(Helpers.isLessThanOrEqual(barTs, maxExpectedTs), ((((("Returned bars latest timestamp (" + String.valueOf(barTs)) + ") is after than requested since + limit * duration (") + String.valueOf(maxExpectedTs)) + ")") + logText));
+                    }
+                }
+            }
+            // we compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
+            if (!(Helpers.inOp(skippedProperties, "compareDuration")))
+            {
+                if (i > 0)
+                {
+                    Object previousBarTs = Helpers.GetValue(Helpers.GetValue(ohlcvs, (((long) i) - 1L)), 0);
+                    Object diffBetweenCurrentAndPrevious = Helpers.subtract(barTs, previousBarTs);
+                    Assert(Helpers.isGreaterThan(diffBetweenCurrentAndPrevious, 0), ((((("Difference between current bar timestamp (" + String.valueOf(barTs)) + ") and previous bar timestamp (") + String.valueOf(previousBarTs)) + ") should be positive") + logText));
+                    // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+                    Object isRoundNumber = exchange.isRoundNumber(Helpers.divide(diffBetweenCurrentAndPrevious, durationMs));
+                    Assert(isRoundNumber, ((((((("Difference between current bar timestamp (" + String.valueOf(barTs)) + ") and previous bar timestamp (") + String.valueOf(previousBarTs)) + ") is not multiplier of duration (") + String.valueOf(durationMs)) + ")") + logText));
+                }
+            }
+        }
     }
 
 }

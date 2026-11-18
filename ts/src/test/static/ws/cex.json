@@ -1,0 +1,320 @@
+{
+    "exchange": "cex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "balance snapshot followed by two rapid responses - responses arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773)",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust static-ws harness has no concurrent injector - it re-invokes the watch method while injected frames remain queued, so a request-reply method sends one get-balance per remaining frame and the sentMessages assertion cannot hold; the no-waiter window this entry exercises is not reproducible in that lane",
+                "input": [],
+                "url": "wss://ws.cex.io/ws",
+                "messages": [
+                    {
+                        "e": "auth",
+                        "data": {
+                            "ok": "ok"
+                        },
+                        "ok": "ok",
+                        "timestamp": 1663761159
+                    },
+                    {
+                        "e": "ping"
+                    },
+                    {
+                        "e": "ping"
+                    },
+                    {
+                        "e": "ping"
+                    },
+                    {
+                        "e": "get-balance",
+                        "data": {
+                            "balance": {
+                                "BTC": "1.50000000",
+                                "USD": "100.00"
+                            },
+                            "obalance": {
+                                "BTC": "0.50000000",
+                                "USD": "50.00"
+                            },
+                            "time": 1663761159605
+                        },
+                        "oid": "1",
+                        "ok": "ok"
+                    },
+                    {
+                        "e": "get-balance",
+                        "data": {
+                            "balance": {
+                                "BTC": "2.50000000",
+                                "USD": "100.00"
+                            },
+                            "obalance": {
+                                "BTC": "0.00000000",
+                                "USD": "50.00"
+                            },
+                            "time": 1663761159705
+                        },
+                        "oid": "2",
+                        "ok": "ok"
+                    },
+                    {
+                        "e": "get-balance",
+                        "data": {
+                            "balance": {
+                                "BTC": "2.50000000",
+                                "USD": "75.00"
+                            },
+                            "obalance": {
+                                "BTC": "0.00000000",
+                                "USD": "80.00"
+                            },
+                            "time": 1663761159805
+                        },
+                        "oid": "3",
+                        "ok": "ok"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "e": "auth",
+                        "auth": {
+                            "key": "key",
+                            "signature": "SIGNATURE",
+                            "timestamp": "1663761159"
+                        }
+                    },
+                    {
+                        "e": "get-balance",
+                        "data": {},
+                        "oid": "1"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "signature",
+                    "timestamp"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "balance": {
+                            "BTC": "2.50000000",
+                            "USD": "75.00"
+                        },
+                        "obalance": {
+                            "BTC": "0.00000000",
+                            "USD": "80.00"
+                        },
+                        "time": 1663761159805
+                    },
+                    "BTC": {
+                        "free": 2.5,
+                        "used": 0.0,
+                        "total": 2.5
+                    },
+                    "USD": {
+                        "free": 75.0,
+                        "used": 80.0,
+                        "total": 155.0
+                    },
+                    "free": {
+                        "BTC": 2.5,
+                        "USD": 75.0
+                    },
+                    "used": {
+                        "BTC": 0.0,
+                        "USD": 80.0
+                    },
+                    "total": {
+                        "BTC": 2.5,
+                        "USD": 155.0
+                    }
+                }
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "resubscription snapshot resets the held orderbook in place - a consumer holding the old object must see post-resnapshot updates",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.cex.io/ws",
+                "messages": [
+                    {
+                        "e": "auth",
+                        "data": {
+                            "ok": "ok"
+                        },
+                        "ok": "ok",
+                        "timestamp": 1663762031
+                    },
+                    {
+                        "e": "ping"
+                    },
+                    {
+                        "e": "ping"
+                    },
+                    {
+                        "e": "ping"
+                    },
+                    {
+                        "e": "order-book-subscribe",
+                        "data": {
+                            "timestamp": 1663762032,
+                            "timestamp_ms": 1663762031680,
+                            "bids": [
+                                [
+                                    50000.0,
+                                    1.0
+                                ],
+                                [
+                                    49999.0,
+                                    2.0
+                                ]
+                            ],
+                            "asks": [
+                                [
+                                    50001.0,
+                                    1.5
+                                ],
+                                [
+                                    50002.0,
+                                    2.5
+                                ]
+                            ],
+                            "pair": "BTC:USDT",
+                            "id": 100,
+                            "sell_total": "4.00000000",
+                            "buy_total": "149998.0"
+                        },
+                        "oid": "1",
+                        "ok": "ok"
+                    },
+                    {
+                        "e": "md_update",
+                        "data": {
+                            "id": 101,
+                            "pair": "BTC:USDT",
+                            "time": 1663762031719,
+                            "bids": [],
+                            "asks": [
+                                [
+                                    50001.0,
+                                    1.2
+                                ]
+                            ]
+                        }
+                    },
+                    {
+                        "e": "order-book-subscribe",
+                        "data": {
+                            "timestamp": 1663762033,
+                            "timestamp_ms": 1663762032500,
+                            "bids": [
+                                [
+                                    49000.0,
+                                    5.0
+                                ],
+                                [
+                                    48999.0,
+                                    1.0
+                                ]
+                            ],
+                            "asks": [
+                                [
+                                    49001.0,
+                                    4.0
+                                ],
+                                [
+                                    49002.0,
+                                    2.0
+                                ]
+                            ],
+                            "pair": "BTC:USDT",
+                            "id": 200,
+                            "sell_total": "6.00000000",
+                            "buy_total": "293999.0"
+                        },
+                        "oid": "1",
+                        "ok": "ok"
+                    },
+                    {
+                        "e": "md_update",
+                        "data": {
+                            "id": 201,
+                            "pair": "BTC:USDT",
+                            "time": 1663762032800,
+                            "bids": [
+                                [
+                                    48999.0,
+                                    0
+                                ]
+                            ],
+                            "asks": [
+                                [
+                                    49003.0,
+                                    1.5
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "e": "auth",
+                        "auth": {
+                            "key": "key",
+                            "signature": "SIGNATURE",
+                            "timestamp": "1663762031"
+                        }
+                    },
+                    {
+                        "e": "order-book-subscribe",
+                        "data": {
+                            "pair": [
+                                "BTC",
+                                "USDT"
+                            ],
+                            "subscribe": true,
+                            "depth": 0
+                        },
+                        "oid": "1"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "signature",
+                    "timestamp"
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            49000.0,
+                            5.0
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            49001.0,
+                            4.0
+                        ],
+                        [
+                            49002.0,
+                            2.0
+                        ],
+                        [
+                            49003.0,
+                            1.5
+                        ]
+                    ],
+                    "timestamp": 1663762032800,
+                    "datetime": "2022-09-21T12:07:12.800Z",
+                    "nonce": 201,
+                    "symbol": "BTC/USDT"
+                }
+            }
+        ]
+    }
+}

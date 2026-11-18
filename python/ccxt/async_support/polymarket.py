@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class polymarket(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(polymarket, self).describe(), {
             'id': 'polymarket',
             'name': 'Polymarket',
@@ -362,7 +362,7 @@ class polymarket(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -377,7 +377,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'time')
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange api
 
@@ -406,7 +406,7 @@ class polymarket(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange - every instrument base, the usd quote and the collateral asset
 
@@ -420,8 +420,8 @@ class polymarket(Exchange, ImplicitAPI):
             self.publicGetInfoAssets(params),
         ]
         responses = await asyncio.gather(*promises)
-        instruments = responses[0]
-        assets = responses[1]
+        instruments = self.safe_list(responses, 0, [])
+        assets = self.safe_list(responses, 1, [])
         result = {}
         for i in range(0, len(instruments)):
             instrument = instruments[i]
@@ -483,7 +483,7 @@ class polymarket(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for polymarket perps
 
@@ -591,7 +591,7 @@ class polymarket(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, merging the ticker, statistics and best bid and ask endpoints
 
@@ -613,7 +613,7 @@ class polymarket(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchTicker() could not find a ticker for ' + symbolResolved)
         return ticker
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, merging the ticker, statistics and best bid and ask endpoints
 
@@ -675,20 +675,20 @@ class polymarket(Exchange, ImplicitAPI):
         #     ]
         #
         merged = {}
-        statistics = responses[1]
+        statistics = self.safe_list(responses, 1, [])
         for i in range(0, len(statistics)):
             entry = statistics[i]
             instrumentId = self.safe_string(entry, 'instrument_id')
             # the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged[instrumentId] = self.omit(entry, 'klines')
-        bbos = responses[2]
+        bbos = self.safe_list(responses, 2, [])
         for i in range(0, len(bbos)):
             entry = bbos[i]
             instrumentId = self.safe_string(entry, 'instrument_id')
             previous = self.safe_dict(merged, instrumentId, {})
             # the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             merged[instrumentId] = self.extend(previous, entry)
-        tickers = responses[0]
+        tickers = self.safe_list(responses, 0, [])
         result = []
         for i in range(0, len(tickers)):
             entry = tickers[i]
@@ -749,7 +749,7 @@ class polymarket(Exchange, ImplicitAPI):
             'info': ticker,
         }, marketResolved)
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the best bid and ask price and volume for multiple markets
 
@@ -776,7 +776,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbolsNormalized)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -809,7 +809,7 @@ class polymarket(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of the most recent trades for a particular symbol
 
@@ -902,7 +902,7 @@ class polymarket(Exchange, ImplicitAPI):
             'fee': fee,
         }, marketResolved)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -969,7 +969,7 @@ class polymarket(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -991,7 +991,7 @@ class polymarket(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchFundingRate() could not find the funding rate for ' + symbolResolved)
         return fundingRate
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
         fetches the current funding rates for multiple markets
 
@@ -1048,7 +1048,7 @@ class polymarket(Exchange, ImplicitAPI):
             'interval': interval,
         }
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1104,7 +1104,7 @@ class polymarket(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -1126,7 +1126,7 @@ class polymarket(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchOpenInterest() could not find the open interest for ' + symbolResolved)
         return openInterest
 
-    async def fetch_open_interests(self, symbols: Strings = None, params={}) -> OpenInterests:
+    async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
         """
         retrieves the open interest of multiple contract trading pairs
 
@@ -1169,7 +1169,7 @@ class polymarket(Exchange, ImplicitAPI):
             'info': interest,
         }, marketResolved)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetches the default trading fees for multiple markets
 
@@ -1202,7 +1202,7 @@ class polymarket(Exchange, ImplicitAPI):
         fallback = self.safe_dict(schedule, 0, {})
         result = {}
         for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+            symbol = self.safe_string(self.symbols, i, '')
             market = self.market(symbol)
             category = self.safe_string(market['info'], 'category')
             entry = self.safe_dict(byCategory, category, fallback)
@@ -1284,7 +1284,7 @@ class polymarket(Exchange, ImplicitAPI):
             'params': paramsOmitted,
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1313,17 +1313,19 @@ class polymarket(Exchange, ImplicitAPI):
             'params': params,
         }
         orders = await self.create_orders([order], params)
-        first = orders[0]
-        if first['status'] == 'rejected':
-            errorId = self.safe_string(first['info'], 'error')
-            feedback = self.id + ' createOrder() rejected: ' + self.json(first['info'])
+        first = self.safe_dict(orders, 0, {})
+        firstStatus = self.safe_string(first, 'status')
+        if firstStatus == 'rejected':
+            firstInfo = self.safe_dict(first, 'info', {})
+            errorId = self.safe_string(firstInfo, 'error')
+            feedback = self.id + ' createOrder() rejected: ' + self.json(firstInfo)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorId, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorId, feedback)
             raise InvalidOrder(feedback)
         created = self.safe_dict(orders, 0)
         return created
 
-    async def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders in one signed batch
 
@@ -1367,9 +1369,9 @@ class polymarket(Exchange, ImplicitAPI):
         #
         results = []
         for i in range(0, len(response)):
-            ack = response[i]
+            ack = self.safe_dict(response, i, {})
             marketInner = ordersMarkets[i]
-            echo = ordersEntries[i]
+            echo = self.safe_dict(ordersEntries, i, {})
             status = self.safe_string(ack, 'status')
             merged = self.extend(echo, {
                 'oid': self.safe_integer(ack, 'oid'),
@@ -1384,7 +1386,7 @@ class polymarket(Exchange, ImplicitAPI):
             results.append(parsed)
         return results
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1400,7 +1402,7 @@ class polymarket(Exchange, ImplicitAPI):
         canceled = self.safe_dict(orders, 0)
         return canceled
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders in one signed batch
 
@@ -1433,7 +1435,7 @@ class polymarket(Exchange, ImplicitAPI):
         else:
             numericIds = []
             for i in range(0, len(ids)):
-                numericIds.append(self.parse_to_int(ids[i]))
+                numericIds.append(self.parse_to_int(self.safe_string(ids, i)))
             signable = ['cancelOrders', numericIds]
             bodyOp = {
                 'type': 'cancelOrders',
@@ -1448,7 +1450,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         results = []
         for i in range(0, len(response)):
-            ack = response[i]
+            ack = self.safe_dict(response, i, {})
             status = self.safe_string(ack, 'status')
             unified = 'rejected' if (status == 'err') else 'canceled'
             merged = {
@@ -1462,7 +1464,7 @@ class polymarket(Exchange, ImplicitAPI):
             results.append(parsed)
         return results
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders, optionally scoped to a single market
 
@@ -1492,7 +1494,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    async def cancel_all_orders_after(self, timeout: Int, params={}) -> object:
+    async def cancel_all_orders_after(self, timeout: Int, params: dict = {}) -> object:
         """
         arms or clears a dead man's switch that cancels every open order once the deadline passes
 
@@ -1520,7 +1522,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         return response
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a resting standalone gtc limit order, only the price and the total quantity can change
 
@@ -1697,7 +1699,7 @@ class polymarket(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for the account equity, the free order margin and the used initial margin
 
@@ -1739,7 +1741,7 @@ class polymarket(Exchange, ImplicitAPI):
         result['PUSD'] = account
         return self.safe_balance(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1762,7 +1764,7 @@ class polymarket(Exchange, ImplicitAPI):
             positions.append(self.parse_position(extended))
         return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized)
 
-    async def fetch_position(self, symbol: str, params={}) -> Position:
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -1842,7 +1844,7 @@ class polymarket(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1864,7 +1866,7 @@ class polymarket(Exchange, ImplicitAPI):
         response = await self.privateGetAccountOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches the latest known snapshot of up to one hundred orders
 
@@ -1899,7 +1901,7 @@ class polymarket(Exchange, ImplicitAPI):
         response = await self.privateGetAccountOrders(self.extend(request, paramsOmitted))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1922,13 +1924,13 @@ class polymarket(Exchange, ImplicitAPI):
         # select the requested row explicitly in case the documented
         # order_id filter is ever ignored the way the tickers one is
         for i in range(0, len(response)):
-            row = response[i]
+            row = self.safe_dict(response, i, {})
             rowId = self.safe_string(row, 'order_id')
             if rowId == id:
                 return self.parse_order(row, market)
         raise OrderNotFound(self.id + ' fetchOrder() could not find the order ' + id)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1985,7 +1987,7 @@ class polymarket(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the funding payments paid and received on the open positions of the account
 
@@ -2003,8 +2005,9 @@ class polymarket(Exchange, ImplicitAPI):
         market = None
         request = {}
         if symbol is not None:
-            market = self.market(symbol)
-            request['instrument_id'] = market['id']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            request['instrument_id'] = symbolMarket['id']
         if since is not None:
             request['start_timestamp'] = since
         until = self.safe_integer(params, 'until')
@@ -2125,7 +2128,7 @@ class polymarket(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to the account
 
@@ -2155,7 +2158,7 @@ class polymarket(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from the account
 
@@ -2265,7 +2268,7 @@ class polymarket(Exchange, ImplicitAPI):
         transaction['status'] = 'pending'
         return transaction
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the leverage and the margin mode configured for a market
 
@@ -2288,7 +2291,7 @@ class polymarket(Exchange, ImplicitAPI):
         # select the requested row explicitly in case the documented
         # instrument_id filter is ever ignored the way the tickers one is
         for i in range(0, len(response)):
-            row = response[i]
+            row = self.safe_dict(response, i, {})
             rowId = self.safe_string(row, 'instrument_id')
             if rowId == market['id']:
                 return self.parse_leverage(row, market)
@@ -2310,7 +2313,7 @@ class polymarket(Exchange, ImplicitAPI):
             'shortLeverage': value,
         }
 
-    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+    async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
         """
         fetches the margin mode configured for a market
 
@@ -2322,12 +2325,12 @@ class polymarket(Exchange, ImplicitAPI):
         """
         leverage = await self.fetch_leverage(symbol, params)
         return {
-            'info': leverage['info'],
-            'symbol': leverage['symbol'],
-            'marginMode': leverage['marginMode'],
+            'info': self.safe_dict(leverage, 'info'),
+            'symbol': self.safe_string(leverage, 'symbol'),
+            'marginMode': self.safe_string(leverage, 'marginMode'),
         }
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> object:
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}) -> object:
         """
         set the level of leverage for a market, optionally switching the margin mode at the same time
 
@@ -2365,7 +2368,7 @@ class polymarket(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}) -> object:
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}) -> object:
         """
         set the margin mode of a market, the venue updates the mode and the leverage together
 
@@ -2434,7 +2437,7 @@ class polymarket(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         add margin to an isolated position
 
@@ -2447,7 +2450,7 @@ class polymarket(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+    async def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
         remove margin from an isolated position
 
@@ -2561,7 +2564,7 @@ class polymarket(Exchange, ImplicitAPI):
                 return credentials
         return await self.create_proxy_credentials(params)
 
-    async def sign_perps_op(self, signable: object, bodyOp: object, params: dict = {}) -> dict:
+    async def sign_perps_op(self, signable: list, bodyOp: dict, params: dict = {}) -> dict:
         """
  @ignore
         signs a trading operation with the session proxy key - the compact signable array is msgpack-encoded and keccak-hashed, the hash is signed inside an EIP-712 Op struct and the structured operation travels next to the signature
@@ -2628,10 +2631,11 @@ class polymarket(Exchange, ImplicitAPI):
         # per-instrument decimals, deliberately for any magnitude - a six
         # digit integer price coarsens to an effective step of ten
         market = self.market(symbol)
+        precision = self.safe_dict(market, 'precision', {})
         significant = self.decimal_to_precision(price, ROUND, 5, SIGNIFICANT_DIGITS)
-        result = self.decimal_to_precision(significant, ROUND, market['precision']['price'], TICK_SIZE)
+        result = self.decimal_to_precision(significant, ROUND, precision['price'], TICK_SIZE)
         if result == '0':
-            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
+            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(precision['price']))
         return result
 
     def amount_to_precision(self, symbol: Str, amount: object) -> Str:
@@ -2639,13 +2643,14 @@ class polymarket(Exchange, ImplicitAPI):
             return None
         # quantities carry the same five significant figures cap
         market = self.market(symbol)
+        precision = self.safe_dict(market, 'precision', {})
         significant = self.decimal_to_precision(amount, TRUNCATE, 5, SIGNIFICANT_DIGITS)
-        result = self.decimal_to_precision(significant, TRUNCATE, market['precision']['amount'], TICK_SIZE)
+        result = self.decimal_to_precision(significant, TRUNCATE, precision['amount'], TICK_SIZE)
         if result == '0':
-            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(precision['amount']))
         return result
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config={}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config={}):
         if path == 'account/orders':
             return 1 if ('order_id' in params) else 10
         if path == 'account/open-orders':
@@ -2653,8 +2658,7 @@ class polymarket(Exchange, ImplicitAPI):
         if (path == 'trade/orders') or (path == 'trade/orders-coid'):
             op = self.safe_dict(params, 'op', {})
             args = self.safe_list(op, 'args', [])
-            argsLength = len(args)
-            return self.sum(1, self.parse_to_int(argsLength / 20))
+            return self.sum(1, self.parse_to_int(len(args) / 20))
         if path == 'info/book':
             depth = self.safe_integer(params, 'depth', 100)
             if depth <= 10:
@@ -2668,7 +2672,9 @@ class polymarket(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiType = api[0]
-        url = self.urls['api'][apiType] + '/' + self.implode_params(path, params)
+        baseUrl = self.safe_string(self.urls['api'], apiType, '')
+        implodedPath = self.implode_params(path, params)
+        url = baseUrl + '/' + implodedPath
         query = self.omit(params, self.extract_params(path))
         headersResolved = {
             'Accept': 'application/json',
@@ -2684,14 +2690,14 @@ class polymarket(Exchange, ImplicitAPI):
                 keys = list(query.keys())
                 keysLength = len(keys)
                 if keysLength > 0:
-                    url += '?' + self.urlencode(query)
+                    url = baseUrl + '/' + implodedPath + '?' + self.urlencode(query)
             if apiType == 'private':
                 credentials = self.safe_dict(self.options, 'proxyCredentials', {})
                 headersResolved['POLYMARKET-PROXY'] = self.safe_string(credentials, 'proxy')
                 headersResolved['POLYMARKET-SECRET'] = self.safe_string(credentials, 'secret')
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

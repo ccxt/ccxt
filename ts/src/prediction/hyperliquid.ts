@@ -17,7 +17,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -154,7 +154,7 @@ export default class hyperliquid extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
         // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
         return this.milliseconds ();
@@ -248,22 +248,23 @@ export default class hyperliquid extends Exchange {
      */
     buildOutcomeSymbol (desc: Dict, side: number, outcomeId: number): string {
         const underlying = this.safeString (desc, 'underlying', 'OUTCOME' + outcomeId.toString ());
-        const targetPrice = this.safeString (desc, 'targetPrice');
+        const targetPrice = this.safeString (desc, 'targetPrice', '');
         const expiry = this.safeString (desc, 'expiry', '');
         // Parse expiry: "20260503-0600" → "20260503"
-        let expiryDate: Str = '';
+        let expiryDate = '';
         if (expiry !== '') {
-            expiryDate = expiry.split ('-')[0];
+            const expiryParts = expiry.split ('-');
+            expiryDate = expiryParts[0];
         }
         let label: Str = 'NO';
         if (side === 0) {
             label = 'YES';
         }
         let base = underlying.toUpperCase ();
-        if ((targetPrice !== undefined) && (targetPrice !== '')) {
+        if (targetPrice !== '') {
             base = base + '_ABOVE_' + targetPrice;
         }
-        if ((expiryDate !== undefined) && (expiryDate !== '')) {
+        if (expiryDate !== '') {
             base = base + '_' + expiryDate;
         }
         return base + ':' + label;
@@ -281,22 +282,24 @@ export default class hyperliquid extends Exchange {
      * @returns {string} the parent market outcome
      */
     buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name: string = '', question: Dict = {}): string {
-        const underlying = this.safeString (desc, 'underlying');
-        if ((underlying !== undefined) && (underlying !== '')) {
-            const targetPrice = this.safeString (desc, 'targetPrice');
+        const underlying = this.safeString (desc, 'underlying', '');
+        if (underlying !== '') {
+            const targetPrice = this.safeString (desc, 'targetPrice', '');
             const expiry = this.safeString (desc, 'expiry', '');
-            let expiryDate: Str = '';
+            let expiryDate = '';
             if (expiry !== '') {
-                expiryDate = expiry.split ('-')[0];
+                const expiryParts = expiry.split ('-');
+                expiryDate = expiryParts[0];
             }
-            let base = underlying.toUpperCase ();
-            if ((targetPrice !== undefined) && (targetPrice !== '')) {
-                base = base + '_ABOVE_' + targetPrice;
+            let targetPart = '';
+            if (targetPrice !== '') {
+                targetPart = '_ABOVE_' + targetPrice;
             }
-            if ((expiryDate !== undefined) && (expiryDate !== '')) {
-                base = base + '_' + expiryDate;
+            let expiryPart = '';
+            if (expiryDate !== '') {
+                expiryPart = '_' + expiryDate;
             }
-            return base;
+            return underlying.toUpperCase () + targetPart + expiryPart;
         }
         const questionDescription = this.safeString (question, 'description');
         if ((questionDescription !== undefined) && (questionDescription !== '')) {
@@ -305,9 +308,14 @@ export default class hyperliquid extends Exchange {
             if (questionClass === 'pricebucket') {
                 const questionUnderlying = this.safeString (questionDesc, 'underlying');
                 const questionExpiry = this.safeString (questionDesc, 'expiry', '');
-                let expiryDate: Str = '';
+                let questionExpiryDate = '';
                 if (questionExpiry !== '') {
-                    expiryDate = questionExpiry.split ('-')[0];
+                    const questionExpiryParts = questionExpiry.split ('-');
+                    questionExpiryDate = questionExpiryParts[0];
+                }
+                let questionExpiryPart = '';
+                if (questionExpiryDate !== '') {
+                    questionExpiryPart = '_' + questionExpiryDate;
                 }
                 const thresholdsRaw = this.safeString (questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString (desc, 'index');
@@ -334,20 +342,12 @@ export default class hyperliquid extends Exchange {
                         } else {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        let base = questionUnderlying.toUpperCase () + '_' + bucketLabel;
-                        if ((expiryDate !== undefined) && (expiryDate !== '')) {
-                            base = base + '_' + expiryDate;
-                        }
-                        return base;
+                        return questionUnderlying.toUpperCase () + '_' + bucketLabel + questionExpiryPart;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf ('fallback') >= 0) || (nameLower.indexOf ('other') >= 0);
                 if ((questionUnderlying !== undefined && questionUnderlying !== '') && isFallbackLike) {
-                    let base = questionUnderlying.toUpperCase () + '_OTHER';
-                    if ((expiryDate !== undefined) && (expiryDate !== '')) {
-                        base = base + '_' + expiryDate;
-                    }
-                    return base;
+                    return questionUnderlying.toUpperCase () + '_OTHER' + questionExpiryPart;
                 }
             }
         }
@@ -870,7 +870,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
@@ -2289,8 +2289,8 @@ export default class hyperliquid extends Exchange {
             baseUrl = this.safeString (apiUrls, apiGroup, this.safeString (apiUrls, 'public', ''));
         }
         const url = baseUrl + '/' + path;
-        let headersValue: any = undefined;
-        let bodyValue: any = undefined;
+        let headersValue: NullableDict = undefined;
+        let bodyValue: Str = undefined;
         if (method === 'POST') {
             headersValue = { 'Content-Type': 'application/json' };
             bodyValue = this.json (params);
@@ -2298,7 +2298,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2326,7 +2326,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

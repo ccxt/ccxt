@@ -30,7 +30,6 @@
 a client for the ccxt order-routing service and a multi-venue execution engine for plans you build yourself. NOT an exchange: it does not extend Exchange, has no unified methods, and is constructed directly. The whole pipeline is two calls — fetchRoute, then execute
 
 
-
 ```javascript
 OrderRouter.OrderRouter ()
 ```
@@ -54,6 +53,7 @@ creates a client for the CCXT order-router service
 | config.trackBalances | <code>bool</code> | No | read those venues' wallets and route on what you can actually fund, default false. Off, fetchRoute never touches a venue and stays a single HTTP request |
 | config.timeoutMs | <code>int</code> | No | request timeout in milliseconds, defaults to 30000 |
 | config.maxNotionalUsd | <code>float</code> | No | optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped |
+| config.userAgent | <code>string</code> | No | optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'. Omitted or '' keeps the runtime's default User-Agent. Browsers forbid setting it, so there it is silently dropped |
 
 
 ```javascript
@@ -266,7 +266,6 @@ OrderRouter.loadBalances (reload?)
 drops the cached balances, so the next quote re-reads the wallets. Called for you after any run that reached a venue
 
 **Kind**: instance method of [<code>OrderRouter</code>](#OrderRouter)  
-
 
 ```javascript
 OrderRouter.invalidateBalances ()

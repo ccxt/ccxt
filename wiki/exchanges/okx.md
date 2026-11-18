@@ -418,6 +418,7 @@ fetches historical funding rate prices
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
 | limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
@@ -1363,6 +1364,7 @@ fetch the history of funding payments paid and received on this account
 | since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
 | limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch funding history for |
 
 
 ```javascript

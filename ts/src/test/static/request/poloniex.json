@@ -677,6 +677,26 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "swap depth 50 is a venue depth and must not be rounded up",
+                "method": "fetchOrderBook",
+                "url": "https://api.poloniex.com/v3/market/orderBook?symbol=BTC_USDT_PERP&limit=50",
+                "input": [
+                    "BTC/USDT:USDT",
+                    50
+                ],
+                "output": null
+            },
+            {
+                "description": "spot depth rounded up to the nearest venue depth",
+                "method": "fetchOrderBook",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/orderBook?limit=50",
+                "input": [
+                    "BTC/USDT",
+                    30
+                ],
+                "output": null
+            },
+            {
                 "description": "linear",
                 "method": "fetchOrderBook",
                 "url": "https://api.poloniex.com/v3/market/orderBook?symbol=BTC_USDT_PERP",
@@ -791,6 +811,42 @@
                 "input": [
                     "BTC/USDT:USDT",
                     "1M"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with since and limit sets endTime",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/candles?interval=HOUR_1&startTime=1789621200000&limit=3&endTime=1789628400000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1789621200000,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "linear with since and limit sets eTime",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=HOUR_1&sTime=1789621200000&limit=3&eTime=1789628400000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789621200000,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with mid-candle since and limit ends at the limit-th candle",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/candles?interval=HOUR_1&startTime=1789623000000&limit=3&endTime=1789632000000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1789623000000,
+                    3
                 ],
                 "output": null
             }

@@ -557,7 +557,7 @@ class bitbank extends bitbank$1["default"] {
             const pair = pairs[i];
             const marketId = this.safeString(pair, 'name');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             result[symbol] = {
                 'info': pair,
                 'symbol': symbol,
@@ -994,7 +994,7 @@ class bitbank extends bitbank$1["default"] {
         const tagWithdrawTag = tagAndParams[0];
         const paramsWithdrawTag = tagAndParams[1];
         this.checkAddress(address, code, tagWithdrawTag);
-        if (!('uuid' in paramsWithdrawTag)) {
+        if (!('uuid' in params)) {
             throw new errors.ExchangeError(this.id + ' uuid is required for withdrawal');
         }
         if (this.markets === undefined) {
@@ -1073,7 +1073,7 @@ class bitbank extends bitbank$1["default"] {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1122,18 +1122,17 @@ class bitbank extends bitbank$1["default"] {
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
             };
             if (isTimeWindow) {
-                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime;
-                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow;
+                requestHeaders = this.extend(requestHeaders, { 'ACCESS-REQUEST-TIME': requestTime, 'ACCESS-TIME-WINDOW': timeWindow });
             }
             else {
-                requestHeaders['ACCESS-NONCE'] = nonce;
+                requestHeaders = this.extend(requestHeaders, { 'ACCESS-NONCE': nonce });
             }
         }
         const bodyResolved = requestBody;
         const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -1202,9 +1201,9 @@ class bitbank extends bitbank$1["default"] {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const code = this.safeString(data, 'code');
-            const message = this.safeString(errorMessages, code, 'Error');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, message);
+            const codeError = this.safeString(data, 'code');
+            const message = this.safeString(errorMessages, codeError, 'Error');
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, message);
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;

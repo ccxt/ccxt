@@ -3,7 +3,7 @@ import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLC
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class kucoin extends kucoinRest {
-    describe(): any;
+    describe(): Dict;
     negotiate(privateChannel: boolean, isFuturesMethod?: boolean, params?: Dict): Promise<any>;
     negotiateHelper(privateChannel: any, connectId: string, params?: Dict): Promise<Str>;
     requestId(): number;
@@ -235,7 +235,7 @@ export default class kucoin extends kucoinRest {
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleUtaOrderBook(client: Client, message: Dict): void;
-    getCacheIndex(orderbook: any, cache: any): number;
+    getCacheIndex(orderbook: NullableDict, cache: any[]): number;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
@@ -282,7 +282,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    getMyTradesMessageHashSuffix(topic: any): string;
+    getMyTradesMessageHashSuffix(topic: string): string;
     handleMyTrade(client: Client, message: Dict): void;
     handleUtaMyTrade(client: Client, message: Dict): void;
     parseWsTrade(trade: any, market?: Market): Trade;
@@ -333,7 +333,7 @@ export default class kucoin extends kucoinRest {
     loadPositionSnapshot(client: Client, messageHash: string, symbol: string): Promise<void>;
     handlePosition(client: Client, message: Dict): void;
     handleUtaPosition(client: Client, message: Dict): void;
-    parseWsUtaPosition(position: Dict, market?: Market): Position;
+    parseWsUtaPosition(position: Dict, market?: Market): Dict;
     /**
      * @method
      * @name kucoin#watchFundingRate
@@ -381,5 +381,5 @@ export default class kucoin extends kucoinRest {
     handlePong(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
-    getMessageHash(elementName: string, symbol?: Str): string;
+    getMessageHash(elementName: Str, symbol?: Str): string;
 }

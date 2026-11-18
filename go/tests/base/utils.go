@@ -107,6 +107,13 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 	// feed one already-json-parsed frame into the exchange's ws message
 	// handler - the same entry point the real transport invokes
 	client := exchange.(wsClientProvider).Client(url)
+	// a panicking handler must fail the pending watch instead of hanging it
+	defer func() {
+		if r := recover(); r != nil {
+			client.Reject(ccxt.RecoveredError(r))
+			panic(r)
+		}
+	}()
 	client.OnMessageCallback(client, message)
 }
 
@@ -120,9 +127,7 @@ func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
 	// whether the watch flow is currently awaiting a message - the frame
 	// injector polls this instead of relying on a fixed head-start sleep
 	client := exchange.(wsClientProvider).Client(url)
-	client.FuturesMu.Lock()
-	defer client.FuturesMu.Unlock()
-	return len(client.Futures) > 0
+	return client.PendingFutureCount() > 0
 }
 
 var wsCompletedClientsMu sync.Mutex
@@ -639,7 +644,7 @@ func DetypeForComparison(value any) any {
 }
 
 // coerceArgs converts fixture string args to int64 where the method's parameter is int64
-// and the string is exactly an integer; the library itself rejects strings.
+// and the string is exactly an integer, and numeric args to text where it is a string.
 func coerceArgs(exchange any, methodName string, args []any) []any {
 	name := ccxt.Capitalize(methodName)
 	method := reflect.ValueOf(exchange).MethodByName(name + "Async")
@@ -656,6 +661,17 @@ func coerceArgs(exchange any, methodName string, args []any) []any {
 	}
 	result := append([]any{}, args...)
 	for k := 0; k < fixed && k < len(result); k++ {
+		if methodType.In(k).Kind() == reflect.String {
+			switch num := result[k].(type) {
+			case float64:
+				result[k] = strconv.FormatFloat(num, 'f', -1, 64)
+			case int:
+				result[k] = strconv.Itoa(num)
+			case int64:
+				result[k] = strconv.FormatInt(num, 10)
+			}
+			continue
+		}
 		str, isString := result[k].(string)
 		if !isString || methodType.In(k).Kind() != reflect.Int64 {
 			continue
@@ -710,6 +726,21 @@ func GetExchangeProp(exchange2 any, prop2 any, defaultValue ...any) any {
 	res := exchange.GetProperty(exchange, prop2)
 	if res != nil {
 		return res
+	}
+	// Go struct fields are exported PascalCase (WalletAddress, RequiredCredentials, ...) while the
+	// harness reads camelCase names — retry capitalized, like SetExchangeProp does. An empty string
+	// is the zero value of an unset string field, which the harness treats as "not set" (undefined in ts)
+	if propName, ok := prop2.(string); ok && propName != "" {
+		capitalized := strings.ToUpper(propName[:1]) + propName[1:]
+		if capitalized != propName {
+			res = exchange.GetProperty(exchange, capitalized)
+			if str, isStr := res.(string); isStr && str == "" {
+				res = nil
+			}
+			if res != nil {
+				return res
+			}
+		}
 	}
 	if len(defaultValue) > 0 {
 		return defaultValue[0]
@@ -891,8 +922,10 @@ func splitEnv(env string) [2]string {
 	return pair
 }
 
-func GetEnvVars() map[string]string {
-	envMap := make(map[string]string)
+// GetEnvVars returns the environment as map[string]any, the shape InOp/GetValue understand
+// (a map[string]string is invisible to InOp, which silently disabled --loadKeys)
+func GetEnvVars() map[string]any {
+	envMap := make(map[string]any)
 	for _, env := range os.Environ() {
 		pair := splitEnv(env)
 		envMap[pair[0]] = pair[1]

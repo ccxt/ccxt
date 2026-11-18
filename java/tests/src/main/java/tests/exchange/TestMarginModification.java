@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestMarginModification extends BaseTest {
-    public static void testMarginModification(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testMarginModification(BaseExchange exchange, Object skippedProperties, String method, Object entry)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -28,14 +28,14 @@ public class TestMarginModification extends BaseTest {
             put( "status", "ok" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("status", "symbol", "code", "total", "amount"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("code")));
         //
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "total", "0");
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("add", "reduce", "set")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "canceled", "failed")));
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "total", "0");
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "type", new ArrayList<Object>(Arrays.asList("add", "reduce", "set")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "canceled", "failed")));
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol");
     }
 
 }

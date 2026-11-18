@@ -187,10 +187,10 @@ public partial class bitstamp : Exchange
     }
 
     /// <summary>Calls the privatePostAccountBalances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostAccountBalances (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostAccountBalances (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountBalances",parameters);
+        return await this.callAsync<List<object>> ("privatePostAccountBalances",parameters);
     }
 
     /// <summary>Calls the privatePostAccountBalancesCurrency endpoint.</summary>

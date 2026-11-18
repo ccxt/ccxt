@@ -22,6 +22,7 @@ pub(crate) use ccxt::exchanges::{
     binanceusdm::BinanceusdmCore,
     bingx::BingxCore,
     bit2c::Bit2cCore,
+    bit2me::Bit2meCore,
     bitbank::BitbankCore,
     bitbns::BitbnsCore,
     bitfinex::BitfinexCore,
@@ -45,7 +46,6 @@ pub(crate) use ccxt::exchanges::{
     bybit::BybitCore,
     bybiteu::BybiteuCore,
     bybitid::BybitidCore,
-    bydfi::BydfiCore,
     cex::CexCore,
     coinbase::CoinbaseCore,
     coinbaseexchange::CoinbaseexchangeCore,
@@ -146,6 +146,7 @@ pub(crate) use ccxt_pro::pro::{
     binanceus::BinanceusCore as WsBinanceusCore,
     binanceusdm::BinanceusdmCore as WsBinanceusdmCore,
     bingx::BingxCore as WsBingxCore,
+    bit2me::Bit2meCore as WsBit2meCore,
     bitfinex::BitfinexCore as WsBitfinexCore,
     bitget::BitgetCore as WsBitgetCore,
     bithumb::BithumbCore as WsBithumbCore,
@@ -160,7 +161,6 @@ pub(crate) use ccxt_pro::pro::{
     bybit::BybitCore as WsBybitCore,
     bybiteu::BybiteuCore as WsBybiteuCore,
     bybitid::BybitidCore as WsBybitidCore,
-    bydfi::BydfiCore as WsBydfiCore,
     cex::CexCore as WsCexCore,
     coinbase::CoinbaseCore as WsCoinbaseCore,
     coinbaseexchange::CoinbaseexchangeCore as WsCoinbaseexchangeCore,
@@ -228,6 +228,7 @@ macro_rules! for_each_core {
         $cb!(binanceusdm, BinanceusdmCore);
         $cb!(bingx, BingxCore);
         $cb!(bit2c, Bit2cCore);
+        $cb!(bit2me, Bit2meCore);
         $cb!(bitbank, BitbankCore);
         $cb!(bitbns, BitbnsCore);
         $cb!(bitfinex, BitfinexCore);
@@ -251,7 +252,6 @@ macro_rules! for_each_core {
         $cb!(bybit, BybitCore);
         $cb!(bybiteu, BybiteuCore);
         $cb!(bybitid, BybitidCore);
-        $cb!(bydfi, BydfiCore);
         $cb!(cex, CexCore);
         $cb!(coinbase, CoinbaseCore);
         $cb!(coinbaseexchange, CoinbaseexchangeCore);
@@ -342,6 +342,7 @@ macro_rules! for_each_ws_core {
         $cb!(binanceus, WsBinanceusCore);
         $cb!(binanceusdm, WsBinanceusdmCore);
         $cb!(bingx, WsBingxCore);
+        $cb!(bit2me, WsBit2meCore);
         $cb!(bitfinex, WsBitfinexCore);
         $cb!(bitget, WsBitgetCore);
         $cb!(bithumb, WsBithumbCore);
@@ -356,7 +357,6 @@ macro_rules! for_each_ws_core {
         $cb!(bybit, WsBybitCore);
         $cb!(bybiteu, WsBybiteuCore);
         $cb!(bybitid, WsBybitidCore);
-        $cb!(bydfi, WsBydfiCore);
         $cb!(cex, WsCexCore);
         $cb!(coinbase, WsCoinbaseCore);
         $cb!(coinbaseexchange, WsCoinbaseexchangeCore);

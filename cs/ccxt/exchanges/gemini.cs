@@ -917,7 +917,7 @@ public partial class gemini : Exchange
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         parameters ??= new Dictionary<string, object>();
-        if (((IDictionary<string, object>)this.urls).ContainsKey("test"))
+        if ((this.urls != null && this.urls.ContainsKey("test")))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(new List<object>() {});  // sandbox does not have usdt markets
         }
@@ -969,7 +969,7 @@ public partial class gemini : Exchange
         }
         if ((this.safeBool(options, "fetchDetailsForAllSymbols", false) == true))
         {
-            List<object> promises = new List<object>() {};
+            List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)
             {
                 object marketId = marketIds[i];
@@ -978,7 +978,7 @@ public partial class gemini : Exchange
                 };
                 promises.Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
             }
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             for (int i = 0; i < (responses?.Count ?? 0); i++)
             {
                 Dictionary<string, object> parsed = this.parseMarket(responses[i]);
@@ -1119,7 +1119,7 @@ public partial class gemini : Exchange
                     if (marketIdWithoutPerp.EndsWith(quoteCurrency))
                     {
                         Int64? quoteLength = this.parseToInt(((Int64)(-1) * quoteCurrency.Length));
-                        baseId = slice(marketIdWithoutPerp, 0, quoteLength);
+                        baseId = ((marketIdWithoutPerp == null) ? null : marketIdWithoutPerp.Substring(0, ((int)Math.Max(Math.Min(((quoteLength ?? 0L) < 0 ? ((Int64)marketIdWithoutPerp.Length) + ((quoteLength ?? 0L)) : (quoteLength ?? 0L)), ((Int64)marketIdWithoutPerp.Length)), 0L))));
                         quoteId = quoteCurrency;
                         if (isPerp)
                         {
@@ -1134,13 +1134,13 @@ public partial class gemini : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string? settle = this.safeCurrencyCode(settleId);
         string symbol = ((bs + "/") + quote);
-        if ((settleId != null))
+        if ((settle != null))
         {
-            symbol = ((symbol + ":") + settle);
+            symbol = ((((bs + "/") + quote) + ":") + settle);
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1296,7 +1296,7 @@ public partial class gemini : Exchange
         var tickerAtickerBVariable = await promiseAll(new List<object>() {tickerPromiseA, tickerPromiseB});
         var tickerA = ((IList<object>) tickerAtickerBVariable)[0];
         var tickerB = ((IList<object>) tickerAtickerBVariable)[1];
-        return ccxt.BaseExchange.ToTicker(this.deepExtend(tickerA, new Dictionary<string, object>() {             { "open", getValue(tickerB, "open") },             { "high", getValue(tickerB, "high") },             { "low", getValue(tickerB, "low") },             { "change", getValue(tickerB, "change") },             { "percentage", getValue(tickerB, "percentage") },             { "average", getValue(tickerB, "average") },             { "info", getValue(tickerB, "info") },         }));
+        return ccxt.BaseExchange.ToTicker(this.deepExtend(tickerA, new Dictionary<string, object>() {             { "open", this.safeString(tickerB, "open") },             { "high", this.safeString(tickerB, "high") },             { "low", this.safeString(tickerB, "low") },             { "change", this.safeString(tickerB, "change") },             { "percentage", this.safeString(tickerB, "percentage") },             { "average", this.safeString(tickerB, "average") },             { "info", this.safeValue(tickerB, "info") },         }));
     }
 
     /**
@@ -1458,7 +1458,7 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, symbols));
+        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, this.toArray(symbols)));
         List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
@@ -1575,12 +1575,12 @@ public partial class gemini : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1678,8 +1678,8 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privatePostV1Balances(parameters);
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        List<object> response = await this.privatePostV1Balances(parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
@@ -1808,7 +1808,7 @@ public partial class gemini : Exchange
         {
             type = this.safeString(order, "type");
         }
-        object fee = null;
+        string? fee = null;
         string? marketId = this.safeString(order, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         string? id = this.safeString(order, "order_id");
@@ -2000,7 +2000,11 @@ public partial class gemini : Exchange
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
         // timeInForce and postOnly are consumed only by non-trigger orders
         List<object> omitKeys = new List<object>() {"clientOrderId", "client_order_id", "type", "triggerPrice", "stop_price", "stopPrice"};
-        List<object> optionKeys = ((triggerPrice == null)) ? new List<object>() {"timeInForce", "postOnly"} : new List<object>() {};
+        List<object> optionKeys = new List<object>() {};
+        if ((triggerPrice == null))
+        {
+            optionKeys = new List<object>() {"timeInForce", "postOnly"};
+        }
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, this.arrayConcat(omitKeys, optionKeys)));
         if (typeValue == "stopLimit")
         {
@@ -2405,31 +2409,31 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> headersSigned = null;
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
-            object apiKey = this.apiKey;
-            if (getIndexOf(apiKey, "account") < 0)
+            if (this.apiKey.IndexOf("account", StringComparison.Ordinal) < 0)
             {
                 throw new AuthenticationError ((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            string nonce = ((object)this.incrementingNonce()).ToString();
+            Int64? nonceValue = this.incrementingNonce();
+            string? nonce = this.numberToString(nonceValue);
             string finalUrl = url;
             Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
                 { "request", finalUrl },
                 { "nonce", nonce },
             }, query);
-            string? payload = this.json(request);
+            string payload = this.json(request);
             payload = this.stringToBase64(payload);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             headersSigned = new Dictionary<string, object>() {
@@ -2440,18 +2444,17 @@ public partial class gemini : Exchange
             };
         } else
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if (!(this.isEmpty(query)))
             {
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string fullUrl = (apiUrl + url);
-        Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
         string? bodyResolved = null;
         if (((method == "POST")) || ((method == "DELETE")))
         {
@@ -2461,18 +2464,18 @@ public partial class gemini : Exchange
             { "url", fullUrl },
             { "method", method },
             { "body", bodyResolved },
-            { "headers", headersResolved },
+            { "headers", headersSigned },
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             if ((body is string))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             }
             return null;  // fallback to default error handler
         }
@@ -2489,9 +2492,9 @@ public partial class gemini : Exchange
             string? reasonInner = this.safeString(response, "reason");
             string? message = this.safeString(response, "message");
             string feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), reasonInner, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), reasonInner, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

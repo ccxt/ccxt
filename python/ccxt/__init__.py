@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.90'
+__version__ = '4.5.93'
 
 # ----------------------------------------------------------------------------
 
@@ -97,6 +97,7 @@ from ccxt.binanceus import binanceus                                  # noqa: F4
 from ccxt.binanceusdm import binanceusdm                              # noqa: F401
 from ccxt.bingx import bingx                                          # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
+from ccxt.bit2me import bit2me                                        # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
@@ -120,7 +121,6 @@ from ccxt.bullish import bullish                                      # noqa: F4
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.bybiteu import bybiteu                                      # noqa: F401
 from ccxt.bybitid import bybitid                                      # noqa: F401
-from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
 from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
@@ -203,6 +203,7 @@ exchanges = [
     'binanceusdm',
     'bingx',
     'bit2c',
+    'bit2me',
     'bitbank',
     'bitbns',
     'bitfinex',
@@ -226,7 +227,6 @@ exchanges = [
     'bybit',
     'bybiteu',
     'bybitid',
-    'bydfi',
     'cex',
     'coinbase',
     'coinbaseexchange',

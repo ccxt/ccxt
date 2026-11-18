@@ -237,6 +237,49 @@
         ],
         "createOrder": [
             {
+                "description": "swap trigger order with a unified trigger price type",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=60000&quantity=0.0001&side=BUY&stopPrice=61000&symbol=BTC-USDT&timestamp=1790928062870&type=TRIGGER_LIMIT&workingType=CONTRACT_PRICE&signature=d1ea38e6929f447431322d35e6a833ab4d4b2be76b330090bd59fa706962c263",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000,
+                    {
+                        "hedged": true,
+                        "triggerPrice": 61000,
+                        "triggerPriceType": "last"
+                    }
+                ]
+            },
+            {
+                "description": "swap order with attached stop loss and take profit using unified trigger price types",
+                "disabledGO": true,
+                "disabledJava": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=60000&quantity=0.0001&side=BUY&stopLoss=%7B%22stopPrice%22%3A55000%2C%22workingType%22%3A%22CONTRACT_PRICE%22%2C%22type%22%3A%22STOP%22%2C%22price%22%3A54900%2C%22quantity%22%3A0.0001%7D&symbol=BTC-USDT&takeProfit=%7B%22stopPrice%22%3A70000%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.0001%7D&timestamp=1790928030655&type=LIMIT&signature=b41240b1a415fb649e102cf936783c80ea4af3bd238953c7217110b5b2e18cdc",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000,
+                    {
+                        "hedged": true,
+                        "stopLoss": {
+                            "triggerPrice": 55000,
+                            "price": 54900,
+                            "triggerPriceType": "last"
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 70000,
+                            "triggerPriceType": "mark"
+                        }
+                    }
+                ]
+            },
+            {
                 "description": "swap trailing percent order with an activation price",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?activationPrice=60000&positionSide=LONG&priceRate=0.01&quantity=0.0001&side=BUY&symbol=BTC-USDT&timestamp=1791475633791&type=TRAILING_STOP_MARKET&signature=83e92222f6fd2d1ea35879c4d7fbee4f73ea409ddb4b2142f18ae8ec7737adb8",
@@ -627,7 +670,7 @@
             {
                 "description": "swap order with clientOrderId",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder1&positionSide=BOTH&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360714849&type=LIMIT&signature=2881d13ae74453035b973ab795af3f1052e4cbb88829d407d3cbe687bcb03afe",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderId=myorder1&positionSide=BOTH&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1704360714849&type=LIMIT&signature=2881d13ae74453035b973ab795af3f1052e4cbb88829d407d3cbe687bcb03afe",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -778,7 +821,7 @@
             {
                 "description": "swap order with clientOrderId",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder222&positionSide=BOTH&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1714141045332&type=LIMIT&signature=b0b9849fd0b5828bab58cfa6085dc9dfd7d4c77503aa94aa275d316f6ae87ab6",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderId=myorder222&positionSide=BOTH&price=50&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1714141045332&type=LIMIT&signature=b0b9849fd0b5828bab58cfa6085dc9dfd7d4c77503aa94aa275d316f6ae87ab6",
                 "input": [
                   "LTC/USDT:USDT",
                   "limit",
@@ -801,6 +844,21 @@
                   "buy",
                   1,
                   100
+                ]
+            },
+            {
+                "description": "inverse swap order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?clientOrderId=myinverse1&positionSide=BOTH&price=100&quantity=1&side=BUY&symbol=SOL-USD&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100,
+                  {
+                    "clientOrderId": "myinverse1"
+                  }
                 ]
             },
             {
@@ -1048,7 +1106,7 @@
             {
                 "description": "Swap cancel order with clientOrderId",
                 "method": "cancelOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderID=myorder2&symbol=LTC-USDT&timestamp=1704380774663&signature=0f091dc8f55fb10ab73e69d675fdf902a86daf14c3383227a4047190390c1dfb",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderId=myorder2&symbol=LTC-USDT&timestamp=1704380774663&signature=0f091dc8f55fb10ab73e69d675fdf902a86daf14c3383227a4047190390c1dfb",
                 "input": [
                     "",
                     "LTC/USDT:USDT",
@@ -1073,6 +1131,18 @@
                 "input": [
                   "1816002957423951872",
                   "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "inverse swap cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/cancelOrder?clientOrderId=myinverse2&symbol=SOL-USD&timestamp=1721803854831&signature=b0bcc0da4c0354baaa87558cb429c19d56852fd079d043f2ac015bab125add79",
+                "input": [
+                  "",
+                  "SOL/USD:SOL",
+                  {
+                    "clientOrderId": "myinverse2"
+                  }
                 ]
             },
             {
@@ -1340,11 +1410,29 @@
                 ]
             },
             {
-                "description": "Inverse swap fetch closed orders",
+                "description": "Linear swap fetch closed orders with filters",
                 "method": "fetchClosedOrders",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?endTime=1721961000000&limit=1000&startTime=1721960000000&symbol=LTC-USDT&timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
                 "input": [
-                  "SOL/USD:SOL"
+                    "LTC/USDT:USDT",
+                    1721960000000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders with filters",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?endTime=1721961000000&limit=1000&startTime=1721960000000&symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                    "SOL/USD:SOL",
+                    1721960000000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
                 ]
             },
             {
@@ -1679,6 +1767,35 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my trades - linear swap explicit tradingUnit CONT",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1792140564000&startTs=1792140561000&symbol=ADA-USDT&timestamp=1792756094928&tradingUnit=CONT&signature=704503da96316e75865eb14e75132cc0520edde942d3ccc1a44b4d7e41aeae6d",
+                "input": [
+                    "ADA/USDT:USDT",
+                    1792140561000,
+                    null,
+                    {
+                        "until": 1792140564000,
+                        "tradingUnit": "cont"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my trades - linear swap defaults to tradingUnit COIN",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1792140564000&startTs=1792140561000&symbol=ADA-USDT&timestamp=1792687379750&tradingUnit=COIN&signature=db23c98f4ea2e0ea0040101a09feefcdcfd2b55bcc0b68c6535521613bb6f082",
+                "input": [
+                    "ADA/USDT:USDT",
+                    1792140561000,
+                    null,
+                    {
+                        "until": 1792140564000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch my trades - spot",
                 "method": "fetchMyTrades",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/myTrades?symbol=LTC-USDT&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
@@ -1687,25 +1804,29 @@
                 ]
             },
             {
-                "description": "fetch my trades - swap",
-                "method": "fetchMyTrades",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1705040628035&startTs=1687964205000&symbol=LTC-USDT&tradingUnit=CONT&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
-                "input": [
-                    "LTC/USDT:USDT",
-                    1687964205000
-                ]
-            },
-            {
                 "description": "Inverse swap fetch my trades with an orderId parameter",
                 "method": "fetchMyTrades",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/allFillOrders?orderId=1817441228670648320&timestamp=1722148745974&signature=a926e3297d82ba03838a706b1b8827677065edab600277afe7256e3e43d83d05",
                 "input": [
-                  "SOL/USD:SOL",
-                  null,
-                  null,
-                  {
-                    "orderId": "1817441228670648320"
-                  }
+                    "SOL/USD:SOL",
+                    null,
+                    null,
+                    {
+                        "orderId": "1817441228670648320"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch my trades with a maximum limit",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/allFillOrders?orderId=1817441228670648320&pageSize=1000&timestamp=1722148745974&signature=a926e3297d82ba03838a706b1b8827677065edab600277afe7256e3e43d83d05",
+                "input": [
+                    "SOL/USD:SOL",
+                    null,
+                    1500,
+                    {
+                        "orderId": "1817441228670648320"
+                    }
                 ]
             }
         ],
@@ -1777,6 +1898,23 @@
                 ]
             },
             {
+                "description": "edit spot order with clientOrderId",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order/cancelReplace?cancelClientOrderID=oldspot4&cancelReplaceMode=STOP_ON_FAILURE&newClientOrderId=newspot4&price=51&quantity=0.11&side=BUY&symbol=LTC-USDT&timestamp=1707403466447&type=LIMIT&signature=0bee060e6424f8eba8ed39077e38408c743148d3c6c92e3d1d5d0f540a71d5d8",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    51,
+                    {
+                        "cancelClientOrderId": "oldspot4",
+                        "clientOrderId": "newspot4"
+                    }
+                ]
+            },
+            {
                 "description": "edit swap order",
                 "method": "editOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelOrderId=1755603986301546496&cancelReplaceMode=STOP_ON_FAILURE&positionSide=BOTH&price=51&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1707403614874&type=LIMIT&signature=a1c7f4e3b91ee4f615fac9164cc031abfa2ee5a33783341400a6258f845d21c0",
@@ -1787,6 +1925,23 @@
                     "buy",
                     0.11,
                     51
+                ]
+            },
+            {
+                "description": "edit swap order with clientOrderId",
+                "method": "editOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/cancelReplace?cancelClientOrderId=oldswap4&cancelReplaceMode=STOP_ON_FAILURE&clientOrderId=newswap4&positionSide=BOTH&price=51&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1707403614874&type=LIMIT&signature=a1c7f4e3b91ee4f615fac9164cc031abfa2ee5a33783341400a6258f845d21c0",
+                "input": [
+                    "",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.11,
+                    51,
+                    {
+                        "cancelClientOrderId": "oldswap4",
+                        "clientOrderId": "newswap4"
+                    }
                 ]
             },
             {
@@ -1856,6 +2011,18 @@
                 ]
             },
             {
+                "description": "fetch swap order with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?clientOrderId=myswap3&symbol=LTC-USDT&timestamp=1707404139157&signature=8fad2c2153024cbe332cb21665f2ccd7e0dbdae296ee68ca8081dac561aadc3e",
+                "input": [
+                    "",
+                    "LTC/USDT:USDT",
+                    {
+                        "clientOrderId": "myswap3"
+                    }
+                ]
+            },
+            {
                 "description": "fetch canceled spot order",
                 "method": "fetchOrder",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/query?orderId=1755603500760301568&symbol=LTC-USDT&timestamp=1707404205248&signature=08baae73177b16e8088332a7dd9bc48409ae4711207c220517f6588880048d8d",
@@ -1865,12 +2032,36 @@
                 ]
             },
             {
+                "description": "fetch spot order with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/query?clientOrderID=myspot3&symbol=LTC-USDT&timestamp=1707404205248&signature=08baae73177b16e8088332a7dd9bc48409ae4711207c220517f6588880048d8d",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    {
+                        "clientOrderId": "myspot3"
+                    }
+                ]
+            },
+            {
                 "description": "Inverse swap fetch order",
                 "method": "fetchOrder",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderDetail?orderId=1816342420721254400&symbol=SOL-USD&timestamp=1721884780520&signature=4523f7d1eac99df0343592a6cb8ab185bf46c42ce63541c47b29b091bbc3c794",
                 "input": [
                   "1816342420721254400",
                   "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "inverse swap fetch order with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderDetail?clientOrderId=myinverse3&symbol=SOL-USD&timestamp=1721884780520&signature=4523f7d1eac99df0343592a6cb8ab185bf46c42ce63541c47b29b091bbc3c794",
+                "input": [
+                  "",
+                  "SOL/USD:SOL",
+                  {
+                    "clientOrderId": "myinverse3"
+                  }
                 ]
             },
             {
@@ -2055,7 +2246,7 @@
             {
                 "description": "spot ticker",
                 "method": "fetchTicker",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?symbol=BTC-USDT&timestamp=1709992985897",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/ticker?symbol=BTC-USDT&timestamp=1709992985897",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -2073,7 +2264,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?timestamp=1709992986125",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/ticker?timestamp=1709992986125",
                 "input": [
                     [
                         "BTC/USDT",
@@ -2175,6 +2366,52 @@
                   "1m",
                   1720072800000
                 ]
+            },
+            {
+                "description": "spot ohlcv paginate pages 1h by 1000 candles, a 1000-candle range fits one page",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?endTime=1723672800000&interval=1h&limit=1000&startTime=1720072799999&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1720072800000,
+                  null,
+                  {
+                    "paginate": true,
+                    "paginationCalls": 1,
+                    "until": 1723672800000
+                  }
+                ]
+            },
+            {
+                "description": "swap ohlcv paginate pages 1h by 1000 candles, a 1000-candle range fits one page",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?endTime=1723672800000&interval=1h&limit=1000&startTime=1720072799999&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1720072800000,
+                  null,
+                  {
+                    "paginate": true,
+                    "paginationCalls": 1,
+                    "until": 1723672800000
+                  }
+                ]
+            },
+            {
+                "description": "swap ohlcv since and until wider than limit ends the window at since + limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?endTime=1721872800000&interval=1h&limit=500&startTime=1720072799999&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1720072800000,
+                  500,
+                  {
+                    "until": 1725472800000
+                  }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -2227,6 +2464,18 @@
                   "BTC/USDT:USDT",
                   1
                 ]
+            },
+            {
+                "description": "Coin-M add margin",
+                "method": "addMargin",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/positionMargin?amount=1&positionSide=LONG&symbol=SOL-USD&timestamp=1711660769522&type=1&signature=458d505cde75249731b6e64fd35e992419332f8b5418996712729408ea463759",
+                "input": [
+                  "SOL/USD:SOL",
+                  1,
+                  {
+                    "positionSide": "LONG"
+                  }
+                ]
             }
         ],
         "reduceMargin": [
@@ -2237,6 +2486,18 @@
                 "input": [
                   "BTC/USDT:USDT",
                   1
+                ]
+            },
+            {
+                "description": "Coin-M reduce margin",
+                "method": "reduceMargin",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/positionMargin?amount=1&positionSide=LONG&symbol=SOL-USD&timestamp=1711660858980&type=2&signature=7993a15b0cca670ba19d9a7bdde51acbee1998bfd7f1aa9870151cb95a6e26a0",
+                "input": [
+                  "SOL/USD:SOL",
+                  1,
+                  {
+                    "positionSide": "LONG"
+                  }
                 ]
             }
         ],

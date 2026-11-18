@@ -454,6 +454,24 @@ fn binary_frame(m: &Value) -> Value {
     m.clone()
 }
 
+/// Replays every frame still queued on the mock transport straight into the
+/// venue's `handle_message`. The parsedResponse harness otherwise drains leftovers
+/// by calling the method again, which is right for watch* (the re-watch only
+/// re-reads) but wrong for unWatch*: each call re-sends the unsubscribe and the
+/// sentMessages assertion counts it (kraken acks a multi-symbol unsubscribe once
+/// per symbol, so its fixture holds more acks than the one that resolves the call).
+pub async fn drainWsMessages(exchange: &mut Value, url: Value) -> Value {
+    let u = ws_url(&url);
+    let client = ccxt::pro::ws_client::client_value(&u);
+    let mut guard = 0;
+    while let Some(msg) = ccxt::pro::ws_client::mock_pop_message(&u) {
+        crate::live_dispatch::dispatch(exchange, "handleMessage", vec![client.clone(), msg]).await;
+        guard += 1;
+        if guard >= 500 { break; }
+    }
+    Value::Null
+}
+
 /// Whether the mock inbound queue still has frames to drain — the
 /// parsedResponse loop keeps re-watching until every frame is consumed so the
 /// asserted structure reflects the final state after all deltas.
@@ -544,6 +562,7 @@ pub trait ExchangeOps {
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn parse_to_int(&self, n: Value) -> Value;
     fn parse_to_numeric(&self, n: Value) -> Value;
+    fn is_round_number(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
     fn convert_to_safe_dictionary(&self, v: Value) -> Value;
     fn market(&self, symbol: Value) -> Value;
@@ -595,6 +614,7 @@ impl ExchangeOps for Value {
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
     fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
     fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
+    fn is_round_number(&self, n: Value) -> Value { with_base(|e| e.is_round_number(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }
     /// `market(symbol)` — look the unified symbol up in this exchange

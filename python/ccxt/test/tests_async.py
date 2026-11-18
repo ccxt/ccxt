@@ -1024,7 +1024,7 @@ class testMainClass:
                 tests['fetchPositions'] = [symbol]  # this test fetches all positions for 1 symbol
                 tests['fetchPosition'] = [symbol]
                 tests['fetchPositionRisk'] = [symbol]
-                tests['setPositionMode'] = [symbol]
+                tests['setPositionMode'] = [False, symbol]
                 tests['setMarginMode'] = [symbol]
                 tests['fetchOpenInterestHistory'] = [symbol]
                 tests['fetchFundingRateHistory'] = [symbol]
@@ -1920,7 +1920,8 @@ class testMainClass:
             exchange.walletAddress = str(wallet_address)
         accounts = exchange.safe_list(exchange_data, 'accounts')
         if accounts is not None and accounts is not None:
-            exchange.accounts = accounts
+            # the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safe_list(exchange_data, 'accounts')
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -2145,11 +2146,35 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended(), self.test_bit2me()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
         exit_script(0)
+        return True
+
+    async def test_bit2me(self):
+        exchange = self.init_offline_exchange('bit2me')
+        id = 'CCXT'
+        await exchange.load_markets()
+        assert exchange.options['brokerId'] == id, 'bit2me - brokerId not in options'
+        request = {}
+        try:
+            await exchange.create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['clientOrderId']
+        assert client_order_id.startswith(id + '-'), 'bit2me - clientOrderId: ' + client_order_id + ' does not start with the broker id ' + id
+        try:
+            await exchange.create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000, {
+                'clientOrderId': 'my-order',
+            })
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        custom_client_order_id = request['clientOrderId']
+        assert custom_client_order_id == 'my-order', 'bit2me - custom clientOrderId: ' + custom_client_order_id + ' should be sent as given, the broker id is only added when none is provided'
+        if not is_sync():
+            await close(exchange)
         return True
 
     async def test_binance(self):
@@ -3062,22 +3087,21 @@ class testMainClass:
             await close(exchange)
         return True
 
-    # async testHyperliquid () {
-    #     const exchange = this.initOfflineExchange ('hyperliquid');
-    #     const id = '1';
-    #     let request: NullableDict = undefined;
-    #     try {
-    #         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-    #     } catch (e) {
-    #         request = jsonParse (exchange.last_request_body);
-    #     }
-    #     const brokerId = (request['action']['brokerCode']).toString ();
-    #     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-    #     if (!isSync ()) {
-    #         await close (exchange);
-    #     }
-    #     return true;
-    # }
+    async def test_hyperliquid(self):
+        exchange = self.init_offline_exchange('hyperliquid')
+        exchange.options['approvedBuilderFee'] = True
+        id = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6'.lower()
+        request = {}
+        try:
+            await exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = str((request['action']['builder']['b']))
+        assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
+        if not is_sync():
+            await close(exchange)
+        return True
+
     async def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
         # ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
@@ -3088,7 +3112,7 @@ class testMainClass:
         token_expires = exchange.milliseconds() + 100000
         exchange.options['v2TokenExpires'] = token_expires
         exchange.options['portfolio'] = 'random'
-        id = 'nfqkvdjp'
+        id = 'ccxt'
         assert exchange.options['brokerId'] == id, 'id not in options'
         client_order_id = None
         try:
@@ -3100,7 +3124,8 @@ class testMainClass:
             assert len(url_parts) > 1, 'last_request_url has no query string: ' + url
             query = self.urlencoded_to_dict(url_parts[1])
             client_order_id = query['label']
-        assert client_order_id is not None and client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        # the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert client_order_id is not None and client_order_id.startswith(id + '-'), 'clientOrderId ' + client_order_id + ' does not start with the brokerId prefix ' + id + '-'
         if not is_sync():
             await close(exchange)
         return True

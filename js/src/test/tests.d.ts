@@ -96,6 +96,7 @@ declare class testMainClass {
     runStaticResponseTests(exchangeName?: undefined, test?: undefined): Promise<boolean>;
     runStaticWsTests(exchangeName?: undefined, test?: undefined): Promise<boolean>;
     runBrokerIdTests(): Promise<boolean>;
+    testBit2me(): Promise<boolean>;
     testBinance(): Promise<boolean>;
     testOkx(): Promise<boolean>;
     testCryptocom(): Promise<boolean>;
@@ -111,6 +112,7 @@ declare class testMainClass {
     testBingx(): Promise<boolean>;
     testPhemex(): Promise<boolean>;
     testBlofin(): Promise<boolean>;
+    testHyperliquid(): Promise<boolean>;
     testCoinbaseinternational(): Promise<boolean>;
     testCoinbaseAdvanced(): Promise<boolean>;
     testWoofiPro(): Promise<boolean>;

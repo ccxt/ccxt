@@ -222,35 +222,43 @@ export default class bitvavo extends Exchange {
                 },
             },
             'fees': {
+                // https://bitvavo.com/en/fees
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber('0.0025'),
-                    'maker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.0015'),
                     'tiers': {
                         'taker': [
                             [this.parseNumber('0'), this.parseNumber('0.0025')],
                             [this.parseNumber('100000'), this.parseNumber('0.0020')],
-                            [this.parseNumber('250000'), this.parseNumber('0.0016')],
-                            [this.parseNumber('500000'), this.parseNumber('0.0012')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0010')],
-                            [this.parseNumber('2500000'), this.parseNumber('0.0008')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.0006')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.0005')],
+                            [this.parseNumber('250000'), this.parseNumber('0.0018')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0016')],
+                            [this.parseNumber('1000000'), this.parseNumber('0.0014')],
+                            [this.parseNumber('2500000'), this.parseNumber('0.0012')],
+                            [this.parseNumber('5000000'), this.parseNumber('0.0010')],
+                            [this.parseNumber('10000000'), this.parseNumber('0.0008')],
                             [this.parseNumber('25000000'), this.parseNumber('0.0004')],
+                            [this.parseNumber('100000000'), this.parseNumber('0.0002')],
                         ],
                         'maker': [
                             [this.parseNumber('0'), this.parseNumber('0.0015')],
                             [this.parseNumber('100000'), this.parseNumber('0.0010')],
-                            [this.parseNumber('250000'), this.parseNumber('0.0008')],
-                            [this.parseNumber('500000'), this.parseNumber('0.0006')],
+                            [this.parseNumber('250000'), this.parseNumber('0.0009')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0008')],
                             [this.parseNumber('1000000'), this.parseNumber('0.0005')],
-                            [this.parseNumber('2500000'), this.parseNumber('0.0004')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.0004')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.0003')],
-                            [this.parseNumber('25000000'), this.parseNumber('0.0003')],
+                            [this.parseNumber('2500000'), this.parseNumber('0.0003')],
+                            [this.parseNumber('5000000'), this.parseNumber('0.0001')],
+                            [this.parseNumber('10000000'), this.parseNumber('0')],
+                            [this.parseNumber('25000000'), this.parseNumber('0')],
+                            [this.parseNumber('100000000'), this.parseNumber('0')],
                         ],
                     },
+                },
+                'byCategory': {
+                    'B': { 'maker': this.parseNumber('0.0005'), 'taker': this.parseNumber('0.0005') },
+                    'C': { 'maker': this.parseNumber('0.001'), 'taker': this.parseNumber('0.001') },
+                    'D': { 'maker': this.parseNumber('0'), 'taker': this.parseNumber('0.0001') },
                 },
             },
             'requiredCredentials': {
@@ -472,7 +480,8 @@ export default class bitvavo extends Exchange {
     }
     parseMarkets(markets) {
         const result = [];
-        const fees = this.fees;
+        const defaultFees = this.safeDict(this.fees, 'trading', {});
+        const feesByCategory = this.safeDict(this.fees, 'byCategory', {});
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeDict(markets, i);
             const id = this.safeString(market, 'market');
@@ -484,6 +493,8 @@ export default class bitvavo extends Exchange {
                 continue;
             }
             const status = this.safeString(market, 'status');
+            const feeCategory = this.safeString(market, 'feeCategory');
+            const fees = this.safeDict(feesByCategory, feeCategory, defaultFees);
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -508,8 +519,8 @@ export default class bitvavo extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
+                'taker': this.safeNumber(fees, 'taker'),
+                'maker': this.safeNumber(fees, 'maker'),
                 'precision': {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityDecimals'))),
                     'price': this.safeNumber(market, 'tickSize'),
@@ -986,7 +997,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeNumber(feesValue, 'taker');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString(this.symbols, i, '');
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1114,13 +1125,13 @@ export default class bitvavo extends Exchange {
             const sinceLimit = (limit === undefined) ? 1440 : Math.min(limit, 1440);
             request['end'] = this.sum(since, sinceLimit * duration * 1000);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min(limit, 1440); // default 1440, max 1440
+            request['limit'] = Math.min(limit, 1440); // default 1440, max 1440
         }
         else if (since !== undefined) {
-            requestUntil['limit'] = 1440;
+            request['limit'] = 1440;
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
         return this.extend(requestUntil, paramsUntil);
     }
     /**
@@ -1157,7 +1168,7 @@ export default class bitvavo extends Exchange {
         //
         return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1198,7 +1209,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -1258,23 +1269,18 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let subaccountId = this.safeString(params, 'subaccountId');
-        const paramsOmitted = this.omit(params, 'subaccountId');
         let direction = undefined;
+        let subaccountId = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         }
         else if (fromAccount === 'master') {
             direction = 'masterToSub';
-            if (subaccountId === undefined) {
-                subaccountId = toAccount;
-            }
+            subaccountId = this.safeString(params, 'subaccountId', toAccount);
         }
         else if (toAccount === 'master') {
             direction = 'subToMaster';
-            if (subaccountId === undefined) {
-                subaccountId = fromAccount;
-            }
+            subaccountId = this.safeString(params, 'subaccountId', fromAccount);
         }
         else {
             throw new ArgumentsRequired(this.id + ' transfer() requires either fromAccount or toAccount to be master');
@@ -1288,7 +1294,7 @@ export default class bitvavo extends Exchange {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted));
+        const response = await this.privatePostSubaccountsTransfers(this.extend(request, this.omit(params, 'subaccountId')));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1507,7 +1513,7 @@ export default class bitvavo extends Exchange {
                 cost = this.safeNumber(paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
-                const precision = this.currency(market['quote'])['precision'];
+                const precision = this.safeNumber(this.currency(market['quote']), 'precision');
                 request['amountQuote'] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             }
             else {
@@ -2650,7 +2656,7 @@ export default class bitvavo extends Exchange {
         let url = '/' + this.version + '/' + this.implodeParams(path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys(query).length > 0) {
+            if (!this.isEmpty(query)) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2658,9 +2664,9 @@ export default class bitvavo extends Exchange {
             this.checkRequiredCredentials();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    payload = requestBody;
+                if (!this.isEmpty(query)) {
+                    payload = this.json(query);
+                    requestBody = payload;
                 }
             }
             const timestamp = this.milliseconds().toString();
@@ -2684,7 +2690,7 @@ export default class bitvavo extends Exchange {
         const fullUrl = apiUrl + url;
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

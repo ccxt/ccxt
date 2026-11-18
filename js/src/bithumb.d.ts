@@ -1,11 +1,11 @@
 import Exchange from './abstract/bithumb.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, OrderRequest, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, DepositAddress } from './base/types.js';
 /**
  * @class bithumb
  * @augments Exchange
  */
 export default class bithumb extends Exchange {
-    describe(): any;
+    describe(): Dict;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     amountToPrecision(symbol: Str, amount: any): Str;
     getGen2MarketId(market: Market): string;
@@ -20,7 +20,7 @@ export default class bithumb extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name bithumb#fetchBalance
@@ -86,6 +86,8 @@ export default class bithumb extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -425,8 +427,8 @@ export default class bithumb extends Exchange {
     fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
     parseDepositAddress(response: Dict, currency?: Currency): DepositAddress;
     fixCommaNumber(numberStr: Str): Str;
-    nonce(): number;
+    nonce(): int;
     urlencodeWithArrayBrackets(query: Dict): string;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

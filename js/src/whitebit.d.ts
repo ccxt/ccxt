@@ -5,7 +5,7 @@ import type { Account, Balances, BorrowInterest, Conversion, Currency, CurrencyI
  * @augments Exchange
  */
 export default class whitebit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name whitebit#fetchMarkets
@@ -165,6 +165,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -295,7 +296,7 @@ export default class whitebit extends Exchange {
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<Dict>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name whitebit#fetchBalance
@@ -637,7 +638,7 @@ export default class whitebit extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

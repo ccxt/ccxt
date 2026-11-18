@@ -1256,5 +1256,23 @@
         "tierBased": null,
         "percentage": null,
         "feeSide": "get"
+    },
+    "TEST/USD:TEST": {
+        "id": "TEST-USD",
+        "symbol": "TEST/USD:TEST",
+        "base": "TEST",
+        "quote": "USD",
+        "settle": "TEST",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "info": {}
     }
 }

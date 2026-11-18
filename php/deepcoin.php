@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\deepcoin as Exchange;
 
 class deepcoin extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deepcoin',
             'name' => 'DeepCoin',
@@ -411,7 +411,7 @@ class deepcoin extends Exchange {
         $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+            $promises[] = $this->fetch_markets_by_type($this->safe_string($types, $i), $params);
         }
         $responses = $promises;
         for ($i = 0; $i < count($responses); $i++) {
@@ -523,7 +523,10 @@ class deepcoin extends Exchange {
             $isLinear = ($quoteId !== 'USD');
             $settleId = $isLinear ? $quoteId : $baseId;
             $settle = $this->safe_currency_code($settleId);
-            $symbol = $symbol . ':' . $settle;
+            if ($settle === null) {
+                return null;
+            }
+            $symbol = $base . '/' . $quote . ':' . $settle;
         }
         $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $maxLeverage = $this->safe_string($market, 'lever', '1');
@@ -590,8 +593,9 @@ class deepcoin extends Exchange {
         $symbols = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $result[$symbol];
-            if (($market !== null) && ($market['swap'] === true)) {
+            $market = $this->safe_dict($result, $symbol, array());
+            $isSwap = $this->safe_bool($market, 'swap', false);
+            if ($isSwap) {
                 $additionalId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
                 if ($this->markets_by_id !== null) {
                     $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap market id as base+quote
@@ -667,7 +671,7 @@ class deepcoin extends Exchange {
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         $price = $this->safe_string($paramsPaginate, 'price');
         $maxLimit = 300;
-        if ($market['swap'] === true && $price === null) {
+        if ($this->safe_bool($market, 'swap', false) && $price === null) {
             $maxLimit = 1000;
         }
         if ($paginate) {
@@ -695,7 +699,7 @@ class deepcoin extends Exchange {
                 // we calculate until (after) for correct pagination
                 $duration = $this->parse_timeframe($timeframe);
                 $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
-                $endTime = $since . ($duration * $numberOfCandles) * 1000;
+                $endTime = $this->parse_to_int($since . ($duration * $numberOfCandles) * 1000);
                 if ($until !== null) {
                     $endTime = min($endTime, $until);
                 }
@@ -794,7 +798,7 @@ class deepcoin extends Exchange {
         $open = $this->safe_string($ticker, 'open24h');
         $quoteVolume = $this->safe_string($ticker, 'volCcy24h');
         $baseVolume = $this->safe_string($ticker, 'vol24h');
-        if (($marketResolved['swap'] === true) && ($marketResolved['inverse'] === true)) {
+        if (($this->safe_bool($marketResolved, 'swap', false)) && ($this->safe_bool($marketResolved, 'inverse', false))) {
             $temp = $baseVolume;
             $baseVolume = $quoteVolume;
             $quoteVolume = $temp;
@@ -962,7 +966,7 @@ class deepcoin extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //     {
         //         "code": "0",
@@ -1562,7 +1566,7 @@ class deepcoin extends Exchange {
         $isTriggerOrder = ($triggerPrice !== null);
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
-            if (($market['spot'] !== true) || ($triggerPrice !== null)) {
+            if ((!$this->safe_bool($market, 'spot', false)) || ($triggerPrice !== null)) {
                 throw new BadRequest($this->id . ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1646,7 +1650,7 @@ class deepcoin extends Exchange {
             throw new BadRequest($this->id . ' createOrder() requires a price argument for limit orders');
         }
         $paramsRequest = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $cost = $this->safe_string($paramsOrderType, 'cost');
             if ($cost !== null) {
                 if (!$isMarketOrder) {
@@ -1751,7 +1755,7 @@ class deepcoin extends Exchange {
         $paramsOmitted = $this->omit($paramsMarginMode, 'reduceOnly');
         $request['isCrossMargin'] = $isCrossMargin;
         $request['tdMode'] = $marginModeOption;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             if ($reduceOnly) {
                 if ($side === 'buy') {
                     $request['posSide'] = 'short';
@@ -1781,7 +1785,7 @@ class deepcoin extends Exchange {
         $timeInForce = $this->handle_time_in_force($paramsPostOnly);
         $paramsOmitted = $this->omit($paramsPostOnly, 'timeInForce');
         $typeValue = $typePostOnly;
-        if (($timeInForce !== null) && ($timeInForce === 'IOC')) {
+        if ($timeInForce === 'IOC') {
             $typeValue = 'ioc';
         }
         return array( $typeValue, $paramsOmitted );
@@ -1956,7 +1960,8 @@ class deepcoin extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate);
         }
         $trigger = $this->safe_bool($paramsPaginate, 'trigger', false);
-        list($methodName, $paramsMethodName) = $this->handle_param_string($paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        $methodName = $this->safe_string($paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        $paramsMethodName = $this->omit($paramsPaginate, 'methodName');
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -2272,7 +2277,7 @@ class deepcoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' cancelAllOrders() is not supported for spot markets');
         }
         $productGroup = $this->get_product_group_from_market($market);
@@ -2320,7 +2325,7 @@ class deepcoin extends Exchange {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
             }
             $symbolResolved = $market['symbol'];
@@ -2376,7 +2381,7 @@ class deepcoin extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 throw new NotSupported($this->id . ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2806,7 +2811,7 @@ class deepcoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
@@ -3084,7 +3089,7 @@ class deepcoin extends Exchange {
         if ($method === 'GET') {
             $query = $this->urlencode($params);
             if (strlen($query) > 0) {
-                $requestPath .= '?' . $query;
+                $requestPath = $path . '?' . $query;
             }
         }
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
@@ -3103,8 +3108,9 @@ class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE' => $this->password,
                 'appid' => '200103',
             );
-            $requestBody = ($method !== 'GET') ? $this->json($params) : null;
+            $requestBody = null;
             if ($method !== 'GET') {
+                $requestBody = $this->json($params);
                 $privateHeaders['Content-Type'] = 'application/json';
                 $payload .= $requestBody;
             }
@@ -3115,7 +3121,7 @@ class deepcoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         $data = $this->safe_dict($response, 'data', array());
         $msg = $this->safe_string($response, 'msg');
         $messageCode = $this->safe_string($response, 'code');

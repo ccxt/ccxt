@@ -1033,22 +1033,22 @@
                         "lastUpdateTimestamp": null,
                         "hedged": false,
                         "side": "long",
-                        "contracts": "0.002",
+                        "contracts": 0.002,
                         "contractSize": 1,
-                        "entryPrice": "4447.065",
-                        "markPrice": "4420.23644794",
+                        "entryPrice": 4447.065,
+                        "markPrice": 4420.23644794,
                         "lastPrice": null,
-                        "notional": "8.89413",
+                        "notional": 8.89413,
                         "leverage": 50,
                         "positionMargin": null,
                         "collateral": null,
                         "initialMargin": 0.1778826,
-                        "initialMarginPercentage": "0.02",
+                        "initialMarginPercentage": 0.02,
                         "maintenanceMargin": 0.111176625,
-                        "maintenanceMarginPercentage": "0.0125",
-                        "realizedPnl": "-0.054434",
-                        "unrealizedPnl": "0.000776",
-                        "liquidationPrice": "0",
+                        "maintenanceMarginPercentage": 0.0125,
+                        "realizedPnl": -0.054434,
+                        "unrealizedPnl": 0.000776,
+                        "liquidationPrice": 0,
                         "marginMode": null,
                         "marginRatio": null,
                         "percentage": 0.43,
@@ -3690,136 +3690,382 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetch OHLCV with since and limit parameters",
+                "description": "swap -since +limit -until",
                 "method": "fetchOHLCV",
                 "input": [
-                    "ETH/USDC",
-                    "1m",
-                    1757604778000,
-                    1
-                ],
-                "httpResponse": [
-                    {
-                        "close": "4422.62",
-                        "end": "2025-09-11 15:34:00",
-                        "high": "4422.75",
-                        "low": "4422.62",
-                        "open": "4422.62",
-                        "quoteVolume": "77.840361",
-                        "start": "2025-09-11 15:33:00",
-                        "trades": "2",
-                        "volume": "0.0176"
-                    }
-                ],
-                "parsedResponse": [
-                    [
-                        1757604780000,
-                        4422.62,
-                        4422.75,
-                        4422.62,
-                        4422.62,
-                        0.0176
-                    ]
-                ]
-            },
-            {
-                "description": "Fetch OHLCV",
-                "method": "fetchOHLCV",
-                "input": [
-                    "ETH/USDC"
-                ],
-                "httpResponse": [
-                    {
-                        "close": "4207.44",
-                        "end": "2025-08-11 11:39:00",
-                        "high": "4207.44",
-                        "low": "4202.78",
-                        "open": "4202.78",
-                        "quoteVolume": "31022.748459",
-                        "start": "2025-08-11 11:38:00",
-                        "trades": "18",
-                        "volume": "7.3769"
-                    }
-                ],
-                "parsedResponse": [
-                    [
-                        1754912280000,
-                        4202.78,
-                        4207.44,
-                        4202.78,
-                        4207.44,
-                        7.3769
-                    ]
-                ]
-            },
-            {
-                "description": "fetch OHLCV stock RFQ",
-                "method": "fetchOHLCV",
-                "input": [
-                    "AAPL.US.RFQ/USDC",
+                    "BTC/USDC:USDC",
                     "1m",
                     null,
-                    3
+                    2
                 ],
                 "httpResponse": [
                     {
-                        "close": "342.68",
-                        "end": "2026-10-17 09:11:00",
-                        "high": "342.68",
-                        "low": "342.68",
-                        "open": "342.68",
-                        "quoteVolume": "0",
-                        "start": "2026-10-17 09:10:00",
-                        "trades": "0",
-                        "volume": "0"
+                        "close": "73252.3",
+                        "end": "2026-11-10 18:10:00",
+                        "high": "73252.3",
+                        "low": "73224.4",
+                        "open": "73227.1",
+                        "quoteVolume": "24896.299308",
+                        "start": "2026-11-10 18:09:00",
+                        "trades": "16",
+                        "volume": "0.33991"
                     },
                     {
-                        "close": "342.68",
-                        "end": "2026-10-17 09:12:00",
-                        "high": "342.68",
-                        "low": "342.68",
-                        "open": "342.68",
-                        "quoteVolume": "0",
-                        "start": "2026-10-17 09:11:00",
-                        "trades": "0",
-                        "volume": "0"
-                    },
-                    {
-                        "close": "342.68",
-                        "end": "2026-10-17 09:13:00",
-                        "high": "342.68",
-                        "low": "342.68",
-                        "open": "342.68",
-                        "quoteVolume": "0",
-                        "start": "2026-10-17 09:12:00",
-                        "trades": "0",
-                        "volume": "0"
+                        "close": "73205.6",
+                        "end": "2026-11-10 18:11:00",
+                        "high": "73252.3",
+                        "low": "73205.6",
+                        "open": "73252.3",
+                        "quoteVolume": "8321.328436",
+                        "start": "2026-11-10 18:10:00",
+                        "trades": "15",
+                        "volume": "0.11362"
                     }
                 ],
                 "parsedResponse": [
                     [
-                        1792228200000,
-                        342.68,
-                        342.68,
-                        342.68,
-                        342.68,
-                        0
+                        1794334140000,
+                        73227.1,
+                        73252.3,
+                        73224.4,
+                        73252.3,
+                        0.33991
                     ],
                     [
-                        1792228260000,
-                        342.68,
-                        342.68,
-                        342.68,
-                        342.68,
-                        0
+                        1794334200000,
+                        73252.3,
+                        73252.3,
+                        73205.6,
+                        73205.6,
+                        0.11362
+                    ]
+                ]
+            },
+            {
+                "description": "swap -since -limit -until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    null,
+                    null
+                ],
+                "httpResponse": [
+                    {
+                        "close": "73271.3",
+                        "end": "2026-11-10 18:08:00",
+                        "high": "73335",
+                        "low": "73263.4",
+                        "open": "73335",
+                        "quoteVolume": "8576.524186",
+                        "start": "2026-11-10 18:07:00",
+                        "trades": "16",
+                        "volume": "0.11701"
+                    },
+                    {
+                        "close": "73205.2",
+                        "end": "2026-11-10 18:09:00",
+                        "high": "73271.4",
+                        "low": "73195.9",
+                        "open": "73271.4",
+                        "quoteVolume": "11397.437576",
+                        "start": "2026-11-10 18:08:00",
+                        "trades": "14",
+                        "volume": "0.15561"
+                    }
+                ],
+                "parsedResponse": [
+                    
+                    [
+                        1794334020000,
+                        73335,
+                        73335,
+                        73263.4,
+                        73271.3,
+                        0.11701
                     ],
                     [
-                        1792228320000,
-                        342.68,
-                        342.68,
-                        342.68,
-                        342.68,
-                        0
+                        1794334080000,
+                        73271.4,
+                        73271.4,
+                        73195.9,
+                        73205.2,
+                        0.15561
+                    ]
+                ]
+            },
+            {
+                "description": "swap -since -limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "httpResponse": [
+                    
+                    {
+                        "close": "74522.6",
+                        "end": "2026-11-09 19:29:00",
+                        "high": "74540",
+                        "low": "74522.6",
+                        "open": "74540",
+                        "quoteVolume": "137.134444",
+                        "start": "2026-11-09 19:28:00",
+                        "trades": "4",
+                        "volume": "0.00184"
+                    },
+                    {
+                        "close": "74484.9",
+                        "end": "2026-11-09 19:30:00",
+                        "high": "74513.6",
+                        "low": "74483.5",
+                        "open": "74513.6",
+                        "quoteVolume": "15123.099212",
+                        "start": "2026-11-09 19:29:00",
+                        "trades": "28",
+                        "volume": "0.20303"
+                    }
+                ],
+                "parsedResponse": [
+                    
+
+                    [
+                        1794252480000,
+                        74540,
+                        74540,
+                        74522.6,
+                        74522.6,
+                        0.00184
+                    ],
+                    [
+                        1794252540000,
+                        74513.6,
+                        74513.6,
+                        74483.5,
+                        74484.9,
+                        0.20303
+                    ]
+                ]
+            },
+            {
+                "description": "swap -since +limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    null,
+                    2,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "close": "74522.6",
+                        "end": "2026-11-09 19:29:00",
+                        "high": "74540",
+                        "low": "74522.6",
+                        "open": "74540",
+                        "quoteVolume": "137.134444",
+                        "start": "2026-11-09 19:28:00",
+                        "trades": "4",
+                        "volume": "0.00184"
+                    },
+                    {
+                        "close": "74484.9",
+                        "end": "2026-11-09 19:30:00",
+                        "high": "74513.6",
+                        "low": "74483.5",
+                        "open": "74513.6",
+                        "quoteVolume": "15123.099212",
+                        "start": "2026-11-09 19:29:00",
+                        "trades": "28",
+                        "volume": "0.20303"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1794252480000,
+                        74540,
+                        74540,
+                        74522.6,
+                        74522.6,
+                        0.00184
+                    ],
+                    [
+                        1794252540000,
+                        74513.6,
+                        74513.6,
+                        74483.5,
+                        74484.9,
+                        0.20303
+                    ]
+                ]
+            },
+            {
+                "description": "swap +since +limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1794252402000,
+                    2,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "close": "74580.7",
+                        "end": "2026-11-09 19:27:00",
+                        "high": "74580.7",
+                        "low": "74571.4",
+                        "open": "74571.4",
+                        "quoteVolume": "244.609444",
+                        "start": "2026-11-09 19:26:00",
+                        "trades": "3",
+                        "volume": "0.00328"
+                    },
+                    {
+                        "close": "74562.8",
+                        "end": "2026-11-09 19:28:00",
+                        "high": "74566.4",
+                        "low": "74562.8",
+                        "open": "74566.4",
+                        "quoteVolume": "8.202016",
+                        "start": "2026-11-09 19:27:00",
+                        "trades": "2",
+                        "volume": "0.00011"
+                    },
+                    {
+                        "close": "74522.6",
+                        "end": "2026-11-09 19:29:00",
+                        "high": "74540",
+                        "low": "74522.6",
+                        "open": "74540",
+                        "quoteVolume": "137.134444",
+                        "start": "2026-11-09 19:28:00",
+                        "trades": "4",
+                        "volume": "0.00184"
+                    },
+                    {
+                        "close": "74484.9",
+                        "end": "2026-11-09 19:30:00",
+                        "high": "74513.6",
+                        "low": "74483.5",
+                        "open": "74513.6",
+                        "quoteVolume": "15123.099212",
+                        "start": "2026-11-09 19:29:00",
+                        "trades": "28",
+                        "volume": "0.20303"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1794252420000,
+                        74566.4,
+                        74566.4,
+                        74562.8,
+                        74562.8,
+                        0.00011
+                    ],
+                    [
+                        1794252480000,
+                        74540,
+                        74540,
+                        74522.6,
+                        74522.6,
+                        0.00184
+                    ]
+                ]
+            },
+            {
+                "description": "swap +since -limit +until",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1794252402000,
+                    null,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "close": "74580.7",
+                        "end": "2026-11-09 19:27:00",
+                        "high": "74580.7",
+                        "low": "74571.4",
+                        "open": "74571.4",
+                        "quoteVolume": "244.609444",
+                        "start": "2026-11-09 19:26:00",
+                        "trades": "3",
+                        "volume": "0.00328"
+                    },
+                    {
+                        "close": "74562.8",
+                        "end": "2026-11-09 19:28:00",
+                        "high": "74566.4",
+                        "low": "74562.8",
+                        "open": "74566.4",
+                        "quoteVolume": "8.202016",
+                        "start": "2026-11-09 19:27:00",
+                        "trades": "2",
+                        "volume": "0.00011"
+                    },
+                    {
+                        "close": "74522.6",
+                        "end": "2026-11-09 19:29:00",
+                        "high": "74540",
+                        "low": "74522.6",
+                        "open": "74540",
+                        "quoteVolume": "137.134444",
+                        "start": "2026-11-09 19:28:00",
+                        "trades": "4",
+                        "volume": "0.00184"
+                    },
+                    {
+                        "close": "74484.9",
+                        "end": "2026-11-09 19:30:00",
+                        "high": "74513.6",
+                        "low": "74483.5",
+                        "open": "74513.6",
+                        "quoteVolume": "15123.099212",
+                        "start": "2026-11-09 19:29:00",
+                        "trades": "28",
+                        "volume": "0.20303"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1794252420000,
+                        74566.4,
+                        74566.4,
+                        74562.8,
+                        74562.8,
+                        0.00011
+                    ],
+                    [
+                        1794252480000,
+                        74540,
+                        74540,
+                        74522.6,
+                        74522.6,
+                        0.00184
+                    ],
+                    [
+                        1794252540000,
+                        74513.6,
+                        74513.6,
+                        74483.5,
+                        74484.9,
+                        0.20303
                     ]
                 ]
             }

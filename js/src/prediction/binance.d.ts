@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/binance.js';
-import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, NullableDict } from '../base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -8,8 +8,8 @@ import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, P
  * including market data, requires apiKey/secret credentials
  */
 export default class binance extends Exchange {
-    describe(): any;
-    nonce(): number;
+    describe(): Dict;
+    nonce(): int;
     /**
      * @method
      * @name binance#fetchMarkets
@@ -34,7 +34,7 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    fetchRawTopics(maxTopics: Int, rest?: Dict): Promise<any[]>;
+    fetchRawTopics(maxTopics: Int, rest?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -44,7 +44,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    fetchRawTopicDetail(topicId: string, params?: Dict): Promise<any>;
+    fetchRawTopicDetail(topicId: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -53,7 +53,7 @@ export default class binance extends Exchange {
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    completeRawTopics(rawTopics: any[]): Promise<any[]>;
+    completeRawTopics(rawTopics: Dict[]): Promise<Dict[]>;
     /**
      * @method
      * @name binance#fetchEvents
@@ -85,7 +85,7 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    fetchEventsByQuery(queries: string[], limit: Int, rest?: Dict): Promise<any[]>;
+    fetchEventsByQuery(queries: string[], limit: Int, rest?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name binance#fetchEvent
@@ -290,7 +290,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    fetchQuote(request: Dict, params?: Dict): Promise<any>;
+    fetchQuote(request: Dict, params?: Dict): Promise<Dict>;
     priceToPrecision(outcome: Str, price: any): string;
     amountToPrecision(outcome: Str, amount: any): string;
     /**
@@ -348,7 +348,7 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     cancelOrders(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method

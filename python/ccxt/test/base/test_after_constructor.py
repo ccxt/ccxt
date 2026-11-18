@@ -128,16 +128,16 @@ def helper_test_properties():
     #
     assert exchange.options is not None
     #
-    # credentials
+    # credentials: the Go port declares them as plain strings, so unset is '' there
     #
-    assert test_shared_methods.exchange_prop(exchange, 'apiKey') is None, 'apiKey should be empty string'
-    assert exchange.secret is None, 'secret should be empty string'
-    assert exchange.uid is None, 'uid should be empty string'
+    assert (test_shared_methods.exchange_prop(exchange, 'apiKey') is None) or (test_shared_methods.exchange_prop(exchange, 'apiKey') == ''), 'apiKey should be empty string'
+    assert (exchange.secret is None) or (exchange.secret == ''), 'secret should be empty string'
+    assert (exchange.uid is None) or (exchange.uid == ''), 'uid should be empty string'
     assert exchange.login is None, 'login should be empty string'
-    assert exchange.password is None, 'password should be empty string'
+    assert (exchange.password is None) or (exchange.password == ''), 'password should be empty string'
     assert exchange.twofa is None, 'twofa should be undefined'
-    assert test_shared_methods.exchange_prop(exchange, 'privateKey') is None, 'privateKey should be empty string'
-    assert test_shared_methods.exchange_prop(exchange, 'walletAddress') is None, 'walletAddress should be empty string'
+    assert (test_shared_methods.exchange_prop(exchange, 'privateKey') is None) or (test_shared_methods.exchange_prop(exchange, 'privateKey') == ''), 'privateKey should be empty string'
+    assert (test_shared_methods.exchange_prop(exchange, 'walletAddress') is None) or (test_shared_methods.exchange_prop(exchange, 'walletAddress') == ''), 'walletAddress should be empty string'
     assert exchange.token is None, 'token should be empty string'
     required_credentials = {
         'apiKey': True,
