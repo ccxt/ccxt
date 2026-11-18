@@ -125,6 +125,8 @@ export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
     // the String param, or an element read of options.networks (the one checkcast; every venue table maps to string literals).
     // safeOutcomeSymbol / slugToMarketSymbol prove the same way but their locals only feed Object slots: left out
     'networkCodeToId',
+    // base-only commonCurrencyCode: returns its `code: string` param (checkcast) or a safeString read
+    'commonCurrencyCode',
 ]);
 
 // base filterByArrayPositions returns this.toArray (..); parsePositions returns filterByArrayPositions; parseDepositAddresses
@@ -2306,6 +2308,9 @@ function returnCastFor (printer, node, methodName) {
         // `return currencyId;` under `if (currencyId === undefined)` returns the null
         // the guard matched
         if (ts.isIdentifier (expression) && guardedNullReturn (node, expression)) {
+            return '(String)';
+        }
+        if (methodName === 'commonCurrencyCode' && ownParameterReturn (printer, node, expression)) {
             return '(String)';
         }
         // every other shape already prints String (census: the safeString reads and the
@@ -9853,7 +9858,7 @@ export function javaVenueAsyncReturnTable () {
 // file-scoped venue async cores: a `Promise<Str>` declaration in exactly that ts/src file, with no
 // declaration of the name in its REST parent or the base files (closed list: their awaited locals
 // are handed to String slots)
-const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ 'pro', 'bitrue', 'authenticate' ] ];
+const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ 'pro', 'bitrue', 'authenticate' ], [ '', 'bullish', 'loadAccount' ] ];
 const javaVenueFileCoreCache = new Map ();
 
 export function javaVenueFileAsyncReturns (tsFile) {
@@ -9863,13 +9868,13 @@ export function javaVenueFileAsyncReturns (tsFile) {
     }
     const out = new Map ();
     for (const [ dir, id, name ] of JAVA_VENUE_FILE_STRING_CORES) {
-        if (rel !== dir + '/' + id) {
+        if (rel !== (dir === '' ? id : dir + '/' + id)) {
             continue;
         }
         const declares = (file, re) => (readTsIndexSource (file) ?? '').split ('\n').filter ((l) => re.test (l)).length;
         const own = declares (path.join (JAVA_VENUE_TS_ROOT, dir, id + '.ts'), new RegExp ('^ {4}async ' + name + ' \\(.*\\): Promise<Str> \\{$'));
         const any = new RegExp ('^ {4}(?:override )?(?:async )?' + name + ' ?[(<]');
-        const elsewhere = declares (path.join (JAVA_VENUE_TS_ROOT, id + '.ts'), any)
+        const elsewhere = (dir === '' ? 0 : declares (path.join (JAVA_VENUE_TS_ROOT, id + '.ts'), any))
             + declares (path.join (JAVA_VENUE_TS_ROOT, 'base', 'Exchange.ts'), any)
             + declares (path.join (JAVA_VENUE_TS_ROOT, 'base', 'PredictionExchange.ts'), any);
         if (own === 1 && elsewhere === 0) {
