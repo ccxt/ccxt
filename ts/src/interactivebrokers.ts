@@ -620,7 +620,7 @@ export default class interactivebrokers extends Exchange {
                     'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}
                     'Cash Quantity cannot be used for this order': InvalidOrder, // {"error":"Cash Quantity cannot be used for this order"}
                     'No Contracts retrieved': NullResponse, // {"error":"No Contracts retrieved "}
-                    '{"error":"Finished: EMPTY response is received."}': NullResponse, // {"error":"Finished: EMPTY response is received."} from Iserver/Scanner/Run
+                    'Finished: EMPTY response is received': NullResponse, // {"error":"Finished: EMPTY response is received."} from Iserver/Scanner/Run
                 },
             },
             'commonCurrencies': {},
@@ -1399,7 +1399,7 @@ export default class interactivebrokers extends Exchange {
             const secdefRequest: Dict = {
                 'conids': chunk.join (','),
             };
-            promises.push (this.marketsEndpointCall (secdefRequest, 'webapiGetV1ApiTrsrvSecdef'));
+            promises.push (this.marketsEndpointCall (secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
             offset = end;
         }
         const responses = await Promise.all (promises);
@@ -1440,7 +1440,7 @@ export default class interactivebrokers extends Exchange {
             const pairsRequest: Dict = {
                 'currency': fxCurrency,
             };
-            promises.push (this.marketsEndpointCall (this.extend (pairsRequest, params), 'webapiGetV1ApiIserverCurrencyPairs'));
+            promises.push (this.marketsEndpointCall (this.extend (pairsRequest, params), 'webapiGetV1ApiIserverCurrencyPairs', {}));
             //
             //    { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" } ] }
             //
@@ -1473,7 +1473,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': cryptoSymbol,
                 'secType': 'CRYPTO',
             };
-            promises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch'));
+            promises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', {}));
             //
             //     [
             //         {
@@ -1527,7 +1527,7 @@ export default class interactivebrokers extends Exchange {
                 'type': scanTypes[i],
                 'filter': [],
             };
-            const response = await this.marketsEndpointCall (request, 'webapiPostV1ApiIserverScannerRun');
+            const response = await this.marketsEndpointCall (request, 'webapiPostV1ApiIserverScannerRun', {});
             //
             //     {
             //         "contracts": [
@@ -1582,7 +1582,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'symbols': symbols.join (','),
         };
-        const response = await this.marketsEndpointCall (this.extend (request, params), 'webapiGetV1ApiTrsrvFutures');
+        const response = await this.marketsEndpointCall (this.extend (request, params), 'webapiGetV1ApiTrsrvFutures', {});
         //
         //     {
         //         "MBT": [
@@ -1658,7 +1658,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': cfdExchanges[i],
                 'assetClass': 'CFD',
             };
-            promises.push (this.marketsEndpointCall (request, 'webapiGetV1ApiTrsrvAllConids'));
+            promises.push (this.marketsEndpointCall (request, 'webapiGetV1ApiTrsrvAllConids', {}));
             //
             //     [ { "ticker": "AAPL", "conid": 120549942, "exchange": null } ]
             //
@@ -1708,7 +1708,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': bondSymbols[i],
                 'secType': 'BOND',
             };
-            searchPromises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch'));
+            searchPromises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
             //
             //     [
             //         {
@@ -1816,7 +1816,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': exchange,
                 'assetClass': 'STK',
             };
-            const stocks: List = await this.marketsEndpointCall (this.extend (stockRequest, params), 'webapiGetV1ApiTrsrvAllConids') as List;
+            const stocks: List = await this.marketsEndpointCall (this.extend (stockRequest, params), 'webapiGetV1ApiTrsrvAllConids', []) as List;
             //
             //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
             //
