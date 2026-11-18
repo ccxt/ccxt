@@ -719,7 +719,8 @@ class backpack extends \ccxt\async\backpack {
          */
         $query = Async\await($this->prepare_ws_stock_params('watchOHLCV', $params));
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $query));
-        return $result[$symbol][$timeframe];
+        $bySymbol = $result[$symbol];
+        return $bySymbol[$timeframe];
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {

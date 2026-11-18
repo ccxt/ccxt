@@ -12106,7 +12106,9 @@ class binance extends Exchange {
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                $symbol = $symbolsNormalized[0];
+                if ($symbolsLength === 1) {
+                    $symbol = $symbolsNormalized[0];
+                }
             } else {
                 $symbol = $symbolsNormalized;
             }
@@ -14994,7 +14996,10 @@ class binance extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
         $response = null;
@@ -15229,7 +15234,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): array {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *
@@ -15740,7 +15745,10 @@ class binance extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         $type = 'swap';
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');

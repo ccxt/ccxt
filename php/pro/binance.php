@@ -226,7 +226,8 @@ class binance extends \ccxt\async\binance {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 
@@ -246,7 +247,8 @@ class binance extends \ccxt\async\binance {
             $this->options['streamIndex'] = $streamIndex;
             $stream = $this->number_to_string($normalizedIndex);
             if ($subscriptionHash !== null) {
-                $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
+                $streamBySubscriptionsHash[$subscriptionHash] = $stream;
+                $this->options['streamBySubscriptionsHash'] = $streamBySubscriptionsHash;
             }
             $subscriptionsByStreams = $this->safe_dict($this->options, 'numSubscriptionsByStream');
             if ($subscriptionsByStreams === null) {
@@ -1785,7 +1787,8 @@ class binance extends \ccxt\async\binance {
         }
         $paramsStock['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $paramsStock));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -2557,7 +2560,10 @@ class binance extends \ccxt\async\binance {
         $firstMarket = null;
         $symbolsDefined = ($symbolsNormalized !== null);
         if ($symbolsNormalized !== null) {
-            $firstMarket = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $firstMarket = $this->market($symbolsNormalized[0]);
+            }
         }
         $userDefaultType = $this->safe_string($this->options, 'defaultType');
         $defaultMarket = null;

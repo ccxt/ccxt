@@ -80,7 +80,8 @@ class modetrade extends \ccxt\async\modetrade {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 

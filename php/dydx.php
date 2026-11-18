@@ -1213,7 +1213,7 @@ class dydx extends Exchange {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey): array {
+    public function sign_hash(string $hash, mixed $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $this->safe_string($signature, 'r', '');
         $s = $this->safe_string($signature, 's', '');

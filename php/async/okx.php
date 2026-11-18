@@ -8460,7 +8460,10 @@ class okx extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         $marketType = null;
         $paramsSubType = array();
@@ -9949,11 +9952,11 @@ class okx extends Exchange {
         return null;
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): PromiseInterface {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_margin_adjustment_history(...))($symbol, $type, $since, $limit, $params);
     }
 
-    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()) {
+    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *

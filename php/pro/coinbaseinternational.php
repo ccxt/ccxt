@@ -1016,7 +1016,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         $symbolResolved = $this->symbol($symbol);
         $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolResolved, $timeframe ) ), $since, $limit, $paramsResolved));
-        return $ohlcvs[$symbolResolved][$timeframe];
+        $bySymbol = $ohlcvs[$symbolResolved];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {

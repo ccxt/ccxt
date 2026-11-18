@@ -1313,7 +1313,7 @@ class gate extends \ccxt\async\gate {
                     $this->safe_number($ohlcv, 'a'),
                 );
             }
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);

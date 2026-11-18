@@ -2597,7 +2597,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction(array $transaction, ?array $currency = null): array {
+    public function parse_transaction_row(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -2923,7 +2923,12 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $result[] = $this->parse_transaction_row($this->safe_list($response, $i, array()), $currency);
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $this->safe_string($currency, 'code'), $since, $limit);
     }
 
     public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
@@ -3019,7 +3024,7 @@ class bitfinex extends Exchange {
         if ($text !== 'success') {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $text, $text);
         }
-        return $this->parse_transaction($response, $currency);
+        return $this->parse_transaction_row($response, $currency);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {

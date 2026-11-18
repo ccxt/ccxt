@@ -436,7 +436,8 @@ class grvt extends \ccxt\async\grvt {
         $symbolValue = $this->symbol($symbol);
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {

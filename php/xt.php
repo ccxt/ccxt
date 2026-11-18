@@ -1800,7 +1800,10 @@ class xt extends Exchange {
         $market = null;
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         $request = array();
         $response = null;
@@ -1891,7 +1894,10 @@ class xt extends Exchange {
         $request = array();
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $paramsMarketType);

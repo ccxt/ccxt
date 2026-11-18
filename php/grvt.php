@@ -1756,7 +1756,9 @@ class grvt extends Exchange {
         $nonMatchedResults = array();
         for ($i = 0; $i < count($transfers); $i++) {
             $transfer = $transfers[$i];
-            if (($onlyMainAccount && $this->safe_string($transfer, 'fromAccount') === '0' && $this->safe_string($transfer, 'toAccount') === '0') || (!$onlyMainAccount && ($this->safe_string($transfer, 'fromAccount') !== '0' || $this->safe_string($transfer, 'toAccount') !== '0'))) {
+            $fromAccount = $this->safe_string($transfer, 'fromAccount', '');
+            $toAccount = $this->safe_string($transfer, 'toAccount', '');
+            if (($onlyMainAccount && $fromAccount === '0' && $toAccount === '0') || (!$onlyMainAccount && ($fromAccount !== '0' || $toAccount !== '0'))) {
                 $metadata = $this->safe_string($this->safe_dict($transfer, 'info', array()), 'transfer_metadata');
                 $parsedMetadata = $this->parse_json($metadata);
                 $direction = $this->safe_string($parsedMetadata, 'direction');

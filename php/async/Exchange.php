@@ -1632,7 +1632,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' fetchLongShortRatioHistory() is not supported yet');
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()) {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          * @param {string} [$symbol] unified market $symbol
@@ -1941,16 +1941,16 @@ class BaseExchange extends \ccxt\BaseExchange {
         if (!(is_array($methodsContainer) && array_key_exists($methodName ?? '', $methodsContainer))) {
             return $defaultValue; // unsupported method, check "exchange.features" for details');
         }
-        $methodDict = $methodsContainer[$methodName];
-        if ($methodDict === null) {
-            return $defaultValue;
-        }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if ($paramName === null) {
             if ($defaultValue !== null) {
                 return $defaultValue;
             }
-            return $methodDict;
+            return $methodsContainer[$methodName];
+        }
+        $methodDict = $this->safe_dict($methodsContainer, $methodName);
+        if ($methodDict === null) {
+            return $defaultValue;
         }
         $splited = explode('.', $paramName); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         $parentKey = $splited[0];
@@ -1971,7 +1971,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (!(is_array($methodDict[$parentKey]) && array_key_exists($subKey ?? '', $methodDict[$parentKey]))) {
                 return $defaultValue; // unsupported subKey, check "exchange.features" for details
             }
-            return $methodDict[$parentKey][$subKey];
+            return $this->safe_value($dictionary, $subKey);
         }
     }
 
@@ -3373,14 +3373,11 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (!$allowEmpty) {
                 throw new ArgumentsRequired($this->id . ' empty list of symbols is not supported');
             }
-            return $symbols;
+            return null;
         }
         $symbolsLength = count($symbols);
-        if ($symbolsLength === 0) {
-            if (!$allowEmpty) {
-                throw new ArgumentsRequired($this->id . ' empty list of symbols is not supported');
-            }
-            return $symbols;
+        if (($symbolsLength === 0) && !$allowEmpty) {
+            throw new ArgumentsRequired($this->id . ' empty list of symbols is not supported');
         }
         $result = array();
         $marketType = null;

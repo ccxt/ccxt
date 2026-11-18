@@ -633,7 +633,7 @@ class coinbase extends \ccxt\async\coinbase {
                     $this->safe_number($candle, 'close'),
                     $this->safe_number($candle, 'volume'),
                 );
-                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+                $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
                 if ($stored === null) {
                     $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);

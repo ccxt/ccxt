@@ -877,7 +877,8 @@ class deribit extends \ccxt\async\deribit {
         }
         $symbolValue = $this->symbol($symbol);
         $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $ohlcvs[$symbolValue][$timeframe];
+        $bySymbol = $ohlcvs[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {

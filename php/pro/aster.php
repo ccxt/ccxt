@@ -1178,7 +1178,8 @@ class aster extends \ccxt\async\aster {
         }
         $symbolValue = $this->safe_symbol($symbol);
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {

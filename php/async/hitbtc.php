@@ -2794,7 +2794,10 @@ class hitbtc extends Exchange {
         $market = null;
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMarginMode', $market, $params);
         if ($marketType === 'margin') {
@@ -3034,9 +3037,12 @@ class hitbtc extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
-            $queryMarketIds = $this->market_ids($symbolsNormalized);
-            $request['symbols'] = implode(',', $queryMarketIds);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+                $queryMarketIds = $this->market_ids($symbolsNormalized);
+                $request['symbols'] = implode(',', $queryMarketIds);
+            }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);
         if ($type !== 'swap') {

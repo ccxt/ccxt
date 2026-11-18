@@ -3087,11 +3087,14 @@ class bybit extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $symbolMarket = $this->market($symbolsNormalized[0]);
-            $market = $symbolMarket;
-            $symbolsLength = count($symbolsNormalized);
-            if ($symbolsLength === 1) {
-                $request['symbol'] = $symbolMarket['id'];
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $market = $symbolMarket;
+                $symbolsLength = count($symbolsNormalized);
+                if ($symbolsLength === 1) {
+                    $request['symbol'] = $symbolMarket['id'];
+                }
             }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);

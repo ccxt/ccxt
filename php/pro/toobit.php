@@ -310,7 +310,8 @@ class toobit extends \ccxt\async\toobit {
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbol][$timeframe];
+        $bySymbol = $result[$symbol];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {

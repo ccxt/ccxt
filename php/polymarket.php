@@ -2587,7 +2587,7 @@ class polymarket extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey): string {
+    public function sign_hash(string $hash, mixed $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $sVal = $signature['s'];

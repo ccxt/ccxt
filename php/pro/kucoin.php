@@ -1806,7 +1806,7 @@ class kucoin extends \ccxt\async\kucoin {
             $nonce = $this->safe_integer($orderbook, 'nonce');
             $deltaEnd = $this->safe_integer_2($data, 'sequenceEnd', 'timestamp');
             if ($nonce === null) {
-                $cacheLength = count($orderbook->cache);
+                $cacheLength = $this->parse_to_int(strlen($orderbook->cache));
                 $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
                 $subscription = null;
                 for ($i = 0; $i < count($subscriptions); $i++) {
@@ -1817,7 +1817,7 @@ class kucoin extends \ccxt\async\kucoin {
                     }
                 }
                 $limit = $this->safe_integer($subscription, 'limit');
-                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+                $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 5));
                 if ($cacheLength === $snapshotDelay) {
                     $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
                 }
@@ -1871,10 +1871,10 @@ class kucoin extends \ccxt\async\kucoin {
             $nonce = $this->safe_integer($orderbook, 'nonce');
             $deltaEnd = $this->safe_integer($data, 'C');
             if ($nonce === null) {
-                $cacheLength = count($orderbook->cache);
+                $cacheLength = $this->parse_to_int(strlen($orderbook->cache));
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
-                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+                $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 5));
                 $utaParams = array(
                     'uta' => true,
                 );

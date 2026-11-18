@@ -3235,7 +3235,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): array {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *
