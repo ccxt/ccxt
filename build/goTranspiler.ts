@@ -15250,6 +15250,22 @@ function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc
             ind + '}',
         ];
     }
+    // `X = ObjectKeys(m)` into a []string local or one of the []string BaseExchange key fields
+    const asg = /^(\s*)(\w+|this\.(?:Symbols|Ids|Codes)) = (?:ccxt\.)?ObjectKeys\((\w+)\)$/.exec (m.replace (/\s+$/, ''));
+    if (asg && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (asg[2] !== asg[3]) && (typeAt (asg[3], k) === 'map[string]any')
+        && (asg[2].startsWith ('this.') || (typeAt (asg[2], k) === '[]string')) && (asg[2] !== 'objectKey') && (asg[3] !== 'objectKey')) {
+        // the range variable is scoped to the loop and read only by the append, so an outer objectKey is untouched
+        const [ , ind, ks, recv ] = asg;
+        return [
+            ind + ks + ' = nil',
+            ind + 'if ' + recv + ' != nil {',
+            ind + '\t' + ks + ' = make([]string, 0, len(' + recv + '))',
+            ind + '\tfor objectKey := range ' + recv + ' {',
+            ind + '\t\t' + ks + ' = append(' + ks + ', objectKey)',
+            ind + '\t}',
+            ind + '}',
+        ];
+    }
     return [ line ];
 }
 
@@ -16710,7 +16726,36 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
     return undefined;
 }
 
+// `Slice(s, a, b)` on a proven Go string with literal bounds: the helper's index arithmetic (negative
+// counts from the end, nil end, end clamped to len) spelled as a subscript; other bounds keep the helper
+function goSliceLiteralNative (recv: { kind: string, text: string } | undefined, rawArgs: string[]): { text: string, pkg: string } | undefined {
+    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) {
+        return undefined;
+    }
+    const bound = (a: string): number | undefined => {
+        const m = /^(?:int64\((-?\d{1,9})\)|(?:ccxt\.)?OpNeg\((\d{1,9})\)|(-?\d{1,9}))$/.exec (a);
+        if (m === null) { return undefined; }
+        return (m[2] !== undefined) ? -Number (m[2]) : Number (m[1] ?? m[3]);
+    };
+    const start = bound (rawArgs[1]);
+    const end = (rawArgs[2] === 'nil') ? null : bound (rawArgs[2]);
+    if ((start === undefined) || (end === undefined)) {
+        return undefined;
+    }
+    const s = recv.text;
+    const len = 'len(' + s + ')';
+    if (end === null) {
+        return { text: s + '[' + ((start >= 0) ? String (start) : 'max(' + len + '-' + (-start) + ', 0)') + ':]', pkg: '' };
+    }
+    const from = (start >= 0) ? String (start) : len + '-' + (-start);
+    const to = (end >= 0) ? 'min(' + end + ', ' + len + ')' : len + '-' + (-end);
+    return { text: s + '[' + from + ':' + to + ']', pkg: '' };
+}
+
 function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[]): { text: string, pkg: string } | undefined {
+    if (helper === 'Slice') {
+        return goSliceLiteralNative (ops[0], rawArgs);
+    }
     if (ops.some ((o) => o === undefined)) {
         return undefined;
     }
@@ -16761,6 +16806,28 @@ function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } 
     return undefined;
 }
 
+// a once-declared `*string` local read under a dominating nil proof (an enclosing `if x != nil`, an exiting
+// `if x == nil` with no later write, or a `(x != nil) && ` conjunct chain right before the call) is its pointee
+function goNilProvenStringPtr (arg: string, masked: string, at: number): { kind: string, text: string } | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (arg) || (goStringOperandDeclaredType (masked.replace (new RegExp ('\\bvar ' + arg + ' \\*string ', 'g'), 'var ' + arg + ' PTRstring '), arg) !== 'PTRstring')) {
+        return undefined;
+    }
+    const lineStart = masked.lastIndexOf ('\n', at) + 1;
+    const lineEnd = masked.indexOf ('\n', at);
+    const line = masked.substring (lineStart, (lineEnd < 0) ? masked.length : lineEnd);
+    // the guarded right operand is one parenthesised group that ends the expression, so no `|| C` escapes the test
+    const chain = /^\s*(?:if |(?:var \w+ \w+|\w+) = |return )((?:\(\w+ != nil\) && )+)\(/.exec (line);
+    const write = new RegExp ('(?<![\\w.*])' + arg + '\\s*=(?!=)|&' + arg + '\\b');
+    if ((chain !== null) && chain[1].includes ('(' + arg + ' != nil)') && !write.test (line.replace (/[=!]=/g, '  '))) {
+        const open = chain[0].length - 1;
+        const close = goMatchingCloseText (line, open);
+        if ((close > at - lineStart) && /^\s*\{?\s*$/.test (line.substring (close + 1))) {
+            return { kind: 'string', text: '*' + arg };
+        }
+    }
+    return goNilGuardedStringLocals (masked, at, new Set ([ '*' + arg ])).has ('!' + arg) ? { kind: 'string', text: '*' + arg } : undefined;
+}
+
 function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): string {
     let out = func;
     for (let pass = 0; pass < 8; pass++) {
@@ -16768,7 +16835,7 @@ function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): 
         if (/\b(?:strings|strconv|slices|min|max|len)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strings|strconv|slices)\.\w|\b(?:min|max|len)\(/g, ''))) {
             return out;     // a local shadows the package name
         }
-        const hits = [ ...masked.matchAll (/(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd)\(/g) ];
+        const hits = [ ...masked.matchAll (/(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/g) ];
         let changed = false;
         let firstEdit = out.length;
         for (let h = hits.length - 1; h >= 0; h--) {
@@ -16777,7 +16844,7 @@ function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): 
             if ((parsed === undefined) || (parsed.end >= firstEdit)) {
                 continue;
             }
-            const ops = parsed.args.map ((a) => goTypedStrOperand (a, out, masked, file));
+            const ops = parsed.args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, m.index));
             const native = goTypedStrNative (m[2], ops, parsed.args);
             if (native === undefined) {
                 continue;
@@ -16878,14 +16945,26 @@ function goJoinNativeCheck (ok: SelfTestOk): void {
 }
 
 function goTypedStrNativeStringHelpers (filePath: string, content: string): string {
-    // base exchange_*.go files carry no import clause to extend
-    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath) || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0)) {
+    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0)) {
         return content;
     }
+    // base exchange_*.go files carry no import clause to extend: only rewrites whose packages they import land there
+    const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
     const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
     const pkgs = new Set<string> ();
     const parts = content.split (/(?=^func )/m);
-    let out = parts.map ((part, i) => ((i === 0) && !part.startsWith ('func ')) ? part : goTypedStrRewriteFunc (part, content, pkgs)).join ('');
+    let out = parts.map ((part, i) => {
+        if ((i === 0) && !part.startsWith ('func ')) {
+            return part;
+        }
+        const local = new Set<string> ();
+        const trial = goTypedStrRewriteFunc (part, content, local);
+        if (base && [ ...local ].some ((p) => !has (p))) {
+            return part;
+        }
+        local.forEach ((p) => pkgs.add (p));
+        return trial;
+    }).join ('');
     const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
     if (missing.length > 0) {
         const at = out.indexOf (GO_CONTRIBUTING_HEADER ()) + GO_CONTRIBUTING_HEADER ().length;
@@ -16908,6 +16987,18 @@ function goTypedStrSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn PadEnd(t, 6, "0")\n').indexOf ('(*t + strings.Repeat("0", max(6-len(*t), 0)))[:6]') >= 0, 'PadEnd goes native');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('import "strings"') >= 0, 'import added');
     ok (goTypedStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'func f() any {\n\treturn Trim(ks[0])\n}\n').indexOf ('Trim(ks[0])') >= 0, 'base file untouched');
+    ok (goTypedStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'import "strings"\n\nfunc f() any {\n\tvar ks []string = nil\n\treturn Trim(ks[0])\n}\n').indexOf ('strings.TrimSpace(ks[0])') >= 0, 'base file importing strings goes native');
+    const sl = '\tvar hm string = "0000"\n\treturn ';
+    ok (f (sl + 'Slice(hm, 0, 2) + Slice(hm, int64(-3), nil) + Slice(hm, 1, int64(-1))\n').indexOf ('hm[0:min(2, len(hm))] + hm[max(len(hm)-3, 0):] + hm[1:len(hm)-1]') >= 0, 'literal Slice bounds go native');
+    ok (f (sl + 'Slice(hm, i, 2)\n').indexOf ('Slice(hm, i, 2)') >= 0, 'variable Slice bound keeps the helper');
+    ok (f ('\tvar t *string = this.SafeString(m, "k")\n\treturn Slice(t, 0, 2)\n').indexOf ('Slice(t, 0, 2)') >= 0, 'nullable Slice receiver keeps the helper');
+    const np = '\tvar t *string = this.SafeString(m, "k")\n';
+    ok (f (np + '\tif t == nil {\n\t\treturn nil\n\t}\n\treturn GetIndexOf(t, "x")\n').indexOf ('strings.Index(*t, "x")') >= 0, 'nil-exited *string goes native');
+    ok (f (np + '\tif (t != nil) && (GetIndexOf(t, "x") == 0) {\n\t}\n\treturn nil\n').indexOf ('(t != nil) && (strings.Index(*t, "x") == 0)') >= 0, 'nil conjunct *string goes native');
+    ok (f (np + '\tif (t == nil) || (GetIndexOf(t, "x") == 0) {\n\t}\n\treturn nil\n').indexOf ('GetIndexOf(t, "x")') >= 0, 'disjunct keeps the helper');
+    ok (f (np + '\tvar b bool = (t != nil) && ((GetIndexOf(t, "x") > -1) || (GetIndexOf(t, "y") > -1))\n\treturn b\n').indexOf ('((strings.Index(*t, "x") > -1) || (strings.Index(*t, "y") > -1))') >= 0, 'guarded group goes native');
+    ok (f (np + '\tvar b bool = (t != nil) && (GetIndexOf(t, "x") > -1) || (GetIndexOf(t, "y") > -1)\n\treturn b\n').indexOf ('GetIndexOf(t, "y")') >= 0, 'trailing disjunct keeps the helper');
+    ok (f (np + '\tif t == nil {\n\t\treturn nil\n\t}\n\tt = this.SafeString(m, "j")\n\treturn GetIndexOf(t, "x")\n').indexOf ('GetIndexOf(t, "x")') >= 0, 'rewritten after the guard keeps the helper');
 }
 
 // ===== native len() on block-scoped typed operands =====
