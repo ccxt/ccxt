@@ -116,10 +116,10 @@ class bitget(ccxt.async_support.bitget):
         if useProductType:
             instTypeDefault, paramsProductType = self.handleProductTypeAndParams(market, params)
         instTypeOption, paramsInstType = self.handle_option_string_and_params(paramsProductType, methodName, 'instType', instTypeDefault)
-        instType = instTypeOption
         if uta and (instTypeOption is not None):
-            instType = instTypeOption.lower()
-        return [instType, paramsInstType]
+            instTypeLower = instTypeOption.lower()
+            return [instTypeLower, paramsInstType]
+        return [instTypeOption, paramsInstType]
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """

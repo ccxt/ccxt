@@ -564,7 +564,7 @@ class nado(Exchange, ImplicitAPI):
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
             # the final omit drops triggerDirection from the request
-            triggerDirection = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow), 0)
+            triggerDirection = self.handle_trigger_direction_and_params(paramsRecvWindow)[0]
             directionSuffix = 'below'
             if triggerDirection == 'ascending':
                 directionSuffix = 'above'

@@ -4478,15 +4478,16 @@ class BaseExchange(object):
             if isArray:
                 tradesLength = len(trades)
             if isArray and (tradesLength > 0):
+                headTrade = trades[0]
                 # move properties that are defined in trades up into the order
                 if parseSymbol:
-                    orderDict['symbol'] = trades[0]['symbol']
+                    orderDict['symbol'] = headTrade['symbol']
                 if parseSide:
-                    orderDict['side'] = trades[0]['side']
+                    orderDict['side'] = headTrade['side']
                 if self.safe_string(orderDict, 'type') is None:
-                    orderDict['type'] = trades[0]['type']
+                    orderDict['type'] = headTrade['type']
                 if self.safe_string(orderDict, 'id') is None:
-                    orderDict['id'] = trades[0]['order']
+                    orderDict['id'] = headTrade['order']
                 if parseFilled:
                     filled = '0'
                 if parseCost:
@@ -5796,7 +5797,7 @@ class BaseExchange(object):
         transactionsArray = self.to_array(transactions)
         result = []
         for i in range(0, len(transactionsArray)):
-            transaction = self.extend(self.parse_transaction(transactionsArray[i], currency), params)
+            transaction = self.extend(self.parse_transaction(self.safe_dict(transactionsArray, i, {}), currency), params)
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
@@ -7480,9 +7481,9 @@ class BaseExchange(object):
         return res
 
     def handle_max_entries_per_request_and_params(self, method: str, maxEntriesPerRequest: Int = None, params: dict = {}):
-        newMaxEntriesPerRequest, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(params, method, 'maxEntriesPerRequest')
-        maxEntriesPerRequestOption = newMaxEntriesPerRequest if (newMaxEntriesPerRequest is not None) else maxEntriesPerRequest
-        maxEntriesPerRequestResolved = 1000 if (maxEntriesPerRequestOption is None) else maxEntriesPerRequestOption  # default to 1000
+        # the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        maxEntriesPerRequestDefault = 1000 if (maxEntriesPerRequest is None) else maxEntriesPerRequest
+        maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(params, method, 'maxEntriesPerRequest', maxEntriesPerRequestDefault)
         return [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest]
 
     def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):

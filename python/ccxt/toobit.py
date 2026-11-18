@@ -2696,7 +2696,7 @@ class toobit(Exchange, ImplicitAPI):
         transactType = 'deposit' if (type == 'deposits') else 'withdrawal'
         results = []
         for i in range(0, len(response)):
-            results.append(self.extend(self.parse_transaction_with_type(response[i], currency, transactType), paramsUntil))
+            results.append(self.extend(self.parse_transaction_with_type(self.safe_dict(response, i, {}), currency, transactType), paramsUntil))
         sorted = self.sort_by(results, 'timestamp')
         currencyCode = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(sorted, currencyCode, since, limit)

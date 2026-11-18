@@ -317,7 +317,7 @@ class phemex(ccxt.async_support.phemex):
             messageHash = type + ':balance'
         return await self.subscribe_private(type, messageHash, paramsMarketType)
 
-    def handle_balance(self, type: str, client: Client, message: list[object]):
+    def handle_balance(self, client: Client, message: list[object], type: str):
         # spot
         #    [
         #       {
@@ -1574,7 +1574,7 @@ class phemex(ccxt.async_support.phemex):
             if 'accounts_p' in message:
                 type = 'perpetual'
             accounts = self.safe_list_n(message, ['accounts', 'accounts_p', 'wallets'], [])
-            self.handle_balance(type, client, accounts)
+            self.handle_balance(client, accounts, type)
 
     def handle_authenticate(self, client: Client, message: dict):
         #

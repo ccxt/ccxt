@@ -1057,14 +1057,15 @@ class backpack(ccxt.async_support.backpack):
         deltaNonce = self.safe_integer(data, 'u')
         messageHash = 'orderbook:' + symbol
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
+            cacheSize = len(storedOrderBook.cache)
+            cacheLength = self.parse_to_int(cacheSize)
             # cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.append(data)
             # stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             market = self.market(symbol)
             isStockMarket = (market['stock'] is True) or ((marketId is not None) and ((marketId.find('.US_') >= 0) or (marketId.find('.HK_') >= 0)))
             defaultSnapshotDelay = 0 if isStockMarket else 10
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay)
+            snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay))
             if cacheLength == snapshotDelay:
                 self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             return
