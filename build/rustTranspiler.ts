@@ -4208,19 +4208,25 @@ function rustTypedListAndOmitBranches (content: string): string {
 // `marketSymbols` answers `undefined` or the list it builds (ts/src/base/Exchange.ts), so it returns `Option<List>`:
 // `.into_opt_list()` drops, `.into_list()` (Null -> []) is `.unwrap_or_default()`, a `Value` slot boxes it back.
 function rustTypedMarketSymbols (content: string): string {
-    const sig = 'fn market_symbols(&self, optional_args: &[Value]) -> Value {';
+    return rustTypedOptListProducer (content, 'market_symbols', '');
+}
+
+// `marketIds` / `marketCodes` return their argument only under `=== undefined` (so Null) or the list they build.
+function rustTypedOptListProducer (content: string, name: string, arg: string): string {
+    const sig = 'fn ' + name + '(&self, optional_args: &[Value]) -> Value {';
     const at = content.indexOf (sig);
     if (at >= 0) {
         const open = at + sig.length;
         const close = balancedCloseIndex (content, open);
         const body = content.slice (open, close)
+            .replace (arg === '' ? /^$/ : new RegExp ('(if \\(' + arg + ' == Value::Null\\) \\{\\s*)return ' + arg + ';'), '$1return None;')
             .replace (/\breturn Value::Null;/g, 'return None;')
             .replace (/\breturn Value::from\(result\);/g, 'return Some(std::sync::Arc::new(result));')
             .replace (/\n(\s*)Value::Null\n(\s*)$/, '\n$1None\n$2');
-        if (/\breturn (?!None;|Some\(std::sync::Arc::new\(result\)\);)/.test (body)) throw new Error ('market_symbols: unproven return');
+        if (/\breturn (?!None;|Some\(std::sync::Arc::new\(result\)\);)/.test (body)) throw new Error (name + ': unproven return');
         content = content.slice (0, at) + sig.replace ('-> Value', '-> Option<crate::value::List>') + body + content.slice (close);
     }
-    const head = /\bself(?:\.parent)?\.market_symbols\(/g;
+    const head = new RegExp ('\\bself(?:\\.parent)?\\.' + name + '\\(', 'g');
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
         const close = balancedCloseIndex (content, m.index + m[0].length);
@@ -4232,6 +4238,10 @@ function rustTypedMarketSymbols (content: string): string {
         head.lastIndex = last;
     }
     return out + content.slice (last);
+}
+
+function rustTypedMarketIdsCodes (content: string): string {
+    return rustTypedOptListProducer (rustTypedOptListProducer (content, 'market_ids', 'symbols'), 'market_codes', 'codes');
 }
 
 // A `&str` / i64 / f64 / bool parameter (or its Option) copied to `Value` (`let mut x: Value = x.into();`) whose every read is a
@@ -10493,6 +10503,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedMergeResults(rustContent);
                 rustContent = rustTypedListAndOmitBranches(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
+                rustContent = rustTypedMarketIdsCodes(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
@@ -11340,6 +11351,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedMergeResults(finalFile);
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
+        finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustStrParamCopyDrop(finalFile);
         finalFile = rustSelfFieldReadClones(finalFile);
 
