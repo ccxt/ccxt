@@ -485,7 +485,9 @@ export default class hyperliquid extends Exchange {
         const id = this.safeString (rawCurrency, 'index');
         const name = this.safeString (rawCurrency, 'name');
         const code = this.safeCurrencyCode (name);
-        this.options['cachedCurrenciesById'][(id as string)] = name;
+        const cachedCurrenciesByIdDict1 = this.safeDict (this.options, 'cachedCurrenciesById', {});
+        cachedCurrenciesByIdDict1[(id as string)] = name;
+        this.options['cachedCurrenciesById'] = cachedCurrenciesByIdDict1;
         const result = this.safeCurrencyStructure ({
             'id': id,
             'name': name,
@@ -521,7 +523,9 @@ export default class hyperliquid extends Exchange {
                 }
                 const baseCode = this.safeCurrencyCode (nameWithoutU);
                 if (code !== undefined) {
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                    const spotCurrencyMappingDict2 = this.safeDict (this.options, 'spotCurrencyMapping', {});
+                    spotCurrencyMappingDict2[code] = baseCode;
+                    this.options['spotCurrencyMapping'] = spotCurrencyMappingDict2;
                 }
             }
         }
