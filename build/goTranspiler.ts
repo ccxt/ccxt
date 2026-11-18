@@ -8021,6 +8021,10 @@ function goStrPtrLocalRetypeText (fn: string): string {
         const d = /^\s*var (\w+) \*string(?: = |$)/.exec (line);
         if (d) { ptrLocals.add (d[1]); }
     }
+    const ptrParams = new Set<string> ();
+    for (const p of signature.matchAll (/[(,]\s*(\w+) \*string\b/g)) {
+        if (!new RegExp ('&' + p[1] + '\\b|(?<![.\\w])' + p[1] + '\\s*(?:,[\\w\\s,]*)?:?=[^=]|\\*' + p[1] + '\\s*=[^=]').test (fn.slice (sigEnd))) { ptrParams.add (p[1]); }
+    }
     const declCount = (name: string): number => code.filter ((l) => new RegExp ('\\bvar ' + name + '\\b').test (l)).length;
     for (const name of Array.from (ptrLocals)) {
         if ((declCount (name) !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature) || new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:,[\\w\\s,]*)?:=').test (fn)) {
@@ -8075,13 +8079,13 @@ function goStrPtrLocalRetypeText (fn: string): string {
             cand.add (name);
         }
     }
-    const producer = (rhs: string): boolean => {
+    const producer = (rhs: string, plain = false): boolean => {
         const text = rhs.replace (/^(?:ccxt\.)?DerefScalar\((.*)\)$/, '$1').trim ();
-        if (text === 'nil') {
+        if ((text === 'nil') || (plain && /^"(?:[^"\\]|\\.)*"$/.test (text))) {
             return true;
         }
         if (/^\w+$/.test (text)) {
-            return ptrLocals.has (text) || cand.has (text);
+            return ptrLocals.has (text) || cand.has (text) || ptrParams.has (text);
         }
         const m = GO_STRPTR_LOCAL_PRODUCER.exec (text);
         return (m !== null) && (goMatchingCloseText (text, m[0].length - 1) === text.length - 1);
@@ -8093,7 +8097,7 @@ function goStrPtrLocalRetypeText (fn: string): string {
         if (own) {
             line = own[1] + line.slice (own[0].length);
         }
-        line = line.replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?IsEqual\\(' + name + ', (?:nil|\"\")\\)', 'g'), 'Z');
+        line = line.replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?IsEqual\\(' + name + ', (?:nil|\"[^\"]*\")\\)', 'g'), 'Z');
         line = line.replace (new RegExp ('(?<![.\\w])' + name + ' [!=]= nil\\b', 'g'), 'Z');
         const mention = new RegExp ('(?<![.\\w&*])' + name + '(?!\\w)', 'g');
         let m: RegExpExecArray | null;
@@ -8129,7 +8133,7 @@ function goStrPtrLocalRetypeText (fn: string): string {
         for (const name of Array.from (cand)) {
             let ok = writes.get (name).every ((w) => (w.end !== undefined)
                 ? lines.slice (w.line + 1, w.end).every ((l, k) => { const r = /^\s*return (.*)$/.exec (l); return r ? producer (r[1]) : !/\breturn\b/.test (code[w.line + 1 + k]); })
-                : producer (w.rhs));
+                : producer (w.rhs, true));
             const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
             for (let i = 0; ok && (i < code.length); i++) {
                 if (mention.test (code[i]) && (new RegExp ('&' + name + '\\b|' + name + '\\s*(?:,[\\w\\s,]*)?:=|\\*' + name + '\\b').test (code[i]) || !readsOk (name, i))) {
@@ -8144,7 +8148,7 @@ function goStrPtrLocalRetypeText (fn: string): string {
     }
     // a local only ever nil (never a producer) has nothing to fold; keep the rewrite to real *string locals
     for (const name of Array.from (cand)) {
-        if (writes.get (name).every ((w) => w.rhs.trim () === 'nil')) {
+        if (writes.get (name).every ((w) => (w.rhs.trim () === 'nil') || /^"(?:[^"\\]|\\.)*"$/.test (w.rhs.trim ()))) {
             cand.delete (name);
         }
     }
@@ -8157,6 +8161,9 @@ function goStrPtrLocalRetypeText (fn: string): string {
             lines[w.line] = lines[w.line].replace (re, '$1$2 *string$3');
             if (w.end !== undefined) {
                 lines[w.line] = lines[w.line].replace (/func\(\) any \{$/, 'func() *string {');
+            } else if (/^"(?:[^"\\]|\\.)*"$/.test (w.rhs.trim ())) {
+                const lit = name + 'Lit' + w.line;
+                lines[w.line] = lines[w.line].replace (new RegExp ('^(\\s*)((?:var ' + name + ' \\*string|' + name + ') = )(.*)$'), '$1' + lit + ' := $3\n$1$2&' + lit);
             } else {
                 lines[w.line] = lines[w.line].replace (new RegExp ('((?:var ' + name + ' \\*string|' + name + ') = )(?:ccxt\\.)?DerefScalar\\((.*)\\)$'), '$1$2');
             }
@@ -8176,7 +8183,12 @@ function goStrPtrLocalSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar c any = this.SafeString(p, "x")\n\tif IsEqual(c, "a") {\n\t}\n').indexOf ('var c *string = this.SafeString(p, "x")') >= 0, 'SafeString local compared to a literal is *string');
     ok (f ('\tvar c any = DerefScalar(this.SafeString(p, "x"))\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c *string = this.SafeString(p, "x")') >= 0, 'a DerefScalar write keeps the pointer');
     ok (f ('\tvar c any = this.SafeString(p, "x")\n\tvar r map[string]any = map[string]any{\n\t\t"c": c,\n\t}\n\t_ = r\n').indexOf ('var c any') >= 0, 'a map store keeps the box');
-    ok (f ('\tvar c any = nil\n\tc = "x"\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a literal write keeps the box');
+    const lw = f ('\tvar c any = this.SafeString(p, "x")\n\tif true {\n\t\tc = "y"\n\t}\n\tif IsEqual(c, "y") {\n\t}\n');
+    ok (lw.indexOf ('cLit4 := "y"\n\t\tc = &cLit4') >= 0 && lw.indexOf ('var c *string') >= 0, 'a literal write is a typed local plus address-of: ' + lw);
+    ok (f ('\tvar c any = nil\n\tc = "x"\n\tthis.Other(c)\n').indexOf ('var c any') >= 0, 'a literal write with an unproven read keeps the box');
+    ok (goStrPtrLocalRetype ('\nfunc (this *X) f(q *string) any {\n\tvar c any = nil\n\tif true {\n\t\tc = q\n\t}\n\tif IsEqual(c, nil) {\n\t}\n\treturn nil\n}\n').indexOf ('var c *string') >= 0, 'a copy of a *string param is *string');
+    ok (f ('\tvar c any = this.SafeString(p, "x")\n\tc = func() any {\n\t\treturn "0"\n\t}()\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a literal returned from an IIFE keeps the box');
+    ok (goStrPtrLocalRetype ('\nfunc (this *X) f(q *string) any {\n\tq = this.Y()\n\tvar c any = q\n\tif IsEqual(c, nil) {\n\t}\n\treturn nil\n}\n').indexOf ('var c any') >= 0, 'a copy of a written param keeps the box');
     ok (f ('\tvar c any = this.SafeString(p, "x")\n\tthis.Other(c)\n').indexOf ('var c any') >= 0, 'an unproven call argument keeps the box');
     ok (f ('\tvar c any = nil\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a nil-only local is left alone');
     ok (f ('\tvar c any = nil\n\tvar d any = this.FromEr(p)\n\tc = d\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a copy of an unproven local keeps the box');
