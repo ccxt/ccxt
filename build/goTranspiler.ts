@@ -15336,7 +15336,7 @@ function goDerefAtEntryFuncs (): string[] {
         'EvalTruthy', 'IsString', 'IsArray', 'IsBool', 'IsNumber', 'IsInteger', 'IsDictionary', 'IsNil', 'InOp', 'GetIndexOf',
         'StartsWith', 'EndsWith', 'Contains', 'IndexOf', 'Split', 'Join', 'Replace', 'Slice', 'Trim', 'ToString', 'ToLower', 'ToUpper',
         'ParseInt', 'ParseFloat', 'ToFloat64', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'GetArrayLength', 'GetLength',
-        'ObjectKeys', 'ObjectValues', 'JsonStringify', 'ListTyped', 'MapTyped', 'SafeStringPtr', 'SafeBoolPtr', 'GetValue',
+        'ObjectKeys', 'ObjectValues', 'JsonStringify', 'ListTyped', 'MapTyped', 'SafeStringPtr', 'SafeBoolPtr', 'GetValue', 'MarketTyped', 'CurrencyTyped',
     ];
 }
 // hand-written exchange_safe.go methods: the object argument reaches SafeValueN, which derefs it first
@@ -15345,6 +15345,8 @@ function goDerefAtEntryMethods (): string[] {
         'SafeString', 'SafeString2', 'SafeStringLower', 'SafeStringLower2', 'SafeStringUpper', 'SafeStringUpper2',
         'SafeInteger', 'SafeInteger2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeBool', 'SafeBool2',
         'SafeTimestamp', 'SafeTimestamp2', 'SafeValue', 'SafeValue2', 'SafeIntegerProduct', 'SafeIntegerProduct2',
+        // derefScalar their first argument too (derefScalar / Add at entry)
+        'NumberToString', 'ParseNumber', 'Sum',
     ];
 }
 
@@ -15354,6 +15356,24 @@ function nativeDerefArgMapReads (content: string): string {
     const head = '(?:(?<![\\w.])(?:ccxt\\.)?(?:' + goDerefAtEntryFuncs ().join ('|') + ')|\\bthis\\.(?:' + methods.join ('|') + '))\\(';
     const rx = new RegExp ('(' + head + ')(?:ccxt\\.)?GetValue\\((\\w+), (\"[^\"\\\\\\n]*\"|\\w+)\\)', 'g');
     return goRewriteEachFunc (content, /GetValue\(\w+, /.test (content), (lines, masked, start, k) => goDerefArgRewriteFunc (lines, masked, start, k, rx, head));
+}
+
+// a map[string]any local bound only to SafeDict*Map results (or nil), never aliased, in a func with no goroutine:
+// the consumer derefs the element, so the plain index answers what GetValue did (nil map / missing key -> nil)
+function goDerefArgSafeDictReceiver (maskedFunc: string, decl: any, name: string): boolean {
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
+        return false;
+    }
+    const n = goAccessEscape (name);
+    if (/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
+        || new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
+        return false;
+    }
+    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+        writes.push (w[1].trim ());
+    }
+    return writes.every ((init: string) => /^(?:this\.SafeDict2?Map\(|nil$)/.test (init));
 }
 
 function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number, end: number, rx: RegExp, head: string) {
@@ -15375,7 +15395,7 @@ function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number
                 return all;
             }
             if (!receiverOk.has (name)) {
-                receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf));
+                receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf) || goDerefArgSafeDictReceiver (maskedFunc, declOf (name), name));
             }
             return receiverOk.get (name) ? callHead + name + '[' + key + ']' : all;
         });
@@ -15453,6 +15473,10 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
     ];
     keep.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(p,') >= 0, 'negative ' + i));
     const over = 'func (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n';
+    const sd = '\tvar o map[string]any = this.SafeDictMap(p, "o")\n';
+    ok (f (d + sd + '\tvar a *string = this.NumberToString(GetValue(o, "k"))\n').indexOf ('this.NumberToString(o["k"])') >= 0, 'safe dict map receiver');
+    ok (f (d + sd + '\to = Foo()\n\tvar a *string = this.NumberToString(GetValue(o, "k"))\n').indexOf ('GetValue(o,') >= 0, 'rebound safe dict map keeps helper');
+    ok (f (d + sd + '\tvar a any = Foo(GetValue(o, "k"))\n').indexOf ('GetValue(o,') >= 0, 'non-deref consumer keeps helper');
     ok (nativeDerefArgMapReads (over + 'func (this *X) f(optionalArgs ...any) any {\n' + d + '\tvar a *string = this.SafeString(GetValue(p, "k"), "x")\n\treturn nil\n}\n').indexOf ('GetValue(p,') >= 0, 'overridden method keeps helper');
     const l = f ('\tvar s []string = Split(x, "/")\n\tvar a any = this.Market(GetValue(s, 0))\n');
     ok (l.indexOf ('if 0 >= 0 && 0 < len(s) {\n\t\t\treturn s[0]') >= 0, '[]string literal index: ' + l);
