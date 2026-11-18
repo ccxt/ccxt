@@ -23032,3 +23032,40 @@ function arrayGuardedConditionalListLocal (csharp, declaration, context) {
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true, objectBoxWhole } : undefined;
 }
 const DICT_TYPES_C03 = [ 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+
+// ===== null-seed and params-bag declarations typed from their producers =====
+// R1: `let x = undefined; … x = this.omit (<dict box>, k)` / `x = this.omitZero (<string box>)`:
+// the write binds the dict-receiver omit overload (a fresh Dictionary) or `string? omitZero (string?)`,
+// so the call's own C# type is the box; the join and the retype scan still decide the declaration.
+const hx12C08UpstreamNullInitWriteValueType = nullInitWriteValueType;
+// eslint-disable-next-line no-func-assign
+nullInitWriteValueType = function (csharp, declaration, node) {
+    const upstream = hx12C08UpstreamNullInitWriteValueType (csharp, declaration, node);
+    if (upstream !== undefined || !isNullInit (declaration) || c5ParameterProofDepth > 0) {
+        return upstream;
+    }
+    if (omitDictionaryProducer (csharp, node, undefined)) {
+        return 'Dictionary<string, object>';
+    }
+    return omitZeroStringProducer (csharp, node, undefined) ? 'string?' : undefined;
+};
+
+// R2: `let q = params` over the typed `IDictionary<string, object> parameters` bag: the copy reads
+// a statically typed parameter, so the interface declaration holds the very same reference with no
+// cast. The 84c5 native-use gate stays for slot-written locals; a bare bag copy may stand alone.
+const hx12C08UpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = hx12C08UpstreamLocalDeclaration (csharp, declaration, context);
+    if (info !== undefined || c5ParameterProofDepth > 0 || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const init = stripParens (declaration.initializer);
+    const scope = context?.scope ?? enclosingFunction (declaration);
+    if (init?.kind !== ts.SyntaxKind.Identifier || dictParamsCopyReadType (csharp, scope, init) === undefined
+            || c84UpstreamCoreParameterCopyReadType (csharp, scope, init) !== undefined) {
+        return undefined;
+    }
+    const copy = c84UpstreamLocalDeclaration (csharp, declaration, context);
+    return (copy !== undefined && copy.cast === undefined && copy.type === 'IDictionary<string, object>' && !c84SlotWrittenDeclarations.has (declaration)) ? copy : undefined;
+};
