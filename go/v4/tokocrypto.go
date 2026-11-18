@@ -885,125 +885,123 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 		}
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var list []map[string]any = this.SafeListMapsTyped(data, "list")
-	var result []any = []any{}
-	for i := 0; i < len(list); i++ {
-		var market map[string]any = list[i]
-		var baseId *string = this.SafeString(market, "baseAsset")
-		var quoteId *string = this.SafeString(market, "quoteAsset")
-		var id *string = this.SafeString(market, "symbol")
-		var lowercaseId *string = this.SafeStringLower(market, "symbol")
-		var settleId *string = this.SafeString(market, "marginAsset")
-		var base *string = this.SafeCurrencyCode(baseId)
-		var quote *string = this.SafeCurrencyCode(quoteId)
-		if (base == nil) || (quote == nil) {
-			continue
-		}
-		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol string = *base + "/" + *quote
-		var filters []any = SafeListTyped(market, "filters")
-		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
-		var status *string = this.SafeString(market, "spotTradingEnable")
-		var active bool = (status != nil && *status == "1")
-		var permissions []any = SafeListTyped(market, "permissions")
-		for j := 0; j < len(permissions); j++ {
-			if this.SafeString(permissions, j) != nil && *this.SafeString(permissions, j) == "TRD_GRP_003" {
-				active = false
-				break
-			}
-		}
-		var marginTradingEnable *string = this.SafeString(market, "marginTradingEnable")
-		var costMin *float64 = nil
-		var precision map[string]any = map[string]any{
-			"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision"))),
-			"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),
-			"base":   this.ParseNumber(this.ParsePrecision(this.SafeString(market, "basePrecision"))),
-			"quote":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quotePrecision"))),
-		}
-		var limits map[string]any = map[string]any{
-			"leverage": map[string]any{
-				"min": nil,
-				"max": nil,
-			},
-			"amount": map[string]any{
-				"min": nil,
-				"max": nil,
-			},
-			"price": map[string]any{
-				"min": nil,
-				"max": nil,
-			},
-			"cost": map[string]any{
-				"min": costMin,
-				"max": nil,
-			},
-		}
-		if _, ok := filtersByType["PRICE_FILTER"]; ok {
-			var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
-			// PRICE_FILTER reports zero values for maxPrice
-			// since they updated filter types in November 2018
-			// https://github.com/ccxt/ccxt/issues/4286
-			// therefore limits['price']['max'] doesn't have any meaningful value except undefined
-			limits["price"] = map[string]any{
-				"min": this.SafeNumber(filter, "minPrice"),
-				"max": this.SafeNumber(filter, "maxPrice"),
-			}
-			precision["price"] = filter["tickSize"]
-		}
-		if _, ok := filtersByType["LOT_SIZE"]; ok {
-			var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
-			precision["amount"] = this.SafeNumber(filter, "stepSize")
-			limits["amount"] = map[string]any{
-				"min": this.SafeNumber(filter, "minQty"),
-				"max": this.SafeNumber(filter, "maxQty"),
-			}
-		}
-		if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
-			var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
-			limits["market"] = map[string]any{
-				"min": this.SafeNumber(filter, "minQty"),
-				"max": this.SafeNumber(filter, "maxQty"),
-			}
-		}
-		var entry map[string]any = map[string]any{
-			"id":             id,
-			"lowercaseId":    lowercaseId,
-			"symbol":         symbol,
-			"base":           base,
-			"quote":          quote,
-			"settle":         settle,
-			"baseId":         baseId,
-			"quoteId":        quoteId,
-			"settleId":       settleId,
-			"type":           "spot",
-			"spot":           true,
-			"margin":         (marginTradingEnable != nil && *marginTradingEnable == "1"),
-			"swap":           false,
-			"future":         false,
-			"option":         false,
-			"active":         active,
-			"contract":       false,
-			"linear":         nil,
-			"inverse":        nil,
-			"contractSize":   nil,
-			"expiry":         nil,
-			"expiryDatetime": nil,
-			"strike":         nil,
-			"optionType":     nil,
-			"precision":      precision,
-			"limits":         limits,
-			"created":        nil,
-			"info":           market,
-		}
-		if _, ok := filtersByType["MIN_NOTIONAL"]; ok {
-			var filter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
-			costMin = this.SafeNumber2(filter, "minNotional", "notional")
-		}
-		result = append(result, entry)
-	}
+	var list []any = SafeListTypedDefault(data, "list", []any{})
 
-	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(list))}
 	return nil
+}
+func (this *Tokocrypto) ParseMarket(market any) map[string]any {
+	var baseId *string = this.SafeString(market, "baseAsset")
+	var quoteId *string = this.SafeString(market, "quoteAsset")
+	var id *string = this.SafeString(market, "symbol")
+	var lowercaseId *string = this.SafeStringLower(market, "symbol")
+	var settleId *string = this.SafeString(market, "marginAsset")
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	var settle *string = this.SafeCurrencyCode(settleId)
+	var symbol string = *base + "/" + *quote
+	var filters []any = SafeListTyped(market, "filters")
+	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
+	var status *string = this.SafeString(market, "spotTradingEnable")
+	var active bool = (status != nil && *status == "1")
+	var permissions []any = SafeListTyped(market, "permissions")
+	for j := 0; j < len(permissions); j++ {
+		if this.SafeString(permissions, j) != nil && *this.SafeString(permissions, j) == "TRD_GRP_003" {
+			active = false
+			break
+		}
+	}
+	var marginTradingEnable *string = this.SafeString(market, "marginTradingEnable")
+	var costMin *float64 = nil
+	var precision map[string]any = map[string]any{
+		"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision"))),
+		"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),
+		"base":   this.ParseNumber(this.ParsePrecision(this.SafeString(market, "basePrecision"))),
+		"quote":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quotePrecision"))),
+	}
+	var limits map[string]any = map[string]any{
+		"leverage": map[string]any{
+			"min": nil,
+			"max": nil,
+		},
+		"amount": map[string]any{
+			"min": nil,
+			"max": nil,
+		},
+		"price": map[string]any{
+			"min": nil,
+			"max": nil,
+		},
+		"cost": map[string]any{
+			"min": costMin,
+			"max": nil,
+		},
+	}
+	if _, ok := filtersByType["PRICE_FILTER"]; ok {
+		var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
+		// PRICE_FILTER reports zero values for maxPrice
+		// since they updated filter types in November 2018
+		// https://github.com/ccxt/ccxt/issues/4286
+		// therefore limits['price']['max'] doesn't have any meaningful value except undefined
+		limits["price"] = map[string]any{
+			"min": this.SafeNumber(filter, "minPrice"),
+			"max": this.SafeNumber(filter, "maxPrice"),
+		}
+		precision["price"] = filter["tickSize"]
+	}
+	if _, ok := filtersByType["LOT_SIZE"]; ok {
+		var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
+		precision["amount"] = this.SafeNumber(filter, "stepSize")
+		limits["amount"] = map[string]any{
+			"min": this.SafeNumber(filter, "minQty"),
+			"max": this.SafeNumber(filter, "maxQty"),
+		}
+	}
+	if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
+		var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
+		limits["market"] = map[string]any{
+			"min": this.SafeNumber(filter, "minQty"),
+			"max": this.SafeNumber(filter, "maxQty"),
+		}
+	}
+	var entry map[string]any = map[string]any{
+		"id":             id,
+		"lowercaseId":    lowercaseId,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           "spot",
+		"spot":           true,
+		"margin":         (marginTradingEnable != nil && *marginTradingEnable == "1"),
+		"swap":           false,
+		"future":         false,
+		"option":         false,
+		"active":         active,
+		"contract":       false,
+		"linear":         nil,
+		"inverse":        nil,
+		"contractSize":   nil,
+		"expiry":         nil,
+		"expiryDatetime": nil,
+		"strike":         nil,
+		"optionType":     nil,
+		"precision":      precision,
+		"limits":         limits,
+		"created":        nil,
+		"info":           market,
+	}
+	if _, ok := filtersByType["MIN_NOTIONAL"]; ok {
+		var filter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
+		costMin = this.SafeNumber2(filter, "minNotional", "notional")
+	}
+	return entry
 }
 
 /**
@@ -2575,11 +2573,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes219115 []any = OrdersToList(r.Value)
-	if retRes219115 == nil {
+	var retRes219015 []any = OrdersToList(r.Value)
+	if retRes219015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes219115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes219015)}
 	}
 	return nil
 }
@@ -2619,11 +2617,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes220715 []any = OrdersToList(r.Value)
-	if retRes220715 == nil {
+	var retRes220615 []any = OrdersToList(r.Value)
+	if retRes220615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220615)}
 	}
 	return nil
 }
