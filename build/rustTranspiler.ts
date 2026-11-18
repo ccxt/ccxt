@@ -3798,6 +3798,29 @@ function rustIntLocalNullSinkOptionI64(content: string): string {
  * the literal was. Any other use (`&X`, `&mut`, a closure, a second binding, a write from
  * another expression) keeps `Value`.
  */
+// A `safe_dict*` / `safe_list*` read with no or an empty default, taken back with `.into_*()`, calls its typed twin
+// (`_t`: the empty container, `_o`: `None`, exactly what the conversion answered for a non-matching member).
+function rustTypedSafeContainerReads (content: string): string {
+    const empty: Record<string, RegExp> = { dict: /^Value::Map\(\{\s*let mut m = indexmap::IndexMap::new\(\);\s*m\s*\}\)$/, list: /^Value::from\(vec!\[\]\)$/ };
+    const head = /\bself(?:\.parent)?\.safe_(dict|list)(_k)?\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) {
+        const open = m.index + m[0].length;
+        const close = balancedCloseIndex (content, open);
+        const conv = content.slice (close + 1).match (/^\.into_(opt_)?(dict|list)\(\)/);
+        if (close >= content.length || conv === null || conv[2] !== m[1]) continue;
+        const args = content.slice (open, close);
+        const tail = args.lastIndexOf (', &[');
+        if (tail < 0 || balancedCloseIndex (args, tail + 4) !== args.length - 1) continue;
+        const dflt = args.slice (tail + 4, -1).trim ();
+        if (!(dflt === '' || (conv[1] === undefined && empty[m[1]].test (dflt)))) continue;
+        out += content.slice (last, open - 1) + (conv[1] === undefined ? '_t(' : '_o(') + args.slice (0, tail) + ')';
+        last = close + 1 + conv[0].length;
+        head.lastIndex = last;
+    }
+    return out + content.slice (last);
+}
+
 function rustStrLiteralLocalNativeString(content: string): string {
     const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);[ \t]*$/gm;
     const litWriteRe = /^\s*=\s*Value::Str\(("(?:[^"\\\n]|\\.)*")\.(?:into|to_string)\(\)\);/;
@@ -9787,6 +9810,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = rustIntLocalNullSinkOptionI64(rustContent);
                 rustContent = rustStrLiteralLocalNativeString(rustContent);
+                rustContent = rustTypedSafeContainerReads(rustContent);
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
@@ -10628,6 +10652,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = plainDictChains(finalFile);
         finalFile = rustIntLocalNullSinkOptionI64(finalFile);
         finalFile = rustStrLiteralLocalNativeString(finalFile);
+        finalFile = rustTypedSafeContainerReads(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)

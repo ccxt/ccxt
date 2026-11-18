@@ -894,6 +894,17 @@ impl Exchange {
         }
     }
 
+    /// Typed twins of `safe_dict*` / `safe_list*` with no or an empty default: the member when it is a map / list,
+    /// else the empty one (`_t`) or `None` (`_o`), exactly what the boxed reader's `.into_*()` answered.
+    pub fn safe_dict_k_t(&self, obj: impl crate::value::KeyRead, key: &str) -> crate::value::Dict { self.safe_dict_k_o(obj, key).unwrap_or_default() }
+    pub fn safe_dict_k_o(&self, obj: impl crate::value::KeyRead, key: &str) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value_k(obj, key, &[]) { Some(m) } else { None } }
+    pub fn safe_list_k_t(&self, obj: impl crate::value::KeyRead, key: &str) -> crate::value::List { self.safe_list_k_o(obj, key).unwrap_or_default() }
+    pub fn safe_list_k_o(&self, obj: impl crate::value::KeyRead, key: &str) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value_k(obj, key, &[]) { Some(a) } else { None } }
+    pub fn safe_dict_t(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> crate::value::Dict { self.safe_dict_o(obj, key).unwrap_or_default() }
+    pub fn safe_dict_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value(obj, key.into(), &[]) { Some(m) } else { None } }
+    pub fn safe_list_t(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> crate::value::List { self.safe_list_o(obj, key).unwrap_or_default() }
+    pub fn safe_list_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value(obj, key.into(), &[]) { Some(a) } else { None } }
+
     pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges
