@@ -2466,7 +2466,7 @@ class polymarket(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> str:
+    def sign_hash(self, hash: str, privateKey: object) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         sVal = signature['s']

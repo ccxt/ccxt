@@ -552,7 +552,7 @@ class coinbase(ccxt.async_support.coinbase):
                     self.safe_number(candle, 'close'),
                     self.safe_number(candle, 'volume'),
                 ]
-                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+                self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe)
                 if stored is None:
                     limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)

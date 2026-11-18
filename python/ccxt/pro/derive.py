@@ -58,7 +58,8 @@ class derive(ccxt.async_support.derive):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict, subscription: dict):

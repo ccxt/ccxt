@@ -1561,7 +1561,7 @@ class kucoin(ccxt.async_support.kucoin):
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
                 subscriptions = list(client.subscriptions.keys())
                 subscription = None
                 for i in range(0, len(subscriptions)):
@@ -1570,7 +1570,7 @@ class kucoin(ccxt.async_support.kucoin):
                         subscription = client.subscriptions[key]
                         break
                 limit = self.safe_integer(subscription, 'limit')
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 5))
                 if cacheLength == snapshotDelay:
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
                 (orderbook.cache).append(data)
@@ -1619,10 +1619,10 @@ class kucoin(ccxt.async_support.kucoin):
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer(data, 'C')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
                 subscription = self.safe_dict(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 5))
                 utaParams = {
                     'uta': True,
                 }

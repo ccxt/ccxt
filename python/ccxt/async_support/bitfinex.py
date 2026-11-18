@@ -2373,7 +2373,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: list, currency: Currency = None) -> Transaction:
+    def parse_transaction_row(self, transaction: list, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2676,7 +2676,11 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_transactions(response, currency, since, limit)
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_transaction_row(self.safe_list(response, i, []), currency))
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, self.safe_string(currency, 'code'), since, limit)
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
@@ -2761,7 +2765,7 @@ class bitfinex(Exchange, ImplicitAPI):
         text = self.safe_string(response, 7)
         if text != 'success':
             self.throw_broadly_matched_exception(self.exceptions['broad'], text, text)
-        return self.parse_transaction(response, currency)
+        return self.parse_transaction_row(response, currency)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """

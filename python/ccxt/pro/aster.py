@@ -1002,7 +1002,8 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         symbolValue = self.safe_symbol(symbol)
         result = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return result[symbolValue][timeframe]
+        bySymbol = result[symbolValue]
+        return bySymbol[timeframe]
 
     async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params: dict = {}) -> object:
         """

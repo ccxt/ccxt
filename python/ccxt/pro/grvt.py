@@ -382,7 +382,8 @@ class grvt(ccxt.async_support.grvt):
         symbolValue = self.symbol(symbol)
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return result[symbolValue][timeframe]
+        bySymbol = result[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """

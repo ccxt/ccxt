@@ -772,7 +772,8 @@ class deribit(ccxt.async_support.deribit):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return ohlcvs[symbolValue][timeframe]
+        bySymbol = ohlcvs[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """

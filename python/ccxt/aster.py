@@ -3114,7 +3114,7 @@ class aster(Exchange, ImplicitAPI):
             'marginMode': self.safe_string_lower(marginMode, 'marginType'),
         }
 
-    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}) -> list[MarginModification]:
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 

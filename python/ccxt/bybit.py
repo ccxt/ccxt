@@ -2939,11 +2939,13 @@ class bybit(Exchange, ImplicitAPI):
         request = {}
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            symbolMarket = self.market(symbolsNormalized[0])
-            market = symbolMarket
-            symbolsLength = len(symbolsNormalized)
-            if symbolsLength == 1:
-                request['symbol'] = symbolMarket['id']
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                symbolMarket = self.market(symbolsNormalized[0])
+                market = symbolMarket
+                symbolsLength = len(symbolsNormalized)
+                if symbolsLength == 1:
+                    request['symbol'] = symbolMarket['id']
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchFundingRates', market, params)
         if marketType != 'swap':
             raise NotSupported(self.id + ' fetchFundingRates() does not support ' + marketType + ' markets')

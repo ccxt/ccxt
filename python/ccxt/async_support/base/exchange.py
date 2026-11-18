@@ -880,7 +880,7 @@ class BaseExchange(SyncExchange):
     async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}):
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches the history of margin added or reduced from contract isolated positions
         :param str [symbol]: unified market symbol

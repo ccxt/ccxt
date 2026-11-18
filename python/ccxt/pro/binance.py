@@ -222,7 +222,8 @@ class binance(ccxt.async_support.binance):
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     def is_spot_url(self, client: Client) -> bool:
@@ -240,7 +241,8 @@ class binance(ccxt.async_support.binance):
             self.options['streamIndex'] = streamIndex
             stream = self.number_to_string(normalizedIndex)
             if subscriptionHash is not None:
-                self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
+                streamBySubscriptionsHash[subscriptionHash] = stream
+                self.options['streamBySubscriptionsHash'] = streamBySubscriptionsHash
             subscriptionsByStreams = self.safe_dict(self.options, 'numSubscriptionsByStream')
             if subscriptionsByStreams is None:
                 self.options['numSubscriptionsByStream'] = self.create_safe_dictionary()
@@ -1569,7 +1571,8 @@ class binance(ccxt.async_support.binance):
             paramsStock['stock'] = True
         paramsStock['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, paramsStock)
-        return result[symbolValue][timeframe]
+        bySymbol = result[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -2211,7 +2214,9 @@ class binance(ccxt.async_support.binance):
         firstMarket = None
         symbolsDefined = (symbolsNormalized is not None)
         if symbolsNormalized is not None:
-            firstMarket = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                firstMarket = self.market(symbolsNormalized[0])
         userDefaultType = self.safe_string(self.options, 'defaultType')
         defaultMarket = None
         if isMarkPrice and userDefaultType != 'option':

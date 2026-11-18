@@ -607,7 +607,8 @@ class backpack(ccxt.async_support.backpack):
         """
         query = await self.prepare_ws_stock_params('watchOHLCV', params)
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, query)
-        return result[symbol][timeframe]
+        bySymbol = result[symbol]
+        return bySymbol[timeframe]
 
     async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """

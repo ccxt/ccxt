@@ -7723,7 +7723,9 @@ class okx(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
         market = None
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         marketType = None
         paramsSubType = {}
         marketType, paramsSubType = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'swap')
@@ -9048,7 +9050,7 @@ class okx(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}) -> list[MarginModification]:
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 

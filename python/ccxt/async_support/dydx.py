@@ -1179,7 +1179,7 @@ class dydx(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> dict:
+    def sign_hash(self, hash: str, privateKey: object) -> dict:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = self.safe_string(signature, 'r', '')
         s = self.safe_string(signature, 's', '')

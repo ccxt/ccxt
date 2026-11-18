@@ -2545,7 +2545,9 @@ class hitbtc(Exchange, ImplicitAPI):
         market = None
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchMarginMode', market, params)
         response: dict
         if marketType == 'margin':
@@ -2749,9 +2751,11 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {}
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
-            queryMarketIds = self.market_ids(symbolsNormalized)
-            request['symbols'] = ','.join(queryMarketIds)
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
+                queryMarketIds = self.market_ids(symbolsNormalized)
+                request['symbols'] = ','.join(queryMarketIds)
         type, paramsMarketType = self.handle_market_type_and_params('fetchFundingRates', market, params)
         if type != 'swap':
             raise NotSupported(self.id + ' fetchFundingRates() does not support ' + type + ' markets')

@@ -11388,7 +11388,8 @@ class binance(Exchange, ImplicitAPI):
                 symbolsLength = len(symbolsNormalized)
                 if symbolsLength > 1:
                     raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                symbol = symbolsNormalized[0]
+                if symbolsLength == 1:
+                    symbol = symbolsNormalized[0]
             else:
                 symbol = symbolsNormalized
             market = self.market(symbol)
@@ -14014,7 +14015,9 @@ class binance(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         market = None
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         subType, paramsSubType = self.handle_sub_type_and_params('fetchMarginMode', market, params)
         response = None
         if subType == 'linear':
@@ -14235,7 +14238,7 @@ class binance(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}) -> list[MarginModification]:
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 
@@ -14708,7 +14711,9 @@ class binance(Exchange, ImplicitAPI):
         symbolsNormalized = self.market_symbols(symbols)
         market = None
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         type = 'swap'
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingIntervals', market, params, 'linear')
         response: List

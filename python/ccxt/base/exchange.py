@@ -3760,7 +3760,7 @@ class BaseExchange(object):
     def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
 
-    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}):
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches the history of margin added or reduced from contract isolated positions
         :param str [symbol]: unified market symbol
@@ -4015,14 +4015,14 @@ class BaseExchange(object):
             return methodsContainer
         if not (methodName in methodsContainer):
             return defaultValue  # unsupported method, check "exchange.features" for details');
-        methodDict = methodsContainer[methodName]
-        if methodDict is None:
-            return defaultValue
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
             if defaultValue is not None:
                 return defaultValue
-            return methodDict
+            return methodsContainer[methodName]
+        methodDict = self.safe_dict(methodsContainer, methodName)
+        if methodDict is None:
+            return defaultValue
         splited = paramName.split('.')  # can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         parentKey = splited[0]
         subKey = self.safe_string(splited, 1)
@@ -4039,7 +4039,7 @@ class BaseExchange(object):
             # throw an exception for unsupported subKey
             if not (subKey in methodDict[parentKey]):
                 return defaultValue  # unsupported subKey, check "exchange.features" for details
-            return methodDict[parentKey][subKey]
+            return self.safe_value(dictionary, subKey)
 
     def orderbook_checksum_message(self, symbol: Str):
         if symbol is None:
@@ -5210,12 +5210,10 @@ class BaseExchange(object):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
-            return symbols
+            return None
         symbolsLength = len(symbols)
-        if symbolsLength == 0:
-            if not allowEmpty:
-                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
-            return symbols
+        if (symbolsLength == 0) and not allowEmpty:
+            raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
         result = []
         marketType = None
         isLinearSubType = None

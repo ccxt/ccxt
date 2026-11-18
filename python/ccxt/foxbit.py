@@ -1805,7 +1805,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: object, currency: Currency = None, since: Int = None, limit: Int = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         cryptoDetails = self.safe_dict(transaction, 'details_crypto')
         address = self.safe_string_2(cryptoDetails, 'receiving_address', 'destination_address')
         sn = self.safe_string(transaction, 'sn')

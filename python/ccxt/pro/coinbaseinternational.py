@@ -823,7 +823,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             await self.load_markets()
         symbolResolved = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolResolved, timeframe]], since, limit, paramsResolved)
-        return ohlcvs[symbolResolved][timeframe]
+        bySymbol = ohlcvs[symbolResolved]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """

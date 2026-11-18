@@ -1696,7 +1696,9 @@ class grvt(Exchange, ImplicitAPI):
         nonMatchedResults = []
         for i in range(0, len(transfers)):
             transfer = transfers[i]
-            if (onlyMainAccount and self.safe_string(transfer, 'fromAccount') == '0' and self.safe_string(transfer, 'toAccount') == '0') or (not onlyMainAccount and (self.safe_string(transfer, 'fromAccount') != '0' or self.safe_string(transfer, 'toAccount') != '0')):
+            fromAccount = self.safe_string(transfer, 'fromAccount', '')
+            toAccount = self.safe_string(transfer, 'toAccount', '')
+            if (onlyMainAccount and fromAccount == '0' and toAccount == '0') or (not onlyMainAccount and (fromAccount != '0' or toAccount != '0')):
                 metadata = self.safe_string(self.safe_dict(transfer, 'info', {}), 'transfer_metadata')
                 parsedMetadata = self.parse_json(metadata)
                 direction = self.safe_string(parsedMetadata, 'direction')

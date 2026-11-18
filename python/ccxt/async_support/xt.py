@@ -1771,7 +1771,9 @@ class xt(Exchange, ImplicitAPI):
         market = None
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         request = {}
         response = None
         type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -1856,7 +1858,9 @@ class xt(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         type, paramsMarketType = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchBidsAsks', market, paramsMarketType)
         isInverse = (subType == 'inverse')
