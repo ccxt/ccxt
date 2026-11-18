@@ -249,10 +249,7 @@ impl Modetrade {
 
     pub fn request_id(&self, url: &str) -> i64 {
         let mut url: Value = url.into();
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "requestId");
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), Value::from(newValue)); } }
@@ -261,14 +258,8 @@ impl Modetrade {
 
     pub async fn watch_public(&mut self, messageHash: &str, message: impl Into<crate::Value>) -> Value {
         let mut message: Value = message.into();
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPublic() has no public websocket url")));
@@ -977,14 +968,8 @@ impl Modetrade {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " authenticate() has no private websocket url")));
@@ -1030,14 +1015,8 @@ impl Modetrade {
     m
 }));
         self.authenticate(&[params]).await;
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPrivate() has no private websocket url")));
@@ -1062,14 +1041,8 @@ impl Modetrade {
     m
 }));
         self.authenticate(&[params]).await;
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPrivateMultiple() has no private websocket url")));
@@ -1406,17 +1379,14 @@ impl Modetrade {
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-            let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut orders: crate::value::Dict = self.safe_dict_t(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
             let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
             if (order.is_some()) {
                 let mut fee: Value = self.safe_value_k(&order, "fee", &[]);
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                let mut fees: Option<crate::value::List> = self.safe_list_k_o(&order, "fees");
                 if (fees.is_some()) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
@@ -1518,14 +1488,8 @@ impl Modetrade {
         }  else {
             messageHashes.push(Value::Str("positions".into()));
         }
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPositions() has no private websocket url")));
@@ -1631,7 +1595,7 @@ impl Modetrade {
         //    }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
+        let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -1641,7 +1605,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_504: bool = true;
             while { if !__for_first_504 { i += 1; } __for_first_504 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: crate::value::Dict = self.safe_dict(&rawPositions, Value::Int(i), &[]).into_dict();
+            let mut rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut position: crate::value::Dict = self.parse_ws_position(&rawPosition, Some(&market)).into_dict();
@@ -1799,10 +1763,7 @@ impl Modetrade {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut balances: crate::value::Dict = self.safe_dict_k(&data, "balances", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut balances: crate::value::Dict = self.safe_dict_k_t(&data, "balances");
         let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut ts: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
@@ -1813,7 +1774,7 @@ impl Modetrade {
             let mut __for_first_505: bool = true;
             while { if !__for_first_505 { i += 1; } __for_first_505 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut value: crate::value::Dict = self.safe_dict(&balances, Value::from(key.as_deref()), &[]).into_dict();
+            let mut value: crate::value::Dict = self.safe_dict_t(&balances, Value::from(key.as_deref()));
             let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut total: Option<String> = self.safe_string_k_opt(&value, "holding", &[]);

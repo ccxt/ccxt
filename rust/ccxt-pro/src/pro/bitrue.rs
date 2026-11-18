@@ -353,7 +353,7 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_138: bool = true;
             while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(balances.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "a", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -648,8 +648,8 @@ impl Bitrue {
         let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
         let mut parseable: Value = Value::from(&tick);
         if isFutures {
-            let mut rawAsks: crate::value::List = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]).into_list();
-            let mut rawBuys: crate::value::List = self.safe_list_k(&tick, "buys", &[Value::from(vec![])]).into_list();
+            let mut rawAsks: crate::value::List = self.safe_list_k_t(&tick, "asks");
+            let mut rawBuys: crate::value::List = self.safe_list_k_t(&tick, "buys");
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asks".to_string(), self.parse_contract_bids_asks(&rawAsks, symbol.as_deref().unwrap_or_default()));
@@ -705,7 +705,7 @@ impl Bitrue {
                         let mut i: i64 = 0;
             let mut __for_first_140: bool = true;
             while { if !__for_first_140 { i += 1; } __for_first_140 = false; i < (bidsAsks.len() as i64) } {
-            let mut level: crate::value::List = self.safe_list(bidsAsks.clone(), Value::Int(i), &[]).into_list();
+            let mut level: crate::value::List = self.safe_list_t(bidsAsks.clone(), Value::Int(i));
             let mut price: Option<f64> = self.safe_number(&level, Value::Int(0), &[]).as_f64();
             let mut rawAmount: Option<f64> = self.safe_number(&level, Value::Int(1), &[]).as_f64();
             let mut amount: Value = self.convert_from_raw_quantity(symbol, Value::from(rawAmount));
@@ -928,7 +928,7 @@ if _try_result.is_err() {
             return;
         }
         let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&tick, "data");
         let mut appended: bool = false;
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         {
@@ -1012,10 +1012,7 @@ if _try_result.is_err() {
         if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOHLCV is only supported for swap markets")));
         }
-        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "futuresTimeframes");
         let mut interval: Option<String> = self.safe_string_opt(&futuresTimeframes, timeframe.clone(), &[]);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV does not support timeframe ").into()), timeframe)));
@@ -1082,10 +1079,7 @@ if _try_result.is_err() {
         if (!(market).swap) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchOHLCV is only supported for swap markets")));
         }
-        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "futuresTimeframes");
         let mut interval: Option<String> = self.safe_string_opt(&futuresTimeframes, timeframe.clone(), &[]);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unWatchOHLCV does not support timeframe ").into()), timeframe)));
@@ -1136,10 +1130,7 @@ if _try_result.is_err() {
             return;
         }
         let mut wsInterval: Option<String> = self.safe_string_opt(&parts, Value::Int(4), &[]);
-        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "futuresTimeframes");
         let mut timeframe: Option<String> = self.find_timeframe(wsInterval.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(futuresTimeframes)]);
         if (timeframe.is_none()) {
             return;
@@ -1429,19 +1420,13 @@ if _try_result.is_err() {
                 //         }
                 //     }
                 //
-                let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                 let mut key: Option<String> = self.safe_string_k_opt(&data, "listenKey", &[]);
                 if (key.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty listenKey")));
                 }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), key.clone().map(Value::from).unwrap_or(Value::Null)); }
-                let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
                 let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
                 if (wsUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " authenticate() has no private websocket url")));

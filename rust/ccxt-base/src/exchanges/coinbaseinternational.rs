@@ -75,10 +75,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
-        let mut stats: crate::value::Dict = self.safe_dict_k(ticker.clone(), "stats", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut stats: crate::value::Dict = self.safe_dict_k_t(ticker.clone(), "stats");
         let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "last_price", &[]).as_f64();
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "instrument_name", &[]);
         let mut quoteVolume: Option<f64> = self.safe_number_k(&stats, "volume_notional", &[]).as_f64();
@@ -665,10 +662,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //
         let mut transactionTimestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
-        let mut info: crate::value::Dict = self.safe_dict_k(transfer.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut info: crate::value::Dict = self.safe_dict_k_t(transfer.clone(), "info");
         let mut amount: Option<f64> = self.safe_number_k(transfer.clone(), "change", &[]).as_f64();
         let mut fromAccount: Option<String> = self.safe_string_k_opt(transfer.clone(), "username", &[]);
         let mut toAccount: Option<String> = self.safe_string_k_opt(&info, "other_user", &[]);
@@ -728,7 +722,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[decimals.map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64();
         let mut networkFee: Option<f64> = self.safe_number_k(currency.clone(), "network_fee", &[]).as_f64();
         let mut withdrawalFee: Option<f64> = self.safe_number_k(currency.clone(), "withdrawal_fee", &[]).as_f64();
-        let mut rawNetworks: crate::value::List = self.safe_list_k(currency.clone(), "coinbase_networks", &[Value::from(vec![])]).into_list();
+        let mut rawNetworks: crate::value::List = self.safe_list_k_t(currency.clone(), "coinbase_networks");
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -856,10 +850,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //     }
         //
         let mut transactionTimestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
-        let mut info: crate::value::Dict = self.safe_dict_k(transaction.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut info: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "info");
         let mut transactionType: Option<String> = self.safe_string_k_opt(transaction.clone(), "type", &[]);
         let mut transactionId: Option<String> = self.safe_string_k_opt(transaction.clone(), "id", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
@@ -1042,7 +1033,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
+        let mut error: Option<crate::value::Dict> = self.safe_dict_k_o(response, "error");
         if (error.is_none()) {
             return Value::Null;
         }
@@ -2271,7 +2262,7 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut instruments: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut instruments: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_markets(&instruments);
         Value::Null
         }).await?))
@@ -2333,7 +2324,7 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut currencies: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut currencies: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
@@ -2387,10 +2378,7 @@ impl Coinbaseinternational {
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut marketInfo: crate::value::Dict = self.safe_dict_k(&market, "info", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut marketInfo: crate::value::Dict = self.safe_dict_k_t(&market, "info");
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!(self.safe_bool2(&marketInfo, Value::Str("is_cbe_routed".into()), Value::Str("is_csr".into()), &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")));
         }
@@ -2438,10 +2426,7 @@ impl Coinbaseinternational {
         //         "jsonrpc": "2.0"
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut candles: Value = self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
         return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -2540,7 +2525,7 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut rawRates: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut rawRates: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_funding_rate_histories(&rawRates, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -2665,10 +2650,7 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut ticker: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut ticker: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -2776,10 +2758,7 @@ impl Coinbaseinternational {
         //         "testnet": false
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
         return self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
@@ -3070,13 +3049,10 @@ impl Coinbaseinternational {
         //     }
         // }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
-            let mut summaries: Option<crate::value::List> = self.safe_list_k(&result, "summaries", &[]).into_opt_list();
+            let mut summaries: Option<crate::value::List> = self.safe_list_k_o(&result, "summaries");
             if (summaries.is_some()) {
                 return self.parse_balance_list(&summaries);
             }
@@ -3104,7 +3080,7 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (summaries.len() as i64) } {
-            let mut data: crate::value::Dict = self.safe_dict(summaries.clone(), Value::Int(i), &[]).into_dict();
+            let mut data: crate::value::Dict = self.safe_dict_t(summaries.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3220,11 +3196,8 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut transfers: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let mut transfers: crate::value::List = self.safe_list_k_t(&result, "logs");
         return self.parse_transfers(&transfers, Some(&currency), &[since, limit]);
         Value::Null
         }).await?))
@@ -3293,10 +3266,7 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut position: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut position: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_position(self, &position, Some(&market));
         Value::Null
         }).await?))
@@ -3363,7 +3333,7 @@ impl Coinbaseinternational {
         //         ]
         //     }
         //
-        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return self.parse_positions(&result, &[]);
         }
@@ -3470,11 +3440,8 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut logs: crate::value::List = self.safe_list_k(&result, "logs", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let mut logs: crate::value::List = self.safe_list_k_t(&result, "logs");
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) {
             return self.parse_transactions(Value::Arr(logs.clone()), Some(&currency), &[since.clone(), limit.clone()]);
         }
@@ -3789,15 +3756,12 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut order: indexmap::IndexMap<String, Value> = self.safe_dict_k(&result, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
         order.insert("trades".into(), Value::Arr(trades));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Value::Map(order), Some(&market));
         Value::Null
@@ -3913,10 +3877,7 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut order: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, market.as_ref());
         Value::Null
         }).await?))
@@ -4095,15 +4056,12 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut order: indexmap::IndexMap<String, Value> = self.safe_dict_k(&result, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
         order.insert("trades".into(), Value::Arr(trades));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Value::Map(order), Some(&market));
         Value::Null
@@ -4177,10 +4135,7 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut order: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, market.as_ref());
         Value::Null
         }).await?))
@@ -4273,7 +4228,7 @@ impl Coinbaseinternational {
         //         ]
         //     }
         //
-        let mut rawOrders: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut rawOrders: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_orders(&rawOrders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -4410,11 +4365,8 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut trades: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -4471,10 +4423,7 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &result, Some(&market));
         Value::Null
         }).await?))
@@ -4651,10 +4600,7 @@ impl Coinbaseinternational {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut accessToken: Option<String> = self.safe_string_k_opt(&result, "access_token", &[]);
         let mut expiresIn: Option<i64> = self.safe_integer_k(&result, "expires_in", &[]).as_i64();
         if (accessToken.is_none()) {

@@ -309,7 +309,7 @@ impl Blofin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut trades: Value = self.watch_multiple_wrapper(true, "trades", "watchTradesForSymbols", &[symbols, params]).await;
-        let mut firstMarket: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstMarket: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
         let mut firstSymbol: Option<String> = self.safe_string_k_opt(&firstMarket, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -397,10 +397,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut rawTrade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, None).into_dict();
             let mut symbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -532,8 +529,8 @@ impl Blofin {
             std::sync::Arc::make_mut(&mut orderBookSnapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqId", &[]));
             orderbook.reset(Value::Dict(orderBookSnapshot));
         }  else {
-            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
-            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
+            let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
             self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[]);
             self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -688,10 +685,7 @@ impl Blofin {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), Some(&firstMarket), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let mut url: Option<String> = self.safe_string_k_opt(&typeUrls, "public", &[]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
@@ -796,10 +790,7 @@ impl Blofin {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolResult: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(result), symbol, &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut symbolResult: crate::value::Dict = self.safe_dict_t(crate::types::IntoRaw::into_raw(result), symbol);
         return self.safe_list(&symbolResult, timeframe, &[Value::from(vec![])]);
         Value::Null
         }).await?))
@@ -942,7 +933,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_173: bool = true;
             while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (data.len() as i64) } {
-            let mut candle: Option<crate::value::List> = self.safe_list(&data, Value::Int(i), &[]).into_opt_list();
+            let mut candle: Option<crate::value::List> = self.safe_list_o(&data, Value::Int(i));
             let mut parsed: crate::value::List = self.parse_ohlcv(candle.map_or(Value::Null, Value::Arr), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
@@ -987,10 +978,7 @@ impl Blofin {
             m
         });
         let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)])).into_dict();
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let mut url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
         let __ws_arg_1 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
@@ -1117,7 +1105,7 @@ impl Blofin {
             channel = "orders-algo".to_string();
         }
         let mut orders: Value = self.watch_multiple_wrapper(false, channel.as_str(), "watchOrdersForSymbols", &[symbols, Value::Dict(paramsOmitted)]).await;
-        let mut first: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1286,10 +1274,7 @@ impl Blofin {
             m
         });
         let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(requestParams)])).into_dict();
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let mut url: Option<String> = self.safe_string_k_opt(&typeUrls, "public", &[]);
         let __ws_arg_2 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
@@ -1316,10 +1301,7 @@ impl Blofin {
         //     }
         //
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut first: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
         let mut symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
@@ -1407,10 +1389,7 @@ impl Blofin {
         if (isPublic.as_bool() == Some(true)) {
             privateOrPublic = "public".to_string();
         }
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let mut url: Option<String> = self.safe_string_opt(&typeUrls, Value::from(privateOrPublic), &[]);
         let __ws_arg_3 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_3, &messageHashes, Value::Null).await;
@@ -1622,10 +1601,7 @@ impl Blofin {
             m
         });
         let mut marketType: String = "swap".to_string(); // for now
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(marketType), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(marketType));
         let mut url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
         let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
         self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;

@@ -208,14 +208,8 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".detail");
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -319,14 +313,8 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".trade.detail");
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -387,7 +375,7 @@ impl Bittrade {
         //     }
         //
         let mut tick: crate::value::Dict = __pro_message.get("tick").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&tick, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&tick, "data");
         let mut ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
             return message;
@@ -450,14 +438,8 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".kline.").into()), interval.as_deref().unwrap_or("null"));
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -571,14 +553,8 @@ impl Bittrade {
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".mbp.150");
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+        let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -671,14 +647,8 @@ impl Bittrade {
             let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[]).as_i64();
             let mut params: indexmap::IndexMap<String, Value> = self.safe_dict_k(subscription, "params", &[]).as_map().cloned().unwrap_or_default();
             let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
-            let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut wsUrls: crate::value::Dict = self.safe_dict_k(&apiUrls, "ws", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
+            let mut wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
             let mut apiWsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(api), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -757,8 +727,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
         if (nonce.is_some()) && ((prevSeqNum.is_some() && nonce.is_some() && prevSeqNum <= nonce)) && ((seqNum.is_some() && nonce.is_some() && seqNum > nonce)) {
-            let mut asks: crate::value::List = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]).into_list();
-            let mut bids: crate::value::List = self.safe_list_k(&tick, "bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k_t(&tick, "asks");
+            let mut bids: crate::value::List = self.safe_list_k_t(&tick, "bids");
             self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "bids")), Value::Arr(bids));
             add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(seqNum));
@@ -852,7 +822,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return message;
         }
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
-        let mut subscription: Option<crate::value::Dict> = self.safe_dict(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null));
         if (subscription.is_some()) {
             let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
@@ -959,7 +929,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return Value::Bool(false);
             }
             let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
-            let mut subscription: Option<crate::value::Dict> = self.safe_dict(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null));
             if (subscription.is_some()) {
                 let mut errorCode: Option<String> = (match __pro_message.get("err-code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let mut errorMessage: Option<String> = (match __pro_message.get("err-msg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

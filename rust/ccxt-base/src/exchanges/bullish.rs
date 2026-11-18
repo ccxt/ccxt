@@ -952,18 +952,15 @@ impl crate::exchange::DerivedExchange for Bullish {
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "createdAtDateTime", &[]));
         let mut updated: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "updatedAtDateTime", &[]));
         let mut network: Option<String> = self.safe_string_k_opt(transaction.clone(), "network", &[]);
-        let mut transactionDetails: crate::value::Dict = self.safe_dict_k(transaction.clone(), "transactionDetails", &[]).into_dict();
+        let mut transactionDetails: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "transactionDetails");
         let mut txid: Option<String> = self.safe_string_k_opt(&transactionDetails, "blockchainTxId", &[]);
         let mut address: Option<String> = self.safe_string_k_opt(&transactionDetails, "address", &[]);
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "quantity", &[]).as_f64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "symbol", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
-        let mut sources: crate::value::List = self.safe_list_k(&transactionDetails, "sources", &[Value::from(vec![])]).into_list();
-        let mut source: crate::value::Dict = self.safe_dict(&sources, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut sources: crate::value::List = self.safe_list_k_t(&transactionDetails, "sources");
+        let mut source: crate::value::Dict = self.safe_dict_t(&sources, Value::Int(0));
         let mut sourceAddress: Option<String> = self.safe_string_k_opt(&source, "address", &[]);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3338,7 +3335,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "totalCount": 1
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
@@ -3447,7 +3444,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_496: bool = true;
                 while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (accounts.len() as i64) } {
-                let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
+                let mut account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
                 let mut name: Option<String> = self.safe_string_k_opt(&account, "tradingAccountName", &[]);
                 if (name.as_deref() == Some("Primary Account")) {
                     tradingAccountId = self.safe_string_k_opt(&account, "tradingAccountId", &[]);
@@ -3554,10 +3551,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_497: bool = true;
                     while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (safeResponse.len() as i64) } {
-                    let mut entry: crate::value::Dict = self.safe_dict(&safeResponse, Value::Int(i), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+                    let mut entry: crate::value::Dict = self.safe_dict_t(&safeResponse, Value::Int(i));
                     let mut networkId: Option<String> = self.safe_string_k_opt(&entry, "network", &[]);
                     let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
                     if (network == networkCode) {
@@ -3653,7 +3647,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_498: bool = true;
             while { if !__for_first_498 { i += 1; } __for_first_498 = false; i < (rows.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut symbol: Option<String> = self.safe_string_k_opt(&balance, "assetSymbol", &[]);
             let mut code: Option<String> = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3831,10 +3825,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "requestId": "633909659774222336"
         //     }
         //
-        let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut transferOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "transfer");
         let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         let mut transfer: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency)).into_dict();
         if fillResponseFromRequest {

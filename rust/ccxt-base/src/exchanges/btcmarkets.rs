@@ -403,10 +403,7 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         if (type_var.as_deref() == Some("withdraw")) {
             type_var = Some("withdrawal".to_string());
         }
-        let mut cryptoPaymentDetail: crate::value::Dict = self.safe_dict_k(transaction.clone(), "paymentDetail", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut cryptoPaymentDetail: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "paymentDetail");
         let mut txid: Option<String> = self.safe_string_k_opt(&cryptoPaymentDetail, "txId", &[]);
         let mut addressRaw: Option<String> = self.safe_string_k_opt(&cryptoPaymentDetail, "address", &[]);
         let mut address: Option<String> = None;
@@ -1308,7 +1305,7 @@ impl Btcmarkets {
                         let mut i: i64 = 0;
             let mut __for_first_474: bool = true;
             while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (response.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(response.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "assetName", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1711,8 +1708,8 @@ impl Btcmarkets {
         //        ]
         //    }
         //
-        let mut cancelOrders: crate::value::List = self.safe_list_k(&response, "cancelOrders", &[Value::from(vec![])]).into_list();
-        let mut unprocessedRequests: crate::value::List = self.safe_list_k(&response, "unprocessedRequests", &[Value::from(vec![])]).into_list();
+        let mut cancelOrders: crate::value::List = self.safe_list_k_t(&response, "cancelOrders");
+        let mut unprocessedRequests: crate::value::List = self.safe_list_k_t(&response, "unprocessedRequests");
         let mut orders: crate::value::List = self.array_concat(&cancelOrders, &unprocessedRequests).into_list();
         return self.parse_orders(&orders, None, &[]);
         Value::Null

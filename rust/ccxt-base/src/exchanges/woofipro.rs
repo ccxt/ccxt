@@ -237,18 +237,18 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut average: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".into()), Value::Str("averageExecutedPrice".into()), &[]));
         let mut fee: Value = self.safe_value2(order.clone(), Value::Str("total_fee".into()), Value::Str("totalFee".into()), &[]);
         let mut feeCurrency: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("fee_asset".into()), Value::Str("feeAsset".into()), &[]);
-        let mut transactions: Option<crate::value::List> = self.safe_list_k(order.clone(), "Transactions", &[]).into_opt_list();
+        let mut transactions: Option<crate::value::List> = self.safe_list_k_o(order.clone(), "Transactions");
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = None;
         let mut stopLossPrice: Option<f64> = None;
-        let mut childOrders: Option<crate::value::List> = self.safe_list_k(order.clone(), "childOrders", &[]).into_opt_list();
+        let mut childOrders: Option<crate::value::List> = self.safe_list_k_o(order.clone(), "childOrders");
         if (childOrders.is_some()) {
-            let mut first: crate::value::Dict = self.safe_dict(&childOrders, Value::Int(0), &[]).into_dict();
-            let mut innerChildOrders: crate::value::List = self.safe_list_k(&first, "childOrders", &[Value::from(vec![])]).into_list();
+            let mut first: crate::value::Dict = self.safe_dict_t(&childOrders, Value::Int(0));
+            let mut innerChildOrders: crate::value::List = self.safe_list_k_t(&first, "childOrders");
             let mut innerChildOrdersLength: i64 = innerChildOrders.len() as i64;
             if innerChildOrdersLength > 0 {
-                let mut takeProfitOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(0), &[]).into_dict();
-                let mut stopLossOrder: crate::value::Dict = self.safe_dict(&innerChildOrders, Value::Int(1), &[]).into_dict();
+                let mut takeProfitOrder: crate::value::Dict = self.safe_dict_t(&innerChildOrders, Value::Int(0));
+                let mut stopLossOrder: crate::value::Dict = self.safe_dict_t(&innerChildOrders, Value::Int(1));
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]).as_f64();
                 stopLossPrice = self.safe_number_k(&stopLossOrder, "triggerPrice", &[]).as_f64();
             }
@@ -414,12 +414,12 @@ impl crate::exchange::DerivedExchange for Woofipro {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: crate::value::List = self.safe_list_k(response, "holding", &[Value::from(vec![])]).into_list();
+        let mut balances: crate::value::List = self.safe_list_k_t(response, "holding");
         {
                         let mut i: i64 = 0;
             let mut __for_first_1185: bool = true;
             while { if !__for_first_1185 { i += 1; } __for_first_1185 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -591,7 +591,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let rawCurrency = rawCurrency.as_map().unwrap_or(&__rawCurrency_empty);
         let mut token: crate::value::Dict = rawCurrency.get("_token").cloned().unwrap_or_default().into_dict();
         let mut currencyId: Option<String> = self.safe_string_k_opt(&token, "token", &[]);
-        let mut networks: crate::value::List = self.safe_list_k(&token, "chain_details", &[Value::from(vec![])]).into_list();
+        let mut networks: crate::value::List = self.safe_list_k_t(&token, "chain_details");
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut indexedChains: crate::value::Dict = rawCurrency.get("_indexedChains").cloned().unwrap_or_default().into_dict();
         let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
@@ -604,7 +604,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
             while { if !__for_first_1179 { j += 1; } __for_first_1179 = false; j < (networks.len() as i64) } {
             let mut networkEntry: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "chain_id", &[]);
-            let mut networkRow: Option<crate::value::Dict> = self.safe_dict(&indexedChains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut networkRow: Option<crate::value::Dict> = self.safe_dict_o(&indexedChains, networkId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut networkName: Option<String> = self.safe_string_k_opt(&networkRow, "name", &[networkId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkName.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode.is_some()) {
@@ -881,7 +881,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
                 if !isSandboxMode {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]);
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: crate::value::List = self.safe_list_k(&requestParams, "orders", &[Value::from(vec![])]).into_list();
+                        let mut ordersList: crate::value::List = self.safe_list_k_t(&requestParams, "orders");
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_1186: bool = true;
@@ -2258,10 +2258,7 @@ impl Woofipro {
         //         "timestamp": "1709274106602"
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut status: Option<String> = self.safe_string_k_opt(&data, "status", &[]);
         if (status.is_none()) {
             status = Some("error".to_string());
@@ -2362,11 +2359,8 @@ impl Woofipro {
         //     }
         //   }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_markets(&rows);
         Value::Null
         }).await?))
@@ -2422,16 +2416,10 @@ impl Woofipro {
         let tokenResponsechainResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenPromise), Value::Dict(chainPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut tokenResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut chainResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut tokenData: crate::value::Dict = self.safe_dict_k(&tokenResponse, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut tokenRows: crate::value::List = self.safe_list_k(&tokenData, "rows", &[Value::from(vec![])]).into_list();
-        let mut chainData: crate::value::Dict = self.safe_dict_k(&chainResponse, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut chainRows: crate::value::List = self.safe_list_k(&chainData, "rows", &[Value::from(vec![])]).into_list();
+        let mut tokenData: crate::value::Dict = self.safe_dict_k_t(&tokenResponse, "data");
+        let mut tokenRows: crate::value::List = self.safe_list_k_t(&tokenData, "rows");
+        let mut chainData: crate::value::Dict = self.safe_dict_k_t(&chainResponse, "data");
+        let mut chainRows: crate::value::List = self.safe_list_k_t(&chainData, "rows");
         let mut indexedChains: crate::value::Dict = self.index_by(Value::Arr(chainRows), Value::Str("chain_id".into())).into_dict();
         {
                         let mut i: i64 = 0;
@@ -2530,11 +2518,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_trades(&rows, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2626,10 +2611,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -2677,11 +2659,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_funding_rates(&rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2800,11 +2779,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -2926,11 +2902,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -3027,11 +3000,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut result: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut result: crate::value::List = self.safe_list_k_t(&data, "rows");
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3137,11 +3107,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_incomes(&rows, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))
@@ -3196,10 +3163,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut maker: Option<String> = self.safe_string_k_opt(&data, "futures_maker_fee_rate", &[]);
         let mut taker: Option<String> = self.safe_string_k_opt(&data, "futures_taker_fee_rate", &[]);
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -3282,10 +3246,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         return self.parse_order_book(&data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         Value::Null
@@ -3334,10 +3295,7 @@ impl Woofipro {
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v1_private_get_kline(&[__ws_arg_7]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         //
         // {
         //     "success": true,
@@ -3358,7 +3316,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -3452,12 +3410,12 @@ impl Woofipro {
             m
         });
         let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "stopLoss");
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "takeProfit");
         let mut hasStopLoss: bool = (stopLoss.is_some());
         let mut hasTakeProfit: bool = (takeProfit.is_some());
         let mut algoType: Option<String> = self.safe_string_k_opt(params.clone(), "algoType", &[]);
-        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(params.clone(), "childOrders", &[]).into_opt_list();
+        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k_o(params.clone(), "childOrders");
         let mut isConditional: bool = ((((triggerPrice.is_some()) || hasStopLoss) || hasTakeProfit) || (paramsChildOrders.is_some()));
         let mut isMarket: bool = orderType.as_deref() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k_opt(params.clone(), "timeInForce", &[]);
@@ -3582,9 +3540,9 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone()]).into_dict();
         let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
-        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(params, "childOrders", &[]).into_opt_list();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "stopLoss");
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "takeProfit");
+        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k_o(params, "childOrders");
         let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss.is_some()) || (takeProfit.is_some()) || (paramsChildOrders.is_some());
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
@@ -3632,20 +3590,17 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1184: bool = true;
             while { if !__for_first_1184 { i += 1; } __for_first_1184 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
-            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let mut triggerPrice: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&orderParams, "stopLoss", &[]).into_opt_dict();
-            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&orderParams, "takeProfit", &[]).into_opt_dict();
-            let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(&orderParams, "childOrders", &[]).into_opt_list();
+            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(&orderParams, "stopLoss");
+            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(&orderParams, "takeProfit");
+            let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k_o(&orderParams, "childOrders");
             let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss.is_some()) || (takeProfit.is_some()) || (paramsChildOrders.is_some());
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrders() only support non-stop order")));
@@ -3678,11 +3633,8 @@ impl Woofipro {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_orders(&rows, None, &[]);
         Value::Null
         }).await?))
@@ -3735,7 +3687,7 @@ impl Woofipro {
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(params.clone(), "childOrders", &[]).into_opt_list();
+        let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k_o(params.clone(), "childOrders");
         let mut isConditional: bool = (triggerPrice.is_some()) || (paramsChildOrders.is_some());
         let mut orderQtyKey: String = (if isConditional { "quantity".to_string() } else { "order_quantity".to_string() });
         let mut priceKey: String = (if isConditional { "price".to_string() } else { "order_price".to_string() });
@@ -3900,10 +3852,7 @@ impl Woofipro {
             let __ws_arg_15 = <Self as crate::exchange::DerivedExchange>::parse_order(self, parsedResponse, None);
             return self.extend(__ws_arg_15, &[Value::Map(extendParams.clone())]);
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let __ws_arg_16 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
         return self.extend(__ws_arg_16, &[Value::Map(extendParams)]);
         Value::Null
@@ -4224,7 +4173,7 @@ impl Woofipro {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]).into_dict();
-        let mut orders: Option<crate::value::List> = self.safe_list_k(&data, "rows", &[]).into_opt_list();
+        let mut orders: Option<crate::value::List> = self.safe_list_k_o(&data, "rows");
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -4377,11 +4326,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut trades: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut trades: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_trades(&trades, market.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
@@ -4470,11 +4416,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut trades: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut trades: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
@@ -4518,10 +4461,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data);
         Value::Null
         }).await?))
@@ -4585,11 +4525,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return Value::Arr(rows);
 
     Value::Null
@@ -4780,10 +4717,7 @@ impl Woofipro {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.safe_number_k(&data, "withdraw_nonce", &[]);
 
     Value::Null
@@ -4846,14 +4780,8 @@ impl Woofipro {
         let mut currency: crate::types::Currency = self.currency(Value::from(codeUpper.clone()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k_opt(self.options.clone(), "verifyingContractAddress", &[]);
         let mut chainId: Option<String> = self.safe_string_k_opt(params.clone(), "chainId", &[]);
-        let mut currencyNetworks: crate::value::Dict = self.safe_dict_k(&currency, "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut coinNetwork: crate::value::Dict = self.safe_dict(&currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut currencyNetworks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
+        let mut coinNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null));
         let mut coinNetworkId: Option<f64> = self.safe_number_k(&coinNetwork, "id", &[]).as_f64();
         if (coinNetworkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " withdraw() require chainId parameter")));
@@ -4941,10 +4869,7 @@ impl Woofipro {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency));
         Value::Null
         }).await?))
@@ -4988,11 +4913,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
         return self.parse_margin_modes(&rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]);
         Value::Null
         }).await?))
@@ -5023,7 +4945,7 @@ impl Woofipro {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginModes: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginMode: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(marginModes), Value::from((market).symbol.clone()), &[]).into_opt_dict();
+        let mut marginMode: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(marginModes), Value::from((market).symbol.clone()));
         if (marginMode.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchMarginMode() did not return a margin mode for ").into()), Value::from((market).symbol.clone()))));
         }
@@ -5232,10 +5154,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -5338,10 +5257,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_position(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -5409,11 +5325,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut positions: crate::value::List = self.safe_list_k(&result, "rows", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut positions: crate::value::List = self.safe_list_k_t(&result, "rows");
         return self.parse_positions(&positions, &[symbols]);
         Value::Null
         }).await?))

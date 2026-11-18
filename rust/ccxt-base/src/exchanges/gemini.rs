@@ -95,10 +95,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         //         "ask":"9115.87"
         //     }
         //
-        let mut volume: crate::value::Dict = self.safe_dict_k(ticker.clone(), "volume", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut volume: crate::value::Dict = self.safe_dict_k_t(ticker.clone(), "volume");
         let mut timestamp: Option<i64> = self.safe_integer_k(&volume, "timestamp", &[]).as_i64();
         let mut symbol: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_lower_k_opt(ticker.clone(), "pair", &[]);
@@ -108,7 +105,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         let mut base: Option<String> = None;
         let mut quote: Option<String> = None;
         if (marketId.is_some()) && (false) {
-            let mut idLength: i64 = (((marketId.as_deref().unwrap_or_default().chars().count() as i64)) - 0);
+            let mut idLength: i64 = (marketId.as_deref().unwrap_or_default().chars().count() as i64);
             if (idLength == 7) {
                 baseId = (if let Some(__s) = marketId.as_deref() { Some(__s.chars().skip(0).take(4).collect::<String>()) } else { None });
                 quoteId = (if let Some(__s) = marketId.as_deref() { Some(__s.chars().skip(4).take(3).collect::<String>()) } else { None });
@@ -357,7 +354,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "client_order_id", &[]);
-        let mut optionsArray: crate::value::List = self.safe_list_k(order.clone(), "options", &[Value::from(vec![])]).into_list();
+        let mut optionsArray: crate::value::List = self.safe_list_k_t(order.clone(), "options");
         let mut option: Option<String> = self.safe_string_opt(&optionsArray, Value::Int(0), &[]);
         let mut timeInForce: String = "GTC".to_string();
         let mut postOnly: bool = false;
@@ -469,10 +466,7 @@ impl crate::exchange::DerivedExchange for Gemini {
             let mut marketIdUpper: Option<String> = marketId.as_str().map(str::to_uppercase);
             let mut isPerp: bool = marketIdUpper.as_deref().unwrap_or_default().contains("PERP");
             let mut marketIdWithoutPerp: Option<String> = (if let Some(__s) = marketIdUpper.as_deref() { Some(__s.replace("PERP", "")) } else { None });
-            let mut conflictingMarkets: crate::value::Dict = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut conflictingMarkets: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "conflictingMarkets");
             let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_deref().map(str::to_lowercase);
             if (matches!(lowerCaseId.as_deref(), Some(__k) if conflictingMarkets.contains_key(__k))) {
                 let mut conflictingMarket: crate::value::Dict = crate::value::KeyRead::read(&&conflictingMarkets, &Value::from(lowerCaseId.as_deref())).into_dict();
@@ -1945,7 +1939,7 @@ impl Gemini {
         //    }
         //
         { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingPairs".into(), __be_tmp); } }
-        let mut currenciesArray: crate::value::List = self.safe_list_k(data, "currencies", &[Value::from(vec![])]).into_list();
+        let mut currenciesArray: crate::value::List = self.safe_list_k_t(data, "currencies");
         return self.parse_currencies(&currenciesArray);
 
     Value::Null
@@ -2143,7 +2137,7 @@ impl Gemini {
         if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test"))) {
             return Value::from(vec![]);
         }
-        let mut fetchUsdtMarkets: crate::value::List = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::from(vec![])]).into_list();
+        let mut fetchUsdtMarkets: crate::value::List = self.safe_list_k_t(self.options.clone(), "fetchUsdtMarkets");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2183,11 +2177,8 @@ impl Gemini {
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchMarketsFromAPI", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut brokenPairs: crate::value::List = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]).into_list();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchMarketsFromAPI");
+        let mut brokenPairs: crate::value::List = self.safe_list_k_t(self.options.clone(), "brokenPairs");
         let mut marketIds: Vec<Value> = Vec::new();
         let mut allMarketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketIdsRaw.is_some()) {
@@ -2231,7 +2222,7 @@ impl Gemini {
             }
         }  else {
             // use trading-pairs info, if it was fetched
-            let mut tradingPairs: Option<crate::value::List> = self.safe_list_k(self.options.clone(), "tradingPairs", &[]).into_opt_list();
+            let mut tradingPairs: Option<crate::value::List> = self.safe_list_k_o(self.options.clone(), "tradingPairs");
             if (tradingPairs.is_some()) {
                 let mut indexedTradingPairs: crate::value::Dict = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0)).into_dict();
                 {
@@ -2239,7 +2230,7 @@ impl Gemini {
                     let mut __for_first_718: bool = true;
                     while { if !__for_first_718 { i += 1; } __for_first_718 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-                    let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
+                    let mut pairInfo: Option<crate::value::List> = self.safe_list_o(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
                     if (pairInfo.is_some()) && !self.in_array(Value::from(marketId.as_deref()), Value::from(&brokenPairs)) {
                         let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
@@ -2454,7 +2445,7 @@ impl Gemini {
         //     ]
         //
         let mut result: Value = self.parse_tickers(&response, &[symbols]);
-        let mut brokenPairs: crate::value::List = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]).into_list();
+        let mut brokenPairs: crate::value::List = self.safe_list_k_t(self.options.clone(), "brokenPairs");
         return self.remove_keys_from_dict(result, Value::Arr(brokenPairs));
         Value::Null
         }).await?))
@@ -2518,7 +2509,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
             while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < (response.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(response.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

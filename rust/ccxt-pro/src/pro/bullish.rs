@@ -376,7 +376,7 @@ impl Bullish {
             return;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
         let mut trades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -486,10 +486,7 @@ impl Bullish {
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(Value::from(&data), Some(&market)).as_map().cloned().unwrap_or_default();
         if (updateType.as_deref() == Some("update")) {
-            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut ticker: crate::value::Dict = self.safe_dict_t(self.tickers.clone(), symbol.clone());
             let __ws_arg_2 = self.extend(self.safe_dict_k(&ticker, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -584,7 +581,7 @@ impl Bullish {
             m
         });
         let mut parsed: crate::value::Dict = self.parse_order_book(Value::Map(snapshot), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
-        let mut sequenceNumberRange: crate::value::List = self.safe_list_k(&data, "sequenceNumberRange", &[Value::from(vec![])]).into_list();
+        let mut sequenceNumberRange: crate::value::List = self.safe_list_k_t(&data, "sequenceNumberRange");
         if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), self.safe_integer(&sequenceNumberRange, lastIndex, &[]));

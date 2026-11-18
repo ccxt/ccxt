@@ -214,10 +214,7 @@ impl Coincheck {
         //     ]
         //
         let mut symbol: String = self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(message.clone(), Value::Int(0), &[])).as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut data: crate::value::Dict = self.safe_dict(message, Value::Int(1), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_t(message, Value::Int(1));
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "last_update_at", &[]).as_i64();
         let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp)]).into_dict();
         let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Dict(snapshot)]);
@@ -288,7 +285,7 @@ impl Coincheck {
         //         ]
         //     ]
         //
-        let mut first: crate::value::List = self.safe_list(message.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::List = self.safe_list_t(message.clone(), Value::Int(0));
         let mut symbol: String = self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&first, Value::Int(2), &[])).as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
@@ -350,7 +347,7 @@ impl Coincheck {
 }
 
     pub fn handle_list_message(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Option<crate::value::List> = self.safe_list(message.clone(), Value::Int(0), &[]).into_opt_list();
+        let mut data: Option<crate::value::List> = self.safe_list_o(message.clone(), Value::Int(0));
         if !(data.is_some()) {
             self.handle_order_book(client.clone(), message.clone());
         }  else {

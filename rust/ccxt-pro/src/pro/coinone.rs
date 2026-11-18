@@ -260,8 +260,8 @@ impl Coinone {
             orderbook.reset0();
         }
         orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
-        let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
-        let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
+        let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));

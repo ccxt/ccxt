@@ -281,10 +281,7 @@ impl Woo {
 
     pub fn request_id(&mut self, url: &str) -> i64 {
         let mut url: Value = url.into();
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "requestId");
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         let mut entry: indexmap::IndexMap<String, Value> = ({
@@ -353,7 +350,7 @@ impl Woo {
                 m.insert("unsubMessageHashes".to_string(), Value::from(vec![Value::from(unsubHash.clone())]));
             m
         });
-        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]).into_opt_list();
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k_o(params.clone(), "symbolsAndTimeframes");
         let mut paramsOmitted: crate::value::Dict = (if (symbolsAndTimeframes.is_some()) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params }).into_dict();
         if (symbolsAndTimeframes.is_some()) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
@@ -531,7 +528,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             if !(self.orderbooks.has(&symbol)) {
                 let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                let mut subscription: crate::value::Dict = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(topic.as_deref()), &[]).into_dict();
+                let mut subscription: crate::value::Dict = self.safe_dict_t(get_value(&client, &Value::Str("subscriptions".into())), Value::from(topic.as_deref()));
                 let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
                 { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -576,7 +573,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
-            let mut params: Option<crate::value::Dict> = self.safe_dict_k(subscription, "params", &[]).into_opt_dict();
+            let mut params: Option<crate::value::Dict> = self.safe_dict_k_o(subscription, "params");
             let mut snapshot: Value = self.fetch_rest_order_book_safe(Value::from(symbol.as_deref()), &[Value::from(limit), params.map_or(Value::Null, Value::Dict)]).await;
             if (self.orderbooks.lookup(&symbol).is_none()) {
                 return Value::Null;
@@ -1012,7 +1009,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
             while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < (data.len() as i64) } {
-            let mut ticker: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
+            let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
             if (ticker.is_none()) {
                 continue;
             }
@@ -1793,17 +1790,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-            let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut order: Option<crate::value::Dict> = self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut orders: crate::value::Dict = self.safe_dict_t(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null));
             if (order.is_some()) {
                 let mut fee: Value = self.safe_value_k(&order, "fee", &[]);
                 if (fee != Value::Null) {
                     if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee); }
                 }
-                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                let mut fees: Option<crate::value::List> = self.safe_list_k_o(&order, "fees");
                 if (fees.is_some()) {
                     if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees.map_or(Value::Null, Value::Arr)); }
                 }
@@ -2102,10 +2096,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //    }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut balances: crate::value::Dict = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut balances: crate::value::Dict = self.safe_dict_k_t(data.clone(), "balances");
         let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut ts: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
@@ -2116,7 +2107,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut __for_first_726: bool = true;
             while { if !__for_first_726 { i += 1; } __for_first_726 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut value: crate::value::Dict = self.safe_dict(&balances, Value::from(key.as_deref()), &[]).into_dict();
+            let mut value: crate::value::Dict = self.safe_dict_t(&balances, Value::from(key.as_deref()));
             let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut total: Option<String> = self.safe_string_k_opt(&value, "holding", &[]);
@@ -2252,12 +2243,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut subscribeHash: String = (match message.get("data") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut unsubscribeHash: String = format!("{}{}", "unsubscribe::", subscribeHash);
-        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubscribeHash), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut subMessageHashes: crate::value::List = self.safe_list_k(&subscription, "subMessageHashes", &[Value::from(vec![])]).into_list();
-        let mut unsubMessageHashes: crate::value::List = self.safe_list_k(&subscription, "unsubMessageHashes", &[Value::from(vec![])]).into_list();
+        let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(unsubscribeHash));
+        let mut subMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "subMessageHashes");
+        let mut unsubMessageHashes: crate::value::List = self.safe_list_k_t(&subscription, "unsubMessageHashes");
         {
                         let mut i: i64 = 0;
             let mut __for_first_727: bool = true;

@@ -252,7 +252,7 @@ impl Gemini {
     m
 }));
         let mut trades: Option<crate::pro::cache::Cache> = self.helper_for_watch_multiple_construct("trades", &[symbols, params]).await.into();
-        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -427,10 +427,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_348: bool = true;
             while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (trades.len() as i64) } {
-            let mut rawTrade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut rawTrade: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(i));
             let mut marketId: Value = (self.safe_string_k(&rawTrade, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -799,14 +796,14 @@ impl Gemini {
     m
 }), None);
             currentBidAsk = self.extend(__ws_arg_0, &[]).into_dict();
-            add_element_to_object(&mut currentBidAsk, &Value::Str("symbol".into()), symbol.clone());
+            std::sync::Arc::make_mut(&mut currentBidAsk).insert("symbol".to_string(), Value::from(symbol.clone()));
         }
         let mut messageHash: String = format!("{}{}", "bidsasks:", symbol);
         {
                         let mut i: i64 = 0;
             let mut __for_first_353: bool = true;
             while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (rawBidAskChanges.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(rawBidAskChanges.clone(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(rawBidAskChanges.clone(), Value::Int(i));
             let mut rawSide: Option<String> = self.safe_string_k_opt(&entry, "side", &[]);
             let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
             let mut sizeString: Option<String> = self.safe_string_k_opt(&entry, "remaining", &[]);
@@ -815,17 +812,17 @@ impl Gemini {
             }
             let mut size: Option<f64> = self.parse_number(sizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (rawSide.as_deref() == Some("bid")) {
-                add_element_to_object(&mut currentBidAsk, &Value::Str("bid".into()), Value::from(price));
-                add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".into()), Value::from(size));
+                std::sync::Arc::make_mut(&mut currentBidAsk).insert("bid".to_string(), Value::from(price));
+                std::sync::Arc::make_mut(&mut currentBidAsk).insert("bidVolume".to_string(), Value::from(size));
             }  else {
-                add_element_to_object(&mut currentBidAsk, &Value::Str("ask".into()), Value::from(price));
-                add_element_to_object(&mut currentBidAsk, &Value::Str("askVolume".into()), Value::from(size));
+                std::sync::Arc::make_mut(&mut currentBidAsk).insert("ask".to_string(), Value::from(price));
+                std::sync::Arc::make_mut(&mut currentBidAsk).insert("askVolume".to_string(), Value::from(size));
             }
         }
         }
-        add_element_to_object(&mut currentBidAsk, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut currentBidAsk, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut currentBidAsk, &Value::Str("info".into()), rawBidAskChanges);
+        std::sync::Arc::make_mut(&mut currentBidAsk).insert("timestamp".to_string(), Value::from(timestamp.clone()));
+        std::sync::Arc::make_mut(&mut currentBidAsk).insert("datetime".to_string(), Value::from(self.iso8601(timestamp)));
+        std::sync::Arc::make_mut(&mut currentBidAsk).insert("info".to_string(), Value::from(rawBidAskChanges));
         let mut bidsAsksDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -917,7 +914,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_355: bool = true;
             while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (rawOrderBookChanges.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(rawOrderBookChanges.clone(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(rawOrderBookChanges.clone(), Value::Int(i));
             let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
             let mut size: Option<f64> = self.safe_number_k(&entry, "remaining", &[]).as_f64();
             let mut rawSide: Option<String> = self.safe_string_k_opt(&entry, "side", &[]);
@@ -1272,10 +1269,7 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_357: bool = true;
                 while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
                 let mut eventType: Option<String> = self.safe_string_k_opt(&event, "type", &[]);
                 let mut side: Option<String> = self.safe_string_k_opt(&event, "side", &[]);
                 let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(&side, Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())]));
@@ -1354,14 +1348,8 @@ impl Gemini {
         });
         // this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut wsSubOptions: crate::value::Dict = self.safe_dict_k(&wsOptions, "options", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "ws");
+        let mut wsSubOptions: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "options");
         let mut originalHeaders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsSubOptions, "headers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

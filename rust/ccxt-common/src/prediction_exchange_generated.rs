@@ -121,8 +121,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
         let mut query: Option<String> = self.safe_string_k_opt(params.clone(), "query", &[]);
-        let mut queries: crate::value::List = self.safe_list_k(params.clone(), "queries", &[Value::from(vec![])]).into_list();
-        let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
+        let mut queries: crate::value::List = self.safe_list_k_t(params.clone(), "queries");
+        let mut tags: crate::value::List = self.safe_list_k_t(params.clone(), "tags");
         let mut eventId: Option<String> = self.safe_string_k_opt(params.clone(), "eventId", &[]);
         let mut slug: Option<String> = self.safe_string_k_opt(params.clone(), "slug", &[]);
         let mut queriesLength: i64 = queries.len() as i64;
@@ -130,7 +130,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (query.is_some()) || (queriesLength > 0) || (tagsLength > 0) || (eventId.is_some()) || (slug.is_some()) {
             return Value::Null;
         }
-        let mut extraScopeParams: crate::value::List = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::from(vec![])]).into_list();
+        let mut extraScopeParams: crate::value::List = self.safe_list_k_t(self.options.clone(), "eventScopeParams");
         let mut extraScopeParamsLength: i64 = extraScopeParams.len() as i64;
         let mut extraNames: String = "".to_string();
         {
@@ -171,7 +171,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut i: i64 = 0;
                 let mut __for_first_187: bool = true;
                 while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (result.len() as i64) } {
-                let mut event: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(i), &[]).into_dict();
+                let mut event: crate::value::Dict = self.safe_dict_t(result.clone(), Value::Int(i));
                 let mut idMatch: bool = (eventId.is_some()) && ((eventId.as_deref() == self.safe_string_k(&event, "id", &[]).as_str()));
                 let mut slugMatch: bool = (slug.is_some()) && ((slug.as_deref() == self.safe_string_k(&event, "slug", &[]).as_str()));
                 if idMatch || slugMatch {
@@ -241,7 +241,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_189: bool = true;
             while { if !__for_first_189 { i += 1; } __for_first_189 = false; i < (events.len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict_t(events.clone(), Value::Int(i));
             let mut isActive: Option<bool> = self.safe_bool_k_opt(&event, "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive.is_none()) || ((isActive == Some(wantActive))) {
@@ -272,7 +272,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_191: bool = true;
             while { if !__for_first_191 { i += 1; } __for_first_191 = false; i < (events.len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
+            let mut event: crate::value::Dict = self.safe_dict_t(events.clone(), Value::Int(i));
             let mut title: String = self.safe_string_lower_k(&event, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut description: String = self.safe_string_lower_k(&event, "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut matched: bool = false;
@@ -367,8 +367,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_196: bool = true;
             while { if !__for_first_196 { i += 1; } __for_first_196 = false; i < (events.len() as i64) } {
-            let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
-            let mut eventTags: crate::value::List = self.safe_list_k(&event, "tags", &[Value::from(vec![])]).into_list();
+            let mut event: crate::value::Dict = self.safe_dict_t(events.clone(), Value::Int(i));
+            let mut eventTags: crate::value::List = self.safe_list_k_t(&event, "tags");
             let mut matched: bool = false;
             {
                                 let mut ti: i64 = 0;
@@ -836,7 +836,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 m
             });
         }
-        let mut outcomesList: crate::value::List = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).into_list();
+        let mut outcomesList: crate::value::List = self.safe_list_k_t(market, "outcomes");
         {
                         let mut j: i64 = 0;
             let mut __for_first_205: bool = true;
@@ -854,7 +854,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                let mut existing: Option<crate::value::Dict> = self.safe_dict(self.pred().outcomes.clone(), Value::from(ocSymbol.as_deref()), &[]).into_opt_dict();
+                let mut existing: Option<crate::value::Dict> = self.safe_dict_o(self.pred().outcomes.clone(), Value::from(ocSymbol.as_deref()));
                 if (existing.is_some()) {
                     let mut existingId: Option<String> = self.safe_string_k_opt(&existing, "outcomeId", &[]);
                     if (existingId.is_some()) && (ocId != Value::Null) && ((existingId.as_deref() != ocId.as_str())) {
@@ -916,7 +916,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut markets: crate::value::List = self.safe_list_k(event, "markets", &[Value::from(vec![])]).into_list();
+        let mut markets: crate::value::List = self.safe_list_k_t(event, "markets");
         let mut marketsLength: i64 = markets.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -1999,7 +1999,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut status: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "status", &[]);
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]).as_i64();
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
-        let mut rawTrades: crate::value::List = self.safe_list_k(outcomeOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(outcomeOrder.clone(), "trades");
         let mut trades: crate::value::List = self.parse_prediction_trades(Value::Arr(rawTrades), &[outcomeObj]).into_list();
         let mut tradesLength: i64 = trades.len() as i64;
         let mut feeList: Vec<Value> = Vec::new();
@@ -2034,7 +2034,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         lastTradeTimestamp = tradeTimestamp;
                     }
                 }
-                let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(&trade, "fee", &[]).into_opt_dict();
+                let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k_o(&trade, "fee");
                 if (tradeFee.is_some()) {
                     feeList.push(tradeFee.map_or(Value::Null, Value::Dict));
                 }

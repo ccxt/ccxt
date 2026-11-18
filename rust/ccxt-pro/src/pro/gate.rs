@@ -863,15 +863,17 @@ impl Gate {
         let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbolValue);
         // max 100 atm, max 50 for options
-        let mut defaultLimit: i64 = 100;
+        let mut limitResolved: Option<i64> = self.parse_to_int(Value::Int(100));
         if (market).spot || (messageType.as_deref() == Some("options")) {
-            defaultLimit = 50;
+            limitResolved = self.parse_to_int(Value::Int(50));
         }
-        let mut limitResolved: Option<i64> = Some(limit.as_i64().unwrap_or(defaultLimit));
+        if (limit != Value::Null) {
+            limitResolved = self.parse_to_int(limit);
+        }
         if (market).spot {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             let mut maxSpotLimit: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
-            limitResolved = (if let (Some(__m0), Some(__m1)) = (limitResolved, maxSpotLimit) { Some(i64::min(__m0, __m1)) } else { None });
+            limitResolved = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (limitResolved, maxSpotLimit) { Some(i64::min(__m0, __m1)) } else { None })));
         }
         let mut payload: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut channel: String = "".to_string();
@@ -940,12 +942,13 @@ impl Gate {
         let mut intervalOption: Option<String> = intervalOptionparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
-        let mut limit: Option<i64> = self.safe_integer_k(&paramsInterval, "limit", &[]).as_i64();
-        if (limit.is_none()) {
-            limit = (if (market).spot { Some(50) } else { Some(100) }); // max 100 atm
-            if (messageType.as_deref() == Some("options")) {
-                limit = Some(50); // max 50 for options
-            }
+        let mut limitParam: Option<i64> = self.safe_integer_k(&paramsInterval, "limit", &[]).as_i64();
+        let mut limit: Option<i64> = self.parse_to_int((if (market).spot { Value::Int(50) } else { Value::Int(100) })); // max 100 atm
+        if (messageType.as_deref() == Some("options")) {
+            limit = self.parse_to_int(Value::Int(50)); // max 50 for options
+        }
+        if (limitParam.is_some()) {
+            limit = self.parse_to_int(Value::from(limitParam));
         }
         let mut payload: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut channel: String = "".to_string();
@@ -1142,7 +1145,7 @@ impl Gate {
             }
             if (cacheLength == waitAmount) {
                 // max limit is 100
-                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_dict();
+                let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.clone()));
                 let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::from(limit), Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1170,7 +1173,7 @@ impl Gate {
 
     pub fn get_cache_index(&self, mut orderBook: Value, mut cache: Value) -> Value {
         let mut nonce: Option<i64> = self.safe_integer_k(orderBook, "nonce", &[]).as_i64();
-        let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstDelta: crate::value::Dict = self.safe_dict_t(cache.clone(), Value::Int(0));
         let mut firstDeltaStart: Option<i64> = self.safe_integer_k(&firstDelta, "U", &[]).as_i64();
         if (nonce.is_some()) && (firstDeltaStart.is_some()) && ((nonce.is_some() && firstDeltaStart.is_some() && nonce < firstDeltaStart)) {
             return Value::Int(-1);
@@ -1179,7 +1182,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_324: bool = true;
             while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (cache.len() as i64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(i), &[]).into_dict();
+            let mut delta: crate::value::Dict = self.safe_dict_t(cache.clone(), Value::Int(i));
             let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer_k(&delta, "u", &[]).as_i64();
             if (nonce.is_some()) && (deltaStart.is_some()) && (deltaEnd.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) && ((nonce.is_some() && deltaEnd.is_some() && nonce < deltaEnd)) {
@@ -1217,8 +1220,8 @@ impl Gate {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "u", &[]));
-        let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]).into_list();
-        let mut asks: crate::value::List = self.safe_list_k(delta, "a", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k_t(delta.clone(), "b");
+        let mut asks: crate::value::List = self.safe_list_k_t(delta, "a");
         let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
         let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         self.handle_bid_asks(storedBids, &bids);
@@ -1546,7 +1549,7 @@ impl Gate {
         }
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut trades: Value = self.subscribe_public_multiple(url.as_deref(), Value::from(messageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[params]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2138,7 +2141,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (result.len() as i64) } {
-            let mut rawBalance: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[]).into_dict();
+            let mut rawBalance: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currencyId: String = self.safe_string_k(&rawBalance, "currency", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string(); // when not present it is USDT
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId), None);
@@ -2344,13 +2347,13 @@ impl Gate {
                 if (symbol.is_none()) {
                     continue;
                 }
-                let mut prevLongPosition: Option<crate::value::Dict> = self.safe_dict(Value::from(&cache), Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "long").into()), &[]).into_opt_dict();
+                let mut prevLongPosition: Option<crate::value::Dict> = self.safe_dict_o(Value::from(&cache), Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "long").into()));
                 if (prevLongPosition.is_some()) {
                     std::sync::Arc::make_mut(&mut position).insert("side".into(), crate::value::KeyRead::key_read(&&prevLongPosition, "side"));
                     std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
                     cache.append(Value::from(&position));
                 }
-                let mut prevShortPosition: Option<crate::value::Dict> = self.safe_dict(Value::from(&cache), Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "short").into()), &[]).into_opt_dict();
+                let mut prevShortPosition: Option<crate::value::Dict> = self.safe_dict_o(Value::from(&cache), Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "short").into()));
                 if (prevShortPosition.is_some()) {
                     std::sync::Arc::make_mut(&mut position).insert("side".into(), crate::value::KeyRead::key_read(&&prevShortPosition, "side"));
                     std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
@@ -2548,7 +2551,7 @@ impl Gate {
             while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (parsedOrders.len() as i64) } {
             let mut parsed: Option<crate::value::Dict> = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             // inject order status
-            let mut info: crate::value::Dict = self.safe_dict_k(&parsed, "info", &[]).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k_t(&parsed, "info");
             let mut event: Option<String> = self.safe_string_k_opt(&info, "event", &[]);
             if (event.as_deref() == Some("put")) || (event.as_deref() == Some("update")) {
                 add_element_to_object(&mut parsed, &Value::Str("status".into()), Value::Str("open".into()));
@@ -2881,7 +2884,7 @@ impl Gate {
         //     }
         //
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut errs: Option<crate::value::Dict> = self.safe_dict_k(&data, "errs", &[]).into_opt_dict();
+        let mut errs: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "errs");
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[errs.clone().map_or(Value::Null, Value::Dict)]);
         let mut code: Option<String> = self.safe_string2_opt(error.clone(), Value::Str("code".into()), Value::Str("label".into()), &[]);
         let mut id: Option<String> = self.safe_string_n_opt(message.clone(), Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]);
@@ -3009,8 +3012,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (id != subId) {
                     continue;
                 }
-                let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
-                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
+                let mut messageHashes: crate::value::List = self.safe_list_k_t(subscription.clone(), "messageHashes");
+                let mut subMessageHashes: crate::value::List = self.safe_list_k_t(subscription.clone(), "subMessageHashes");
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_344: bool = true;

@@ -366,11 +366,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         }
         //     ]
         //
-        let mut account: crate::value::Dict = self.safe_dict_k(response.clone(), "account", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut positions: crate::value::List = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]).into_list();
+        let mut account: crate::value::Dict = self.safe_dict_k_t(response.clone(), "account");
+        let mut positions: crate::value::List = self.safe_list_k_t(response.clone(), "positions");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -390,7 +387,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_223: bool = true;
             while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (positions.len() as i64) } {
-            let mut position: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
+            let mut position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let mut positionSymbol: String = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (positionSymbol == "") {
                 continue;
@@ -1745,10 +1742,7 @@ impl Alpaca {
             //        }
             //    }
             //
-            let mut trades: crate::value::Dict = self.safe_dict_k(&response, "trades", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut trades: crate::value::Dict = self.safe_dict_k_t(&response, "trades");
             symbolTrades = self.safe_list(&trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_opt_list();
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -1766,14 +1760,8 @@ impl Alpaca {
             //        }
             //    }
             //
-            let mut trades: crate::value::Dict = self.safe_dict_k(&response, "trades", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut symbolTrade: crate::value::Dict = self.safe_dict(&trades, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut trades: crate::value::Dict = self.safe_dict_k_t(&response, "trades");
+            let mut symbolTrade: crate::value::Dict = self.safe_dict_t(&trades, marketId.map(Value::from).unwrap_or(Value::Null));
             symbolTrades = Value::from(vec![Value::Dict(symbolTrade)]).into_opt_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTrades() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
@@ -1861,14 +1849,8 @@ impl Alpaca {
         //       }
         //   }
         //
-        let mut orderbooks: crate::value::Dict = self.safe_dict_k(&response, "orderbooks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawOrderbook: crate::value::Dict = self.safe_dict(&orderbooks, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut orderbooks: crate::value::Dict = self.safe_dict_k_t(&response, "orderbooks");
+        let mut rawOrderbook: crate::value::Dict = self.safe_dict_t(&orderbooks, id.map(Value::from).unwrap_or(Value::Null));
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrderbook, "t", &[]));
         return self.parse_order_book(&rawOrderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]);
         Value::Null
@@ -1996,7 +1978,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_opt_dict();
-                    let mut page: crate::value::List = self.safe_list(&bars, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+                    let mut page: crate::value::List = self.safe_list_t(&bars, marketId.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut pageLength: i64 = page.len() as i64;
                     if (pageLength == 0) {
                         break;
@@ -2025,14 +2007,8 @@ impl Alpaca {
             //        }
             //     }
             //
-            let mut bars: crate::value::Dict = self.safe_dict_k(&response, "bars", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut bar: crate::value::Dict = self.safe_dict(&bars, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut bars: crate::value::Dict = self.safe_dict_k_t(&response, "bars");
+            let mut bar: crate::value::Dict = self.safe_dict_t(&bars, marketId.map(Value::from).unwrap_or(Value::Null));
             ohlcvs = Value::from(vec![Value::Dict(bar)]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOHLCV() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
@@ -2069,7 +2045,7 @@ impl Alpaca {
         }
         let mut symbolValue: String = self.symbol(symbol);
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue), &[]).into_opt_dict();
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue));
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2167,10 +2143,7 @@ impl Alpaca {
         //     }
         //
         let mut results: Vec<Value> = Vec::new();
-        let mut snapshots: crate::value::Dict = self.safe_dict_k(&response, "snapshots", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut snapshots: crate::value::Dict = self.safe_dict_k_t(&response, "snapshots");
         let mut marketIds: Vec<Value> = Value::Array(snapshots.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2178,23 +2151,11 @@ impl Alpaca {
             while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut entry: Option<crate::value::Dict> = self.safe_dict(&snapshots, Value::from(marketId.as_deref()), &[]).into_opt_dict();
-            let mut dailyBar: crate::value::Dict = self.safe_dict_k(&entry, "dailyBar", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut prevDailyBar: crate::value::Dict = self.safe_dict_k(&entry, "prevDailyBar", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut latestQuote: crate::value::Dict = self.safe_dict_k(&entry, "latestQuote", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut latestTrade: crate::value::Dict = self.safe_dict_k(&entry, "latestTrade", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&snapshots, Value::from(marketId.as_deref()));
+            let mut dailyBar: crate::value::Dict = self.safe_dict_k_t(&entry, "dailyBar");
+            let mut prevDailyBar: crate::value::Dict = self.safe_dict_k_t(&entry, "prevDailyBar");
+            let mut latestQuote: crate::value::Dict = self.safe_dict_k_t(&entry, "latestQuote");
+            let mut latestTrade: crate::value::Dict = self.safe_dict_k_t(&entry, "latestTrade");
             let mut datetime: Option<String> = self.safe_string_k_opt(&latestQuote, "t", &[]);
             let mut ticker: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();

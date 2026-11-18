@@ -809,10 +809,7 @@ impl Alpaca {
         //      }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut rawOrder: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k_t(&data, "order");
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -880,10 +877,7 @@ impl Alpaca {
         if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
         }
-        let mut rawOrder: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k_t(&data, "order");
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);

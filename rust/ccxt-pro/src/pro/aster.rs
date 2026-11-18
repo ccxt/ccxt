@@ -1102,7 +1102,7 @@ impl Aster {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_6, &messageHashes, Value::Null).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1738,7 +1738,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_28: bool = true;
             while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < symbolsLength } {
-            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
+            let mut data: crate::value::List = self.safe_list_t(symbolsAndTimeframes.clone(), Value::Int(i));
             let mut symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             if (symbolString.is_none()) {
                 continue;
@@ -1817,7 +1817,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < symbolsLength } {
-            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
+            let mut data: crate::value::List = self.safe_list_t(symbolsAndTimeframes.clone(), Value::Int(i));
             let mut symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             if (symbolString.is_none()) {
                 continue;
@@ -1903,15 +1903,9 @@ impl Aster {
     m
 }));
         let mut time: i64 = self.milliseconds();
-        let mut lastAuthenticatedTimeOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "lastAuthenticatedTime", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut lastAuthenticatedTimeOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "lastAuthenticatedTime");
         let mut lastAuthenticatedTime: i64 = self.safe_integer(&lastAuthenticatedTimeOptions, type_var.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut listenKeyRefreshRateOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut listenKeyRefreshRateOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "listenKeyRefreshRate");
         let mut listenKeyRefreshRate: i64 = self.safe_integer(&listenKeyRefreshRateOptions, type_var.clone(), &[Value::Int(3600000)]).as_i64().unwrap_or(3600000); // 1 hour
         if ((time - lastAuthenticatedTime)) > listenKeyRefreshRate {
             // single-flight leader election on a never-dialed client, see
@@ -1979,10 +1973,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut type_var: String = self.safe_string_k(params.clone(), "type", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-        let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "listenKey");
         let mut listenKey: Option<String> = self.safe_string_opt(&listenKeyOptions, Value::from(type_var.clone()), &[]);
         if (listenKey.is_none()) {
             return Value::Null;
@@ -2012,10 +2003,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             return Value::Null;
         }
         // whether or not to schedule another listenKey keepAlive request
-        let mut listenKeyRefreshOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKeyRefresh", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut listenKeyRefreshOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "listenKeyRefresh");
         let mut listenKeyRefreshRate: i64 = self.safe_integer_k(&listenKeyRefreshOptions, "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
         self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), params]).await;
 
@@ -2024,10 +2012,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 
     pub fn get_private_url(&self, optional_args: &[Value]) -> Value {
         let mut type_var = get_arg(optional_args, 0, Value::Str("spot".into()));
-        let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "listenKey", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut listenKeyOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "listenKey");
         let mut listenKey: String = self.safe_string(&listenKeyOptions, type_var.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), type_var, &[Value::Str("".into())]), Value::Str("/".into())).into()), listenKey);
         return Value::from(url);
@@ -2068,7 +2053,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), typeMarketType.as_deref().unwrap_or_default());
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchBalance");
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
@@ -2087,7 +2072,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (__ch.has_subscription(&type_var)) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchBalance");
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, ":fetchBalanceSnapshot");
@@ -2190,7 +2175,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
         let mut messageValue: crate::value::Dict = self.safe_dict_k(message.clone(), "a", &[message.clone()]).into_dict();
-        let mut B: crate::value::List = self.safe_list_k(&messageValue, "B", &[Value::from(vec![])]).into_list();
+        let mut B: crate::value::List = self.safe_list_k_t(&messageValue, "B");
         let mut wallet: String = self.safe_string_k(self.options.clone(), "wallet", &[Value::Str("wb".into())]).as_str().unwrap_or("wb").to_string();
         {
                         let mut i: i64 = 0;
@@ -2361,7 +2346,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut data: crate::value::Dict = message.get("a").cloned().unwrap_or_default().into_dict();
-        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "P", &[Value::from(vec![])]).into_list();
+        let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -2613,15 +2598,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             if (orderId.is_some()) && (tradeFee != Value::Null) && (symbol.is_some()) {
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
                 if (cachedOrders.is_some()) {
-                    let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                        m
-                    })]).into_dict();
+                    let mut orders: crate::value::Dict = self.safe_dict_t(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null));
                     let mut order: Value = self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
                     if (order != Value::Null) {
                         // accumulate order fees
-                        let mut fees: crate::value::List = self.safe_list_k(order.clone(), "fees", &[Value::from(vec![])]).into_list();
-                        let mut fee: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "fee", &[]).into_opt_dict();
+                        let mut fees: crate::value::List = self.safe_list_k_t(order.clone(), "fees");
+                        let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(order.clone(), "fee");
                         if !(self.is_empty(Value::Arr(fees.clone())).as_bool() == Some(true)) {
                             let mut insertNewFeeCurrency: bool = true;
                             {
@@ -2656,7 +2638,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                             add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee);
                         }
                         // save this trade in the order
-                        let mut orderTrades: crate::value::List = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]).into_list();
+                        let mut orderTrades: crate::value::List = self.safe_list_k_t(order.clone(), "trades");
                         std::sync::Arc::make_mut(&mut orderTrades).push(Value::from(&trade));
                         add_element_to_object(&mut order, &Value::Str("trades".into()), Value::Arr(orderTrades));
                     }

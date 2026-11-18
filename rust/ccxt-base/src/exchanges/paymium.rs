@@ -225,11 +225,8 @@ impl crate::exchange::DerivedExchange for Paymium {
         let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
         let mut updatedAt: Option<String> = self.safe_string_k_opt(transfer.clone(), "updated_at", &[]);
         let mut timetstamp: Option<i64> = self.parse_date(updatedAt.map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
-        let mut accountOperations: crate::value::List = self.safe_list_k(transfer.clone(), "account_operations", &[]).into_list();
-        let mut firstOperation: crate::value::Dict = self.safe_dict(&accountOperations, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut accountOperations: crate::value::List = self.safe_list_k_t(transfer.clone(), "account_operations");
+        let mut firstOperation: crate::value::Dict = self.safe_dict_t(&accountOperations, Value::Int(0));
         let mut status: Option<String> = self.safe_string_k_opt(transfer.clone(), "state", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -89,7 +89,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let mut bidVolume: Option<String> = None;
         let mut ask: Option<String> = None;
         let mut askVolume: Option<String> = None;
-        let mut bidList: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "bid", &[]).into_opt_list();
+        let mut bidList: Option<crate::value::List> = self.safe_list_k_o(ticker.clone(), "bid");
         if (bidList.is_some()) {
             bid = self.safe_string_opt(&bidList, Value::Int(0), &[]);
             bidVolume = self.safe_string_opt(&bidList, Value::Int(1), &[]);
@@ -99,7 +99,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
                 bidVolume = self.safe_string_k_opt(ticker.clone(), "bidSize", &[]);
             }
         }
-        let mut askList: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "ask", &[]).into_opt_list();
+        let mut askList: Option<crate::value::List> = self.safe_list_k_o(ticker.clone(), "ask");
         if (askList.is_some()) {
             ask = self.safe_string_opt(&askList, Value::Int(0), &[]);
             askVolume = self.safe_string_opt(&askList, Value::Int(1), &[]);
@@ -333,11 +333,8 @@ impl crate::exchange::DerivedExchange for Bittrade {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut balances: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(response.clone(), "data");
+        let mut balances: crate::value::List = self.safe_list_k_t(&data, "list");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -382,12 +379,9 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved));
         let mut networkId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "chain", &[]);
-        let mut networks: crate::value::Dict = self.safe_dict_k(&currencyResolved, "networks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut networks: crate::value::Dict = self.safe_dict_k_t(&currencyResolved, "networks");
         let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into())).into_dict();
-        let mut networkEntry: crate::value::Dict = self.safe_dict(&networksById, networkId.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut networkEntry: crate::value::Dict = self.safe_dict_t(&networksById, networkId.map(Value::from).unwrap_or(Value::Null));
         let mut network: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -1827,7 +1821,7 @@ impl Bittrade {
         //         ]
         //    }
         //
-        let mut markets: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut markets: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut numMarkets: i64 = markets.len() as i64;
         if numMarkets < 1 {
             panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchMarkets() returned empty response: ").into()), json_stringify(&Value::Arr(markets.clone())))));
@@ -1986,7 +1980,7 @@ impl Bittrade {
         //     }
         //
         if (response.contains_key("tick")) {
-            let mut tick: Option<crate::value::Dict> = self.safe_dict_k(&response, "tick", &[]).into_opt_dict();
+            let mut tick: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "tick");
             if (tick.is_none()) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrderBook() returned empty response: ").into()), json_stringify(&response))));
             }
@@ -2050,10 +2044,7 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut tick: crate::value::Dict = self.safe_dict_k(&response, "tick", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut tick: crate::value::Dict = self.safe_dict_k_t(&response, "tick");
         let mut ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &tick, Some(&market)).as_map().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
         ticker.insert("timestamp".into(), Value::from(timestamp));
@@ -2087,7 +2078,7 @@ impl Bittrade {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.market_get_tickers(&[params]).await.into_dict();
-        let mut tickers: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2147,7 +2138,7 @@ impl Bittrade {
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_orders_id_matchresults(&[__ws_arg_3]).await.into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&data, None, &[since, limit]);
         Value::Null
         }).await?))
@@ -2196,7 +2187,7 @@ impl Bittrade {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_matchresults(&[__ws_arg_4]).await.into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2263,13 +2254,13 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_449: bool = true;
             while { if !__for_first_449 { i += 1; } __for_first_449 = false; i < (data.len() as i64) } {
-            let mut trades: crate::value::List = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).into_list();
+            let mut trades: crate::value::List = self.safe_list_k_t(data.get(i as usize).cloned().unwrap_or(Value::Null), "data");
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_448: bool = true;
@@ -2339,7 +2330,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -2435,7 +2426,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut currencies: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut currencies: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
@@ -2553,10 +2544,7 @@ impl Bittrade {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_orders_id(&[__ws_arg_11]).await.into_dict();
-        let mut order: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None);
         Value::Null
         }).await?))
@@ -2732,7 +2720,7 @@ impl Bittrade {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&data, market.as_ref(), &[since, limit]);
 
     Value::Null
@@ -3160,7 +3148,7 @@ impl Bittrade {
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_query_deposit_withdraw(&[__ws_arg_17]).await.into_dict();
         // return response
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_transactions(&data, currency.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -3210,7 +3198,7 @@ impl Bittrade {
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_query_deposit_withdraw(&[__ws_arg_18]).await.into_dict();
         // return response
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_transactions(&data, currency.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))

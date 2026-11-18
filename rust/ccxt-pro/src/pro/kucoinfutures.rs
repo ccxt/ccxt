@@ -212,10 +212,7 @@ impl Kucoinfutures {
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " transfer() only supports transfers between future/swap, spot and funding accounts")));
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let __ws_arg_3 = self.parse_transfer(Value::Dict(data), Some(&currency));
         let __ws_arg_4 = self.parse_number(amountToPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
         return self.extend(__ws_arg_3, &[Value::Map({

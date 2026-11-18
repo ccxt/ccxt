@@ -279,11 +279,8 @@ impl crate::exchange::DerivedExchange for Zaif {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
-        let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut deposit: Option<crate::value::Dict> = self.safe_dict_k(&balances, "deposit", &[]).into_opt_dict();
+        let mut balances: crate::value::Dict = self.safe_dict_k_t(response.clone(), "return");
+        let mut deposit: Option<crate::value::Dict> = self.safe_dict_k_o(&balances, "deposit");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -291,10 +288,7 @@ impl crate::exchange::DerivedExchange for Zaif {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut funds: crate::value::Dict = self.safe_dict_k(&balances, "funds", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut funds: crate::value::Dict = self.safe_dict_k_t(&balances, "funds");
         let mut currencyIds: Vec<Value> = Value::Array(funds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1218,10 +1212,7 @@ impl Zaif {
         //        }
         //    }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
         Value::Null
         }).await?))
@@ -1266,10 +1257,7 @@ impl Zaif {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_active_orders(&[__ws_arg_5]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -1319,10 +1307,7 @@ impl Zaif {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_6]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -1392,10 +1377,7 @@ impl Zaif {
         //         }
         //     }
         //
-        let mut returnData: crate::value::Dict = self.safe_dict_k(&result, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut returnData: crate::value::Dict = self.safe_dict_k_t(&result, "return");
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &returnData, Some(&currency));
         Value::Null
         }).await?))

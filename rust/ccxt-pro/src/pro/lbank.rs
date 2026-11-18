@@ -289,14 +289,8 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market(Some(&market), Value::Str("fetchOHLCVWs".into()));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOHLCV");
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&watchOHLCVOptions, "timeframes");
         let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "fetchOHLCV:", Value::from((market).symbol.clone())).into()), ":").into()), timeframeId.as_deref().unwrap_or("null"));
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -352,14 +346,8 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market(Some(&market), Value::Str("watchOHLCV".into()));
-        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOHLCV");
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&watchOHLCVOptions, "timeframes");
         let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", Value::from((market).symbol.clone())).into()), ":").into()), timeframeId.as_deref().unwrap_or("null"));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -409,14 +397,8 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.check_contract_market(Some(&market), Value::Str("unWatchOHLCV".into()));
-        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOHLCV");
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&watchOHLCVOptions, "timeframes");
         let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[]);
         if (timeframeId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unWatchOHLCV() does not support the ").into()), timeframe).into()), " timeframe")));
@@ -497,14 +479,8 @@ if _try_result.is_err() {
         //
         let mut marketId: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOHLCV", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&watchOHLCVOptions, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut watchOHLCVOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOHLCV");
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&watchOHLCVOptions, "timeframes");
         let mut records: Option<crate::value::List> = message.get("records").cloned().unwrap_or_default().into_opt_list();
         let mut timeframeId: String = "".to_string();
         let mut messageHash: String = "".to_string();
@@ -530,7 +506,7 @@ if _try_result.is_err() {
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         if (records.is_some()) {
-            let mut rawOHLCV: crate::value::List = self.safe_list(&records, Value::Int(0), &[Value::from(vec![])]).into_list();
+            let mut rawOHLCV: crate::value::List = self.safe_list_t(&records, Value::Int(0));
             let mut parsed: Value = Value::from(vec![self.safe_integer(&rawOHLCV, Value::Int(0), &[]), self.safe_number(&rawOHLCV, Value::Int(1), &[]), self.safe_number(&rawOHLCV, Value::Int(2), &[]), self.safe_number(&rawOHLCV, Value::Int(3), &[]), self.safe_number(&rawOHLCV, Value::Int(4), &[]), self.safe_number(&rawOHLCV, Value::Int(5), &[])]);
             stored.append(parsed);
         }  else {
@@ -683,7 +659,7 @@ if _try_result.is_err() {
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "pair", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k_opt(ticker.clone(), "TS", &[]);
-        let mut tickerData: crate::value::Dict = self.safe_dict_k(ticker.clone(), "tick", &[]).into_dict();
+        let mut tickerData: crate::value::Dict = self.safe_dict_k_t(ticker.clone(), "tick");
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1094,10 +1070,7 @@ if _try_result.is_err() {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        let mut orderUpdate: crate::value::Dict = self.safe_dict_k(order.clone(), "orderUpdate", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut orderUpdate: crate::value::Dict = self.safe_dict_k_t(order.clone(), "orderUpdate");
         let mut rawType: String = self.safe_string_k(&orderUpdate, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut typeParts: crate::value::List = Value::Array(rawType.split("_").map(Value::from).collect()).into_list();
         let mut side: Option<String> = self.safe_string_opt(&typeParts, Value::Int(0), &[]);
@@ -1496,7 +1469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut authenticated: Option<crate::value::Dict> = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]).into_opt_dict();
+            let mut authenticated: Option<crate::value::Dict> = self.safe_dict_k_o(__ch.subscriptions.clone(), "authenticated");
             if (authenticated.is_none()) {
                 let mut response: crate::value::Dict = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await.into_dict();
                 //

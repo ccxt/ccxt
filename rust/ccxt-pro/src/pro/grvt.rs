@@ -570,7 +570,7 @@ impl Grvt {
         });
         let __ws_arg_3 = self.extend(params, &[Value::Map(request)]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_3, Value::from(rawHashes), &[]).await.into();
-        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -699,7 +699,7 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_360: bool = true;
             while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
+            let mut data: crate::value::List = self.safe_list_t(symbolsAndTimeframes.clone(), Value::Int(i));
             let mut symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
@@ -943,8 +943,8 @@ impl Grvt {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
-            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
+            let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
             self.handle_deltas_with_keys(orderbook.book_field("asks"), Value::Arr(asks), &[Value::Str("price".into()), Value::Str("size".into())]);
             self.handle_deltas_with_keys(orderbook.book_field("bids"), Value::Arr(bids), &[Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -970,10 +970,7 @@ impl Grvt {
 }));
         self.check_required_credentials(&[]);
         self.sign_in(&[]).await;
-        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "ws");
         let mut authenticated: Option<String> = self.safe_string_k_opt(&wsOptions, "token", &[]);
         if (authenticated.is_none()) {
             let mut accountId: Option<String> = self.safe_string_k_opt(self.options.clone(), "AuthAccountId", &[]);

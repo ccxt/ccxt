@@ -360,10 +360,7 @@ impl Independentreserve {
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut orderBook: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol).into()), ":").into()), depth);
-        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.clone()));
         let mut receivedSnapshot: bool = self.safe_bool_k_opt(&subscription, "receivedSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: Option<i64> = (match message.get("Time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -385,8 +382,8 @@ impl Independentreserve {
     m
 })]));
         }  else {
-            let mut asks: crate::value::List = self.safe_list_k(&orderBook, "Offers", &[Value::from(vec![])]).into_list();
-            let mut bids: crate::value::List = self.safe_list_k(&orderBook, "Bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k_t(&orderBook, "Offers");
+            let mut bids: crate::value::List = self.safe_list_k_t(&orderBook, "Bids");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));

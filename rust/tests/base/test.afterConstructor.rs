@@ -150,9 +150,9 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("apiKey".into())) == Value::Null) || (crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("apiKey".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&(((exchange.prop(&&Value::Str("secret".into())) == Value::Null) || (exchange.prop(&&Value::Str("secret".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&(((exchange.prop(&&Value::Str("uid".into())) == Value::Null) || (exchange.prop(&&Value::Str("uid".into())).as_str() == Some(""))))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("login".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(((exchange.prop(&&Value::Str("login".into())) == Value::Null) || (exchange.prop(&&Value::Str("login".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&(((exchange.prop(&&Value::Str("password".into())) == Value::Null) || (exchange.prop(&&Value::Str("password".into())).as_str() == Some(""))))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("twofa".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(((exchange.prop(&&Value::Str("twofa".into())) == Value::Null) || (exchange.prop(&&Value::Str("twofa".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("privateKey".into())) == Value::Null) || (crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("privateKey".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("walletAddress".into())) == Value::Null) || (crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("walletAddress".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("token".into())) == Value::Null))));

@@ -1103,7 +1103,7 @@ impl Bitflyer {
                         let mut i: i64 = 0;
             let mut __for_first_365: bool = true;
             while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (response.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(response.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency_code", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1574,7 +1574,7 @@ impl Bitflyer {
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ordersById: crate::value::Dict = self.index_by(crate::types::IntoRaw::into_raw(orders), Value::Str("id".into())).into_dict();
-        let mut found: Option<crate::value::Dict> = self.safe_dict(&ordersById, id.clone(), &[]).into_opt_dict();
+        let mut found: Option<crate::value::Dict> = self.safe_dict_o(&ordersById, id.clone());
         if (found.is_some()) {
             return found.map_or(Value::Null, Value::Dict);
         }

@@ -354,7 +354,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
             limitResolved = limit.as_i64();
         }
-        let mut topicParams: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "params", &[]).into_opt_dict();
+        let mut topicParams: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "params");
         if (topicParams.is_none()) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -425,7 +425,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut limit: i64 = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]).as_i64().unwrap_or(50);
-        let mut topicParams: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "params", &[]).into_opt_dict();
+        let mut topicParams: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "params");
         if (topicParams.is_none()) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -542,7 +542,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut marketId: Option<String> = (match message.get("instrument_name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut data: Option<crate::value::Dict> = self.safe_dict((match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }), Value::Int(0), &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_o((match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }), Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             let mut limit: Option<i64> = (match message.get("depth") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -679,7 +679,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let mut trades: Value = self.watch_public_multiple(Value::Arr(topics.clone()), Value::Arr(topics), &[params]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1168,10 +1168,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, None).into_dict();
         let mut symbol: String = self.safe_string_k(&parsedTicker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (symbol != "") {
@@ -1316,7 +1313,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_281: bool = true;
             while { if !__for_first_281 { i += 1; } __for_first_281 = false; i < (data.len() as i64) } {
-            let mut tick: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
+            let mut tick: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
             let mut parsed: crate::value::List = self.parse_ohlcv(tick.map_or(Value::Null, Value::Dict), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
@@ -1569,11 +1566,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut firstData: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawPositions: crate::value::List = self.safe_list_k(&firstData, "positions", &[Value::from(vec![])]).into_list();
+        let mut firstData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let mut rawPositions: crate::value::List = self.safe_list_k_t(&firstData, "positions");
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -1681,13 +1675,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut messageHash: Option<String> = (match message.get("subscription") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut positionBalances: crate::value::List = self.safe_list(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("position_balances".into()), &[Value::from(vec![])]).into_list();
+        let mut positionBalances: crate::value::List = self.safe_list_t(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("position_balances".into()));
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(data)); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_286: bool = true;
             while { if !__for_first_286 { i += 1; } __for_first_286 = false; i < (positionBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&positionBalances, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&positionBalances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "instrument_name", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1883,19 +1877,20 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
+        let mut requestParams: crate::value::Dict = self.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }), &[params]).into_dict();
+        if (symbol != Value::Null) {
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            std::sync::Arc::make_mut(&mut requestParams).insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
+        }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("private/cancel-all-orders".into()));
-                m.insert("params".to_string(), self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), &[params]));
+                m.insert("params".to_string(), Value::Dict(requestParams));
             m
         });
-        if (symbol != Value::Null) {
-            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Dict(__d) = request.entry("params".into()).or_default() { std::sync::Arc::make_mut(__d).insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id")); }
-        }
         let mut messageHash: i64 = self.incrementing_nonce();
         return self.watch_private_request(Value::from(messageHash), &[Value::Map(request)]).await;
         Value::Null
@@ -2249,8 +2244,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (id != subId) {
                     continue;
                 }
-                let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
-                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
+                let mut messageHashes: crate::value::List = self.safe_list_k_t(subscription.clone(), "messageHashes");
+                let mut subMessageHashes: crate::value::List = self.safe_list_k_t(subscription.clone(), "subMessageHashes");
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_287: bool = true;

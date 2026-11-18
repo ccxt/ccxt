@@ -399,7 +399,7 @@ impl Whitebit {
         let mut marketId: Option<String> = self.safe_string_opt(&params, Value::Int(2), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut data: Option<crate::value::Dict> = self.safe_dict(&params, Value::Int(1), &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_o(&params, Value::Int(1));
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             let mut ob: crate::pro::order_book::Book = self.order_book(&[]);
@@ -412,8 +412,8 @@ impl Whitebit {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
-            let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
+            let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         }
@@ -550,10 +550,7 @@ impl Whitebit {
         let mut marketId: Option<String> = self.safe_string_opt(&tickers, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut rawTicker: crate::value::Dict = self.safe_dict(&tickers, Value::Int(1), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(1));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "ticker", ":").into()), symbol);
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(rawTicker), Some(&market)).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
@@ -664,7 +661,7 @@ impl Whitebit {
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: crate::value::List = self.safe_list(&params, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_t(&params, Value::Int(1));
         let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut j: i64 = 0;
@@ -910,7 +907,7 @@ impl Whitebit {
         // }
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
-        let mut data: crate::value::Dict = self.safe_dict(&params, Value::Int(1), &[]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_t(&params, Value::Int(1));
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1186,10 +1183,7 @@ impl Whitebit {
                         let mut i: i64 = 0;
             let mut __for_first_716: bool = true;
             while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (data.len() as i64) } {
-            let mut balanceDict: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut balanceDict: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             { let __be_tmp = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1211,10 +1205,7 @@ impl Whitebit {
                     let mut __for_first_715: bool = true;
                     while { if !__for_first_715 { j += 1; } __for_first_715 = false; j < (keys.len() as i64) } {
                     let mut currencyId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
-                    let mut rawBalance: crate::value::Dict = self.safe_dict(&balanceDict, Value::from(currencyId.as_deref()), &[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                        m
-                    })]).into_dict();
+                    let mut rawBalance: crate::value::Dict = self.safe_dict_t(&balanceDict, Value::from(currencyId.as_deref()));
                     let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                     let mut account: crate::value::Dict = self.account().into_dict();
                     std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&rawBalance, "available", &[]));

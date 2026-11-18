@@ -274,7 +274,7 @@ impl crate::exchange::DerivedExchange for Luno {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
-        let mut wallets: crate::value::List = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]).into_list();
+        let mut wallets: crate::value::List = self.safe_list_k_t(response.clone(), "balance");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -286,7 +286,7 @@ impl crate::exchange::DerivedExchange for Luno {
                         let mut i: i64 = 0;
             let mut __for_first_943: bool = true;
             while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (wallets.len() as i64) } {
-            let mut wallet: crate::value::Dict = self.safe_dict(&wallets, Value::Int(i), &[]).into_dict();
+            let mut wallet: crate::value::Dict = self.safe_dict_t(&wallets, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&wallet, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut reserved: Option<String> = self.safe_string_k_opt(&wallet, "reserved", &[]);
@@ -421,7 +421,7 @@ impl crate::exchange::DerivedExchange for Luno {
                         let mut i: i64 = 0;
             let mut __for_first_940: bool = true;
             while { if !__for_first_940 { i += 1; } __for_first_940 = false; i < (rawCurrency.len() as i64) } {
-            let mut networkEntry: Option<crate::value::Dict> = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(rawCurrency.clone(), Value::Int(i));
             let mut networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "name", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode.is_some()) {
@@ -1280,7 +1280,7 @@ impl Luno {
         //         ]
         //     }
         //
-        let mut currenciesData: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut currenciesData: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut grouped: crate::value::Dict = self.group_by(Value::Arr(currenciesData), Value::Str("native_currency".into()), &[]).into_dict();
         let mut values: crate::value::List = Value::Array(grouped.values().cloned().collect()).into_list();
         return self.parse_currencies(&values);
@@ -1328,7 +1328,7 @@ impl Luno {
         //     }
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut markets: crate::value::List = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).into_list();
+        let mut markets: crate::value::List = self.safe_list_k_t(&response, "markets");
         {
                         let mut i: i64 = 0;
             let mut __for_first_941: bool = true;
@@ -1460,7 +1460,7 @@ impl Luno {
     m
 }));
         let mut response: crate::value::Dict = self.private_get_balance(&[params]).await.into_dict();
-        let mut wallets: crate::value::List = self.safe_list_k(&response, "balance", &[Value::from(vec![])]).into_list();
+        let mut wallets: crate::value::List = self.safe_list_k_t(&response, "balance");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1633,7 +1633,7 @@ impl Luno {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_listorders(&[__ws_arg_5]).await.into_dict();
-        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut orders: crate::value::List = self.safe_list_k_t(&response, "orders");
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
 
     Value::Null
@@ -1752,7 +1752,7 @@ impl Luno {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
-        let mut rawTickers: crate::value::List = self.safe_list_k(&response, "tickers", &[Value::from(vec![])]).into_list();
+        let mut rawTickers: crate::value::List = self.safe_list_k_t(&response, "tickers");
         let mut tickers: crate::value::Dict = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into())).into_dict();
         let mut ids: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1863,7 +1863,7 @@ impl Luno {
         //          ]
         //      }
         //
-        let mut trades: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&response, "trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1929,7 +1929,7 @@ impl Luno {
         //          "pair": "XBTEUR"
         //     }
         //
-        let mut ohlcvs: crate::value::List = self.safe_list_k(&response, "candles", &[Value::from(vec![])]).into_list();
+        let mut ohlcvs: crate::value::List = self.safe_list_k_t(&response, "candles");
         return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -2001,7 +2001,7 @@ impl Luno {
         //          ]
         //      }
         //
-        let mut trades: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&response, "trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2225,7 +2225,7 @@ impl Luno {
             }
             currency = Some(self.currency(code.clone()));
             let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into())).into_dict();
-            let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
+            let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
             if (account.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLedger() could not find account id for ").into()), code)));
             }
@@ -2255,7 +2255,7 @@ impl Luno {
         });
         let __ws_arg_15 = self.extend(params, &[Value::Map(request)]);
         let mut response: crate::value::Dict = self.private_get_accounts_id_transactions(&[__ws_arg_15]).await.into_dict();
-        let mut entries: crate::value::List = self.safe_list_k(&response, "transactions", &[Value::from(vec![])]).into_list();
+        let mut entries: crate::value::List = self.safe_list_k_t(&response, "transactions");
         return self.parse_ledger(&entries, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

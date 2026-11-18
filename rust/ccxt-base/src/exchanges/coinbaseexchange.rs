@@ -345,10 +345,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut type_var: Option<String> = self.parse_ledger_entry_type((self.safe_string_k(item.clone(), "type", &[])).as_str());
         let mut code: Option<String> = self.safe_currency_code(Value::Null, currency);
-        let mut details: crate::value::Dict = self.safe_dict_k(item.clone(), "details", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut details: crate::value::Dict = self.safe_dict_k_t(item.clone(), "details");
         let mut account: Option<String> = None;
         let mut referenceAccount: Option<String> = None;
         let mut referenceId: Option<String> = None;
@@ -387,15 +384,12 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "id", &[]);
         let mut name: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "name", &[]);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut details: crate::value::Dict = self.safe_dict_k(rawCurrency.clone(), "details", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut details: crate::value::Dict = self.safe_dict_k_t(rawCurrency.clone(), "details");
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut supportedNetworks: crate::value::List = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::from(vec![])]).into_list();
+        let mut supportedNetworks: crate::value::List = self.safe_list_k_t(rawCurrency.clone(), "supported_networks");
         {
                         let mut j: i64 = 0;
             let mut __for_first_552: bool = true;
@@ -521,10 +515,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         //        }
         //    ]
         //
-        let mut details: crate::value::Dict = self.safe_dict_k(transaction.clone(), "details", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut details: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "details");
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "created_at", &[]));
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
@@ -1902,7 +1893,7 @@ impl Coinbaseexchange {
                         let mut i: i64 = 0;
             let mut __for_first_554: bool = true;
             while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (rawBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&rawBalances, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&rawBalances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2066,7 +2057,7 @@ impl Coinbaseexchange {
             let mut __for_first_555: bool = true;
             while { if !__for_first_555 { i += 1; } __for_first_555 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let mut entry: crate::value::List = self.safe_list(&response, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
+            let mut entry: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[Value::from(delimiter.clone())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)));
@@ -2934,7 +2925,7 @@ impl Coinbaseexchange {
         self.load_accounts(&[]).await;
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into())).into_dict();
-        let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
+        let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
         if (account.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLedger() could not find account id for ").into()), code)));
         }
@@ -3005,7 +2996,7 @@ impl Coinbaseexchange {
             if (code != Value::Null) {
                 currency = Some(self.currency(code.clone()));
                 let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into())).into_dict();
-                let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
+                let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
                 if (account.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositsWithdrawals() could not find account id for ").into()), code)));
                 }
@@ -3060,7 +3051,7 @@ impl Coinbaseexchange {
                 let mut __for_first_558: bool = true;
                 while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (response.len() as i64) } {
                 let mut account_id: Option<String> = self.safe_string_k_opt(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "account_id", &[]);
-                let mut account: crate::value::Dict = self.safe_dict(self.accountsById.clone(), account_id.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+                let mut account: crate::value::Dict = self.safe_dict_t(self.accountsById.clone(), account_id.map(Value::from).unwrap_or(Value::Null));
                 let mut codeInner: Option<String> = self.safe_string_k_opt(&account, "code", &[]);
                 add_element_to_object(get_value_mut(&mut response, &Value::Int(i)), &Value::Str("currency".into()), codeInner.map(Value::from).unwrap_or(Value::Null));
             }
@@ -3230,8 +3221,8 @@ impl Coinbaseexchange {
             { let __be_tmp = self.index_by(accounts, Value::Str("currency".into())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".into(), __be_tmp); } }
         }
         let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
-        let mut accountsByCurrencyId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]).into_dict();
-        let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyId, Value::from(currencyId.as_deref()), &[]).into_opt_dict();
+        let mut accountsByCurrencyId: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "coinbaseAccountsByCurrencyId");
+        let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyId, Value::from(currencyId.as_deref()));
         if (account.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}{}{}{}{}", self.id.clone(), " createDepositAddress() could not find currency code ", code, " with id = ", currencyId.map(Value::from).unwrap_or(Value::Null), " in this.options['coinbaseAccountsByCurrencyId']")));
         }

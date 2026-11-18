@@ -1240,17 +1240,14 @@ impl Lighter {
             while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut trades: crate::value::List = self.safe_list(&data, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
+            let mut trades: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             let mut tradesLength: i64 = trades.len() as i64;
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_477: bool = true;
                 while { if !__for_first_477 { j += 1; } __for_first_477 = false; j < tradesLength } {
                 let mut jReversed: i64 = (((tradesLength - 1)) - j);
-                let mut tradeRaw: crate::value::Dict = self.safe_dict(&trades, jReversed, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut tradeRaw: crate::value::Dict = self.safe_dict_t(&trades, jReversed);
                 std::sync::Arc::make_mut(&mut tradeRaw).insert("accountIndex".into(), accountIndex.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut trade: crate::value::Dict = self.parse_ws_order_trade(&tradeRaw, Some(&market)).into_dict();
                 stored.append(Value::from(&trade));
@@ -1649,7 +1646,7 @@ impl Lighter {
                 let mut __for_first_480: bool = true;
                 while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (assetIds.len() as i64) } {
                 let mut assetId: Option<&str> = assetIds.get(i as usize).and_then(Value::as_str);
-                let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::from(assetId.as_deref()), &[]).into_dict();
+                let mut asset: crate::value::Dict = self.safe_dict_t(&assets, Value::from(assetId.as_deref()));
                 let mut codeId: Option<String> = self.safe_string_k_opt(&asset, "symbol", &[]);
                 let mut code: Option<String> = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
@@ -2018,7 +2015,7 @@ impl Lighter {
             while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut orders: crate::value::List = self.safe_list(&data, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
+            let mut orders: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_481: bool = true;
@@ -2252,8 +2249,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (subscriptionHashes.len() as i64) } {
                 let mut subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (subscriptionHash.as_deref().unwrap_or_default().starts_with("ticker")) {
-                    let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-                    let mut subscriptionParams: crate::value::Dict = self.safe_dict_k(&subscription, "params", &[]).into_dict();
+                    let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    let mut subscriptionParams: crate::value::Dict = self.safe_dict_k_t(&subscription, "params");
                     let mut subscribedChannel: Option<String> = self.safe_string_k_opt(&subscriptionParams, "channel", &[]);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         __ch.remove_subscription(subscriptionHash.as_deref());

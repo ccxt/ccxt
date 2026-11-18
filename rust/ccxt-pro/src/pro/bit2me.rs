@@ -408,7 +408,7 @@ impl Bit2me {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut fee: Option<crate::value::Dict> = None;
-        let mut rawFee: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "fee", &[]).into_opt_dict();
+        let mut rawFee: Option<crate::value::Dict> = self.safe_dict_k_o(trade.clone(), "fee");
         if (rawFee.is_some()) {
             let mut feeRate: Option<String> = None;
             let mut feePercentage: Option<String> = self.safe_string_k_opt(&rawFee, "rate", &[]);
@@ -697,7 +697,7 @@ impl Bit2me {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut balances: crate::value::List = self.safe_list_k(&data, "balance", &[Value::from(vec![])]).into_list();
+        let mut balances: crate::value::List = self.safe_list_k_t(&data, "balance");
         { let __t = self.parent.parse_balance_list(&balances); self.balance = __t; }
         client.resolve(self.balance.clone(), "balance");
 }
@@ -810,10 +810,7 @@ impl Bit2me {
         let mut order: crate::value::Dict = self.parse_order(Value::from(&data), None).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&data, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            let mut pending: crate::value::Dict = self.safe_dict_k(self.options.clone(), "pendingWsOrders", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut pending: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "pendingWsOrders");
             { let __be_tmp = self.omit(&pending, clientOrderId.clone().map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
             self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), &order, &[]);
         }
@@ -933,8 +930,8 @@ impl Bit2me {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut deleted: crate::value::List = self.safe_list_k(&data, "ordersDeleted", &[Value::from(vec![])]).into_list();
-        let mut notDeleted: crate::value::List = self.safe_list_k(&data, "ordersNotDeletedReasons", &[Value::from(vec![])]).into_list();
+        let mut deleted: crate::value::List = self.safe_list_k_t(&data, "ordersDeleted");
+        let mut notDeleted: crate::value::List = self.safe_list_k_t(&data, "ordersNotDeletedReasons");
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1019,7 +1016,7 @@ impl Bit2me {
         let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut ids: crate::value::List = self.safe_list_k(&data, "cancelledOrders", &[Value::from(vec![])]).into_list();
+        let mut ids: crate::value::List = self.safe_list_k_t(&data, "cancelledOrders");
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1062,10 +1059,7 @@ impl Bit2me {
             //
             //     { "accessToken": { "token": "header.payload.signature", "expirationTime": 1794378427 } }
             //
-            let mut accessToken: crate::value::Dict = self.safe_dict_k(&response, "accessToken", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut accessToken: crate::value::Dict = self.safe_dict_k_t(&response, "accessToken");
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("event".to_string(), Value::Str("authenticate".into()));

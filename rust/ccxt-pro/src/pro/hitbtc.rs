@@ -278,7 +278,7 @@ impl Hitbtc {
  */
     pub async fn authenticate(&mut self) -> Value {
         self.check_required_credentials(&[]);
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
         let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
@@ -334,7 +334,7 @@ impl Hitbtc {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut isBatch: bool = name.as_str().unwrap_or_default().to_string().contains("batch");
         let mut resolvedPerSymbol: bool = (!(isBatch) || (messageHashPrefix.as_str() == Some("orderbooks"))); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
         let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) && resolvedPerSymbol {
@@ -443,7 +443,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate().await;
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
         let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         let mut splitName: crate::value::List = Value::Array(if let Some(__s) = name.as_str() { __s.split("_subscribe").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut messageHashBase: String = self.safe_string(&splitName, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -485,7 +485,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate().await;
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).into_dict();
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
         let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         let mut requestId: i64 = self.incrementing_nonce();
         let mut messageHash: Option<String> = self.number_to_string(Value::from(requestId));
@@ -530,7 +530,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOrderBook");
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/full".into())]).as_str().unwrap_or("orderbook/full").to_string();
         let mut name: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]);
         let mut depthValue: String = self.safe_string_k(params.clone(), "depth", &[Value::Str("20".into())]).as_str().unwrap_or("20").to_string(); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
@@ -621,10 +621,7 @@ impl Hitbtc {
             let mut item: crate::value::Dict = get_value(&data, marketId.as_deref()).into_dict();
             let mut messageHash: String = format!("{}{}", "orderbooks::", symbol.as_deref().unwrap_or("null"));
             if !(self.orderbooks.has(&symbol)) {
-                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.clone()));
                 let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -638,8 +635,8 @@ impl Hitbtc {
                 let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
                 orderbook.reset(Value::Dict(parsedSnapshot));
             }  else {
-                let mut asks: crate::value::List = self.safe_list_k(&item, "a", &[Value::from(vec![])]).into_list();
-                let mut bids: crate::value::List = self.safe_list_k(&item, "b", &[Value::from(vec![])]).into_list();
+                let mut asks: crate::value::List = self.safe_list_k_t(&item, "a");
+                let mut bids: crate::value::List = self.safe_list_k_t(&item, "b");
                 self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
                 self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             }
@@ -727,7 +724,7 @@ impl Hitbtc {
         let methodNameparamsMethodVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchTickers".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Option<String> = methodNameparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // watchTicker passes its own name, so options.watchTicker still applies to it
-        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), methodName.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_t(self.options.clone(), methodName.map(Value::from).unwrap_or(Value::Null));
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("ticker/{speed}/batch".into())]).as_str().unwrap_or("ticker/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2_opt(Value::from(&paramsMethod), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]);
         let mut speedValue: String = self.safe_string_k(&paramsMethod, "speed", &[Value::Str("1s".into())]).as_str().unwrap_or("1s").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -931,7 +928,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBidsAsks", &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchBidsAsks");
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/top/{speed}/batch".into())]).as_str().unwrap_or("orderbook/top/{speed}/batch").to_string();
         let mut method: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("method".into()), Value::Str("defaultMethod".into()), &[Value::from(defaultMethod)]);
         let mut speedValue: String = self.safe_string_k(params.clone(), "speed", &[Value::Str("100ms".into())]).as_str().unwrap_or("100ms").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -1403,7 +1400,7 @@ impl Hitbtc {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
-            let mut rawOhlcvs: crate::value::List = self.safe_list(&data, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
+            let mut rawOhlcvs: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_375: bool = true;
@@ -2155,10 +2152,7 @@ impl Hitbtc {
             }
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
-                let mut first: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut first: crate::value::Dict = self.safe_dict_t(result.clone(), Value::Int(0));
                 let mut arrayLength: i64 = result.len() as i64;
                 if (arrayLength == 0) || (first.contains_key("client_order_id")) {
                     self.handle_order_request(client, message);
@@ -2194,8 +2188,8 @@ impl Hitbtc {
             let mut isUnSubscription: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
             let mut subscriptionId: Option<String> = self.safe_string_k_opt(subscription.clone(), "id", &[]);
             if isUnSubscription && (subscriptionId.is_some()) && (subscriptionId == id) {
-                let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
-                let mut messageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).into_list();
+                let mut subMessageHashes: crate::value::List = self.safe_list_k_t(subscription.clone(), "subMessageHashes");
+                let mut messageHashes: crate::value::List = self.safe_list_k_t(subscription.clone(), "messageHashes");
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_380: bool = true;

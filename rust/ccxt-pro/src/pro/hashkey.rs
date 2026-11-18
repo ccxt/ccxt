@@ -331,10 +331,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_363: bool = true;
             while { if !__for_first_363 { i += 1; } __for_first_363 = false; i < (data.len() as i64) } {
-            let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut candle: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(candle), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
@@ -508,7 +505,7 @@ impl Hashkey {
                                 let mut i: i64 = 0;
                 let mut __for_first_364: bool = true;
                 while { if !__for_first_364 { i += 1; } __for_first_364 = false; i < (data.len() as i64) } {
-                let mut trade: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(i), &[]).into_opt_dict();
+                let mut trade: Option<crate::value::Dict> = self.safe_dict_o(data.clone(), Value::Int(i));
                 let mut parsed: crate::value::Dict = self.parse_ws_trade(&trade, Some(&market)).into_dict();
                 stored.append(Value::Dict(parsed));
             }
@@ -596,7 +593,7 @@ impl Hashkey {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut dataEntry: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
+        let mut dataEntry: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&dataEntry, "t", &[]).as_i64();
         let mut snapshot: crate::value::Dict = self.parse_order_book(&dataEntry, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
@@ -1070,7 +1067,7 @@ impl Hashkey {
         if (__ch.has_subscription(&subscribeHash)) {
             return;
         }
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchBalance");
         let mut snapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if snapshot {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", type_var, ":").into()), "fetchBalanceSnapshot");
@@ -1130,7 +1127,7 @@ impl Hashkey {
         //
         let mut event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = __pro_message.get("B").cloned().unwrap_or_default().into_list();
-        let mut balanceUpdate: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[]).into_dict();
+        let mut balanceUpdate: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
         let mut type_var: String = "swap".to_string();
         if isSpot {

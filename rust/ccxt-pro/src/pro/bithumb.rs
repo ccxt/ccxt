@@ -230,13 +230,10 @@ impl Bithumb {
         let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation == Some(2);
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", "ticker:", Value::from((market).symbol.clone()));
@@ -309,13 +306,10 @@ impl Bithumb {
             symbolsResolved = symbolsNormalized.map_or(Value::Null, Value::Arr);
         }
         let mut symbolsLengthDefined: i64 = symbolsResolved.len() as i64;
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut streamMarketIds: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -607,13 +601,10 @@ impl Bithumb {
         let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation == Some(2);
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
@@ -695,11 +686,8 @@ impl Bithumb {
         //
         let mut content: Option<crate::value::Dict> = __pro_message.get("content").cloned().unwrap_or_default().into_opt_dict();
         if (content.is_some()) {
-            let mut list: crate::value::List = self.safe_list_k(&content, "list", &[Value::from(vec![])]).into_list();
-            let mut first: crate::value::Dict = self.safe_dict(&list, Value::Int(0), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut list: crate::value::List = self.safe_list_k_t(&content, "list");
+            let mut first: crate::value::Dict = self.safe_dict_t(&list, Value::Int(0));
             let mut legacyMarketId: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
             if (legacyMarketId.is_none()) {
                 return;
@@ -728,10 +716,7 @@ impl Bithumb {
         if (symbol.is_none()) {
             return;
         }
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOrderBook");
         let mut obLimit: i64 = self.safe_integer_k(&options, "limit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({
@@ -752,7 +737,7 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_132: bool = true;
             while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (units.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(&units, Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(&units, Value::Int(i));
             let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
             let mut askPrice: Option<f64> = self.safe_number_k(&entry, "ask_price", &[]).as_f64();
@@ -829,13 +814,10 @@ impl Bithumb {
         let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation == Some(2);
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = (if isGenerationTwo { self.safe_string_k(&wsUrls, "publicGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() } else { self.safe_string_k(&wsUrls, "public", &[Value::Str("".into())]).as_str().unwrap_or("").to_string() });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
@@ -1094,13 +1076,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " watchBalance() is only supported for the generation 2 API")));
         }
         self.authenticate(&[]).await;
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myAsset".to_string();
         let mut request: crate::value::List = self.build_gen2_subscription_request(messageHash.clone().as_str(), Value::Map({
@@ -1144,7 +1123,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_134: bool = true;
             while { if !__for_first_134 { i += 1; } __for_first_134 = false; i < (assets.len() as i64) } {
-            let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::Int(i), &[]).into_dict();
+            let mut asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&asset, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1238,13 +1217,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsOptions)); }
         }
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         return client.as_value();
@@ -1287,16 +1263,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " watchOrders() is only supported for the generation 2 API")));
         }
         self.authenticate(&[]).await;
-        let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), Value::Str("ws".into()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        })]), Value::Str("ws".into()));
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myOrder".to_string();
-        let mut codes: crate::value::List = self.safe_list_k(params, "codes", &[Value::from(vec![])]).into_list();
+        let mut codes: crate::value::List = self.safe_list_k_t(params, "codes");
         let mut request: crate::value::List = self.build_gen2_subscription_request(messageHash.clone().as_str(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(messageHash.clone()));

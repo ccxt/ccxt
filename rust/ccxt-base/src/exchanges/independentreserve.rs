@@ -315,8 +315,8 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         //        "Transaction": null
         //    }
         //
-        let mut amount: crate::value::Dict = self.safe_dict_k(transaction.clone(), "Amount", &[]).into_dict();
-        let mut destination: crate::value::Dict = self.safe_dict_k(transaction.clone(), "Destination", &[]).into_dict();
+        let mut amount: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "Amount");
+        let mut destination: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "Destination");
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "PrimaryCurrencyCode", &[]);
         let mut datetime: Option<String> = self.safe_string_k_opt(transaction.clone(), "CreatedTimestampUtc", &[]);
         let mut address: Option<String> = self.safe_string_k_opt(&destination, "Address", &[]);
@@ -1055,7 +1055,7 @@ impl Independentreserve {
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: crate::value::Dict = self.public_get_get_order_minimum_volumes(&[params]).await.into_dict();
         let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(baseCurrenciesPromise), Value::Arr(quoteCurrenciesPromise), Value::Dict(limitsPromise)])).await.into_list();
-        let mut limits: crate::value::Dict = self.safe_dict(&responses, Value::Int(2), &[]).into_dict();
+        let mut limits: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(2));
         //
         //     {
         //         "Xbt": 0.0001,
@@ -1173,7 +1173,7 @@ impl Independentreserve {
                         let mut i: i64 = 0;
             let mut __for_first_835: bool = true;
             while { if !__for_first_835 { i += 1; } __for_first_835 = false; i < (accounts.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "CurrencyCode", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1402,7 +1402,7 @@ impl Independentreserve {
         request.insert("pageSize".into(), Value::from(limitResolved));
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_get_open_orders(&[__ws_arg_3]).await.into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&response, "Data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "Data");
         return self.parse_orders(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -1449,7 +1449,7 @@ impl Independentreserve {
         request.insert("pageSize".into(), Value::from(limitResolved));
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_get_closed_orders(&[__ws_arg_4]).await.into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&response, "Data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "Data");
         return self.parse_orders(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -1498,7 +1498,7 @@ impl Independentreserve {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut data: crate::value::List = self.safe_list_k(&response, "Data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "Data");
         return self.parse_trades(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -1541,7 +1541,7 @@ impl Independentreserve {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_get_recent_trades(&[__ws_arg_6]).await.into_dict();
-        let mut trades: crate::value::List = self.safe_list_k(&response, "Trades", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&response, "Trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1611,10 +1611,7 @@ impl Independentreserve {
             while { if !__for_first_837 { i += 1; } __for_first_837 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: crate::value::Dict = self.safe_dict(&fees, Value::from((market).base.clone()), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut fee: crate::value::Dict = self.safe_dict_t(&fees, Value::from((market).base.clone()));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), self.safe_dict_k(&fee, "info", &[]));

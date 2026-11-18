@@ -895,10 +895,7 @@ impl Mexc {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "timeframes");
         let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", symbolValue).into()), ":").into()), timeframe);
         let mut ohlcv: Value = Value::Null;
@@ -1008,10 +1005,7 @@ impl Mexc {
             })]).into_dict();
             let mut rawOhlcv: crate::value::Dict = self.safe_dict_k(&d, "k", &[Value::from(&d)]).into_dict();
             let mut timeframeId: Option<String> = self.safe_string2_opt(&rawOhlcv, Value::Str("i".into()), Value::Str("interval".into()), &[]);
-            let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut timeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "timeframes");
             timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
             let mut marketId: Option<String> = self.safe_string2_opt(message, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
             market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
@@ -1166,7 +1160,7 @@ impl Mexc {
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         let mut nonce: Option<i64> = self.safe_integer_k(orderbook, "nonce", &[]).as_i64();
-        let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstDelta: crate::value::Dict = self.safe_dict_t(cache.clone(), Value::Int(0));
         let mut firstDeltaNonce: Option<i64> = self.safe_integer_n(&firstDelta, Value::from(vec![Value::Str("r".into()), Value::Str("version".into()), Value::Str("fromVersion".into())]), &[]).as_i64();
         if (nonce.is_none()) || (firstDeltaNonce.is_none()) {
             return Value::Int(-1);
@@ -1178,7 +1172,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_492: bool = true;
             while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (cache.len() as i64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(i), &[]).into_dict();
+            let mut delta: crate::value::Dict = self.safe_dict_t(cache.clone(), Value::Int(i));
             let mut deltaNonce: Option<i64> = self.safe_integer_n(&delta, Value::from(vec![Value::Str("r".into()), Value::Str("version".into()), Value::Str("fromVersion".into())]), &[]).as_i64();
             if (deltaNonce.is_none()) {
                 continue;
@@ -1266,7 +1260,7 @@ impl Mexc {
         let mut marketId: Option<String> = self.safe_string2_opt(message.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
-        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_dict();
+        let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.clone()));
         let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -1331,8 +1325,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         orderbook.set_book_meta("nonce", Value::from(deltaNonce));
-        let mut asks: crate::value::List = self.safe_list_k(delta.clone(), "asks", &[Value::from(vec![])]).into_list();
-        let mut bids: crate::value::List = self.safe_list_k(delta, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k_t(delta.clone(), "asks");
+        let mut bids: crate::value::List = self.safe_list_k_t(delta, "bids");
         let mut asksOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
         self.handle_bookside_delta(asksOrderSide, &asks);
@@ -2417,10 +2411,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "timeframes");
         let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), Value::from((market).symbol.as_str())).into()), ":").into()), timeframe);
         let mut url: Option<String> = None;

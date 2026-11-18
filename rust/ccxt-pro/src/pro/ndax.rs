@@ -468,7 +468,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_527: bool = true;
             while { if !__for_first_527 { i += 1; } __for_first_527 = false; i < (payload.len() as i64) } {
-            let mut ohlcv: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
+            let mut ohlcv: crate::value::List = self.safe_list_t(&payload, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -663,7 +663,7 @@ impl Ndax {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: crate::value::List = self.safe_list(&payload, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut firstBidAsk: crate::value::List = self.safe_list_t(&payload, Value::Int(0));
         let mut marketId: Option<String> = self.safe_string_opt(&firstBidAsk, Value::Int(7), &[]);
         if (marketId.is_none()) {
             return;
@@ -681,7 +681,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_530: bool = true;
             while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (payload.len() as i64) } {
-            let mut bidask: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
+            let mut bidask: crate::value::List = self.safe_list_t(&payload, Value::Int(i));
             if (timestamp.is_none()) {
                 timestamp = self.safe_integer(&bidask, Value::Int(2), &[]).as_i64();
             }  else {
@@ -787,7 +787,7 @@ impl Ndax {
         //
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
         let mut id: Option<i64> = (match __pro_message.get("i") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
-        let mut subscription: Option<crate::value::Dict> = self.safe_dict(&subscriptionsById, id, &[]).into_opt_dict();
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id);
         if (subscription.is_some()) {
             let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
             if (method.is_some()) {

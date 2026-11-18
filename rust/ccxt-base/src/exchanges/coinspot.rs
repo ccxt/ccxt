@@ -184,17 +184,14 @@ impl crate::exchange::DerivedExchange for Coinspot {
                                 let mut i: i64 = 0;
                 let mut __for_first_584: bool = true;
                 while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < numRows } {
-                let mut currencies: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+                let mut currencies: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
                 let mut currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_583: bool = true;
                     while { if !__for_first_583 { j += 1; } __for_first_583 = false; j < (currencyIdsList.len() as i64) } {
                     let mut currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
-                    let mut balance: crate::value::Dict = self.safe_dict(&currencies, Value::from(currencyId.as_deref()), &[]).into_dict();
+                    let mut balance: crate::value::Dict = self.safe_dict_t(&currencies, Value::from(currencyId.as_deref()));
                     let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                     let mut account: crate::value::Dict = self.account().into_dict();
                     std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
@@ -1239,10 +1236,7 @@ impl Coinspot {
         let mut response: crate::value::Dict = self.public_get_latest(&[params]).await.into_dict();
         let mut id: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         id = id.to_lowercase();
-        let mut prices: crate::value::Dict = self.safe_dict_k(&response, "prices", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut prices: crate::value::Dict = self.safe_dict_k_t(&response, "prices");
         //
         //     {
         //         "status":"ok",
@@ -1255,10 +1249,7 @@ impl Coinspot {
         //         }
         //     }
         //
-        let mut ticker: crate::value::Dict = self.safe_dict(&prices, Value::from(id), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut ticker: crate::value::Dict = self.safe_dict_t(&prices, Value::from(id));
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -1375,7 +1366,7 @@ impl Coinspot {
         //         ],
         //     }
         //
-        let mut trades: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&response, "orders");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1447,7 +1438,7 @@ impl Coinspot {
         //          },
         //      ]
         // }
-        let mut buyTrades: crate::value::List = self.safe_list_k(&response, "buyorders", &[Value::from(vec![])]).into_list();
+        let mut buyTrades: crate::value::List = self.safe_list_k_t(&response, "buyorders");
         {
                         let mut i: i64 = 0;
             let mut __for_first_587: bool = true;
@@ -1455,7 +1446,7 @@ impl Coinspot {
             add_element_to_object(get_value_mut(&mut buyTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
-        let mut sellTrades: crate::value::List = self.safe_list_k(&response, "sellorders", &[Value::from(vec![])]).into_list();
+        let mut sellTrades: crate::value::List = self.safe_list_k_t(&response, "sellorders");
         {
                         let mut i: i64 = 0;
             let mut __for_first_588: bool = true;

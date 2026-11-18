@@ -342,7 +342,7 @@ impl Upbit {
     m
 }));
         let mut trades: Option<crate::pro::cache::Cache> = self.watch_public_multiple(symbols, Some("trade"), &[]).await.into();
-        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -488,10 +488,7 @@ impl Upbit {
         let mut marketId: Option<String> = (match __pro_message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = (match __pro_message.get("stream_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOrderBook");
         let mut limit: i64 = self.safe_integer_k(&options, "limit", &[Value::Int(15)]).as_i64().unwrap_or(15);
         if (type_var.as_deref() == Some("SNAPSHOT")) && !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({
@@ -512,7 +509,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_685: bool = true;
             while { if !__for_first_685 { i += 1; } __for_first_685 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
             let mut askPrice: Option<f64> = self.safe_number_k(&entry, "ask_price", &[]).as_f64();
@@ -977,13 +974,13 @@ impl Upbit {
         let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
         if (order.is_some()) {
             // paid_fee is cumulative, so the cached fee is only a fallback
-            let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k(&parsed, "fee", &[]).into_opt_dict();
+            let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k_o(&parsed, "fee");
             if (parsedFee.is_none()) {
                 let mut fee: Value = self.safe_value_k(&order, "fee", &[]);
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                let mut fees: Option<crate::value::List> = self.safe_list_k_o(&order, "fees");
                 if (fees.is_some()) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
@@ -1072,7 +1069,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_687: bool = true;
             while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut available: Option<String> = self.safe_string_k_opt(&balance, "balance", &[]);

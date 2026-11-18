@@ -282,7 +282,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
                 m
             }));
         }
-        let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]).into_list();
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(order.clone(), "fills");
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "timeInForce", &[]);
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
         return self.safe_order(Value::Map({
@@ -445,7 +445,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networksArray: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).into_list();
+        let mut networksArray: crate::value::List = self.safe_list_k_t(rawCurrency.clone(), "networks");
         let mut deposit: bool = (self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK"));
         let mut withdrawal: bool = (self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK"));
         let mut active: bool = (deposit && withdrawal);
@@ -664,21 +664,26 @@ impl crate::exchange::DerivedExchange for Bitvavo {
 }));
             m
         });
-        let mut networks: crate::value::List = self.safe_list_k(fee, "networks", &[]).into_list();
+        let mut networks: crate::value::List = self.safe_list_k_t(fee, "networks");
         let mut networkId: Option<String> = self.safe_string_opt(&networks, Value::Int(0), &[]); // Bitvavo currently only supports one network per currency
         let mut currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
         if (networkId.as_deref() == Some("Mainnet")) {
             networkId = currencyCode.clone();
         }
         let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
+        let mut networkFees: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if (networkCode.is_some()) {
-            { let __be_tmp = Value::Map({
+            networkFees.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), result.get("deposit").cloned().unwrap_or(Value::Null));
         m.insert("withdraw".to_string(), result.get("withdraw").cloned().unwrap_or(Value::Null));
     m
-}); if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(networkCode.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+}));
         }
+        result.insert("networks".into(), Value::Map(networkFees));
         return Value::Map(result);
 
     Value::Null
@@ -1565,15 +1570,12 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut feesByCategory: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "byCategory", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut feesByCategory: crate::value::Dict = self.safe_dict_k_t(self.fees.clone(), "byCategory");
         {
                         let mut i: i64 = 0;
             let mut __for_first_454: bool = true;
             while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (markets.len() as i64) } {
-            let mut market: Option<crate::value::Dict> = self.safe_dict(markets.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut market: Option<crate::value::Dict> = self.safe_dict_o(markets.clone(), Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&market, "market", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);
@@ -1844,7 +1846,7 @@ impl Bitvavo {
         //         }
         //     }
         //
-        let mut feesValue: crate::value::Dict = self.safe_dict_k(fees.clone(), "fees", &[]).into_dict();
+        let mut feesValue: crate::value::Dict = self.safe_dict_k_t(fees.clone(), "fees");
         let mut maker: Option<f64> = self.safe_number_k(&feesValue, "maker", &[]).as_f64();
         let mut taker: Option<f64> = self.safe_number_k(&feesValue, "taker", &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -2080,7 +2082,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_457: bool = true;
             while { if !__for_first_457 { i += 1; } __for_first_457 = false; i < (response.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(response.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "symbol", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2160,7 +2162,7 @@ impl Bitvavo {
         //         "maxItems": 0
         //     }
         //
-        let mut accounts: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        let mut accounts: crate::value::List = self.safe_list_k_t(&response, "items");
         return self.parse_accounts(&accounts, &[]);
         Value::Null
         }).await?))
@@ -2302,7 +2304,7 @@ impl Bitvavo {
         //         "limit": 25
         //     }
         //
-        let mut items: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        let mut items: crate::value::List = self.safe_list_k_t(&response, "items");
         return self.parse_transfers(&items, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3142,7 +3144,7 @@ impl Bitvavo {
         //         "maxItems": 100
         //     }
         //
-        let mut items: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
+        let mut items: crate::value::List = self.safe_list_k_t(&response, "items");
         return self.parse_ledger(&items, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

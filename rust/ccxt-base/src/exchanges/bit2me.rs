@@ -387,10 +387,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         //
         let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
         let mut movementType: Option<String> = self.safe_string_k_opt(transfer.clone(), "movementType", &[]);
-        let mut accountsById: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsById", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut accountsById: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsById");
         let mut fromAccount: Option<String> = None;
         let mut toAccount: Option<String> = None;
         let mut id: Option<String> = None;
@@ -433,7 +430,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         let mut enabled: bool = self.safe_bool_k_opt(rawCurrency.clone(), "enabled", &[Value::Bool(false)]).unwrap_or(false);
         let mut removedAt: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "removedAt", &[]);
         let mut active: bool = (enabled && (removedAt.is_none()));
-        let mut actions: crate::value::List = self.safe_list_k(rawCurrency.clone(), "actions", &[Value::from(vec![])]).into_list();
+        let mut actions: crate::value::List = self.safe_list_k_t(rawCurrency.clone(), "actions");
         let mut deposit: bool = self.in_array(Value::Str("deposit".into()), Value::from(&actions));
         let mut withdraw: bool = self.in_array(Value::Str("withdrawal".into()), Value::Arr(actions));
         // the exponent is only published for a handful of assets, fall back to the usual decimals
@@ -593,11 +590,8 @@ impl crate::exchange::DerivedExchange for Bit2me {
         //     {"statusCode":412,"error":"Precondition Failed","message":"...","errorPayload":{"code":"ORDER_AMOUNT_LOWER_MARKET_MIN"}}
         //
         let mut errorCode: Option<String> = self.safe_string2_opt(response.clone(), Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
-        let mut errorsList: Option<crate::value::List> = self.safe_list_k(response.clone(), "errors", &[]).into_opt_list();
-        let mut errorPayload: crate::value::Dict = self.safe_dict_k(response.clone(), "errorPayload", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut errorsList: Option<crate::value::List> = self.safe_list_k_o(response.clone(), "errors");
+        let mut errorPayload: crate::value::Dict = self.safe_dict_k_t(response.clone(), "errorPayload");
         let mut payloadCode: Option<String> = self.safe_string_k_opt(&errorPayload, "code", &[]);
         if (errorCode.is_some()) || (errorsList.is_some()) || (payloadCode.is_some()) {
             let mut message: Option<String> = self.safe_string_n_opt(response, Value::from(vec![Value::Str("message".into()), Value::Str("description".into()), Value::Str("error".into())]), &[]);
@@ -1292,11 +1286,8 @@ impl Bit2me {
         //         }
         //     ]
         //
-        let mut assets: crate::value::Dict = self.safe_dict(&responses, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut settings: crate::value::List = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
+        let mut assets: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(0));
+        let mut settings: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
         let mut settingsById: crate::value::Dict = self.index_by(Value::Arr(settings), Value::Str("symbol".into())).into_dict();
         let mut ids: Vec<Value> = Value::Array(assets.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1308,16 +1299,10 @@ impl Bit2me {
             let mut __for_first_335: bool = true;
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (ids.len() as i64) } {
             let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
-            let mut asset: crate::value::Dict = self.safe_dict(&assets, Value::from(id.as_deref()), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-            let mut assetSettings: crate::value::Dict = self.safe_dict(&settingsById, Value::from(id.as_deref()), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut asset: crate::value::Dict = self.safe_dict_t(&assets, Value::from(id.as_deref()));
+            let mut assetSettings: crate::value::Dict = self.safe_dict_t(&settingsById, Value::from(id.as_deref()));
             // an operation that is not listed for an asset is not available for it
-            let mut actions: crate::value::List = self.safe_list_k(&assetSettings, "actions", &[Value::from(vec![])]).into_list();
+            let mut actions: crate::value::List = self.safe_list_k_t(&assetSettings, "actions");
             let __ws_arg_1 = self.extend(asset, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("actions".to_string(), Value::Arr(actions));
@@ -1408,10 +1393,7 @@ impl Bit2me {
         //         }
         //     ]
         //
-        let mut ticker: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut ticker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -1691,10 +1673,7 @@ impl Bit2me {
         //     ]
         //
         if (matches!(&response, Value::Arr(_))) {
-            let mut takeProfitLeg: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut takeProfitLeg: crate::value::Dict = self.safe_dict_t(response.clone(), Value::Int(0));
             let mut ocoOrder: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_order(self, &takeProfitLeg, Some(&market)).as_map().cloned().unwrap_or_default();
             ocoOrder.insert("info".into(), response.clone());
             return Value::Map(ocoOrder);
@@ -1959,10 +1938,7 @@ impl Bit2me {
             if (numOrders == 0) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() could not find an order with clientOrderId ").into()), clientOrderId.as_deref().unwrap_or("null"))));
             }
-            let mut first: crate::value::Dict = self.safe_dict(&orders, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut first: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(0));
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, market.as_ref());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2283,7 +2259,7 @@ impl Bit2me {
         //         "total": 12
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2361,10 +2337,7 @@ impl Bit2me {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsByType");
         let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Option<String> = self.safe_string_opt(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({

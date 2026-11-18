@@ -321,7 +321,7 @@ impl Bingx {
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(&query, "symbolsAndTimeframes", &[]).into_opt_list();
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k_o(&query, "symbolsAndTimeframes");
         if (symbolsAndTimeframes.is_some()) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
             query = self.omit(&query, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
@@ -875,10 +875,7 @@ impl Bingx {
         }  else {
             url = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOrderBook");
         let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
         let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[Value::from((market).symbol.clone())]);
@@ -948,10 +945,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBook", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOrderBook");
         let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
         let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
@@ -1056,7 +1050,7 @@ impl Bingx {
         if (orderbook.is_none()) {
             // const limit = [ 5, 10, 20, 50, 100 ]
             let mut subscriptionHash: String = dataType;
-            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(subscriptionHash), &[]).into_dict();
+            let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(subscriptionHash));
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
             let mut limit: i64 = self.safe_integer_k(&subscription, "limit", &[Value::Int(100)]).as_i64().unwrap_or(100);
@@ -1214,15 +1208,12 @@ impl Bingx {
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut timeframeParts: crate::value::List = Value::Array(dataType.split("_").map(Value::from).collect()).into_list();
         let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframeParts, Value::Int(1), &[]);
-        let mut marketOptions: crate::value::Dict = self.safe_dict(self.options.clone(), Value::from(marketType), &[]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&marketOptions, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut marketOptions: crate::value::Dict = self.safe_dict_t(self.options.clone(), Value::from(marketType));
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&marketOptions, "timeframes");
         let mut unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]));
         if (self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe).is_none()) {
             let mut subscriptionHash: String = dataType;
-            let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(subscriptionHash), &[]).into_dict();
+            let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(subscriptionHash));
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
@@ -1296,14 +1287,8 @@ impl Bingx {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV is not supported for ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets.")));
         }
-        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&options, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_t(self.options.clone(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
         let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: Option<String> = self.get_message_hash("ohlcv", &[Value::from((market).symbol.clone()), timeframe]);
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
@@ -1365,14 +1350,8 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), Value::from((market).market_type.clone()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&options, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_t(self.options.clone(), Value::from((market).market_type.clone()));
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
         let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
         let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
@@ -1940,7 +1919,7 @@ impl Bingx {
         if !(data.contains_key("P")) {
             return;
         }
-        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "P", &[Value::from(vec![])]).into_list();
+        let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -2392,7 +2371,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let mut a: crate::value::Dict = __pro_message.get("a").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::List = self.safe_list_k(&a, "B", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&a, "B");
         let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
         let mut spotUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot", &[]);
         let mut isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
@@ -2520,10 +2499,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
-        let mut subscription: crate::value::Dict = self.safe_dict(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
         let mut isUnSubMessage: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if isUnSubMessage {
             self.handle_un_subscription(client, &subscription);

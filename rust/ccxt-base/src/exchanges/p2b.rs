@@ -270,7 +270,7 @@ impl crate::exchange::DerivedExchange for P2b {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut limits: crate::value::Dict = self.safe_dict_k(market.clone(), "limits", &[]).into_dict();
+        let mut limits: crate::value::Dict = self.safe_dict_k_t(market.clone(), "limits");
         let mut maxAmount: Option<String> = self.safe_string_k_opt(&limits, "max_amount", &[]);
         let mut maxPrice: Option<String> = self.safe_string_k_opt(&limits, "max_price", &[]);
         return Value::Map({
@@ -369,7 +369,7 @@ impl crate::exchange::DerivedExchange for P2b {
             let mut __for_first_1044: bool = true;
             while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (keys.len() as i64) } {
             let mut currencyId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::from(currencyId.as_deref()), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(response.clone(), Value::from(currencyId.as_deref()));
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut used: Option<String> = self.safe_string_k_opt(&balance, "freeze", &[]);
             let mut available: Option<String> = self.safe_string_k_opt(&balance, "available", &[]);
@@ -1004,7 +1004,7 @@ impl P2b {
         //        ]
         //    }
         //
-        let mut markets: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut markets: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_markets(&markets);
         Value::Null
         }).await?))
@@ -1060,10 +1060,7 @@ impl P2b {
         //        current_time: '1699252644.487566'
         //    }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.parse_tickers(&result, &[symbols]);
         Value::Null
         }).await?))
@@ -1120,10 +1117,7 @@ impl P2b {
         //        current_time: '1699252958.859391'
         //    }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &result, Some(&market));
         Value::Null
         }).await?))
@@ -1194,10 +1188,7 @@ impl P2b {
         //        "current_time": 1698733470.469274
         //    }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&response, "current_time", Value::Int(1000), &[]).as_i64();
         return self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         Value::Null
@@ -1267,7 +1258,7 @@ impl P2b {
         //        current_time: '1699255571.413828'
         //    }
         //
-        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_trades(&result, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1338,7 +1329,7 @@ impl P2b {
         //        current_time: '1699256375.030494'
         //    }
         //
-        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_ohlc_vs(&result, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1384,10 +1375,7 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &result);
         Value::Null
         }).await?))
@@ -1461,7 +1449,7 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Option<crate::value::Dict> = self.safe_dict_k(&response, "result", &[]).into_opt_dict();
+        let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market));
         Value::Null
         }).await?))
@@ -1526,7 +1514,7 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: Option<crate::value::Dict> = self.safe_dict_k(&response, "result", &[]).into_opt_dict();
+        let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
         Value::Null
         }).await?))
@@ -1601,7 +1589,7 @@ impl P2b {
         //        ]
         //    }
         //
-        let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_orders(&result, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1673,11 +1661,8 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut records: crate::value::List = self.safe_list_k(&result, "records", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let mut records: crate::value::List = self.safe_list_k_t(&result, "records");
         return self.parse_trades(&records, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1780,11 +1765,8 @@ impl P2b {
         //        }
         //    }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut deals: crate::value::List = self.safe_list_k(&result, "deals", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let mut deals: crate::value::List = self.safe_list_k_t(&result, "deals");
         return self.parse_trades(&deals, Some(&market), &[Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))

@@ -532,7 +532,7 @@ impl crate::exchange::DerivedExchange for Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_999: bool = true;
             while { if !__for_first_999 { i += 1; } __for_first_999 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
-            let mut level: Option<crate::value::List> = self.safe_list(orderbook.clone(), Value::Int(i), &[]).into_opt_list();
+            let mut level: Option<crate::value::List> = self.safe_list_o(orderbook.clone(), Value::Int(i));
             let mut newTimestamp: Option<i64> = self.safe_integer(&level, Value::Int(2), &[]).as_i64();
             if (newTimestamp.is_some()) && ((latestTimestamp.is_none()) || ((newTimestamp.is_some() && latestTimestamp.is_some() && newTimestamp > latestTimestamp))) {
                 latestTimestamp = newTimestamp;
@@ -2351,7 +2351,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_1001: bool = true;
             while { if !__for_first_1001 { i += 1; } __for_first_1001 = false; i < (response.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(response.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, currencyId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -3088,7 +3088,7 @@ impl Ndax {
         //     ]
         //
         let mut grouped: crate::value::Dict = self.group_by(response, Value::Str("ChangeReason".into()), &[]).into_dict();
-        let mut trades: crate::value::List = self.safe_list_k(&grouped, "Trade", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(&grouped, "Trade");
         return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3428,8 +3428,8 @@ impl Ndax {
         //         ]
         //     }
         //
-        let mut templateTypes: crate::value::List = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]).into_list();
-        let mut firstTemplateType: Option<crate::value::Dict> = self.safe_dict(&templateTypes, Value::Int(0), &[]).into_opt_dict();
+        let mut templateTypes: crate::value::List = self.safe_list_k_t(&withdrawTemplateTypesResponse, "TemplateTypes");
+        let mut firstTemplateType: Option<crate::value::Dict> = self.safe_dict_o(&templateTypes, Value::Int(0));
         if (firstTemplateType.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() could not find a withdraw template type for ").into()), crate::value::KeyRead::key_read(&&currency, "code"))));
         }

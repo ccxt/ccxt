@@ -647,10 +647,7 @@ impl Bitopro {
         });
         // this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "ws");
         let mut wsInnerOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsOptions, "options", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -748,10 +745,7 @@ impl Bitopro {
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (currencies.len() as i64) } {
             let mut currency: Option<String> = self.safe_string_opt(&currencies, Value::Int(i), &[]);
-            let mut balance: crate::value::Dict = self.safe_dict(&data, currency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&data, currency.map(Value::from).unwrap_or(Value::Null));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

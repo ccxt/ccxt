@@ -648,7 +648,7 @@ impl Bitvavo {
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, &message, &messageHashes, Value::Null).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1340,10 +1340,7 @@ impl Bitvavo {
             if (watchingOrderBookSnapshot.is_none()) {
                 add_element_to_object(&mut subscription, &Value::from(flagKey.as_str()), Value::Bool(true));
                 __ch.add_subscription(messageHash.as_str(), subscription.clone());
-                let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "watchOrderBookSnapshot");
                 let mut delay: Value = self.safe_integer_k(&options, "delay", &[self.rateLimit.clone()]);
                 // fetch the snapshot in a separate async call after a warmup delay
                 self.delay(delay, &[Value::Str("watch_order_book_snapshot".into()).clone(), client.clone(), message.clone(), subscription]).await;
@@ -1358,7 +1355,7 @@ impl Bitvavo {
     pub async fn watch_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut params: crate::value::Dict = self.safe_dict_k(subscription.clone(), "params", &[]).into_dict();
+        let mut params: crate::value::Dict = self.safe_dict_k_t(subscription.clone(), "params");
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
         let __rd_marketId: Option<String> = (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -2676,10 +2673,7 @@ impl Bitvavo {
         //         }
         //     }
         //
-        let mut subscriptions: crate::value::Dict = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut subscriptions: crate::value::Dict = self.safe_dict_k_t(message.clone(), "subscriptions");
         let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("book".to_string(), Value::Str("handle_order_book_subscriptions".into()).clone());

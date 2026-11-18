@@ -386,8 +386,8 @@ impl Bitstamp {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
-        let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]).into_list();
-        let mut asks: crate::value::List = self.safe_list_k(delta, "asks", &[Value::from(vec![])]).into_list();
+        let mut bids: crate::value::List = self.safe_list_k_t(delta.clone(), "bids");
+        let mut asks: crate::value::List = self.safe_list_k_t(delta, "asks");
         self.handle_bid_asks(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids);
         self.handle_bid_asks(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks);
 }
@@ -408,7 +408,7 @@ impl Bitstamp {
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut deltas: Value) -> Value {
         // we will consider it a fail
-        let mut firstElement: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstElement: crate::value::Dict = self.safe_dict_t(deltas.clone(), Value::Int(0));
         let mut firstElementNonce: Option<i64> = self.safe_integer_k(&firstElement, "microtimestamp", &[]).as_i64();
         if (firstElementNonce.is_none()) {
             return Value::Int(-1);
@@ -421,7 +421,7 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_143: bool = true;
             while { if !__for_first_143 { i += 1; } __for_first_143 = false; i < (deltas.len() as i64) } {
-            let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(i), &[]).into_dict();
+            let mut delta: crate::value::Dict = self.safe_dict_t(deltas.clone(), Value::Int(i));
             let mut deltaNonce: Option<i64> = self.safe_integer_k(&delta, "microtimestamp", &[]).as_i64();
             if (deltaNonce == nonce) {
                 return Value::Int((i + 1));
@@ -1171,7 +1171,7 @@ impl Bitstamp {
         }
         let mut subHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "subHash", &[]);
         let mut topic: Option<String> = self.safe_string_k_opt(subscription.clone(), "topic", &[]);
-        let mut symbols: crate::value::List = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]).into_list();
+        let mut symbols: crate::value::List = self.safe_list_k_t(subscription.clone(), "symbols");
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still

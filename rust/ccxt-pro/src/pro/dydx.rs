@@ -271,7 +271,7 @@ impl Dydx {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut content: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
-        let mut rawTrades: crate::value::List = self.safe_list_k(&content, "trades", &[Value::from(vec![])]).into_list();
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(&content, "trades");
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -441,8 +441,8 @@ impl Dydx {
             orderbook = Some(self.order_book(&[]));
         }
         orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
-        let mut asks: crate::value::List = self.safe_list_k(&content, "asks", &[Value::from(vec![])]).into_list();
-        let mut bids: crate::value::List = self.safe_list_k(&content, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k_t(&content, "asks");
+        let mut bids: crate::value::List = self.safe_list_k_t(&content, "bids");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
         orderbook.set_book_meta("nonce", (match message.get("message_id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
@@ -618,7 +618,7 @@ impl Dydx {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut content: Option<crate::value::Dict> = message.get("contents").cloned().unwrap_or_default().into_opt_dict();
-        let mut candles: crate::value::List = self.safe_list_k(&content, "candles", &[]).into_list();
+        let mut candles: crate::value::List = self.safe_list_k_t(&content, "candles");
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbol);
         let mut ohlcv: Value = self.safe_dict(&candles, Value::Int(0), &[content.map_or(Value::Null, Value::Dict)]);
         let mut parsed: crate::value::List = self.parse_ohlcv(ohlcv, Some(&market)).into_list();

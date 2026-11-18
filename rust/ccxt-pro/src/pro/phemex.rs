@@ -567,17 +567,15 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_628: bool = true;
             while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (message.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(message.clone(), Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(message.clone(), Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-            let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), Value::from(code.as_deref()), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut currency: crate::value::Dict = self.safe_dict_t(self.currencies.clone(), Value::from(code.as_deref()));
             let mut scale: i64 = self.safe_integer_k(&currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut used: Option<String> = self.safe_string_k_opt(&balance, "totalUsedBalanceRv", &[]);
-            if (used.is_none()) {
+            let mut usedRv: Option<String> = self.safe_string_k_opt(&balance, "totalUsedBalanceRv", &[]);
+            let mut used: Option<String> = usedRv.clone();
+            if (usedRv.is_none()) {
                 let mut usedEv: Option<String> = self.safe_string_k_opt(&balance, "totalUsedBalanceEv", &[]);
                 if (usedEv.is_none()) {
                     let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k_opt(&balance, "lockedTradingBalanceEv", &[]);
@@ -586,8 +584,9 @@ impl Phemex {
                 }
                 used = self.from_en(usedEv.map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
-            let mut total: Option<String> = self.safe_string_k_opt(&balance, "accountBalanceRv", &[]);
-            if (total.is_none()) {
+            let mut totalRv: Option<String> = self.safe_string_k_opt(&balance, "accountBalanceRv", &[]);
+            let mut total: Option<String> = totalRv.clone();
+            if (totalRv.is_none()) {
                 let mut totalEv: Option<String> = self.safe_string2_opt(&balance, Value::Str("accountBalanceEv".into()), Value::Str("balanceEv".into()), &[]);
                 total = self.from_en(totalEv.map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
@@ -689,7 +688,7 @@ impl Phemex {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut candles: crate::value::List = self.safe_list2(message, Value::Str("kline".into()), Value::Str("kline_p".into()), &[Value::from(vec![])]).into_list();
-        let mut first: crate::value::List = self.safe_list(&candles, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut first: crate::value::List = self.safe_list_t(&candles, Value::Int(0));
         let mut interval: Option<String> = self.safe_string_opt(&first, Value::Int(1), &[]);
         let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe.is_some()) {
@@ -1268,8 +1267,8 @@ impl Phemex {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut asks: crate::value::List = self.safe_list_k(&changes, "asks", &[Value::from(vec![])]).into_list();
-                let mut bids: crate::value::List = self.safe_list_k(&changes, "bids", &[Value::from(vec![])]).into_list();
+                let mut asks: crate::value::List = self.safe_list_k_t(&changes, "asks");
+                let mut bids: crate::value::List = self.safe_list_k_t(&changes, "bids");
                 self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks, &[crate::Value::from(&market)]);
                 self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids, &[crate::Value::from(&market)]);
                 orderbook.set_book_meta("nonce", Value::from(nonce));
@@ -1724,14 +1723,14 @@ impl Phemex {
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut parsedOrders: Vec<Value> = Vec::new();
         if (in_op(&message, &Value::Str("closed".into()))) || (in_op(&message, &Value::Str("fills".into()))) || (in_op(&message, &Value::Str("open".into()))) {
-            let mut closed: crate::value::List = self.safe_list_k(message.clone(), "closed", &[Value::from(vec![])]).into_list();
-            let mut open: crate::value::List = self.safe_list_k(message.clone(), "open", &[Value::from(vec![])]).into_list();
+            let mut closed: crate::value::List = self.safe_list_k_t(message.clone(), "closed");
+            let mut open: crate::value::List = self.safe_list_k_t(message.clone(), "open");
             let mut orders: crate::value::List = self.array_concat(&open, &closed).into_list();
             let mut ordersLength: i64 = orders.len() as i64;
             if (ordersLength == 0) {
                 return;
             }
-            trades = self.safe_list_k(message.clone(), "fills", &[Value::from(vec![])]).into_list();
+            trades = self.safe_list_k_t(message.clone(), "fills");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_636: bool = true;

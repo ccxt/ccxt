@@ -1018,8 +1018,8 @@ impl Bit2c {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        let mut rawBids: crate::value::List = self.safe_list_k(&orderbook, "bids", &[Value::from(vec![])]).into_list();
-        let mut rawAsks: crate::value::List = self.safe_list_k(&orderbook, "asks", &[Value::from(vec![])]).into_list();
+        let mut rawBids: crate::value::List = self.safe_list_k_t(&orderbook, "bids");
+        let mut rawAsks: crate::value::List = self.safe_list_k_t(&orderbook, "asks");
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
@@ -1203,10 +1203,7 @@ impl Bit2c {
         //         }
         //     }
         //
-        let mut fees: crate::value::Dict = self.safe_dict_k(&response, "Fees", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut fees: crate::value::Dict = self.safe_dict_k_t(&response, "Fees");
         let mut keys: Vec<Value> = Value::Array(fees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1218,7 +1215,7 @@ impl Bit2c {
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]).as_str().map(str::to_owned);
-            let mut fee: Option<crate::value::Dict> = self.safe_dict(&fees, Value::from(marketId.as_deref()), &[]).into_opt_dict();
+            let mut fee: Option<crate::value::Dict> = self.safe_dict_o(&fees, Value::from(marketId.as_deref()));
             let mut makerString: Option<String> = self.safe_string_k_opt(&fee, "FeeMaker", &[]);
             let mut takerString: Option<String> = self.safe_string_k_opt(&fee, "FeeTaker", &[]);
             let mut maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]).as_f64();
@@ -1373,12 +1370,9 @@ impl Bit2c {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_order_my_orders(&[__ws_arg_8]).await.into_dict();
-        let mut orders: crate::value::Dict = self.safe_dict(&response, Value::from((market).id.as_deref()), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut asks: crate::value::List = self.safe_list_k(&orders, "ask", &[Value::from(vec![])]).into_list();
-        let mut bids: crate::value::List = self.safe_list_k(&orders, "bid", &[Value::from(vec![])]).into_list();
+        let mut orders: crate::value::Dict = self.safe_dict_t(&response, Value::from((market).id.as_deref()));
+        let mut asks: crate::value::List = self.safe_list_k_t(&orders, "ask");
+        let mut bids: crate::value::List = self.safe_list_k_t(&orders, "bid");
         return self.parse_orders(self.array_concat(&asks, &bids), Some(&market), &[since, limit]);
         Value::Null
         }).await?))

@@ -291,7 +291,7 @@ impl Apex {
         }
         }
         let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[params]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -594,8 +594,8 @@ impl Apex {
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: crate::value::List = self.safe_list_k(&data, "a", &[Value::from(vec![])]).into_list();
-            let mut bids: crate::value::List = self.safe_list_k(&data, "b", &[Value::from(vec![])]).into_list();
+            let mut asks: crate::value::List = self.safe_list_k_t(&data, "a");
+            let mut bids: crate::value::List = self.safe_list_k_t(&data, "b");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -751,14 +751,8 @@ impl Apex {
             let mut marketId: Option<String> = self.safe_string_opt(&topicParts, Value::Int((topicLength - 1)), &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null]);
             symbol = self.safe_string_k_opt(&market, "symbol", &[]);
-            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut rawTicker: crate::value::Dict = self.safe_dict_k(&ticker, "info", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut ticker: crate::value::Dict = self.safe_dict_t(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut rawTicker: crate::value::Dict = self.safe_dict_k_t(&ticker, "info");
             let mut merged: crate::value::Dict = self.extend(rawTicker, &[&data]).into_dict();
             parsed = self.parse_ticker(Value::Dict(merged), None).as_map().cloned().unwrap_or_default();
         }
@@ -837,7 +831,7 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
+            let mut data: crate::value::List = self.safe_list_t(symbolsAndTimeframes.clone(), Value::Int(i));
             let mut symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1108,10 +1102,7 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (lists.len() as i64) } {
-            let mut rawTrade: crate::value::Dict = self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut rawTrade: crate::value::Dict = self.safe_dict_t(lists.clone(), Value::Int(i));
             let mut parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None).into_dict();
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1277,10 +1268,7 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (lists.len() as i64) } {
-            let mut rawPosition: crate::value::Dict = self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut rawPosition: crate::value::Dict = self.safe_dict_t(lists.clone(), Value::Int(i));
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
             let mut side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // hacky solution to handle closing positions
@@ -1569,15 +1557,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut contents: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
-        let mut fills: crate::value::List = self.safe_list_k(&contents, "fills", &[Value::from(vec![])]).into_list();
+        let mut fills: crate::value::List = self.safe_list_k_t(&contents, "fills");
         if (true) {
             self.handle_my_trades(client.clone(), &fills);
         }
-        let mut positions: crate::value::List = self.safe_list_k(&contents, "positions", &[Value::from(vec![])]).into_list();
+        let mut positions: crate::value::List = self.safe_list_k_t(&contents, "positions");
         if (true) {
             self.handle_positions(client.clone(), &positions);
         }
-        let mut orders: crate::value::List = self.safe_list_k(&contents, "orders", &[Value::from(vec![])]).into_list();
+        let mut orders: crate::value::List = self.safe_list_k_t(&contents, "orders");
         if (true) {
             self.handle_order(client, &orders);
         }

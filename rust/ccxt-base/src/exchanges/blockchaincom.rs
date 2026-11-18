@@ -893,7 +893,7 @@ impl Blockchaincom {
             let mut __for_first_458: bool = true;
             while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let mut market: Option<crate::value::Dict> = self.safe_dict(&markets, Value::from(marketId.as_deref()), &[]).into_opt_dict();
+            let mut market: Option<crate::value::Dict> = self.safe_dict_o(&markets, Value::from(marketId.as_deref()));
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -1880,7 +1880,7 @@ impl Blockchaincom {
         //         ]
         //     }
         //
-        let mut balances: Option<crate::value::List> = self.safe_list(&response, Value::from(accountName.clone()), &[]).into_opt_list();
+        let mut balances: Option<crate::value::List> = self.safe_list_o(&response, Value::from(accountName.clone()));
         if (balances.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() could not find the \"").into()), accountName).into()), "\" account")));
         }
@@ -1893,7 +1893,7 @@ impl Blockchaincom {
                         let mut i: i64 = 0;
             let mut __for_first_460: bool = true;
             while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

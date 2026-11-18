@@ -307,10 +307,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(response.clone(), "data");
         let mut currency: String = self.safe_string_k(response.clone(), "currency", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -402,10 +399,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut apiUrls: crate::value::Dict = self.safe_dict_k_t(self.urls.clone(), "api");
         let mut base: Option<String> = self.safe_string_opt(&apiUrls, Value::from(apiName.as_deref()), &[]);
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unknown API namespace: ").into()), apiName.as_deref().unwrap_or("null"))));
@@ -477,11 +471,8 @@ impl crate::exchange::DerivedExchange for Mudrex {
         }
         let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
-            let mut errors: crate::value::List = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]).into_list();
-            let mut first: crate::value::Dict = self.safe_dict(&errors, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut errors: crate::value::List = self.safe_list_k_t(response.clone(), "errors");
+            let mut first: crate::value::Dict = self.safe_dict_t(&errors, Value::Int(0));
             let mut text: Option<String> = self.safe_string_k_opt(&first, "text", &[json_stringify(&response)]);
             let mut errCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(text.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), text.as_deref().unwrap_or("null")).into()));
@@ -966,15 +957,9 @@ impl Mudrex {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut assetTicks: crate::value::Dict = self.safe_dict_k(&data, "asset_ticks", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut ohlcvs: crate::value::List = self.safe_list(&assetTicks, Value::from(assetPair.to_lowercase()), &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut assetTicks: crate::value::Dict = self.safe_dict_k_t(&data, "asset_ticks");
+        let mut ohlcvs: crate::value::List = self.safe_list_t(&assetTicks, Value::from(assetPair.to_lowercase()));
         return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1048,10 +1033,7 @@ impl Mudrex {
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_futures_asset_id(&[__ws_arg_3]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market));
         Value::Null
         }).await?))
@@ -1091,7 +1073,7 @@ impl Mudrex {
         if (data.is_some()) {
             rows = self.to_array(data.clone().map_or(Value::Null, Value::Arr)).into_list();
         }  else {
-            rows = self.safe_list_k(&data__map, "items", &[Value::from(vec![])]).into_list();
+            rows = self.safe_list_k_t(&data__map, "items");
         }
         let mut resultTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1153,11 +1135,11 @@ impl Mudrex {
             let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
             let mut items: crate::value::List = std::sync::Arc::new(Vec::new());
             if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
-                items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]).into_list();
+                items = self.safe_list_k_t(data.clone(), "items");
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: i64 = items.len() as i64;
                 if (itemsLength == 0) {
-                    items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]).into_list();
+                    items = self.safe_list_k_t(data.clone(), "results");
                     itemsLength = items.len() as i64;
                 }
                 if (itemsLength == 0) && (in_op(&data, &Value::Str("symbol".into()))) {
@@ -1295,10 +1277,7 @@ impl Mudrex {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_futures_asset_id_leverage(&[__ws_arg_8]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1446,8 +1425,8 @@ impl Mudrex {
             m
         });
         // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "takeProfit");
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(params.clone(), "stopLoss");
         if (takeProfit.is_some()) {
             request.insert("is_takeprofit".into(), Value::Bool(true));
             request.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.clone(), self.safe_string_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
@@ -1890,7 +1869,7 @@ impl Mudrex {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut positions: crate::value::List = self.parse_positions(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
@@ -2108,7 +2087,7 @@ impl Mudrex {
             }
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
             let mut response: crate::value::Dict = self.private_get_futures_fee_history(&[__ws_arg_20]).await.into_dict();
-            let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
+            let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
             let mut dataLength: i64 = data.len() as i64;
             {
                                 let mut i: i64 = 0;

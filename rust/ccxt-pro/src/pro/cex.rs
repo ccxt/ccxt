@@ -297,14 +297,8 @@ impl Cex {
         // awaiting, so a replaced object would make responses landing in that
         // window invisible to the consumer forever (same class as issue #26773)
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut freeBalance: crate::value::Dict = self.safe_dict_k(&data, "balance", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut usedBalance: crate::value::Dict = self.safe_dict_k(&data, "obalance", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut freeBalance: crate::value::Dict = self.safe_dict_k_t(&data, "balance");
+        let mut usedBalance: crate::value::Dict = self.safe_dict_k_t(&data, "obalance");
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -698,7 +692,7 @@ impl Cex {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        let mut pair: crate::value::List = self.safe_list_k(ticker.clone(), "pair", &[Value::from(vec![])]).into_list();
+        let mut pair: crate::value::List = self.safe_list_k_t(ticker.clone(), "pair");
         let mut baseId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol1", &[]);
         if (baseId.is_none()) {
             baseId = self.safe_string_opt(&pair, Value::Int(0), &[]);
@@ -1110,7 +1104,7 @@ impl Cex {
         let mut remains: Option<String> = self.safe_string_k_opt(&data, "remains", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(&data, "symbol2", &[]);
-        let mut pair: Option<crate::value::Dict> = self.safe_dict_k(&data, "pair", &[]).into_opt_dict();
+        let mut pair: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "pair");
         if (pair.is_some()) {
             baseId = self.safe_string_k_opt(&pair, "symbol1", &[]);
             quoteId = self.safe_string_k_opt(&pair, "symbol2", &[]);
@@ -1128,10 +1122,7 @@ impl Cex {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut storedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut ordersBySymbol: crate::value::Dict = self.safe_dict(storedOrders.hashmap(), Value::from(symbol.clone()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut ordersBySymbol: crate::value::Dict = self.safe_dict_t(storedOrders.hashmap(), Value::from(symbol.clone()));
         let mut order: Value = self.safe_value(&ordersBySymbol, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
         if (order == Value::Null) {
             order = self.parse_ws_order_update(&data, Some(&market));
@@ -1219,7 +1210,7 @@ impl Cex {
         }
         let mut baseId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol2", &[]);
-        let mut pair: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "pair", &[]).into_opt_dict();
+        let mut pair: Option<crate::value::Dict> = self.safe_dict_k_o(order.clone(), "pair");
         if (pair.is_some()) {
             baseId = self.safe_string_k_opt(order.clone(), "symbol1", &[]);
             quoteId = self.safe_string_k_opt(order.clone(), "symbol2", &[]);
@@ -1504,8 +1495,8 @@ impl Cex {
             return;
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
-        let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
-        let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
+        let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
         self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("asks")), Value::Arr(asks));
         self.handle_deltas(crate::pro::order_book::Side::of(storedOrderBook.book_field("bids")), Value::Arr(bids));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
@@ -2048,7 +2039,7 @@ impl Cex {
         //        "placed-cancelled": []
         //    }
         //
-        let mut canceledOrders: Option<crate::value::List> = self.safe_list_k(response, "cancel-orders", &[]).into_opt_list();
+        let mut canceledOrders: Option<crate::value::List> = self.safe_list_k_o(response, "cancel-orders");
         return self.parse_orders(&canceledOrders, None, &[Value::Null, Value::Null, params]);
         Value::Null
         }).await?))

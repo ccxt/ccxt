@@ -233,18 +233,9 @@ impl crate::exchange::DerivedExchange for Indodax {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
-        let mut balances: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut free: crate::value::Dict = self.safe_dict_k(&balances, "balance", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut used: crate::value::Dict = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut balances: crate::value::Dict = self.safe_dict_k_t(response.clone(), "return");
+        let mut free: crate::value::Dict = self.safe_dict_k_t(&balances, "balance");
+        let mut used: crate::value::Dict = self.safe_dict_k_t(&balances, "balance_hold");
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&balances, "server_time", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1216,10 +1207,7 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut ticker: crate::value::Dict = self.safe_dict_k(&response, "ticker", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut ticker: crate::value::Dict = self.safe_dict_k_t(&response, "ticker");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -1664,10 +1652,7 @@ impl Indodax {
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut result: crate::value::Dict = self.private_post_trade(&[__ws_arg_8]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&result, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "return");
         let mut id: Option<String> = self.safe_string_k_opt(&data, "order_id", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1740,7 +1725,7 @@ impl Indodax {
         //        }
         //    }
         //
-        let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "return", &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "return");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
         Value::Null
         }).await?))
@@ -1781,10 +1766,7 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1836,10 +1818,7 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Dict(response)).as_map().cloned().unwrap_or_default();
         result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1953,10 +1932,7 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         let mut withdraw: indexmap::IndexMap<String, Value> = self.safe_dict_k(&data, "withdraw", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1988,8 +1964,8 @@ impl Indodax {
             }
         }  else {
             currency = Some(self.currency(code));
-            let mut withdraws: crate::value::List = self.safe_list(&withdraw, crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
-            let mut deposits: crate::value::List = self.safe_list(&deposit, crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
+            let mut withdraws: crate::value::List = self.safe_list_t(&withdraw, crate::value::KeyRead::key_read(&&currency, "id"));
+            let mut deposits: crate::value::List = self.safe_list_t(&deposit, crate::value::KeyRead::key_read(&&currency, "id"));
             transactions = self.array_concat(&withdraws, &deposits).into_list();
         }
         return self.parse_transactions(&transactions, currency.as_ref(), &[since, limit]);
@@ -2125,15 +2101,9 @@ impl Indodax {
         //        }
         //    }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[]).into_dict();
-        let mut addresses: crate::value::Dict = self.safe_dict_k(&data, "address", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut networks: crate::value::Dict = self.safe_dict_k(&data, "network", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
+        let mut addresses: crate::value::Dict = self.safe_dict_k_t(&data, "address");
+        let mut networks: crate::value::Dict = self.safe_dict_k_t(&data, "network");
         let mut addressKeys: Vec<Value> = Value::Array(addresses.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {

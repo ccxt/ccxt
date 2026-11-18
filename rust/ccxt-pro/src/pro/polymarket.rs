@@ -784,10 +784,7 @@ impl Polymarket {
         if (rowsLength == 0) {
             return;
         }
-        let mut first: crate::value::Dict = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut first: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(0));
         let mut marketId: Option<String> = self.safe_string_k_opt(&first, "iid", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -801,10 +798,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_658: bool = true;
             while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut trade: crate::value::Dict = self.parse_ws_trade(&row, Some(&market)).into_dict();
             trades.append(Value::Dict(trade));
         }
@@ -885,10 +879,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut wsTimeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "wsTimeframes");
         let mut interval: Option<String> = self.safe_string_opt(&wsTimeframes, timeframe.clone(), &[]);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV() does not support the ").into()), timeframe).into()), " timeframe over the websocket")));
@@ -935,10 +926,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsTimeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut wsTimeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "wsTimeframes");
         let mut interval: Option<String> = self.safe_string_opt(&wsTimeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolResolved);
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
@@ -1162,10 +1150,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_660: bool = true;
             while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut parsed: crate::value::Dict = self.parse_order(Value::Dict(row), None).into_dict();
             stored.append(Value::from(&parsed));
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -1289,10 +1274,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_662: bool = true;
             while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < rowsLength } {
-            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut parsed: crate::value::Dict = self.parse_trade(Value::Dict(row), None).into_dict();
             stored.append(Value::from(&parsed));
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -1521,16 +1503,13 @@ impl Polymarket {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut rows: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
+        let mut rows: crate::value::List = self.safe_list_k_t(&data, "positions");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_665: bool = true;
             while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (rows.len() as i64) } {
-            let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut extended: crate::value::Dict = self.extend(row, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1542,10 +1521,7 @@ impl Polymarket {
         }
         }
         client.resolve(Value::Arr(newPositions), "positions");
-        let mut margin: crate::value::Dict = self.safe_dict_k(&data, "margin", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut margin: crate::value::Dict = self.safe_dict_k_t(&data, "margin");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Dict(data));
@@ -1582,7 +1558,7 @@ impl Polymarket {
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
                 let mut postKey: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
-                let mut postPending: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::from(postKey.clone()), &[]).into_opt_dict();
+                let mut postPending: Option<crate::value::Dict> = self.safe_dict_o(__ch.subscriptions.clone(), Value::from(postKey.clone()));
                 if (postPending.is_some()) {
                     __ch.remove_subscription(postKey.as_str());
                     let mut postAction: Option<String> = self.safe_string_k_opt(&postPending, "method", &[]);
@@ -1614,23 +1590,20 @@ impl Polymarket {
             return;
         }
         let mut key: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
-        let mut pending: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(key.clone()), &[]).into_opt_dict();
+        let mut pending: Option<crate::value::Dict> = self.safe_dict_o(get_value(&client, &Value::Str("subscriptions".into())), Value::from(key.clone()));
         if (pending.is_none()) {
             return;
         }
         __ch.remove_subscription(key.as_str());
-        let mut messageHashes: crate::value::List = self.safe_list_k(&pending, "messageHashes", &[Value::from(vec![])]).into_list();
-        let mut subMessageHashes: crate::value::List = self.safe_list_k(&pending, "subMessageHashes", &[Value::from(vec![])]).into_list();
+        let mut messageHashes: crate::value::List = self.safe_list_k_t(&pending, "messageHashes");
+        let mut subMessageHashes: crate::value::List = self.safe_list_k_t(&pending, "subMessageHashes");
         let mut action: Option<String> = self.safe_string_k_opt(&pending, "method", &[]);
         let mut errorMessage: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_666: bool = true;
             while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(data.clone(), Value::Int(i));
             let mut status: Option<String> = self.safe_string_k_opt(&entry, "status", &[]);
             if (status.as_deref() == Some("err")) {
                 errorMessage = self.safe_string_k_opt(&entry, "error", &[]);

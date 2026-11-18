@@ -700,11 +700,13 @@ impl Onetrading {
 }
 
     pub fn handle_book_deltas(&self, mut orderbook: Value, mut deltas: Value) {
+        let __deltas_empty = Vec::new();
+        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
             let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { i += 1; } __for_first_565 = false; (i as f64) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_book_delta(orderbook.clone(), get_value(&deltas, &Value::Int(i)));
+            while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (deltas.len() as i64) } {
+            self.handle_book_delta(orderbook.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -1045,7 +1047,7 @@ impl Onetrading {
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[Value::Str("".into())]);
             orders.append(Value::Dict(order));
             client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", symbol.as_deref().unwrap_or("null")).into())));
-            let mut rawTrades: crate::value::List = self.safe_list_k(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), "trades", &[Value::from(vec![])]).into_list();
+            let mut rawTrades: crate::value::List = self.safe_list_k_t(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), "trades");
             {
                                 let mut ii: i64 = 0;
                 let mut __for_first_566: bool = true;
@@ -1302,10 +1304,7 @@ impl Onetrading {
             let mut orderId: Option<String> = self.safe_string_k_opt(&update, "order_id", &[]);
             let mut datetime: Option<String> = self.safe_string2_opt(&update, Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
             let mut previousOrderArray: crate::value::List = self.filter_by_array(&self.orders, Value::Str("id".into()), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).into_list();
-            let mut previousOrder: crate::value::Dict = self.safe_dict(&previousOrderArray, Value::Int(0), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut previousOrder: crate::value::Dict = self.safe_dict_t(&previousOrderArray, Value::Int(0));
             symbol = self.safe_string_k_opt(&previousOrder, "symbol", &[]);
             let mut filled: Option<String> = self.safe_string_k_opt(&update, "filled_amount", &[]);
             let mut status: Value = self.parse_ws_order_status(updateType.as_deref()).map(Value::from).unwrap_or(Value::Null);
@@ -1335,7 +1334,7 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_568: bool = true;
             while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (balanceKeys.len() as i64) } {
-            let mut newBalance: Option<crate::value::Dict> = self.safe_dict(&update, balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut newBalance: Option<crate::value::Dict> = self.safe_dict_o(&update, balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null));
             if (newBalance.is_some()) {
                 self.update_balance(&newBalance);
             }
@@ -1419,11 +1418,8 @@ impl Onetrading {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Value = self.safe_string_k(&market, "id", &[Value::Str("".into())]);
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframeId: Option<crate::value::Dict> = self.safe_dict(&timeframes, timeframe.clone(), &[]).into_opt_dict();
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "timeframes");
+        let mut timeframeId: Option<crate::value::Dict> = self.safe_dict_o(&timeframes, timeframe.clone());
         if (timeframeId.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " this interval is not supported, please provide one of the supported timeframes")));
         }
@@ -1439,10 +1435,7 @@ impl Onetrading {
         if (client != Value::Null) {
             subscription = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone(), &[]);
             if (subscription != Value::Null) {
-                let mut ohlcvMarket: crate::value::Dict = self.safe_dict(subscription.clone(), marketId.clone(), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut ohlcvMarket: crate::value::Dict = self.safe_dict_t(subscription.clone(), marketId.clone());
                 let mut marketSubscribed: bool = self.safe_bool_opt(&ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).unwrap_or(false);
                 if !marketSubscribed {
                     type_var = "UPDATE_SUBSCRIPTION".to_string();
@@ -1455,7 +1448,7 @@ impl Onetrading {
                 });
             }
         }
-        let mut subscriptionMarketId: Option<crate::value::Dict> = self.safe_dict(subscription.clone(), marketId.clone(), &[]).into_opt_dict();
+        let mut subscriptionMarketId: Option<crate::value::Dict> = self.safe_dict_o(subscription.clone(), marketId.clone());
         if (subscriptionMarketId.is_none()) {
             if (marketId != Value::Null) {
                 add_element_to_object(&mut subscription, &marketId, Value::Map({
@@ -1557,10 +1550,7 @@ impl Onetrading {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut dateTime: Option<String> = (match message.get("time") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timeframeId: Option<crate::value::Dict> = message.get("granularity").cloned().unwrap_or_default().into_opt_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "timeframes");
         let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map_or(Value::Null, Value::Dict), &[Value::Dict(timeframes)]);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv.", symbol.as_deref().unwrap_or("null")).into()), ".").into()), timeframe.as_deref().unwrap_or("null"));
         let mut parsed: crate::value::List = std::sync::Arc::new(vec![Value::from(self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null))), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Null, Value::Float),
@@ -1762,7 +1752,7 @@ impl Onetrading {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
-        let mut authenticated: Option<crate::value::Dict> = self.safe_dict((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]).into_opt_dict();
+        let mut authenticated: Option<crate::value::Dict> = self.safe_dict_o((client).subscriptions.clone(), Value::from(messageHash.clone()));
         if (authenticated.is_none()) {
             self.check_required_credentials(&[]);
             let mut request: indexmap::IndexMap<String, Value> = ({

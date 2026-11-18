@@ -693,11 +693,8 @@ impl Sxbet {
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[extra.clone()]);
             let mut response: crate::value::Dict = self.sxbet_public_get_markets_active(&[__ws_arg_0]).await.into_dict();
-            let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut pageMarkets: crate::value::List = self.safe_list_k(&result, "markets", &[Value::from(vec![])]).into_list();
+            let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+            let mut pageMarkets: crate::value::List = self.safe_list_k_t(&result, "markets");
             let mut pageMarketsLength: i64 = pageMarkets.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -934,7 +931,7 @@ impl Sxbet {
         let mut leagueId: Option<String> = self.safe_string_k_opt(params.clone(), "leagueId", &[]);
         let mut sportId: Option<String> = self.safe_string_k_opt(params.clone(), "sportId", &[]);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut tags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();
+        let mut tags: crate::value::List = self.safe_list_k_t(params.clone(), "tags");
         let mut tagsLength: i64 = tags.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -1022,7 +1019,7 @@ impl Sxbet {
             while { if !__for_first_1500 { i += 1; } __for_first_1500 = false; i < orderLength } {
             let mut fixtureId: Option<&str> = order.get(i as usize).and_then(Value::as_str);
             let mut event: crate::value::Dict = self.parse_event(fixtureId.as_deref().unwrap_or_default(), grouped.get(fixtureId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_dict();
-            let mut evMarkets: crate::value::List = self.safe_list_k(&event, "markets", &[Value::from(vec![])]).into_list();
+            let mut evMarkets: crate::value::List = self.safe_list_k_t(&event, "markets");
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
             {
                                 let mut j: i64 = 0;
@@ -1231,15 +1228,12 @@ impl Sxbet {
  * @returns {object} the cached obv3 metadata data object
  */
     pub async fn load_sx_obv3_metadata(&mut self) -> Value {
-        let mut cached: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "sxObv3Metadata", &[]).into_opt_dict();
+        let mut cached: Option<crate::value::Dict> = self.safe_dict_k_o(self.options.clone(), "sxObv3Metadata");
         if (cached.is_some()) {
             return cached.map_or(Value::Null, Value::Dict);
         }
         let mut response: crate::value::Dict = self.sxbet_public_get_metadata_obv3(&[]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sxObv3Metadata".into(), Value::from(&data)); }
         return Value::Dict(data);
 
@@ -1291,12 +1285,12 @@ impl Sxbet {
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        let mut rRaw: Option<String> = crate::value::KeyRead::key_read(&&signature, "r").as_str().map(str::to_owned);
-        let mut sRaw: Option<String> = crate::value::KeyRead::key_read(&&signature, "s").as_str().map(str::to_owned);
-        let mut r: Option<String> = (if let Some(__s) = rRaw.as_deref() { Some(format!("{:0>64}", __s)) } else { None });
-        let mut s: Option<String> = (if let Some(__s) = sRaw.as_deref() { Some(format!("{:0>64}", __s)) } else { None });
+        let mut rRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut sRaw: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut r: String = format!("{:0>64}", rRaw);
+        let mut s: String = format!("{:0>64}", sRaw);
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "0x", r.as_deref().unwrap_or("null")).into()), s.as_deref().unwrap_or("null")).into()), v));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "0x", r).into()), s).into()), v));
 }
 
 /*
@@ -1418,10 +1412,7 @@ impl Sxbet {
             }
         }
         let mut obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
-        let mut activeAsset: crate::value::Dict = self.safe_dict_k(&obv3, "activeAsset", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut activeAsset: crate::value::Dict = self.safe_dict_k_t(&obv3, "activeAsset");
         let mut chainId: Option<i64> = self.safe_integer_k(&obv3, "chainId", &[]).as_i64();
         let mut usdcAddress: Option<String> = self.safe_string_k_opt(&activeAsset, "baseToken", &[]);
         // the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
@@ -1436,14 +1427,8 @@ impl Sxbet {
         if (spender.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")));
         }
-        let mut chains: crate::value::Dict = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut chainConfig: crate::value::Dict = self.safe_dict(&chains, Value::from(self.number_to_string(Value::from(chainId))), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut chains: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "chains");
+        let mut chainConfig: crate::value::Dict = self.safe_dict_t(&chains, Value::from(self.number_to_string(Value::from(chainId))));
         let mut rpcUrl: Option<String> = self.safe_string_k_opt(&paramsSpender, "rpcUrl", &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
         if (rpcUrl.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " approve() has no RPC endpoint configured for chainId ").into()), Value::from(self.number_to_string(Value::from(chainId)))).into()), " - pass params.rpcUrl")));
@@ -1525,10 +1510,7 @@ impl Sxbet {
         let mut rest: crate::value::Dict = self.omit(&paramsSpender, &["amount", "tokenAddress", "deadline", "rpcUrl"], &[]).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&rest]);
         let mut response: crate::value::Dict = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1603,14 +1585,8 @@ impl Sxbet {
         let mut priceStr: Option<String> = self.number_to_string(price);
         let mut probability: Option<String> = (if (isBuy) { priceStr.clone() } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned) });
         let mut obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
-        let mut domain: crate::value::Dict = self.safe_dict_k(&obv3, "domain", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut activeAsset: crate::value::Dict = self.safe_dict_k(&obv3, "activeAsset", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut domain: crate::value::Dict = self.safe_dict_k_t(&obv3, "domain");
+        let mut activeAsset: crate::value::Dict = self.safe_dict_k_t(&obv3, "activeAsset");
         let mut baseToken: Option<String> = self.safe_string_k_opt(&activeAsset, "baseToken", &[]);
         let mut oddsLadderStepSize: Option<String> = self.number_to_string(self.safe_integer_k(&obv3, "oddsLadderStepSize", &[Value::Int(125)]));
         let mut roundedProbability: Option<String> = self.round_odds_to_ladder(probability.as_deref(), oddsLadderStepSize.as_deref().unwrap_or_default());
@@ -1738,15 +1714,9 @@ impl Sxbet {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[&rest]);
         let mut response: crate::value::Dict = self.sxbet_private_post_orders_v3(&[__ws_arg_6]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut results: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
-        let mut first: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut results: crate::value::List = self.safe_list_k_t(&data, "orders");
+        let mut first: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
         let mut status: Option<String> = self.safe_string_upper_k_opt(&first, "status", &[]);
         if (status.as_deref() == Some("FAILED")) {
             let mut reason: String = self.safe_string_k(&first, "reason", &[Value::Str("FAILED".into())]).as_str().unwrap_or("FAILED").to_string();
@@ -1758,7 +1728,7 @@ impl Sxbet {
         //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
         // documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
         // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
-        let mut matchOutcome: Option<crate::value::Dict> = self.safe_dict_k(&first, "outcome", &[]).into_opt_dict();
+        let mut matchOutcome: Option<crate::value::Dict> = self.safe_dict_k_o(&first, "outcome");
         let mut usdcDecimals: String = "1000000".to_string();
         let mut filled: Option<f64> = None;
         let mut remaining: Option<f64> = None;
@@ -1825,10 +1795,7 @@ impl Sxbet {
  */
     pub fn parse_sxbet_cancel_response(&self, response: impl Into<crate::Value>) -> Value {
         let mut response: Value = response.into();
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(response.clone(), "data");
         let mut result: Vec<Value> = Vec::new();
         // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
         // report 'cancelledSubmitted' instead - treat both like cancelled
@@ -1847,7 +1814,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut notCancelled: crate::value::List = self.safe_list_k(&data, "notCancelled", &[Value::from(vec![])]).into_list();
+        let mut notCancelled: crate::value::List = self.safe_list_k_t(&data, "notCancelled");
         let mut notCancelledLength: i64 = notCancelled.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -1863,7 +1830,7 @@ impl Sxbet {
 }), &[]));
         }
         }
-        let mut unconfirmed: crate::value::List = self.safe_list_k(&data, "unconfirmed", &[Value::from(vec![])]).into_list();
+        let mut unconfirmed: crate::value::List = self.safe_list_k_t(&data, "unconfirmed");
         let mut unconfirmedLength: i64 = unconfirmed.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -1918,7 +1885,7 @@ impl Sxbet {
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_delete_orders_v3(&[__ws_arg_7]).await.into_dict();
         let mut orders: crate::value::List = self.parse_sxbet_cancel_response(&response).into_list();
-        let mut first: Option<crate::value::Dict> = self.safe_dict(&orders, Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
         return first.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2148,11 +2115,8 @@ impl Sxbet {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_orders_v3(&[__ws_arg_11]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawOrders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rawOrders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_prediction_orders(Value::Arr(rawOrders), &[crate::Value::from(outcomeObj.as_ref()), since, limit]);
         Value::Null
         }).await?))
@@ -2225,10 +2189,7 @@ impl Sxbet {
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_orders_v3_order_id(&[__ws_arg_12]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut row: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::from(&data)]).into_dict();
         return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &row, outcomeObj.as_ref());
         Value::Null
@@ -2274,11 +2235,8 @@ impl Sxbet {
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_public_get_trades_v3_public(&[__ws_arg_13]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawTradesLength: i64 = rawTrades.len() as i64;
         {
@@ -2340,11 +2298,8 @@ impl Sxbet {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_fills_v3(&[__ws_arg_14]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawFills: crate::value::List = self.safe_list_k(&data, "fills", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rawFills: crate::value::List = self.safe_list_k_t(&data, "fills");
         let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawFillsLength: i64 = rawFills.len() as i64;
         {
@@ -2451,10 +2406,7 @@ impl Sxbet {
     m
 }));
         let mut obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
-        let mut activeAsset: crate::value::Dict = self.safe_dict_k(&obv3, "activeAsset", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut activeAsset: crate::value::Dict = self.safe_dict_k_t(&obv3, "activeAsset");
         let mut usdcAddress: String = self.safe_string_lower_k(&activeAsset, "baseToken", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut response: crate::value::Dict = self.sxbet_private_get_user_balance_v3(&[params]).await.into_dict();
         //
@@ -2464,11 +2416,8 @@ impl Sxbet {
         //         "availableAmount": "0", "pendingAvailableAmount": "0",
         //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut balances: crate::value::List = self.safe_list_k(&data, "balances", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut balances: crate::value::List = self.safe_list_k_t(&data, "balances");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Dict(response));
@@ -2480,7 +2429,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1514: bool = true;
             while { if !__for_first_1514 { i += 1; } __for_first_1514 = false; i < balancesLength } {
-            let mut row: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
+            let mut row: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut tokenAddress: String = self.safe_string_lower_k(&row, "tokenAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -2554,11 +2503,8 @@ impl Sxbet {
         let mut rest: crate::value::Dict = self.omit(params, &["status"], &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&rest]);
         let mut response: crate::value::Dict = self.sxbet_private_get_positions_v3(&[__ws_arg_15]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
         let mut result: Vec<Value> = Vec::new();
         let mut rawPositionsLength: i64 = rawPositions.len() as i64;
         {
@@ -2610,10 +2556,7 @@ impl Sxbet {
         let mut outcomeObj: Option<crate::types::Market> = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut oneDenom: String = "100000000000000000000".to_string();
         let mut usdcDecimals: String = "1000000".to_string();
-        let mut odds: crate::value::Dict = self.safe_dict_k(raw.clone(), "odds", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut odds: crate::value::Dict = self.safe_dict_k_t(raw.clone(), "odds");
         let mut ownOdds: Option<String> = None;
         if isOutcomeOneMaxWin {
             ownOdds = self.safe_string_k_opt(&odds, "outcomeOne", &[]);
@@ -2693,11 +2636,8 @@ impl Sxbet {
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_trades_v3(&[__ws_arg_16]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
         let mut result: Vec<Value> = Vec::new();
         let mut rawTradesLength: i64 = rawTrades.len() as i64;
         {
@@ -2746,10 +2686,7 @@ impl Sxbet {
             outcomeId = Some(format!("{}{}", marketHash, "-2"));
         }
         let mut outcomeObj: Option<crate::types::Market> = self.safe_outcome(outcomeId.clone().map(Value::from).unwrap_or(Value::Null), market);
-        let mut settlement: crate::value::Dict = self.safe_dict_k(trade.clone(), "settlement", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut settlement: crate::value::Dict = self.safe_dict_k_t(trade.clone(), "settlement");
         let mut winner: Option<i64> = self.safe_integer_k(&settlement, "outcome", &[]).as_i64();
         let mut isVoid: bool = winner == Some(0);
         let mut heldNumber: i64 = (if isBettingOutcomeOne { 1 } else { 2 });
@@ -2763,10 +2700,7 @@ impl Sxbet {
         if isVoid {
             resultLabel = Some("VOID".to_string());
         }  else if (winner.is_some()) {
-            let mut info: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
             let mut labelKey: String = "outcomeTwoName".to_string();
             if (winner == Some(1)) {
                 labelKey = "outcomeOneName".to_string();
@@ -2880,10 +2814,7 @@ impl Sxbet {
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_private_get_orders_v3_odds_best(&[__ws_arg_17]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.safe_list_k(&data, "bestOdds", &[Value::from(vec![])]);
 
     Value::Null
@@ -2904,14 +2835,8 @@ impl Sxbet {
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
         let mut oneLevels: crate::value::List = snapshot.get("outcomeOne").cloned().unwrap_or_default().into_list();
         let mut twoLevels: crate::value::List = snapshot.get("outcomeTwo").cloned().unwrap_or_default().into_list();
-        let mut bestOne: crate::value::Dict = self.safe_dict(&oneLevels, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut bestTwo: crate::value::Dict = self.safe_dict(&twoLevels, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut bestOne: crate::value::Dict = self.safe_dict_t(&oneLevels, Value::Int(0));
+        let mut bestTwo: crate::value::Dict = self.safe_dict_t(&twoLevels, Value::Int(0));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketHash".to_string(), (match snapshot.get("marketHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
@@ -3056,7 +2981,7 @@ impl Sxbet {
             while { if !__for_first_1522 { i += 1; } __for_first_1522 = false; i < outcomesLength } {
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcomesList.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut marketHash: String = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut raw: Option<crate::value::Dict> = self.safe_dict(rowsByHash.clone(), Value::from(marketHash), &[]).into_opt_dict();
+            let mut raw: Option<crate::value::Dict> = self.safe_dict_o(rowsByHash.clone(), Value::from(marketHash));
             if (raw.is_none()) {
                 continue;
             }
@@ -3095,10 +3020,7 @@ impl Sxbet {
         let mut outcomeId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
         let mut marketHash: Option<String> = self.safe_string_k_opt(raw.clone(), "marketHash", &[]);
         let mut isOutcomeOne: bool = outcomeId == marketHash;
-        let mut outcomeOneOdds: crate::value::Dict = self.safe_dict_k(raw.clone(), "outcomeOne", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut outcomeOneOdds: crate::value::Dict = self.safe_dict_k_t(raw.clone(), "outcomeOne");
         let mut outcomeTwoOdds: Value = self.safe_dict_k(raw.clone(), "outcomeTwo", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3188,13 +3110,10 @@ impl Sxbet {
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[__ws_arg_18]).await.into_dict();
-        let mut snapshot: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut snapshot: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(&snapshot, isOutcomeOne).into_dict();
-        let mut sortedBids: crate::value::List = self.safe_list_k(&sides, "bids", &[Value::from(vec![])]).into_list();
-        let mut sortedAsks: crate::value::List = self.safe_list_k(&sides, "asks", &[Value::from(vec![])]).into_list();
+        let mut sortedBids: crate::value::List = self.safe_list_k_t(&sides, "bids");
+        let mut sortedAsks: crate::value::List = self.safe_list_k_t(&sides, "asks");
         if (limit != Value::Null) {
             let mut bidsLength: i64 = sortedBids.len() as i64;
             if (limit.as_i64().is_some() && limit.as_i64() < Some(bidsLength)) {
@@ -3243,7 +3162,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1523: bool = true;
             while { if !__for_first_1523 { i += 1; } __for_first_1523 = false; i < ownLevelsLength } {
-            let mut level: crate::value::Dict = self.safe_dict(ownLevels.clone(), Value::Int(i), &[]).into_dict();
+            let mut level: crate::value::Dict = self.safe_dict_t(ownLevels.clone(), Value::Int(i));
             let mut percentageOdds: Option<String> = self.safe_string_k_opt(&level, "percentageOdds", &[]);
             let mut size: String = self.safe_string_k(&level, "size", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut price: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom), &[]).as_f64();
@@ -3257,7 +3176,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1524: bool = true;
             while { if !__for_first_1524 { i += 1; } __for_first_1524 = false; i < oppositeLevelsLength } {
-            let mut level: crate::value::Dict = self.safe_dict(oppositeLevels.clone(), Value::Int(i), &[]).into_dict();
+            let mut level: crate::value::Dict = self.safe_dict_t(oppositeLevels.clone(), Value::Int(i));
             let mut percentageOdds: Option<String> = self.safe_string_k_opt(&level, "percentageOdds", &[]);
             let mut size: String = self.safe_string_k(&level, "size", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -3344,10 +3263,7 @@ impl Sxbet {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header")));
         }
         let mut response: crate::value::Dict = self.sxbet_private_get_user_realtime_token_v3_api_key(&[]).await.into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.safe_string2(&data, Value::Str("token".into()), Value::Str("realtimeToken".into()), &[self.safe_string_k(&response, "token", &[])]);
 
     Value::Null
@@ -3450,11 +3366,8 @@ impl Sxbet {
             return;
         }
         let mut requestIdString: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut pendingRequests: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsPendingRequests", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut pendingEntry: Option<crate::value::Dict> = self.safe_dict(&pendingRequests, requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        let mut pendingRequests: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "wsPendingRequests");
+        let mut pendingEntry: Option<crate::value::Dict> = self.safe_dict_o(&pendingRequests, requestIdString.clone().map(Value::from).unwrap_or(Value::Null));
         let mut errorReply: Option<crate::value::Dict> = __pro_message.get("error").cloned().unwrap_or_default().into_opt_dict();
         if (errorReply.is_some()) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
@@ -3498,10 +3411,7 @@ impl Sxbet {
         if (channel.is_none()) {
             return;
         }
-        let mut pub_val: crate::value::Dict = self.safe_dict_k(&push, "pub", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut pub_val: crate::value::Dict = self.safe_dict_k_t(&push, "pub");
         let mut data: Value = self.safe_value_k(&pub_val, "data", &[]);
         if (data == Value::Null) {
             return;
@@ -3624,10 +3534,7 @@ impl Sxbet {
             return Value::from(refreshed);
         }
         self.set_ws_option("wsBookVersions", marketHash.as_deref().unwrap_or_default(), Value::from(version));
-        let mut watchedBooks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsWatchedBooks", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut watchedBooks: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "wsWatchedBooks");
         let mut watchedSyms: Vec<Value> = Value::Array(watchedBooks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut timestamp: i64 = self.milliseconds();
         let mut watchedSymsLength: i64 = watchedSyms.len() as i64;
@@ -3779,31 +3686,22 @@ impl Sxbet {
         //         "outcomeTwo": null
         //     }
         //
-        let mut watchedTickers: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsWatchedTickers", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut watchedTickers: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "wsWatchedTickers");
         let mut watchedSyms: Vec<Value> = Value::Array(watchedTickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut rowsLength: i64 = rows.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1530: bool = true;
             while { if !__for_first_1530 { i += 1; } __for_first_1530 = false; i < rowsLength } {
-            let mut entry: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(rows.clone(), Value::Int(i));
             let mut marketHash: Option<String> = self.safe_string_k_opt(&entry, "marketHash", &[]);
             if (marketHash.is_none()) {
                 continue;
             }
             // every publication carries BOTH sides (null = no resting liquidity), so the legacy
             // best-odds shape rebuilds directly without any merge cache
-            let mut bestOne: crate::value::Dict = self.safe_dict_k(&entry, "outcomeOne", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
-            let mut bestTwo: crate::value::Dict = self.safe_dict_k(&entry, "outcomeTwo", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut bestOne: crate::value::Dict = self.safe_dict_k_t(&entry, "outcomeOne");
+            let mut bestTwo: crate::value::Dict = self.safe_dict_k_t(&entry, "outcomeTwo");
             let mut raw: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketHash".to_string(), marketHash.clone().map(Value::from).unwrap_or(Value::Null));

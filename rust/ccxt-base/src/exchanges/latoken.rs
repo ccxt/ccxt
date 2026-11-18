@@ -391,7 +391,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         let mut code: Option<String> = self.safe_currency_code(tag.map(Value::from).unwrap_or(Value::Null), None);
         let mut currencyType: Option<String> = self.safe_string_k_opt(currency.clone(), "type", &[]);
         let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
-        let mut bindings: crate::value::List = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]).into_list();
+        let mut bindings: crate::value::List = self.safe_list_k_t(currency.clone(), "bindings");
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1414,10 +1414,7 @@ impl Latoken {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut currencies: crate::value::Dict = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut currencies: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "cachedCurrencies");
         let mut currenciesById: crate::value::Dict = self.index_by(Value::Dict(currencies), Value::Str("id".into())).into_dict();
         let mut result: Vec<Value> = Vec::new();
         let mut rawMarkets: crate::value::List = self.to_array(&response).into_list();
@@ -1425,15 +1422,15 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_912: bool = true;
             while { if !__for_first_912 { i += 1; } __for_first_912 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Option<crate::value::Dict> = self.safe_dict(&rawMarkets, Value::Int(i), &[]).into_opt_dict();
+            let mut market: Option<crate::value::Dict> = self.safe_dict_o(&rawMarkets, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             // the exchange shows them inverted
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
-            let mut baseCurrency: crate::value::Dict = self.safe_dict(&currenciesById, baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-            let mut quoteCurrency: crate::value::Dict = self.safe_dict(&currenciesById, quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-            let mut baseCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k(&baseCurrency, "info", &[]).into_opt_dict();
-            let mut quoteCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k(&quoteCurrency, "info", &[]).into_opt_dict();
+            let mut baseCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, baseId.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut quoteCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, quoteId.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut baseCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k_o(&baseCurrency, "info");
+            let mut quoteCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k_o(&quoteCurrency, "info");
             if (baseCurrencyInfo.is_some()) && (quoteCurrencyInfo.is_some()) {
                 let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(&baseCurrencyInfo, "tag", &[]), None);
                 let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(&quoteCurrencyInfo, "tag", &[]), None);
@@ -1596,9 +1593,9 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_913: bool = true;
             while { if !__for_first_913 { i += 1; } __for_first_913 = false; i < (rawCurrencies.len() as i64) } {
-            let mut rawCurrency: Option<crate::value::Dict> = self.safe_dict(&rawCurrencies, Value::Int(i), &[]).into_opt_dict();
-            let mut bindingEntry: crate::value::Dict = self.safe_dict(&bindingsById, self.safe_string_k(&rawCurrency, "id", &[]), &[]).into_dict();
-            let mut bindings: Option<crate::value::List> = self.safe_list_k(&bindingEntry, "bindings", &[]).into_opt_list();
+            let mut rawCurrency: Option<crate::value::Dict> = self.safe_dict_o(&rawCurrencies, Value::Int(i));
+            let mut bindingEntry: crate::value::Dict = self.safe_dict_t(&bindingsById, self.safe_string_k(&rawCurrency, "id", &[]));
+            let mut bindings: Option<crate::value::List> = self.safe_list_k_o(&bindingEntry, "bindings");
             let mut mergedCurrency: Option<crate::value::Dict> = rawCurrency.clone();
             if (bindings.is_some()) {
                 mergedCurrency = self.extend(rawCurrency, &[Value::Map({
@@ -1670,20 +1667,17 @@ impl Latoken {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut types: crate::value::Dict = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut types: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "types");
         let mut accountType: Option<String> = self.safe_string_opt(&types, Value::from(type_var.as_deref()), &[Value::from(type_var.as_deref())]);
         let mut balancesByType: crate::value::Dict = self.group_by(response, Value::Str("type".into()), &[]).into_dict();
-        let mut balances: crate::value::List = self.safe_list(&balancesByType, accountType.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
-        let mut firstBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(0), &[]).into_dict();
+        let mut balances: crate::value::List = self.safe_list_t(&balancesByType, accountType.map(Value::from).unwrap_or(Value::Null));
+        let mut firstBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(0));
         let mut maxTimestamp: Option<i64> = self.safe_integer_k(&firstBalance, "timestamp", &[]).as_i64();
         {
                         let mut i: i64 = 0;
             let mut __for_first_915: bool = true;
             while { if !__for_first_915 { i += 1; } __for_first_915 = false; i < (balances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
+            let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(&balance, "timestamp", &[]).as_i64();
             if (timestamp.is_some()) {
@@ -1768,8 +1762,8 @@ impl Latoken {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        let mut rawAsks: crate::value::List = self.safe_list_k(&response, "ask", &[Value::from(vec![])]).into_list();
-        let mut rawBids: crate::value::List = self.safe_list_k(&response, "bid", &[Value::from(vec![])]).into_list();
+        let mut rawAsks: crate::value::List = self.safe_list_k_t(&response, "ask");
+        let mut rawBids: crate::value::List = self.safe_list_k_t(&response, "bid");
         let mut asks: Vec<Value> = Vec::new();
         let mut bids: Vec<Value> = Vec::new();
         {
@@ -1938,10 +1932,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchTradingFee", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchTradingFee");
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("fetchPrivateTradingFee".into())]).as_str().unwrap_or("fetchPrivateTradingFee").to_string();
         let mut method: Option<String> = self.safe_string_k_opt(params.clone(), "method", &[Value::from(defaultMethod)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("method".into()), &[]).into_dict();
@@ -2521,7 +2512,7 @@ impl Latoken {
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        let mut content: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
+        let mut content: crate::value::List = self.safe_list_k_t(&response, "content");
         return self.parse_transactions(&content, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2614,7 +2605,7 @@ impl Latoken {
         //         "hasContent": true
         //     }
         //
-        let mut transfers: crate::value::List = self.safe_list_k(&response, "content", &[Value::from(vec![])]).into_list();
+        let mut transfers: crate::value::List = self.safe_list_k_t(&response, "content");
         return self.parse_transfers(&transfers, Some(&currency), &[since, limit]);
         Value::Null
         }).await?))

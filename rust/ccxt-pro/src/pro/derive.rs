@@ -212,10 +212,7 @@ impl Derive {
 
     pub fn request_id(&self, url: &str) -> i64 {
         let mut url: Value = url.into();
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "requestId");
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&url), Value::from(newValue)); } }
@@ -316,10 +313,7 @@ impl Derive {
         // }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_name", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -545,11 +539,8 @@ impl Derive {
         //     }
         //
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut rawData: crate::value::Dict = self.safe_dict_k(&params, "data", &[]).into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&rawData, "instrument_ticker", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut rawData: crate::value::Dict = self.safe_dict_k_t(&params, "data");
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&rawData, "instrument_ticker");
         let mut topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
         let mut parts: crate::value::List = Value::Array(topic.split(".").map(Value::from).collect()).into_list();
@@ -769,7 +760,7 @@ impl Derive {
         //     }
         //
         let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
-        let mut status: Option<crate::value::Dict> = self.safe_dict_k(&result, "status", &[]).into_opt_dict();
+        let mut status: Option<crate::value::Dict> = self.safe_dict_k_o(&result, "status");
         if (status.is_some()) {
             let mut topics: Vec<Value> = Value::Array(status.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
@@ -1065,7 +1056,7 @@ impl Derive {
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut topic: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        let mut rawOrders: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
+        let mut rawOrders: crate::value::List = self.safe_list_k_t(&params, "data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_305: bool = true;
@@ -1080,17 +1071,14 @@ impl Derive {
                     self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
                 }
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-                let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut orders: crate::value::Dict = self.safe_dict_t(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
                 if (order.is_some()) {
-                    let mut fee: Option<crate::value::Dict> = self.safe_dict_k(&order, "fee", &[]).into_opt_dict();
+                    let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
                     if (fee.is_some()) {
                         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict)); }
                     }
-                    let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                    let mut fees: Option<crate::value::List> = self.safe_list_k_o(&order, "fees");
                     if (fees.is_some()) {
                         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees.map_or(Value::Null, Value::Arr)); }
                     }
@@ -1239,7 +1227,7 @@ impl Derive {
         }
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut topic: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        let mut rawTrades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
+        let mut rawTrades: crate::value::List = self.safe_list_k_t(&params, "data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_306: bool = true;
@@ -1434,10 +1422,7 @@ impl Derive {
         if !(self.positionsByType.has(&subaccountIdKey)) {
             CacheStore::put(&mut self.positionsByType, &subaccountIdKey, ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let mut loadedSnapshots: crate::value::Dict = self.safe_dict_k(self.options.clone(), "loadedPositionsSnapshots", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut loadedSnapshots: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "loadedPositionsSnapshots");
         if fetchSnapshot && !(matches!(subaccountIdKey.as_deref(), Some(__k) if loadedSnapshots.contains_key(__k))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1498,10 +1483,7 @@ impl Derive {
         let mut side: String = (if isShort { "short".to_string() } else { "long".to_string() });
         let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&newSize).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&subaccountIdKey);
-        let mut symbolPositions: crate::value::Dict = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut symbolPositions: crate::value::Dict = self.safe_dict_t(cache.hashmap(), Value::from(symbol.clone()));
         // a fill through zero flattens the opposite side first
         let mut oppositeSide: String = (if isShort { "long".to_string() } else { "short".to_string() });
         let mut opposite: Value = self.safe_dict(&symbolPositions, Value::from(oppositeSide), &[]);
@@ -1560,7 +1542,7 @@ impl Derive {
         let mut topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topicParts: crate::value::List = Value::Array(topic.split(".").map(Value::from).collect()).into_list();
         let mut subaccountIdKey: Option<String> = self.safe_string_opt(&topicParts, Value::Int(0), &[]);
-        let mut data: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&params, "data");
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1577,10 +1559,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (data.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]).into_dict();
+            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut name: String = self.safe_string_k(&entry, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
@@ -1705,10 +1684,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_309: bool = true;
                 while { if !__for_first_309 { i += 1; } __for_first_309 = false; i < (subscriptionKeys.len() as i64) } {
-                let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
+                let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut subscriptionId: Option<String> = self.safe_string_k_opt(&subscription, "id", &[]);
                 if (subscriptionId.is_some()) && (subscriptionId == id) {
                     matched = true;

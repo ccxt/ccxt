@@ -529,7 +529,7 @@ impl Luno {
         let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
-        let mut tradeUpdates: crate::value::List = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).into_list();
+        let mut tradeUpdates: crate::value::List = self.safe_list_k_t(message.clone(), "trade_updates");
         {
                         let mut i: i64 = 0;
             let mut __for_first_487: bool = true;
@@ -548,7 +548,7 @@ impl Luno {
             }
         }
         }
-        let mut createUpdate: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "create_update", &[]).into_opt_dict();
+        let mut createUpdate: Option<crate::value::Dict> = self.safe_dict_k_o(message.clone(), "create_update");
         if (createUpdate.is_some()) {
             let mut bidAskArray: crate::value::List = self.custom_parse_bid_ask(&createUpdate, &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]).into_list();
             let mut type_var: Option<String> = self.safe_string_k_opt(&createUpdate, "type", &[]);
@@ -558,7 +558,7 @@ impl Luno {
                 bidsOrderSide.store_array(Value::Arr(bidAskArray));
             }
         }
-        let mut deleteUpdate: Option<crate::value::Dict> = self.safe_dict_k(message, "delete_update", &[]).into_opt_dict();
+        let mut deleteUpdate: Option<crate::value::Dict> = self.safe_dict_k_o(message, "delete_update");
         if (deleteUpdate.is_some()) {
             let mut orderId: Option<String> = self.safe_string_k_opt(&deleteUpdate, "order_id", &[]);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));

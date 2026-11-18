@@ -562,10 +562,7 @@ impl Coinbaseinternational {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut parsed: crate::value::Dict = self.parent.parse_balance_list(&data).into_dict();
         { let __t = self.deep_extend(self.balance.clone(), &[&parsed]); self.balance = __t; }
         client.resolve(self.balance.clone(), "balance");
@@ -661,7 +658,7 @@ impl Coinbaseinternational {
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        let mut data: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&params, "data");
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -973,11 +970,8 @@ impl Coinbaseinternational {
         }
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
+        let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
         let mut positions: Value = self.parse_positions(&rawPositions, &[]);
         let mut positionsLength: i64 = positions.len() as i64;
         {
@@ -1513,10 +1507,7 @@ impl Coinbaseinternational {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), None).into_dict();
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
@@ -1528,10 +1519,7 @@ impl Coinbaseinternational {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
@@ -1747,14 +1735,8 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut resolution: Option<String> = self.safe_string_opt(&parts, Value::Int(3), &[]);
-        let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut timeframes: crate::value::Dict = self.safe_dict_k(&wsOptions, "timeframes", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut wsOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "ws");
+        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "timeframes");
         let mut timeframe: Option<String> = self.find_timeframe(resolution.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if (self.ohlcvs.shelf(&symbol).lookup(&timeframe).is_none()) {
@@ -1762,10 +1744,7 @@ impl Coinbaseinternational {
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(data), Some(&market)).into_list();
         stored.append(Value::Arr(parsed));
         let mut resolved: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
@@ -1858,7 +1837,7 @@ impl Coinbaseinternational {
         let mut trades: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(isPrivate), Value::Dict(paramsInterval)]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+            let mut first: crate::value::Dict = self.safe_dict_t(trades.clone(), Value::Int(0));
             let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
@@ -1945,7 +1924,7 @@ impl Coinbaseinternational {
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut data: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k_t(&params, "data");
         let mut parts: crate::value::List = Value::Array(channel.split(".").map(Value::from).collect()).into_list();
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -2158,10 +2137,7 @@ impl Coinbaseinternational {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut type_var: Option<String> = self.safe_string_k_opt(&data, "type", &[Value::Str("snapshot".into())]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_name", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -2269,7 +2245,7 @@ impl Coinbaseinternational {
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut error: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "error", &[]).into_opt_dict();
+        let mut error: Option<crate::value::Dict> = self.safe_dict_k_o(message.clone(), "error");
         if (error.is_none()) {
             return Value::Bool(false);
         }
@@ -2599,10 +2575,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[__ws_arg_6, Value::Bool(true)]).await;
-        let mut order: crate::value::Dict = self.safe_dict_k(result.clone(), "order", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k_t(result.clone(), "order");
         std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])]));
         return self.parse_order(Value::Dict(order), Some(&market));
         Value::Null
@@ -2664,10 +2637,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut paramsRequest: crate::value::Dict = self.omit(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
-        let mut order: crate::value::Dict = self.safe_dict_k(result.clone(), "order", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k_t(result.clone(), "order");
         std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])]));
         return self.parse_order(Value::Dict(order), Some(&market));
         Value::Null
@@ -2931,7 +2901,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("fetchBalanceWs", &[params]).into_dict();
         let mut result: Value = self.request_ws(Value::Str("private/get_account_summaries".into()), &[Value::Dict(paramsResolved), Value::Bool(true)]).await;
-        let mut summaries: crate::value::List = self.safe_list_k(result.clone(), "summaries", &[Value::from(vec![])]).into_list();
+        let mut summaries: crate::value::List = self.safe_list_k_t(result.clone(), "summaries");
         let mut balance: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), result);
@@ -2996,7 +2966,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/get_user_trades_by_instrument".into()), &[__ws_arg_12, Value::Bool(true)]).await;
-        let mut trades: crate::value::List = self.safe_list_k(result, "trades", &[Value::from(vec![])]).into_list();
+        let mut trades: crate::value::List = self.safe_list_k_t(result, "trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
