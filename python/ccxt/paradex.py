@@ -1717,7 +1717,8 @@ class paradex(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnlyParam = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = (reduceOnlyParam is True)
         orderType = type.upper()
         orderSide = side.upper()
         request = {

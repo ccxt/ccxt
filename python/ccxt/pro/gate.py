@@ -438,14 +438,15 @@ class gate(ccxt.async_support.gate):
         messageType = self.get_type_by_market(market)
         messageHash = 'orderbook' + ':' + symbolValue
         # max 100 atm, max 50 for options
-        defaultLimit = 100
+        limitResolved = self.parse_to_int(100)
         if (self.safe_bool(market, 'spot', False)) or (messageType == 'options'):
-            defaultLimit = 50
-        limitResolved = defaultLimit if (limit is None) else limit
+            limitResolved = self.parse_to_int(50)
+        if limit is not None:
+            limitResolved = self.parse_to_int(limit)
         if self.safe_bool(market, 'spot', False):
             # the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             maxSpotLimit = self.parse_to_int(self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000))
-            limitResolved = min(limitResolved, maxSpotLimit)
+            limitResolved = self.parse_to_int(min(limitResolved, maxSpotLimit))
         payload = []
         channel = ''
         if isEuUrl:
@@ -490,11 +491,12 @@ class gate(ccxt.async_support.gate):
         interval = intervalDefault
         intervalOption, paramsInterval = self.handle_option_string_and_params(params, 'watchOrderBook', 'interval', interval)
         messageType = self.get_type_by_market(market)
-        limit = self.safe_integer(paramsInterval, 'limit')
-        if limit is None:
-            limit = 50 if (self.safe_bool(market, 'spot', False)) else 100  # max 100 atm
-            if messageType == 'options':
-                limit = 50  # max 50 for options
+        limitParam = self.safe_integer(paramsInterval, 'limit')
+        limit = self.parse_to_int(50 if (self.safe_bool(market, 'spot', False)) else 100)  # max 100 atm
+        if messageType == 'options':
+            limit = self.parse_to_int(50)  # max 50 for options
+        if limitParam is not None:
+            limit = self.parse_to_int(limitParam)
         payload = []
         channel = ''
         if isEuUrl:

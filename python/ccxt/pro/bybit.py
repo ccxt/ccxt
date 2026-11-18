@@ -1463,9 +1463,9 @@ class bybit(ccxt.async_support.bybit):
         messageHash = ''
         symbolsNormalized = symbols
         if (symbols is not None) and not self.is_empty(symbols):
-            symbolsNormalized = self.market_symbols(symbols)
-        if (symbolsNormalized is not None) and not self.is_empty(symbolsNormalized):
-            messageHash = '::' + ','.join(symbolsNormalized)
+            marketSymbols = self.market_symbols(symbols)
+            symbolsNormalized = marketSymbols
+            messageHash = '::' + ','.join(marketSymbols)
         firstSymbol = self.safe_string(symbolsNormalized, 0)
         url = await self.get_url_by_market_type(firstSymbol, True, method, params)
         messageHash = 'positions' + messageHash
@@ -1478,8 +1478,7 @@ class bybit(ccxt.async_support.bybit):
         if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized, since, limit, True)
-        topics = ['position']
-        newPositions = await self.watch_topics(url, [messageHash], topics, params)
+        newPositions = await self.watch_topics(url, [messageHash], ['position'], params)
         if self.newUpdates:
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbolsNormalized, since, limit, True)

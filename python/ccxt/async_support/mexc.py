@@ -5802,12 +5802,13 @@ class mexc(Exchange, ImplicitAPI):
         #
         networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
+        networks = {}
         for j in range(0, len(networkList)):
             networkEntry = self.safe_dict(networkList, j)
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': self.safe_number(networkEntry, 'withdrawFee'),
                         'percentage': None,
@@ -5817,6 +5818,7 @@ class mexc(Exchange, ImplicitAPI):
                         'percentage': None,
                     },
                 }
+        result['networks'] = networks
         return self.assign_default_deposit_withdraw_fees(result)
 
     async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:

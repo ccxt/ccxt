@@ -1222,18 +1222,18 @@ class pacifica(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': tf,
         }
-        sinceValue = since
         requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
-        if self.safe_integer(requestUntil, 'end_time') is None:
-            if sinceValue is None:
-                sinceValue = nowMs - limitValue * duration
-            windowEnd = self.parse_to_int(self.sum(sinceValue - 1, limitValue * duration))
+        untilEnd = self.safe_integer(requestUntil, 'end_time')
+        startTime = self.parse_to_int(nowMs - limitValue * duration)
+        if untilEnd is not None:
+            startTime = self.parse_to_int(untilEnd - limitValue * duration)
+        if since is not None:
+            startTime = self.parse_to_int(since)
+        if untilEnd is None:
+            windowEnd = self.parse_to_int(self.sum(startTime - 1, limitValue * duration))
             until = nowMs if (windowEnd > nowMs) else windowEnd
             requestUntil['end_time'] = until
-        else:
-            if sinceValue is None:
-                sinceValue = requestUntil['end_time'] - limitValue * duration
-        requestUntil['start_time'] = sinceValue
+        requestUntil['start_time'] = startTime
         response = self.publicGetKline(self.extend(requestUntil, paramsUntil))
         #
         # {

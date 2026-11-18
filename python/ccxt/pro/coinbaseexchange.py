@@ -645,7 +645,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                             }
                         previousOrderFee = self.safe_dict(previousOrder, 'fee', {})
                         if (self.safe_number(previousOrderFee, 'cost') is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
-                            previousOrder['fee']['cost'] = self.parse_number(Precise.string_add(self.safe_string(previousOrderFee, 'cost'), self.safe_string(trade['fee'], 'cost')))
+                            previousOrderFee['cost'] = self.parse_number(Precise.string_add(self.safe_string(previousOrderFee, 'cost'), self.safe_string(trade['fee'], 'cost')))
+                            previousOrder['fee'] = previousOrderFee
                         # update the newUpdates count
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)

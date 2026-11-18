@@ -1576,6 +1576,7 @@ class bitstamp(Exchange, ImplicitAPI):
         result = self.deposit_withdraw_fee(fee)
         code = self.safe_string(currency, 'code')
         feeEntries = self.to_array(fee)
+        networks = {}
         for j in range(0, len(feeEntries)):
             networkEntry = self.safe_dict(feeEntries, j)
             networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'network'), code)
@@ -1585,7 +1586,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'percentage': None,
             }
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': None,
@@ -1595,6 +1596,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'percentage': None,
                     },
                 }
+        result['networks'] = networks
         return result
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:

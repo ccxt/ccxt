@@ -3177,8 +3177,6 @@ class BaseExchange(object):
         :returns dict | None:
         """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
-        if value is None:
-            return defaultValue
         if self.is_dictionary(value):
             return value
         return defaultValue
@@ -3190,8 +3188,6 @@ class BaseExchange(object):
         :returns dict | None:
         """
         value = self.safe_value(dictionaryOrList, key, defaultValue)
-        if value is None:
-            return defaultValue
         if self.is_dictionary(value):
             return value
         return defaultValue
@@ -6001,7 +5997,8 @@ class BaseExchange(object):
                 self.set_last_request(request)
                 response = self.fetch(request['url'], request['method'], request['headers'], request['body'])
                 if fetchData is not None:
-                    fetchData['response']['body'] = response
+                    responseData = {'body': response}
+                    fetchData['response'] = responseData
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:

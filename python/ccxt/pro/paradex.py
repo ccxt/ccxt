@@ -1027,12 +1027,12 @@ class paradex(ccxt.async_support.paradex):
             self.clean_cache({'topic': 'ticker', 'symbols': tickerSymbols})
             return True
         # the markets left in the scoped subscription once these are removed
-        remaining = 0
+        othersRemain = False
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
             if (keys[i].find(channel + '.') == 0) and not self.in_array(keys[i], subscribeHashes):
-                remaining = remaining + 1
-        if (symbolsLength == 0) or ((scopedHash in client.subscriptions) and (remaining == 0)):
+                othersRemain = True
+        if (symbolsLength == 0) or ((scopedHash in client.subscriptions) and not othersRemain):
             # a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             channelSubscription = {
                 'topic': 'ticker',

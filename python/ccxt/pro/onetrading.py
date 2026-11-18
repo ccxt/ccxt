@@ -423,7 +423,7 @@ class onetrading(ccxt.async_support.onetrading):
         else:
             raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
-    def handle_book_deltas(self, orderbook: object, deltas: object):
+    def handle_book_deltas(self, orderbook: object, deltas: list[object]):
         #
         #    [
         #       [ 'BUY', "0.053593", "0" ],

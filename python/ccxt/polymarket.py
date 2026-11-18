@@ -2558,7 +2558,7 @@ class polymarket(Exchange, ImplicitAPI):
             margin = self.safe_integer(self.options, 'proxyRefreshMargin', 3600000)
             if expires is None:
                 return credentials
-            refreshAfter = expires - margin
+            refreshAfter = self.parse_to_int(expires - margin)
             if self.milliseconds() < refreshAfter:
                 return credentials
         return self.create_proxy_credentials(params)

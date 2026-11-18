@@ -2555,12 +2555,13 @@ class kucoin(Exchange, ImplicitAPI):
                 'networks': {},
             }
             chains = self.safe_list(fee, 'chains', [])
+            networksNew = {}
             for i in range(0, len(chains)):
                 chain = self.safe_dict(chains, i)
                 chainId = self.safe_string(chain, 'chainId')
                 networkCodeNew = self.network_id_to_code(chainId, self.safe_string(currency, 'code'))
                 if networkCodeNew is not None:
-                    resultNew['networks'][networkCodeNew] = {
+                    networksNew[networkCodeNew] = {
                         'withdraw': {
                             'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
                             'percentage': False,
@@ -2570,6 +2571,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'percentage': None,
                         },
                     }
+            resultNew['networks'] = networksNew
             return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result = {
@@ -2589,7 +2591,8 @@ class kucoin(Exchange, ImplicitAPI):
         currencyResolved = self.safe_currency(currencyId, currency)
         networkCode = self.network_id_to_code(networkId, self.safe_string(currencyResolved, 'code'))
         if networkCode is not None:
-            result['networks'][networkCode] = {
+            networks = {}
+            networks[networkCode] = {
                 'withdraw': {
                     'fee': minWithdrawFee,
                     'percentage': False,
@@ -2599,6 +2602,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'percentage': None,
                 },
             }
+            result['networks'] = networks
         return result
 
     def is_futures_method(self, methodName: str, params: dict) -> bool:
@@ -10890,16 +10894,13 @@ class kucoin(Exchange, ImplicitAPI):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbols argument')
         symbolsNormalized = self.market_symbols(symbols, 'swap', False, True)
-        marginMode = 'cross'
-        paramsRequest = None
-        marginMode, paramsRequest = self.handle_option_string_and_params(params, 'fetchLeverageTiers', 'marginMode', marginMode)
-        marginMode = marginMode.upper()
-        if marginMode != 'CROSS':
+        marginMode, paramsRequest = self.handle_option_string_and_params(params, 'fetchLeverageTiers', 'marginMode', 'cross')
+        if marginMode.upper() != 'CROSS':
             raise BadRequest(self.id + ' fetchLeverageTiers() supports cross margin only')
         marketIds = self.market_ids(symbolsNormalized)
         request = {
             'tradeType': 'FUTURES',
-            'marginMode': marginMode,
+            'marginMode': 'CROSS',
             'data': 'RISK_LIMIT',
             'accountType': 'UNIFIED',
             'symbol': ','.join(marketIds),

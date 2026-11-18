@@ -743,7 +743,7 @@ class binance(ccxt.async_support.binance):
         rpi, paramsRpi = self.handle_option_bool_and_params(paramsRate, 'watchOrderBookForSymbols', 'rpi', False)
         if rpi and type == 'linear':
             name = 'rpiDepth'
-            watchOrderBookRate = '500'
+            watchOrderBookRate = self.number_to_string(500)
         subParams = []
         messageHashes = []
         subscribeHashes = []
@@ -755,7 +755,7 @@ class binance(ccxt.async_support.binance):
             subscriptionHash = self.safe_string(market, 'lowercaseId', '') + '@' + name
             if watchOrderBookRate is None:
                 raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() watchOrderBookRate is required')
-            symbolHash = subscriptionHash + '@' + str(watchOrderBookRate) + 'ms'
+            symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms'
             subParams.append(symbolHash)
         messageHashesLength = len(messageHashes)
         url = self.get_ws_url(type, self.get_future_ws_category(name)) + '/' + self.stream(type, streamHash, messageHashesLength)
@@ -5094,9 +5094,10 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         market = None
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+            symbolResolved = self.symbol(symbol)
         type, subType, paramsAuth = self.resolve_auth_type('watchMyTrades', market, params)
         messageHash = 'myTrades'
         symbolParams = {}
@@ -5172,7 +5173,8 @@ class binance(ccxt.async_support.binance):
                                 feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                 if feeCostString is None:
                                     feeCostString = '0'
-                                order['fee']['cost'] = float(feeCostString)
+                                fee['cost'] = float(feeCostString)
+                                order['fee'] = fee
                             elif fee['currency'] is None:
                                 order['fee'] = tradeFee
                             else:
@@ -5336,7 +5338,7 @@ class binance(ccxt.async_support.binance):
             client.reject(feedback, id)
         # reset connection if 5xx error
         codeString = self.safe_string(error, 'code')
-        if (codeString is not None) and (codeString[0] == '5'):
+        if (codeString is not None) and codeString.startswith('5'):
             resetError = ExchangeError(self.id + ' ' + self.json(message))
             client.reset(resetError)
 

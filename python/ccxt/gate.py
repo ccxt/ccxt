@@ -2649,6 +2649,7 @@ class gate(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
+        networkFees = {}
         if withdrawFixOnChains is not None:
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
@@ -2657,7 +2658,7 @@ class gate(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId, currency)
                 networkCode = self.network_id_to_code(chainKey, code)
                 if networkCode is not None:
-                    result['networks'][networkCode] = {
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                             'percentage': False,
@@ -2667,6 +2668,7 @@ class gate(Exchange, ImplicitAPI):
                             'percentage': None,
                         },
                     }
+        result['networks'] = networkFees
         return result
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:

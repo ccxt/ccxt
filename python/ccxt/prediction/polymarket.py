@@ -436,7 +436,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     totalPages = limitPages
             else:
                 optionMaxPages = self.safe_integer(self.options, 'maxSearchPages', 5)
-                maxSearchPages = self.safe_integer(params, 'maxSearchPages', optionMaxPages)
+                maxSearchPages = self.parse_to_int(self.safe_integer(params, 'maxSearchPages', optionMaxPages))
                 if maxSearchPages < totalPages:
                     totalPages = maxSearchPages
             remainingPages = []
@@ -1185,16 +1185,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         tokenId = self.safe_string(outcomeObj, 'outcomeId')
         fidelityMin = self.safe_integer(self.timeframes, timeframe, 1)  # fidelity in minutes
         nowS = self.seconds()
-        startS: number
-        endS = nowS
+        startS = self.parse_to_int(0)
+        endS = self.parse_to_int(nowS)
         if since is not None:
             startS = self.parse_to_int(since / 1000)
             if limit is not None:
-                endBound = self.sum(startS, limit * fidelityMin * 60)
+                endBound = self.parse_to_int(self.sum(startS, limit * fidelityMin * 60))
                 endS = endBound if (endBound < nowS) else nowS
         else:
             barCount = limit if (limit is not None) else 100
-            startS = nowS - (barCount * fidelityMin * 60)
+            startS = self.parse_to_int(nowS - (barCount * fidelityMin * 60))
         # the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         # regardless of fidelity, so clamp the window to the cap: keep the requested
         # `since` anchor (oldest chunk first, consistent with since/limit paging),
@@ -1202,9 +1202,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         maxWindow = self.safe_integer(self.options, 'maxPricesHistoryWindow', 1296000)
         if (endS - startS) > maxWindow:
             if since is not None:
-                endS = self.sum(startS, maxWindow)
+                endS = self.parse_to_int(self.sum(startS, maxWindow))
             else:
-                startS = endS - maxWindow
+                startS = self.parse_to_int(endS - maxWindow)
         request = {
             'market': tokenId,
             'fidelity': fidelityMin,
@@ -2624,8 +2624,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
     def sign_hash(self, hash: str, privateKey: str) -> dict:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         return {

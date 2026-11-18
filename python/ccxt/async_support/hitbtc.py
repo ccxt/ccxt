@@ -3559,6 +3559,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
+        networkFees = {}
         for j in range(0, len(networks)):
             networkEntry = self.safe_dict(networks, j)
             networkId = self.safe_string(networkEntry, 'network')
@@ -3577,13 +3578,14 @@ class hitbtc(Exchange, ImplicitAPI):
             if isDefault:
                 result['withdraw'] = withdrawResult
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': None,
                         'percentage': None,
                     },
                 }
+        result['networks'] = networkFees
         return result
 
     async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:

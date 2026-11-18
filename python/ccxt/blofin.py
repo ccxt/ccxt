@@ -2182,12 +2182,13 @@ class blofin(Exchange, ImplicitAPI):
         #
         result = self.deposit_withdraw_fee(fee)
         chainsLength = len(fee)
+        networkFees = {}
         for i in range(0, chainsLength):
             chain = self.safe_dict(fee, i)
             networkCode = self.chain_id_to_network_code(self.safe_string(chain, 'chain'))
             if networkCode is None:
                 continue
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'percentage': False,
@@ -2197,6 +2198,7 @@ class blofin(Exchange, ImplicitAPI):
                     'percentage': None,
                 },
             }
+        result['networks'] = networkFees
         if chainsLength == 1:
             # a single network means the currency-level fee is unambiguous
             networks = self.safe_dict(result, 'networks', {})

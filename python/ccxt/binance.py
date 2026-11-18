@@ -3822,6 +3822,62 @@ class binance(Exchange, ImplicitAPI):
             if tradability != 'NONE':
                 active = True
         feesTrading = self.safe_dict(fees, 'trading', {})
+        precision = {
+            'amount': self.parse_number(self.parse_precision(self.safe_string_2(market, 'quantityPrecision', 'quantityScale'))),
+            'price': self.parse_number(self.parse_precision(self.safe_string_2(market, 'pricePrecision', 'priceScale'))),
+            'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+            'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+        }
+        costLimits = {
+            'min': self.safe_number(market, 'minNotional'),
+            'max': self.safe_number(market, 'maxNotional'),
+        }
+        if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):  # notional added in 12/04/23 to spot testnet
+            filter = self.safe_dict_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
+            costLimits['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
+            costLimits['max'] = self.safe_number(filter, 'maxNotional')
+        limits = {
+            'leverage': {
+                'min': None,
+                'max': None,
+            },
+            'amount': {
+                'min': self.safe_number(market, 'minQty'),
+                'max': self.safe_number(market, 'maxQty'),
+            },
+            'price': {
+                'min': None,
+                'max': None,
+            },
+            'cost': costLimits,
+        }
+        stepSize = self.safe_number(market, 'stepSize')
+        if stepSize is not None:
+            precision['amount'] = stepSize
+        if 'PRICE_FILTER' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
+            # PRICE_FILTER reports zero values for maxPrice
+            # since they updated filter types in November 2018
+            # https://github.com/ccxt/ccxt/issues/4286
+            # therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits['price'] = {
+                'min': self.safe_number(filter, 'minPrice'),
+                'max': self.safe_number(filter, 'maxPrice'),
+            }
+            precision['price'] = self.safe_number(filter, 'tickSize')
+        if 'LOT_SIZE' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
+            precision['amount'] = self.safe_number(filter, 'stepSize')
+            limits['amount'] = {
+                'min': self.safe_number(filter, 'minQty'),
+                'max': self.safe_number(filter, 'maxQty'),
+            }
+        if 'MARKET_LOT_SIZE' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
+            limits['market'] = {
+                'min': self.safe_number(filter, 'minQty'),
+                'max': self.safe_number(filter, 'maxQty'),
+            }
         entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3852,64 +3908,11 @@ class binance(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': parsedStrike,
             'optionType': self.safe_string_lower(market, 'side'),
-            'precision': {
-                'amount': self.parse_number(self.parse_precision(self.safe_string_2(market, 'quantityPrecision', 'quantityScale'))),
-                'price': self.parse_number(self.parse_precision(self.safe_string_2(market, 'pricePrecision', 'priceScale'))),
-                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
-                'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': None,
-                    'max': None,
-                },
-                'amount': {
-                    'min': self.safe_number(market, 'minQty'),
-                    'max': self.safe_number(market, 'maxQty'),
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'minNotional'),
-                    'max': self.safe_number(market, 'maxNotional'),
-                },
-            },
+            'precision': precision,
+            'limits': limits,
             'info': market,
             'created': self.safe_integer_2(market, 'onboardDate', 'listingTime'),
         }
-        stepSize = self.safe_number(market, 'stepSize')
-        if stepSize is not None:
-            entry['precision']['amount'] = stepSize
-        if 'PRICE_FILTER' in filtersByType:
-            filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
-            # PRICE_FILTER reports zero values for maxPrice
-            # since they updated filter types in November 2018
-            # https://github.com/ccxt/ccxt/issues/4286
-            # therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            entry['limits']['price'] = {
-                'min': self.safe_number(filter, 'minPrice'),
-                'max': self.safe_number(filter, 'maxPrice'),
-            }
-            entry['precision']['price'] = self.safe_number(filter, 'tickSize')
-        if 'LOT_SIZE' in filtersByType:
-            filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
-            entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
-            entry['limits']['amount'] = {
-                'min': self.safe_number(filter, 'minQty'),
-                'max': self.safe_number(filter, 'maxQty'),
-            }
-        if 'MARKET_LOT_SIZE' in filtersByType:
-            filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
-            entry['limits']['market'] = {
-                'min': self.safe_number(filter, 'minQty'),
-                'max': self.safe_number(filter, 'maxQty'),
-            }
-        if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):  # notional added in 12/04/23 to spot testnet
-            filter = self.safe_dict_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
-            entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
-            entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return self.safe_market_structure(entry)
 
     def parse_balance_helper(self, entry: dict) -> dict:
@@ -5022,10 +5025,11 @@ class binance(Exchange, ImplicitAPI):
         price = self.safe_string(paramsPaginate, 'price')
         until = self.safe_integer(paramsPaginate, 'until')
         paramsOmitted = self.omit(paramsPaginate, ['price', 'until'])
-        limitRequested = limit
-        if since is not None and until is not None and limit is None:
-            limitRequested = maxLimit
-        limitValue = defaultLimit if (limitRequested is None) else min(limitRequested, maxLimit)
+        limitValue = self.parse_to_int(defaultLimit)
+        if limit is not None:
+            limitValue = self.parse_to_int(min(limit, maxLimit))
+        elif (since is not None) and (until is not None):
+            limitValue = self.parse_to_int(maxLimit)
         request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitValue,
@@ -10095,6 +10099,7 @@ class binance(Exchange, ImplicitAPI):
         code = self.safe_string(currency, 'code')
         networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
+        networks = {}
         for j in range(0, len(networkList)):
             networkEntry = self.safe_dict(networkList, j)
             networkId = self.safe_string(networkEntry, 'network')
@@ -10107,7 +10112,7 @@ class binance(Exchange, ImplicitAPI):
                     'percentage': None,
                 }
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': None,
@@ -10117,6 +10122,7 @@ class binance(Exchange, ImplicitAPI):
                         'percentage': None,
                     },
                 }
+        result['networks'] = networks
         return result
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
@@ -10822,10 +10828,13 @@ class binance(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(position, 'updateTime')
         if timestamp == 0:
             timestamp = None
-        isolated = self.safe_bool(position, 'isolated')
-        if isolated is None:
+        isolatedRaw = self.safe_bool(position, 'isolated')
+        isolated = False
+        if isolatedRaw is None:
             isolatedMarginRaw = self.safe_string(position, 'isolatedMargin')
             isolated = not Precise.string_eq(isolatedMarginRaw, '0')
+        else:
+            isolated = (isolatedRaw is True)
         marginMode = None
         collateralString = None
         walletBalance = None
@@ -11087,7 +11096,8 @@ class binance(Exchange, ImplicitAPI):
                     collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
-        collateralString = '0' if (collateralString is None) else collateralString
+        if collateralString is None:
+            collateralString = self.number_to_string(0)
         collateral = self.parse_number(collateralString)
         markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')

@@ -111,13 +111,10 @@ class bitget(ccxt.async_support.bitget):
 
     def get_inst_type(self, methodName: Str, market: Market, uta: bool = False, params: dict = {}) -> list:
         useProductType = (market is None) or (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False))
-        productTypeAndParams = [None, {}]
+        instTypeDefault = 'SPOT'
+        paramsProductType = params
         if useProductType:
-            productTypeAndParams = self.handleProductTypeAndParams(market, params)
-        else:
-            productTypeAndParams = ['SPOT', params]
-        instTypeDefault = productTypeAndParams[0]
-        paramsProductType = productTypeAndParams[1]
+            instTypeDefault, paramsProductType = self.handleProductTypeAndParams(market, params)
         instTypeOption, paramsInstType = self.handle_option_string_and_params(paramsProductType, methodName, 'instType', instTypeDefault)
         instType = instTypeOption
         if uta and (instTypeOption is not None):

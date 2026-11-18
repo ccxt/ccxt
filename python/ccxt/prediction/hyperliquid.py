@@ -185,7 +185,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int encoding: outcome side encoding
         :returns str: the coin name
         """
-        return '#' + str(encoding)
+        return '#' + str(self.parse_to_int(encoding))
 
     def outcome_token(self, encoding: float) -> str:
         """
@@ -194,7 +194,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int encoding: outcome side encoding
         :returns str: the token name
         """
-        return '+' + str(encoding)
+        return '+' + str(self.parse_to_int(encoding))
 
     def parse_outcome_description(self, description: str) -> dict:
         """
@@ -562,7 +562,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         intPart = parts[0]
         intPartLength = len(intPart)
         szDecimalsInt = self.parse_to_int(szDecimals)
-        maxDecimals = 8 - szDecimalsInt
+        maxDecimals = self.parse_to_int(8 - szDecimalsInt)
         # significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         digitsLeft = 0
         if intPartLength <= 5:
@@ -1863,8 +1863,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         # padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         return {

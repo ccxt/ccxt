@@ -1509,8 +1509,9 @@ class phemex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), marketResolved)
         quoteVolume = self.from_er(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), marketResolved)
-        baseVolume = self.safe_string(ticker, 'volume')
-        if baseVolume is None:
+        volume = self.safe_string(ticker, 'volume')
+        baseVolume = volume
+        if volume is None:
             baseVolume = self.from_ev(self.safe_string_2(ticker, 'volumeEv', 'volumeRq'), marketResolved)
         open = self.from_ep(self.safe_string(ticker, 'openEp'), marketResolved)
         return self.safe_ticker({
@@ -2511,8 +2512,9 @@ class phemex(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.parse_order_side(self.safe_string_lower(order, 'side'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
-        price = self.safe_string(order, 'priceRp')
-        if price is None:
+        priceRp = self.safe_string(order, 'priceRp')
+        price = priceRp
+        if priceRp is None:
             price = self.from_ep(self.safe_string(order, 'priceEp'), marketResolved)
         amount = self.safe_number_2(order, 'orderQty', 'orderQtyRq')
         filled = self.safe_number_2(order, 'cumQty', 'cumQtyRq')
@@ -4864,7 +4866,7 @@ class phemex(Exchange, ImplicitAPI):
         stableCoins = self.safe_list(self.options, 'stableCoins', [])
         if networkId is None:
             if not (self.in_array(code, stableCoins)):
-                networkId = currency['id']
+                networkId = self.safe_string(currency, 'id', currency['id'])
             else:
                 raise ArgumentsRequired(self.id + ' withdraw () requires an extra argument params["network"]')
         request = {

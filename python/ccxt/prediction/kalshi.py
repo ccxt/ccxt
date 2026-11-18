@@ -2173,7 +2173,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             cursor = None
             for page in range(0, maxPages):
                 reqLimit = pageLimit
-                if hasLimit and (limitValue is not None):
+                if hasLimit:
                     collectedSoFar = len(rawEvents)
                     remaining = self.parse_to_int(limitValue - collectedSoFar)
                     if remaining < reqLimit:

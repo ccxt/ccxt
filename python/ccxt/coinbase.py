@@ -2570,7 +2570,9 @@ class coinbase(Exchange, ImplicitAPI):
             pagination = self.safe_dict(response, 'pagination', {})
             cursor = self.safe_string(pagination, 'next_starting_after')
             if (cursor is not None) and (cursor != ''):
-                last['info']['next_starting_after'] = cursor
+                lastInfo = self.safe_dict(last, 'info', {})
+                lastInfo['next_starting_after'] = cursor
+                last['info'] = lastInfo
                 ledger[lastIndex] = last
         return self.to_array(ledger)
 

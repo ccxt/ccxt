@@ -4878,8 +4878,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             data = self.safe_dict(responsePayload, 'data', {})
             statuses = self.safe_list(data, 'statuses', [])
             for i in range(0, len(statuses)):
-                message = self.safe_string(statuses[i], 'error')
-                if message is not None:
+                statusError = self.safe_string(statuses[i], 'error')
+                if statusError is not None:
+                    message = statusError
                     break
             if 'status' in data:
                 errorStatus = self.safe_dict(data, 'status', {})

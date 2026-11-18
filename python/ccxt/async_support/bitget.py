@@ -2289,7 +2289,7 @@ class bitget(Exchange, ImplicitAPI):
             if (base is None) or (quote is None):
                 continue
             parsedMarket = self.parse_market(market)
-            if (parsedMarket is not None) and parsedMarket['spot']:
+            if (parsedMarket is not None) and self.safe_bool(parsedMarket, 'spot', False):
                 marketId = parsedMarket['id']
                 instrument = self.safe_dict(spotInstruments, marketId)
                 if instrument is not None:

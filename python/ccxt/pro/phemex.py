@@ -368,16 +368,18 @@ class phemex(ccxt.async_support.phemex):
             currency = self.safe_dict(self.currencies, code, {})
             scale = self.safe_integer(currency, 'valueScale', 8)
             account = self.account()
-            used = self.safe_string(balance, 'totalUsedBalanceRv')
-            if used is None:
+            usedRv = self.safe_string(balance, 'totalUsedBalanceRv')
+            used = usedRv
+            if usedRv is None:
                 usedEv = self.safe_string(balance, 'totalUsedBalanceEv')
                 if usedEv is None:
                     lockedTradingBalanceEv = self.safe_string(balance, 'lockedTradingBalanceEv')
                     lockedWithdrawEv = self.safe_string_2(balance, 'lockedWithdrawEv', 'lockedWithdrawRv')
                     usedEv = Precise.string_add(lockedTradingBalanceEv, lockedWithdrawEv)
                 used = self.from_en(usedEv, scale)
-            total = self.safe_string(balance, 'accountBalanceRv')
-            if total is None:
+            totalRv = self.safe_string(balance, 'accountBalanceRv')
+            total = totalRv
+            if totalRv is None:
                 totalEv = self.safe_string_2(balance, 'accountBalanceEv', 'balanceEv')
                 total = self.from_en(totalEv, scale)
             account['used'] = used

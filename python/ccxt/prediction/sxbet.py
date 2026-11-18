@@ -651,8 +651,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         signature = self.ecdsa(digest[-64:], privateKey[-64:], 'secp256k1', None)
         # assign to bare locals before padStart — the php transpiler's str_pad regex only
         # matches a simple identifier, an expression form leaks a raw padStart() call
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         v = self.int_to_base16(self.sum(27, signature['v']))

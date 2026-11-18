@@ -8842,6 +8842,7 @@ class htx(Exchange, ImplicitAPI):
         chains = self.safe_list(fee, 'chains', [])
         code = self.safe_string(currency, 'code')
         result = self.deposit_withdraw_fee(fee)
+        networks = {}
         for j in range(0, len(chains)):
             chainEntry = self.safe_dict(chains, j)
             networkId = self.safe_string(chainEntry, 'chain')
@@ -8862,13 +8863,14 @@ class htx(Exchange, ImplicitAPI):
                     'percentage': True,
                 }
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': None,
                         'percentage': None,
                     },
                 }
+                result['networks'] = networks
             self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 

@@ -1950,14 +1950,15 @@ class grvt(Exchange, ImplicitAPI):
         isMarketOrder = (type == 'market')
         subAccountId = self.get_sub_account_id(paramsOmitted3)
         isReduceOnly = self.safe_bool(paramsOmitted3, 'reduceOnly', False)
+        orderMetadata = {
+            'client_order_id': clientOrderId,
+        }
         orderRequest = {
             'sub_account_id': subAccountId,
             'time_in_force': None,
             'legs': [orderLeg],
             'signature': self.default_signature(),
-            'metadata': {
-                'client_order_id': clientOrderId,
-            },
+            'metadata': orderMetadata,
             'is_market': isMarketOrder,
             'post_only': False,
             'reduce_only': isReduceOnly,
@@ -2014,7 +2015,7 @@ class grvt(Exchange, ImplicitAPI):
                         selectedType = 'TAKE_PROFIT' if isBuy else 'STOP_LOSS'
             # trigger by
             triggerPriceType = self.safe_string_upper(paramsTriggerPrices, 'triggerPriceType', 'LAST')
-            orderRequest['metadata']['trigger'] = {
+            orderMetadata['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
@@ -2022,6 +2023,7 @@ class grvt(Exchange, ImplicitAPI):
                     'close_position': self.safe_bool(paramsTriggerPrices, 'closePosition', False),
                 },
             }
+            orderRequest['metadata'] = orderMetadata
         paramsTrigger = paramsTriggerPrices
         if isTriggerOrder:
             paramsTrigger = self.omit(paramsTriggerPrices, ['triggerDirection', 'triggerPriceType', 'closePosition'])

@@ -216,7 +216,7 @@ class binance(PredictionExchange, ImplicitAPI):
         offset = 0
         while(True):
             collectedLength = len(collected)
-            remaining = maxTopicsResolved - collectedLength
+            remaining = self.parse_to_int(maxTopicsResolved - collectedLength)
             reqLimit = remaining if (remaining < pageLimit) else pageLimit
             if reqLimit <= 0:
                 break
@@ -921,11 +921,8 @@ class binance(PredictionExchange, ImplicitAPI):
             marketId = self.safe_string(order, 'marketId')
             outcome = self.safe_string_upper(order, 'outcome')
             market = self.safe_market(marketId)
-            outcomeName = self.safe_string(market, 'market')
-            if outcomeName is None:
-                outcomeName = marketId
-            outcomeName += ':' + outcome
-            outcomeObjResolved = self.safe_outcome(outcomeName)
+            marketName = self.safe_string(market, 'market', marketId)
+            outcomeObjResolved = self.safe_outcome(marketName + ':' + outcome)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'createTime')
         return self.safe_prediction_order({
@@ -1257,11 +1254,8 @@ class binance(PredictionExchange, ImplicitAPI):
             marketId = self.safe_string(position, 'marketId')
             outcome = self.safe_string_upper(position, 'outcomeName')
             market = self.safe_market(marketId)
-            outcomeName = self.safe_string(market, 'market')
-            if outcomeName is None:
-                outcomeName = marketId
-            outcomeName += ':' + outcome
-            outcomeObjResolved = self.safe_outcome(outcomeName)
+            marketName = self.safe_string(market, 'market', marketId)
+            outcomeObjResolved = self.safe_outcome(marketName + ':' + outcome)
         timestamp = self.safe_integer(position, 'createdTime')
         totalCost = self.parse_number(self.safe_string(position, 'totalCost'))
         return self.safe_prediction_position({
@@ -1419,11 +1413,8 @@ class binance(PredictionExchange, ImplicitAPI):
             marketId = self.safe_string(trade, 'marketId')
             outcome = self.safe_string_upper(trade, 'outcome')
             market = self.safe_market(marketId)
-            outcomeName = self.safe_string(market, 'market')
-            if outcomeName is None:
-                outcomeName = marketId
-            outcomeName += ':' + outcome
-            outcomeObjResolved = self.safe_outcome(outcomeName)
+            marketName = self.safe_string(market, 'market', marketId)
+            outcomeObjResolved = self.safe_outcome(marketName + ':' + outcome)
         timestamp = self.safe_integer(trade, 'createTime')
         filled = self.safe_string(trade, 'filledShareQty')
         cost = self.safe_string(trade, 'filledUsdtAmount')

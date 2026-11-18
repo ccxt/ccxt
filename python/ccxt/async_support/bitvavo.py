@@ -2492,11 +2492,13 @@ class bitvavo(Exchange, ImplicitAPI):
         if networkId == 'Mainnet':
             networkId = currencyCode
         networkCode = self.network_id_to_code(networkId, currencyCode)
+        networkFees = {}
         if networkCode is not None:
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             }
+        result['networks'] = networkFees
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:

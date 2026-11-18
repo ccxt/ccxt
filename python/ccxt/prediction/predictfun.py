@@ -1676,8 +1676,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         # ecrecover wants v in {27,28} while the raw recovery id is {0,1}

@@ -1836,11 +1836,11 @@ class whitebit(Exchange, ImplicitAPI):
             duration = self.parse_timeframe(timeframe)
             endTime = None
             if until is not None:
-                endTime = self.sum(self.parse_to_int(until / 1000), duration)
+                endTime = self.parse_to_int(self.sum(self.parse_to_int(until / 1000), duration))
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                rangeEnd = self.sum(start, duration * cappedLimit)
+                rangeEnd = self.parse_to_int(self.sum(start, duration * cappedLimit))
                 if (endTime is None) or (rangeEnd < endTime):
                     endTime = rangeEnd
             if (endTime is not None) and (self.sum(endTime, duration) < self.seconds()):

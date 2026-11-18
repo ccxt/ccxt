@@ -1116,13 +1116,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.markets is None:
             await self.load_markets()
         market = None
-        request = {
-            'method': 'private/cancel-all-orders',
-            'params': self.extend({}, params),
-        }
+        requestParams = self.extend({}, params)
         if symbol is not None:
             market = self.market(symbol)
-            request['params']['instrument_name'] = market['id']
+            requestParams['instrument_name'] = market['id']
+        request = {
+            'method': 'private/cancel-all-orders',
+            'params': requestParams,
+        }
         messageHash = self.incrementing_nonce()
         return await self.watch_private_request(messageHash, request)
 

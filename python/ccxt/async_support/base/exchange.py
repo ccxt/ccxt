@@ -1033,7 +1033,8 @@ class BaseExchange(SyncExchange):
                 self.set_last_request(request)
                 response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
                 if fetchData is not None:
-                    fetchData['response']['body'] = response
+                    responseData = {'body': response}
+                    fetchData['response'] = responseData
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:

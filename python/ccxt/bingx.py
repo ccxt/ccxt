@@ -1231,7 +1231,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        requestLimit = 500 if (limit is None) else min(limit, maxLimit)
+        requestLimit = self.parse_to_int(500 if (limit is None) else min(limit, maxLimit))
         if since is not None:
             request['startTime'] = max(since - 1, 0)
         if limit is not None:
@@ -6070,11 +6070,12 @@ class bingx(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
+        networkFees = {}
         if networksLength != 0:
             for i in range(0, networksLength):
                 networkCode = self.safe_string(networkCodes, i, '')
                 network = self.safe_dict(networks, networkCode)
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
                     'withdraw': {'fee': self.safe_number(network, 'fee'), 'percentage': False},
                 }
@@ -6083,6 +6084,7 @@ class bingx(Exchange, ImplicitAPI):
                         'fee': self.safe_number(network, 'fee'),
                         'percentage': False,
                     }
+        result['networks'] = networkFees
         return result
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:

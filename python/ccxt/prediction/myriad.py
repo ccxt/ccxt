@@ -1035,8 +1035,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         encoded = self.eth_encode_structured_data(domain, types, message)
         digest = self.hash(encoded, 'keccak', 'hex')
         signature = self.ecdsa(digest, self.remove0x_prefix(self.privateKey), 'secp256k1', None)
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         v = self.sum(27, signature['v'])

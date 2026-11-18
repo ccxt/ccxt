@@ -1970,10 +1970,11 @@ class kraken(Exchange, ImplicitAPI):
                 descriptionType = part4  # eg, limit, market
             else:
                 descriptionType = part4 + ' ' + part5  # eg. stop loss, take profit, trailing stop
-            if descriptionType == 'stop loss' or descriptionType == 'take profit':
+            # split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if (part4 == 'stop' and part5 == 'loss') or (part4 == 'take' and part5 == 'profit'):
                 triggerPrice = self.safe_string(parts, 6)
                 price = self.safe_string(parts, 9)
-            elif descriptionType == 'limit':
+            elif part4 == 'limit':
                 price = self.safe_string(parts, 5)
         descriptionSide = self.safe_string(description, 'type')
         if descriptionSide is not None:

@@ -398,11 +398,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbolsNormalized = self.market_symbols(symbols, None, True)
         messageHash = 'tickers'
         url = self.urls['api']['ws']['public']
-        request = {
-            'method': 'subscribe',
-            'subscription': {
-                'type': 'allMids',
-            },
+        subscription = {
+            'type': 'allMids',
         }
         defaultDex = self.safe_string(params, 'dex')
         firstSymbol = self.safe_string(symbolsNormalized, 0)
@@ -414,8 +411,12 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         paramsOmitted = self.omit(params, 'dex') if (defaultDex is not None) else params
         if defaultDex is not None:
             messageHash = 'tickers:' + defaultDex
-            request['subscription']['type'] = 'allMids'
-            request['subscription']['dex'] = defaultDex
+            subscription['type'] = 'allMids'
+            subscription['dex'] = defaultDex
+        request = {
+            'method': 'subscribe',
+            'subscription': subscription,
+        }
         # unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         await self.wait_for_pending_unsubscribe(url, 'tickers')
         tickers = await self.watch(url, messageHash, self.extend(request, paramsOmitted), messageHash)

@@ -2675,9 +2675,9 @@ class okx(Exchange, ImplicitAPI):
         requestMaxLimit = 300
         if isMarkOrIndex:
             requestMaxLimit = 100
-        limitResolved = 100
+        limitResolved = self.parse_to_int(100)
         if limit is not None:
-            limitResolved = min(limit, requestMaxLimit)
+            limitResolved = self.parse_to_int(min(limit, requestMaxLimit))
         duration = self.parse_timeframe(timeframe)
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
@@ -2725,7 +2725,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             if isHistoryCandles:
                 if limitIsUndefined and (limitResolved == 100):
-                    limitResolved = 300
+                    limitResolved = self.parse_to_int(300)
                     request['limit'] = 300  # reassign to 300, but this whole logic needs to be simplified...
                 response = await self.publicGetMarketHistoryCandles(self.extend(request, paramsType))
             else:
@@ -3230,19 +3230,20 @@ class okx(Exchange, ImplicitAPI):
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
                     createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(orderParams, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-                    notional = self.safe_number_2(paramsRequiresPrice, 'cost', 'sz')
+                    notionalParam = self.safe_number_2(paramsRequiresPrice, 'cost', 'sz')
+                    notional = notionalParam
                     orderParams = self.omit(paramsRequiresPrice, ['cost', 'sz'])
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
-                            if notional is None:
+                            if notionalParam is None:
                                 amountString = self.number_to_string(amount)
                                 priceString = self.number_to_string(price)
                                 quoteAmount = Precise.string_mul(amountString, priceString)
                                 notional = self.parse_number(quoteAmount)
-                        elif notional is None:
+                        elif notionalParam is None:
                             raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")
                     else:
-                        notional = amount if (notional is None) else notional
+                        notional = amount if (notionalParam is None) else notionalParam
                     request['sz'] = self.cost_to_precision(symbol, notional)
             if marketIOC and (contract is True):
                 request['ordType'] = 'optimal_limit_ioc'
@@ -3471,10 +3472,14 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
-            if marketId is None:
-                raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
             type = self.safe_string(rawOrder, 'type', '')
             side = self.safe_string(rawOrder, 'side')
+            if (marketId is None) or (side is None):
+                # a missing side is the createOrderRequest () error
+                reason = ' requires a side argument'
+                if marketId is None:
+                    reason = ' createOrders() requires a symbol for each order'
+                raise ArgumentsRequired(self.id + reason)
             amount = self.safe_number(rawOrder, 'amount')
             price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
@@ -8864,8 +8869,7 @@ class okx(Exchange, ImplicitAPI):
         #         "msg": ""
         #     }
         #
-        rows = self.safe_list(response, 'data', [])
-        return self.parse_conversions(rows, code, 'baseCcy', 'quoteCcy', since, limit)
+        return self.parse_conversions(self.safe_list(response, 'data', []), code, 'baseCcy', 'quoteCcy', since, limit)
 
     def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
         #
