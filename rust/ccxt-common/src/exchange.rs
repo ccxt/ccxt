@@ -3223,3 +3223,34 @@ mod digest_dispatch_tests {
         assert_eq!(hex_decode(""), Some(vec![]));
     }
 }
+
+#[cfg(test)]
+mod option_tuple_dispatch_tests {
+    use super::{BaseCore, Exchange};
+    use crate::exchange_generated::ExchangeBase;
+    use crate::Value;
+
+    fn params(k: &str, v: Value) -> Value {
+        let mut m = indexmap::IndexMap::new();
+        m.insert(k.to_string(), v);
+        Value::Map(m)
+    }
+
+    // The typed `(slot 0, Dict)` returns, called by quoted name, still answer the boxed `[value, params]` list.
+    #[tokio::test]
+    async fn call_dynamic_reboxes_the_option_tuple() {
+        let mut core = BaseCore::new(Exchange::new(None));
+        let args = |p: Value, d: Value| vec![p, Value::Str("fetchX".into()), Value::Str("flag".into()), d];
+        let got = core.call_dynamic("handle_option_bool_and_params", args(params("flag", Value::Str("true".into())), Value::Bool(false))).await;
+        assert_eq!(got, Value::from(vec![Value::Bool(true), Value::Map(Default::default())]));
+        let got = core.call_dynamic("handle_option_bool_and_params", args(Value::Map(Default::default()), Value::Null)).await;
+        assert_eq!(got, Value::from(vec![Value::Null, Value::Map(Default::default())]));
+        let got = core.call_dynamic("handle_option_integer_and_params", args(params("other", Value::Int(1)), Value::Int(7))).await;
+        assert_eq!(got, Value::from(vec![Value::Int(7), params("other", Value::Int(1))]));
+        let got = core.call_dynamic("handle_option_and_params", args(params("flag", Value::Str("s".into())), Value::Null)).await;
+        assert_eq!(got, Value::from(vec![Value::Str("s".into()), Value::Map(Default::default())]));
+        let got = core.call_dynamic("handle_option_string_and_params2", vec![params("b", Value::Str("v".into())), Value::Str("fetchX".into()),
+            Value::Str("a".into()), Value::Str("b".into()), Value::Null]).await;
+        assert_eq!(got, Value::from(vec![Value::Str("v".into()), Value::Map(Default::default())]));
+    }
+}

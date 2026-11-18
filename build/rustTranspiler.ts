@@ -4551,11 +4551,101 @@ function splitLongRustLines(content: string, max = 400): string {
     return outLines.join('\n');
 }
 
+// Base handleOption*AndParams(2) answer a native `(slot 0, Dict)` tuple: each printed `Vec<Value>` head and its slot reads
+// become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
+const RUST_OPTION_TUPLE_FNS = /\b(?:self|exchange)\.handle_option_(bool_|string_|integer_)?and_params2?\(/g;
+const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v: string) => string] } = {
+    '': ['Value', undefined, (v) => v], 'string_': ['Value', undefined, (v) => v],
+    'bool_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`], 'integer_': ['Option<i64>', 'as_i64', (v) => `Value::from(${v})`],
+};
+function rustCloseParen(s: string, j: number): number {
+    for (let d = 1; j < s.length; j++) {
+        const c = s[j];
+        if (c === '"') { for (j++; j < s.length && s[j] !== '"'; j++) if (s[j] === '\\') j++; } else if (c === '(') d++; else if (c === ')' && --d === 0) return j + 1;
+    }
+    return -1;
+}
+function rustOptionTupleRead(fam: string, v: string, i: string, rest: string): string {
+    const [ , typed, box ] = RUST_OPTION_TUPLE_SLOT0[fam];
+    const as = /^\.and_then\(Value::(as_\w+)\)|^\.cloned\(\)\.unwrap_or\(Value::Null\)\.(as_\w+)\(\)/.exec(rest);
+    if (i === '1') return /^\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)$/.test(rest) ? `${v}.1` : `Value::Dict(${v}.1)${rest.replace(/^\.cloned\(\)\.unwrap_or\(Value::Null\)/, '').replace(/^\.and_then\(Value::(as_\w+)\)/, '.$1()')}`;
+    if (as !== null && (as[1] ?? as[2]) === typed && as[0] === rest) return `${v}.0`;
+    if (typed === undefined && as !== null && as[1] !== undefined) return `${v}.0.${as[1]}()${rest.slice(as[0].length)}`;
+    return `${box(`${v}.0`)}${rest.replace(/^\.cloned\(\)\.unwrap_or\(Value::Null\)/, '').replace(/^\.and_then\(Value::(as_\w+)\)/, '.$1()')}`;
+}
+function typeHandleOptionTuples(content: string): string {
+    if (!content.includes('handle_option_')) return content;
+    const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
+    let out = '';
+    let last = 0;
+    RUST_OPTION_TUPLE_FNS.lastIndex = 0;
+    for (let m: RegExpExecArray | null; (m = RUST_OPTION_TUPLE_FNS.exec(content)) !== null;) {
+        const fam = m[1] ?? '';
+        const end = rustCloseParen(content, m.index + m[0].length);
+        if (end < 0) break;
+        const call = content.slice(m.index, end);
+        const lineStart = content.lastIndexOf('\n', m.index) + 1;
+        const pre = content.slice(lineStart, m.index);
+        const head = /let (?:mut )?(\w+)(?:: Vec<Value>)? = $/.exec(pre);
+        const listTail = /^(?:\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\)|\.into_list\(\));/.exec(content.slice(end, end + 48));
+        if (head !== null && listTail !== null) {
+            // the slot reads follow on the same statement group (`{ ..; a = t.get(0)..; p = t.get(1)..; }`) or the next two lines
+            const from = end + listTail[0].length;
+            const block = pre.trimStart().startsWith('{ ');
+            let stop = block ? content.indexOf('; }', from) + 2 : content.indexOf('\n', content.indexOf('\n', content.indexOf('\n', from) + 1) + 1);
+            // a following call's own head starts its own window
+            const nextCall = content.slice(from, stop).search(/\b(?:self|exchange)\.handle_option_/);
+            if (!block && nextCall >= 0) stop = content.lastIndexOf('\n', from + nextCall);
+            const fnEnd = content.slice(from).search(/\n {4}(?:pub )?(?:async )?fn |\n\}\n/);
+            const n = head[1];
+            const reads: string[] = [];
+            const body = content.slice(from, stop).replace(new RegExp(`\\b${n}${SLOT.source}`, 'g'), (_r, i, rest) => { reads.push(i); return rustOptionTupleRead(fam, n, i, rest); });
+            const moved = reads.filter((i) => i === '1' || RUST_OPTION_TUPLE_SLOT0[fam][1] === undefined);
+            const after = block ? '' : content.slice(stop, fnEnd < 0 ? content.length : from + fnEnd);
+            if (stop > from && reads.length > 0 && new Set(moved).size === moved.length && !new RegExp(`\\b${n}\\b`).test(body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), ''))
+                && !new RegExp(`\\b${n}\\b`).test(after)) {
+                out += content.slice(last, lineStart + head.index) + `let ${n} = ${call};` + body;
+                last = stop;
+                RUST_OPTION_TUPLE_FNS.lastIndex = stop;
+                continue;
+            }
+        }
+        const slot = /^\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(([01])\)\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/.exec(content.slice(end, end + 120));
+        const own = /^\s*return $/.test(pre) && /\n {4}fn handle_option_(?:bool_|string_|integer_)?and_params2?\([^\n]*$/.test(content.slice(content.lastIndexOf('\n    fn ', m.index), content.indexOf('\n', content.lastIndexOf('\n    fn ', m.index) + 1)));
+        // already a tuple binding (the pass reruns on files written twice): leave it
+        const bound = /^\)\.[01]\b/.test(content.slice(end, end + 4)) || /\{ let __t = $/.test(pre)
+            || (head !== null && content[end] === ';' && new RegExp(`\\b${head[1]}\\.[01]\\b`).test(content.slice(end, end + 2000)));
+        if (bound) {
+            out += content.slice(last, end);
+            last = end;
+        } else if (slot !== null) {
+            out += content.slice(last, m.index) + rustOptionTupleRead(fam, `(${call})`, slot[1], slot[2]);
+            last = end + slot[0].length;
+        } else if (own) {
+            out += content.slice(last, end);
+            last = end;
+        } else {
+            const brk = content.indexOf('\n', end) - lineStart > 300 ? `\n${' '.repeat(pre.length - pre.trimStart().length + 4)}` : ' ';
+            out += content.slice(last, m.index) + `{ let __t = ${call};${brk}Value::from(vec![${RUST_OPTION_TUPLE_SLOT0[fam][2]('__t.0')}, Value::Dict(__t.1)]) }`;
+            last = end;
+        }
+        RUST_OPTION_TUPLE_FNS.lastIndex = last;
+    }
+    out += content.slice(last);
+    // a boxed bool slot local never written again reads its truth as `x.as_bool() == Some(true)` (is_true on Bool / Null)
+    out = out.replace(/\n( *)let mut (\w+): Value = (\w+)\.0\.map_or\(Value::Null, Value::Bool\);([\s\S]*?)(?=\n {4}(?:pub )?(?:async )?fn |\n\}\n|$)/g, (whole, _i, x, _t, rest) =>
+        new RegExp(`(?<![\\w.])${x}\\s*=(?!=)|&mut ${x}\\b`).test(rest) ? whole : whole.replace(new RegExp(`\\bis_true\\(&${x}\\)`, 'g'), `(${x}.as_bool() == Some(true))`));
+    // the base bodies: the return type, each `return [ v, p ]`, and the unreachable `Value::Null` tail
+    return out.replace(/(\n {4}fn handle_option_(bool_|string_|integer_)?and_params2?\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/g,
+        (_m, sig, fam, open, body) => `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::Dict\((\w+)\)|(\w+))\]\);/g,
+            (_r, v, d, b) => `return (${v}${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`)}\n}`);
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))));
+    content = splitLongRustLines(typeHandleOptionTuples(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -11133,7 +11223,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
