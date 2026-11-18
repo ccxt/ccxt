@@ -1923,15 +1923,31 @@ export default class gate extends gateRest {
             this.liquidations = new ArrayCache(limit);
         }
         const cache = this.liquidations;
+        const liquidationsBySymbol = {};
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             cache.append(liquidation);
+            newLiquidations.push(liquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            const symbolLiquidations = this.safeList(cache, symbol, []);
-            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol);
+            if (symbol !== undefined) {
+                let symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
+                if (symbolLiquidations === undefined) {
+                    symbolLiquidations = [];
+                }
+                symbolLiquidations.push(liquidation);
+                liquidationsBySymbol[symbol] = symbolLiquidations;
+            }
         }
-        client.resolve(newLiquidations, 'myLiquidations');
+        const symbols = Object.keys(liquidationsBySymbol);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            client.resolve(liquidationsBySymbol[symbol], 'myLiquidations::' + symbol);
+        }
+        const numNewLiquidations = newLiquidations.length;
+        if (numNewLiquidations > 0) {
+            client.resolve(newLiquidations, 'myLiquidations');
+        }
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
@@ -1963,7 +1979,8 @@ export default class gate extends gateRest {
         //    }
         //
         const marketId = this.safeString(liquidation, 'contract');
-        const marketResolved = this.safeMarket(marketId, market);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        const marketResolved = this.safeMarket(marketId, market, '_', 'contract');
         const timestamp = this.safeInteger(liquidation, 'time_ms');
         const originalSize = this.safeString(liquidation, 'size');
         const left = this.safeString(liquidation, 'left');
@@ -1978,7 +1995,7 @@ export default class gate extends gateRest {
             'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        });
+        }, marketResolved);
     }
     handleErrorMessage(client, message) {
         //
