@@ -17738,6 +17738,8 @@ const CORE_LIST_ARGS_ARRAY_LENGTH = {
 // List parameters whose only callers pass a declared list: filterBySymbol/filterByKey (kraken and
 // pro/hyperliquid lists), luno's book sides (IAsks/IBids are IList<object>), the paradex/blofin/nado
 // ws channel and hash lists. Mixed dict-or-list parameters (parseTickers, parseOrders ...) stay out.
+// Also reduceFeesByCurrency / parseFundingRates (base parse loops whose callers all pass a declared
+// list) and the paradex channel lists.
 const CORE_LIST_ARGS_SINGLE_CALLER = {
     'filterBySymbol': 0,
     'filterByKey': 0,
@@ -17746,6 +17748,10 @@ const CORE_LIST_ARGS_SINGLE_CALLER = {
     'unsubscribeChannelsFrom': 2,
     'subscribeMarketsSummary': 1,
     'unsubscribeMultipleWrapper': 2,
+    'reduceFeesByCurrency': 0,
+    'parseFundingRates': 0,
+    'subscribeChannels': 1,
+    'unsubscribeChannelAt': 2,
 };
 Object.assign (CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_ARRAY_LENGTH);
 for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER ]) {

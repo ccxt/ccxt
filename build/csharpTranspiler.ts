@@ -1466,7 +1466,9 @@ const CORE_DICT_ARGS: Record<string, number[]> = {
 // as CORE_DICT_ARGS, but a caller holds the row in an `IDictionary<string, object>` local, so the
 // parameter is named by the interface
 const CORE_IDICT_ARGS: Record<string, number[]> = {
+    'getOrderAmount': [ 0 ],
     'internalFetchTransfers': [ 1 ],
+    'mergeBalanceAccount': [ 0 ],
     'parseCancelOrders': [ 0 ],
     'parseFundingRateWs': [ 0 ],
     'parseOutcomeMarket': [ 0 ],
@@ -1478,6 +1480,7 @@ const CORE_IDICT_ARGS: Record<string, number[]> = {
     'parseWsUtaPosition': [ 0 ],
     'parseWsUtaTicker': [ 0 ],
     'parseWsUtaTrade': [ 0 ],
+    'removeKeysFromDict': [ 0 ],
 };
 
 // collection helpers whose every return site yields a list or null (a return-site census); the
