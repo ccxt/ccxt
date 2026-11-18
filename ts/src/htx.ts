@@ -3344,9 +3344,7 @@ export default class htx extends Exchange {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
             }
             if (uniqueChainId !== undefined) {
-                const networkNamesByChainIdsDict3 = this.safeDict (this.options, 'networkNamesByChainIds', {});
-                networkNamesByChainIdsDict3[uniqueChainId] = title;
-                this.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3;
+                this.options['networkNamesByChainIds'][uniqueChainId] = title;
             }
             const networkCode = this.networkIdToCode (uniqueChainId, code);
             if (networkCode !== undefined) {
