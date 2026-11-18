@@ -746,6 +746,10 @@ impl Rows for Value {
     fn rows(self) -> Value { self }
     fn absent(&self) -> bool { self.is_null() }
 }
+impl Rows for &Value {
+    fn rows(self) -> Value { self.clone() }
+    fn absent(&self) -> bool { self.is_null() }
+}
 impl Rows for &List {
     fn rows(self) -> Value { Value::from(self) }
     fn absent(&self) -> bool { false }
