@@ -242,7 +242,7 @@ primary regression net.
 
 ## Step 7 — Verify in all languages
 
-A new exchange means thousands of new lines in Python, PHP, C#, Go and Java. The transpilers must like all of it.
+A new exchange means thousands of new lines in Python, PHP, C#, Go, Java and Rust. The transpilers must like all of it.
 
 ```bash
 npm run lint
@@ -252,11 +252,16 @@ npm run transpileCS        # → C#
 npm run buildCS
 npm run transpileGO        # → Go
 npm run buildGO
+npm run transpileJava      # → Java (REST + WS + wrappers)
+npm run buildJava
+npm run transpileRust      # → Rust (REST + WS + typed wrappers)
+npm run buildRust
 npm run check-python-syntax
 npm run check-php-syntax
-npm run id-tests
+npm run id-tests           # every aggregate below runs js, py, php, cs, go, java and rust
 npm run request-tests
 npm run response-tests
+npm run ws-tests           # only if ts/src/pro/<id>.ts exists
 ```
 
 Then a live smoke test on at least one public method per language:
@@ -267,6 +272,8 @@ npm run cli.py -- <id> fetchTicker BTC/USDT --verbose
 npm run cli.php -- <id> fetchTicker BTC/USDT --verbose
 npm run cli.cs -- <id> fetchTicker BTC/USDT --verbose
 npm run cli.go -- <id> fetchTicker BTC/USDT --verbose
+npm run cli.java -- <id> fetchTicker BTC/USDT --verbose
+npm run cli.rs -- <id> fetchTicker BTC/USDT --verbose
 ```
 
 ## Step 8 — WebSocket support (optional)
