@@ -3417,10 +3417,10 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(response));
+        return this.parseVolatilityHistory(response);
     }
 
-    public virtual List<object> parseVolatilityHistory(IDictionary<string, object> volatility)
+    public virtual List<Dictionary<string, object>> parseVolatilityHistory(IDictionary<string, object> volatility)
     {
         //
         //     {
@@ -3437,7 +3437,7 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> volatilityResult = this.safeList(volatility, "result", new List<object>() {});
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < volatilityResult.Count; i++)
         {
             Int64? timestamp = this.safeInteger(volatilityResult[i], 0);

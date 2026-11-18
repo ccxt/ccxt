@@ -5270,7 +5270,7 @@ public partial class coinbase : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "payment_methods", new List<object>() {});
-        return ccxt.BaseExchange.ToDictList(this.parseDepositMethodIds(result));
+        return this.parseDepositMethodIds(result);
     }
 
     /**
@@ -5314,10 +5314,10 @@ public partial class coinbase : Exchange
         return this.parseDepositMethodId(result);
     }
 
-    public virtual List<object> parseDepositMethodIds(IList<object> ids, IDictionary<string, object>? parameters = null)
+    public virtual List<Dictionary<string, object>> parseDepositMethodIds(IList<object> ids, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             Dictionary<string, object> id = this.extend(this.parseDepositMethodId((ids != null && i < ids.Count ? ids[i] : null)), parameters);
@@ -5785,18 +5785,18 @@ public partial class coinbase : Exchange
             { "portfolio_uuid", portfolioUuid },
         };
         Dictionary<string, object> response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters));
-        List<object> result = this.parsePortfolioDetails(response);
-        return ccxt.BaseExchange.ToDictList(result);
+        List<Dictionary<string, object>> result = this.parsePortfolioDetails(response);
+        return result;
     }
 
-    public virtual List<object> parsePortfolioDetails(IDictionary<string, object> portfolioData)
+    public virtual List<Dictionary<string, object>> parsePortfolioDetails(IDictionary<string, object> portfolioData)
     {
         IDictionary<string, object> breakdown = this.safeDict(portfolioData, "breakdown");
         IDictionary<string, object> portfolioInfo = this.safeDict(breakdown, "portfolio", new Dictionary<string, object>() {});
         string? portfolioName = this.safeString(portfolioInfo, "name", "Unknown");
         string? portfolioUuid = this.safeString(portfolioInfo, "uuid", "");
         List<object> spotPositions = this.safeList(breakdown, "spot_positions", new List<object>() {});
-        List<object> parsedPositions = new List<object>() {};
+        List<Dictionary<string, object>> parsedPositions = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < spotPositions.Count; i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)spotPositions[i]);

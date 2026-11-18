@@ -10209,10 +10209,10 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> volatility = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(volatility));
+        return this.parseVolatilityHistory(volatility);
     }
 
-    public virtual List<object> parseVolatilityHistory(IList<object> volatility)
+    public virtual List<Dictionary<string, object>> parseVolatilityHistory(IList<object> volatility)
     {
         //
         //     {
@@ -10221,7 +10221,7 @@ public partial class bybit : Exchange
         //         "time": "1690574400000"
         //     }
         //
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (volatility?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(volatility, i);
