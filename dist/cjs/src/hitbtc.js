@@ -2699,7 +2699,10 @@ class hitbtc extends hitbtc$1["default"] {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchMarginMode', market, params);
         let response;
@@ -2920,9 +2923,12 @@ class hitbtc extends hitbtc$1["default"] {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
-            const queryMarketIds = this.marketIds(symbolsNormalized);
-            request['symbols'] = queryMarketIds.join(',');
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+                const queryMarketIds = this.marketIds(symbolsNormalized);
+                request['symbols'] = queryMarketIds.join(',');
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
         if (type !== 'swap') {

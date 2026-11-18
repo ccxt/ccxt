@@ -2477,7 +2477,7 @@ export default class bitfinex extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    parseTransaction(transaction, currency = undefined) {
+    parseTransactionRow(transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -2799,7 +2799,12 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push(this.parseTransactionRow(this.safeList(response, i, []), currency));
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        return this.filterByCurrencySinceLimit(sorted, this.safeString(currency, 'code'), since, limit);
     }
     /**
      * @method
@@ -2890,7 +2895,7 @@ export default class bitfinex extends Exchange {
         if (text !== 'success') {
             this.throwBroadlyMatchedException(this.exceptions['broad'], text, text);
         }
-        return this.parseTransaction(response, currency);
+        return this.parseTransactionRow(response, currency);
     }
     /**
      * @method

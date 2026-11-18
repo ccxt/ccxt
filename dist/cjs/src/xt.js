@@ -1805,7 +1805,10 @@ class xt extends xt$1["default"] {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const request = {};
         let response = undefined;
@@ -1897,7 +1900,10 @@ class xt extends xt$1["default"] {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchBidsAsks', market, paramsMarketType);

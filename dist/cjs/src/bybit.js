@@ -3030,11 +3030,14 @@ class bybit extends bybit$1["default"] {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            const symbolMarket = this.market(symbolsNormalized[0]);
-            market = symbolMarket;
-            const symbolsLength = symbolsNormalized.length;
-            if (symbolsLength === 1) {
-                request['symbol'] = symbolMarket['id'];
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                const symbolMarket = this.market(symbolsNormalized[0]);
+                market = symbolMarket;
+                const symbolsLength = symbolsNormalized.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = symbolMarket['id'];
+                }
             }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);

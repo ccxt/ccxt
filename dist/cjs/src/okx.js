@@ -8194,7 +8194,10 @@ class okx extends okx$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         let marketType = undefined;
         let paramsSubType = {};

@@ -671,7 +671,7 @@ export declare class BaseExchange {
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     fetchLongShortRatio(symbol: string, timeframe?: Str, params?: Dict): Promise<LongShortRatio>;
     fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LongShortRatio[]>;
-    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: Dict): Promise<MarginModification[]>;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Int, limit?: Int, params?: Dict): Promise<MarginModification[]>;
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<{}>;
     fetchDepositAddressesByNetwork(code: string, params?: Dict): Promise<DepositAddresses>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;

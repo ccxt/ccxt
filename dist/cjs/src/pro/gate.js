@@ -1213,7 +1213,7 @@ class gate extends gate$1["default"] {
                     this.safeNumber(ohlcv, 'a'),
                 ];
             }
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);

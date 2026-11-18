@@ -429,7 +429,7 @@ export default class aster extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: Dict): Promise<MarginModification[]>;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Int, limit?: Int, params?: Dict): Promise<MarginModification[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: number, params?: Dict): Promise<MarginModification>;
     /**

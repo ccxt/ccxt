@@ -1110,7 +1110,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: Dict): Promise<MarginModification[]>;
+    fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Int, limit?: Int, params?: Dict): Promise<MarginModification[]>;
     /**
      * @method
      * @name okx#fetchPositionsHistory

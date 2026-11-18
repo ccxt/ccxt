@@ -473,7 +473,8 @@ class apex extends apex$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method

@@ -1072,7 +1072,8 @@ export default class aster extends asterRest {
         }
         const symbolValue = this.safeSymbol(symbol);
         const result = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, params);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method

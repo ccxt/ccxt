@@ -217,7 +217,8 @@ class binance extends binance$1["default"] {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     isSpotUrl(client) {
@@ -235,7 +236,8 @@ class binance extends binance$1["default"] {
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString(normalizedIndex);
             if (subscriptionHash !== undefined) {
-                this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+                streamBySubscriptionsHash[subscriptionHash] = stream;
+                this.options['streamBySubscriptionsHash'] = streamBySubscriptionsHash;
             }
             const subscriptionsByStreams = this.safeDict(this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
@@ -1692,7 +1694,8 @@ class binance extends binance$1["default"] {
         }
         paramsStock['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, paramsStock);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -2386,7 +2389,10 @@ class binance extends binance$1["default"] {
         let firstMarket = undefined;
         const symbolsDefined = (symbolsNormalized !== undefined);
         if (symbolsNormalized !== undefined) {
-            firstMarket = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                firstMarket = this.market(symbolsNormalized[0]);
+            }
         }
         const userDefaultType = this.safeString(this.options, 'defaultType');
         let defaultMarket = undefined;

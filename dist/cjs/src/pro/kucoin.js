@@ -1673,7 +1673,7 @@ class kucoin extends kucoin$1["default"] {
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger2(data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt(orderbook.cache.length);
                 const subscriptions = Object.keys(client.subscriptions);
                 let subscription = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
@@ -1684,7 +1684,7 @@ class kucoin extends kucoin$1["default"] {
                     }
                 }
                 const limit = this.safeInteger(subscription, 'limit');
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 5));
                 if (cacheLength === snapshotDelay) {
                     this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
@@ -1739,10 +1739,10 @@ class kucoin extends kucoin$1["default"] {
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger(data, 'C');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt(orderbook.cache.length);
                 const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 5));
                 const utaParams = {
                     'uta': true,
                 };

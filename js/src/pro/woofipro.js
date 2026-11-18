@@ -74,7 +74,8 @@ export default class woofipro extends woofiproRest {
         const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     async watchPublic(messageHash, message) {

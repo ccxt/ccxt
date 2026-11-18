@@ -1743,7 +1743,9 @@ class grvt extends grvt$1["default"] {
         const nonMatchedResults = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
-            if ((onlyMainAccount && this.safeString(transfer, 'fromAccount') === '0' && this.safeString(transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString(transfer, 'fromAccount') !== '0' || this.safeString(transfer, 'toAccount') !== '0'))) {
+            const fromAccount = this.safeString(transfer, 'fromAccount', '');
+            const toAccount = this.safeString(transfer, 'toAccount', '');
+            if ((onlyMainAccount && fromAccount === '0' && toAccount === '0') || (!onlyMainAccount && (fromAccount !== '0' || toAccount !== '0'))) {
                 const metadata = this.safeString(this.safeDict(transfer, 'info', {}), 'transfer_metadata');
                 const parsedMetadata = this.parseJson(metadata);
                 const direction = this.safeString(parsedMetadata, 'direction');

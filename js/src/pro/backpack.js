@@ -675,7 +675,8 @@ export default class backpack extends backpackRest {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const query = await this.prepareWsStockParams('watchOHLCV', params);
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, query);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method

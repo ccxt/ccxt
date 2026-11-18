@@ -12351,7 +12351,9 @@ class binance extends binance$1["default"] {
                 if (symbolsLength > 1) {
                     throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbolsNormalized[0];
+                if (symbolsLength === 1) {
+                    symbol = symbolsNormalized[0];
+                }
             }
             else {
                 symbol = symbolsNormalized;
@@ -15268,7 +15270,10 @@ class binance extends binance$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMarginMode', market, params);
         let response = undefined;
@@ -16011,7 +16016,10 @@ class binance extends binance$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const type = 'swap';
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingIntervals', market, params, 'linear');

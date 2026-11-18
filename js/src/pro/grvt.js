@@ -393,7 +393,8 @@ export default class grvt extends grvtRest {
         const symbolValue = this.symbol(symbol);
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbolValue, timeframe]], since, limit, params);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method

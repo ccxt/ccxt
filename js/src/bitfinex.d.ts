@@ -297,7 +297,7 @@ export default class bitfinex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseTransactionStatus(status: Str): Str;
-    parseTransaction(transaction: List, currency?: Currency): Transaction;
+    parseTransactionRow(transaction: List, currency?: Currency): Transaction;
     /**
      * @method
      * @name bitfinex#fetchTradingFees

@@ -456,7 +456,7 @@ class bitvavo extends bitvavo$1["default"] {
         const timeframe = this.findTimeframe(interval);
         const messageHash = name + '@' + this.safeString(message, 'market', '') + '_' + interval;
         const candles = this.safeList(message, 'candle', []);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
