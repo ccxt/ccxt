@@ -1023,10 +1023,10 @@ public partial class bitopro : Exchange
         {
             timestamp = since;
         }
-        object i = 0;
+        Int64 i = 0;
         int candleLength = candles?.Count ?? 0;
         Int64 resultLength = 0;
-        while ((isLessThan(resultLength, limit)) && (isLessThan(i, candleLength)))
+        while ((isLessThan(resultLength, limit)) && (i < candleLength))
         {
             List<object> candle = this.safeList(candles, i, new List<object>() {});
             if (isEqual((candle != null && 0 < candle.Count ? candle[0] : null), timestamp))
