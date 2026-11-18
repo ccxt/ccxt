@@ -9072,6 +9072,9 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
             level = ind;
             continue;
         }
+        if ((ind === level) && goOrderBookNilGuardAt (masked, j, n, ind)) {
+            return true;
+        }
         if ((ind === indent) && asserted.test (masked[j])) {
             return true;  // a single-value interface assertion panics on nil: the book is already non-nil here
         }
@@ -9085,6 +9088,23 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
         }
     }
     return false;
+}
+
+// `}` at line j closes `if book == nil {` whose one statement leaves (continue/return/panic) or rebinds the book to
+// this.OrderBook/IndexedOrderBook/CountedOrderBook (base-only methods returning a non-nil struct pointer)
+function goOrderBookNilGuardAt (masked: string[], j: number, n: string, ind: number): boolean {
+    if (masked[j] !== '\t'.repeat (ind) + '}' || j < 2) {
+        return false;
+    }
+    const opener = new RegExp ('^\\t{' + ind + '}if ' + n + ' == nil \\{$');
+    const [ open, stmt ] = [ masked[j - 2], masked[j - 1] ];
+    if (!opener.test (open) || /^\t*$/.test (stmt)) {
+        return false;
+    }
+    const inner = '\t'.repeat (ind + 1);
+    const rebind = new RegExp ('^' + n + ' = this\\.(?:OrderBook|IndexedOrderBook|CountedOrderBook)\\([^\\n]*\\)$');
+    const s = stmt.substring (inner.length);
+    return stmt.startsWith (inner) && !/^\t/.test (s) && (/^(?:continue|return\b[^\n]*|panic\([^\n]*\))$/.test (s) || rebind.test (s));
 }
 
 function goNativeOrderBookSetter (lines: string[], masked: string[], k: number, typeAt: (name: string, k: number) => string | undefined): boolean {
@@ -9146,6 +9166,15 @@ function goOrderBookSetterCheck (ok: SelfTestOk): void {
     ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: an assertion above the enclosing blocks still proves non-nil: ' + r);
     r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface\n\tif ts != nil {\n\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n\t}\n\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n');
     ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an assertion in a sibling branch proves nothing: ' + r);
+    const guard = (stmt: string, mid: string) => 'func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]\n\tif orderbook == nil {\n\t\t' + stmt + '\n\t}\n' + mid + '\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n';
+    for (const stmt of [ 'orderbook = this.OrderBook(map[string]any{})', 'return nil' ]) {
+        r = goOrderBookSetterPass (guard (stmt, ''));
+        ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: a nil guard that leaves or rebinds to a constructor proves non-nil: ' + r);
+    }
+    for (const [ stmt, mid ] of [ [ 'orderbook = this.Other()', '' ], [ 'this.Log(1)', '' ], [ 'return nil', '\tif ts != nil {\n\t\torderbook = nil\n\t}\n' ] ]) {
+        r = goOrderBookSetterPass (guard (stmt, mid));
+        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: a non-leaving guard, a non-constructor rebind or a later write keeps the helper: ' + r);
+    }
 }
 
 function goNativeMapWrite (lines: string[], masked: string[], start: number, end: number, k: number, maskedFunc: string,
