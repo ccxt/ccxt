@@ -8242,6 +8242,16 @@ function goSliceIndexSelfTest (ok: SelfTestOk): void {
     ok (f (twice + '\ts = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'written repeated slice keeps GetValue');
     const sibBad = nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n\tif p != nil {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar a string = GetValue(s, i).(string)\n\t\t}\n\t} else {\n\t\tvar s any = p\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar b string = GetValue(s, i).(string)\n\t\t}\n\t}\n\treturn nil\n}\n');
     ok (sibBad.indexOf ('s[i]') < 0, 'a non-[]string sibling declaration keeps GetValue: ' + sibBad);
+    const al = '\tvar s []any = this.ToArray(p)\n';
+    ok (f (al, '\t\tvar a *string = SafeStringPtr(GetValue(s, i))\n').indexOf ('SafeStringPtr(s[i])') >= 0, 'deref consumer of a bounded []any read goes native');
+    ok (f (al, '\t\tvar a *float64 = this.SafeFloat(GetValue(s, i), 0)\n').indexOf ('this.SafeFloat(s[i], 0)') >= 0, 'Safe* object of a bounded []any read goes native');
+    ok (f (al, '\t\tvar a any = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'a plain []any read keeps GetValue');
+    ok (f (al, '\t\tAddElementToObject(GetValue(s, i), \"k\", 1)\n').indexOf ('GetValue(s, i)') >= 0, 'a store receiver keeps GetValue');
+    const h = (body: string) => 'func (this *X) H(b any, d any) {\n' + body + '}\n';
+    const via = (body: string) => nativeLoopBoundedSliceReads (h (body) + 'func (this *X) f(b any, s []any) {\n\tfor i := 0; i < len(s); i++ {\n\t\tthis.H(b, GetValue(s, i))\n\t}\n}\n');
+    ok (via ('\tvar p *float64 = this.SafeFloat(d, 0)\n\tthis.Use(b, p)\n').indexOf ('this.H(b, s[i])') >= 0, 'a same-file method reading its param only through Safe* goes native');
+    ok (via ('\tvar p *float64 = this.SafeFloat(d, 0)\n\tthis.Use(d, p)\n').indexOf ('GetValue(s, i)') >= 0, 'a param used raw keeps GetValue');
+    ok (nativeLoopBoundedSliceReads (al.replace ('\t', 'func (this *X) SafeFloat(a any, k any) any {\n\treturn a\n}\nfunc (this *X) f(p any) any {\n\t') + '\tfor i := 0; i < len(s); i++ {\n\t\tr = this.SafeFloat(GetValue(s, i), 0)\n\t}\n\treturn nil\n}\n').indexOf ('GetValue(s, i)') >= 0, 'an overridden accessor keeps GetValue');
 }
 
 function goStringLiteralSelfTest (ok: SelfTestOk): void {
@@ -9637,10 +9647,11 @@ function nativeLoopBoundedSliceReads (content: string): string {
             const jsonList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line);
             const taskList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_PROMISE_LIST.test (decl.line)
                 && (assertion === undefined) && /\bthis\.ArrayConcat\([A-Za-z_]\w*, $/.test (before) && after.startsWith (')');
-            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList && !taskList)) {
+            const derefList = (decl !== undefined) && (decl.type === '[]any') && (assertion === undefined) && goLoopReadDerefConsumer (maskedLines, before, after);
+            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList && !taskList && !derefList)) {
                 return match;
             }
-            const declRx = new RegExp ('^[ \\t]*var ' + slice + ((jsonList || taskList) ? ' \\[\\]any\\b' : ' \\[\\]string\\b'));
+            const declRx = new RegExp ('^[ \\t]*var ' + slice + ((jsonList || taskList || derefList) ? ' \\[\\]any\\b' : ' \\[\\]string\\b'));
             for (let k = fn.open + 1; k < fn.close; k++) {
                 const line = (decl.line !== undefined) ? maskedLines[k].replace (declRx, '') : maskedLines[k];
                 if (goTextWritesName (line, slice)) {
@@ -9665,6 +9676,44 @@ function nativeLoopBoundedSliceReads (content: string): string {
     }
     return changed ? lines.join ('\n') : content;
 }
+
+// the read is a whole argument that its consumer derefScalars on entry (SafeStringPtr, ArrayConcat, a base Safe*
+// accessor's object, or a same-file method whose param only feeds such accessors): the in-range element then
+// answers exactly what GetValue's derefScalar gave
+function goLoopReadDerefConsumer (maskedLines: string[], before: string, after: string): boolean {
+    const file = '\n' + maskedLines.join ('\n');
+    const own = (m: string) => new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + m + '\\(').test (file);
+    const safe = GO_LOOP_READ_SAFE_ACCESSORS.filter ((m: string) => !own (m));
+    if (/(?<![\w.])(?:ccxt\.)?SafeStringPtr\($/.test (before) && after.startsWith (')')) {
+        return true;
+    }
+    if (/\bthis\.ArrayConcat\([A-Za-z_]\w*, $/.test (before) && after.startsWith (')') && !own ('ArrayConcat')) {
+        return true;
+    }
+    const safeHead = new RegExp ('\\bthis\\.(?:' + safe.join ('|') + ')\\($');
+    if (safeHead.test (before) && /^[,)]/.test (after)) {
+        return true;
+    }
+    // `this.M(a, <read>)` on a same-file method that declares that param `any` and reads it only as a Safe* object
+    const call = /\bthis\.(\w+)\(([A-Za-z_]\w*, )?$/.exec (before);
+    if ((call === null) || !after.startsWith (')')) {
+        return false;
+    }
+    const slot = (call[2] === undefined) ? 0 : 1;
+    const defs = [ ...file.matchAll (new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + call[1] + '\\(([^()]*)\\) \\{\\n((?:(?!\\n\\}\\n)[\\s\\S])*)\\n\\}\\n', 'g')) ];
+    if (defs.length !== 1) {
+        return false;
+    }
+    const params = defs[0][1].split (',').map ((x: string) => x.trim ());
+    const param = (params.length === slot + 1) ? /^(\w+) any$/.exec (params[slot]) : null;
+    if ((param === null) || /\bfunc\s*\(/.test (defs[0][2])) {
+        return false;
+    }
+    const uses = defs[0][2].match (new RegExp ('\\b' + param[1] + '\\b', 'g')) ?? [];
+    const reads = defs[0][2].match (new RegExp ('\\bthis\\.(?:' + safe.join ('|') + ')\\(' + param[1] + ', ', 'g')) ?? [];
+    return (uses.length > 0) && (uses.length === reads.length);
+}
+const GO_LOOP_READ_SAFE_ACCESSORS = [ 'SafeString', 'SafeString2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeInteger', 'SafeInteger2', 'SafeValue', 'SafeValue2' ];
 
 // Bounds-guard func literal around a typed element read: the `if i >= 0 && i < len(list)` closure goes when the index
 // is provably in range (enclosing `for`/`if` bound), and the DerefScalar wrap goes when the slice is a SafeList unbox
