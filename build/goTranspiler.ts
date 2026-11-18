@@ -15945,6 +15945,19 @@ function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc
             ind + '}',
         ];
     }
+    // a declared map field (Timeframes/RequiredCredentials map[string]any, the *Client param's map[string]*Future
+    // Futures) reaches the helper as a non-nil box, so it answers an empty non-nil slice for a nil map: no nil guard
+    const field = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((this\.(?:Timeframes|RequiredCredentials)|client\.Futures)\)$/.exec (m.replace (/\s+$/, ''));
+    if (field && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && !/\bobjectKey\b/.test (maskedFunc)
+        && (!field[3].startsWith ('client.') || /^func \(this \*\w+\) \w+\(client \*(?:ccxt\.)?Client\b/.test (maskedFunc) && !/\bclient\s*(?::=|=[^=])/.test (maskedFunc))) {
+        const [ , ind, ks, recv ] = field;
+        return [
+            ind + 'var ' + ks + ' []string = make([]string, 0, len(' + recv + '))',
+            ind + 'for objectKey := range ' + recv + ' {',
+            ind + '\t' + ks + ' = append(' + ks + ', objectKey)',
+            ind + '}',
+        ];
+    }
     // `X = ObjectKeys(m)` into a []string local or one of the []string BaseExchange key fields
     const asg = /^(\s*)(\w+|this\.(?:Symbols|Ids|Codes)) = (?:ccxt\.)?ObjectKeys\((\w+)\)$/.exec (m.replace (/\s+$/, ''));
     if (asg && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (asg[2] !== asg[3]) && (typeAt (asg[3], k) === 'map[string]any')
