@@ -8730,6 +8730,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value;
     } else if ((valueType === 'any') && goMapWriteDerefedAnyLocal (maskedFunc, declOf (value), value)) {
         valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op
+    } else if (goMapWriteKeyReadFromValue (lines, masked, start, k, key, value, typeAt)) {
+        valueOut = value;
     }
     if ((valueOut === undefined) && !nilKeyGuardable && (lastLine === k)) {
         valueOut = goDerefPointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);
@@ -8931,6 +8933,33 @@ function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string)
         writes.push (w[1].trim ());
     }
     return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init) );
+}
+
+// key `var K *string = this.SafeString(V, "k")` with V unwritten up to line k: a non-nil K proves V is no nil or
+// scalar pointer box; no generated or base Go code boxes a *map[string]any / *any, so derefScalar(V) is V
+function goMapWriteKeyReadFromValue (lines: string[], masked: string[], start: number, k: number, key: string, value: string,
+    typeAt: (name: string, k: number) => string | undefined): boolean {
+    // a parameter may carry a caller's pointer box: only locals of this func qualify
+    if (!/^\w+$/.test (key) || !/^\w+$/.test (value) || (key === value) || (typeAt (key, k) !== '*string')
+        || (typeAt (value, k) ?? '').startsWith ('*') || new RegExp ('\\b' + value + '\\b').test (lines[start])) {
+        return false;
+    }
+    const decl = new RegExp ('^\\s*var ' + key + ' \\*string = this\\.SafeString\\(' + value + ', \"[^\"\\\\\\n]*\"\\)$');
+    for (let j = k - 1; j > start; j--) {
+        if (decl.test (lines[j]) && (masked[j].indexOf ('//') < 0)) {
+            // a loop may come back to k: V stays unwritten for the rest of the func
+            for (let e = k + 1; (e < masked.length) && (lines[e] !== '}'); e++) {
+                if (goTextWritesName (masked[e], value) || goTextWritesName (masked[e], key)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (/\bfunc\s*\(/.test (masked[j]) || goTextWritesName (masked[j], value) || goTextWritesName (masked[j], key)) {
+            return false;
+        }
+    }
+    return false;
 }
 
 // a single-declaration `any` local initialised by a map producer call
