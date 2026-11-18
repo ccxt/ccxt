@@ -577,6 +577,7 @@ class kraken extends Exchange {
                     ':IInsufficient funds' => '\\ccxt\\InsufficientFunds',
                     ':Cancel pending' => '\\ccxt\\CancelPending',
                     ':Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'trading restricted for' => '\\ccxt\\RestrictedLocation', // {"error":["EAccount:Invalid permissions:EUR/JPY trading restricted for AE."]}
                 ),
             ),
         ));
