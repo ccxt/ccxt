@@ -4187,7 +4187,8 @@ function rustTypedMergeResults (content: string): string {
 }
 
 // `Value::Array(v).into_list()` is the list itself (`Value::Array` builds `Value::Arr(Arc::new(v))`), and
-// `(if (c) { self.omit(&p, Value::Str(k), &[]) } else { p }).into_dict()` is one `omit_t` with a `Null` key when `!c`.
+// `(if (c) { self.omit(&p, Value::Str(k), &[]) } else { p }).into_dict()` is one `omit_t` with a `Null` key when `!c`
+// (at this stage the key still prints `.to_string()` and the source may be `p.clone()`; `omit_t` borrows `&p`).
 function rustTypedListAndOmitBranches (content: string): string {
     let out = '', last = 0, m: RegExpExecArray | null;
     const head = /(?<![\w:])Value::Array\(/g;
@@ -4200,9 +4201,9 @@ function rustTypedListAndOmitBranches (content: string): string {
         head.lastIndex = last;
     }
     out += content.slice (last);
-    const branch = /\(if \(([^{}\n]*)\) \{ self(\.parent)?\.omit\((&([A-Za-z_]\w*)|([A-Za-z_]\w*)\.clone\(\)), (Value::Str\("(?:[^"\\]|\\.)*"\.into\(\)\)), &\[\]\) \} else \{ (?:\4|\5)(?:\.clone\(\))? \}\)\.into_dict\(\)/g;
-    return out.replace (branch, (_s, c: string, parent: string | undefined, arg: string, _a: string, _b: string, k: string) =>
-        `self${parent ?? ''}.omit_t(${arg}, if (${c}) { ${k} } else { Value::Null }, &[])`);
+    const branch = /\(if \(([^{}\n]*)\) \{ self(\.parent)?\.omit\((&([A-Za-z_]\w*)|([A-Za-z_]\w*)\.clone\(\)), (Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)), &\[\]\) \} else \{ (?:\4|\5)(?:\.clone\(\))? \}\)\.into_dict\(\)/g;
+    return out.replace (branch, (_s, c: string, parent: string | undefined, _arg: string, a: string, b: string, k: string) =>
+        `self${parent ?? ''}.omit_t(&${a ?? b}, if (${c}) { ${k} } else { Value::Null }, &[])`);
 }
 
 // `marketSymbols` answers `undefined` or the list it builds (ts/src/base/Exchange.ts), so it returns `Option<List>`:
