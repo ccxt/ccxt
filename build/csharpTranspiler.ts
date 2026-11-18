@@ -7260,7 +7260,55 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
-    return csharpTypedRowCaches (csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut))); // parse, then tuple-slot reads
+    return csharpStringEncodeIdentity (csharpTypedRowCaches (csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut)))); // parse, then tuple-slot reads
+}
+
+// `this.encode(x)` is `(string)x` (Exchange.Encode.cs): on an operand declared `string`/`string?`
+// (every declaration of the name in the member, or a string credential field) it is `x` itself
+function csharpStringEncodeIdentity (content: string): string {
+    const stringFields = [ 'this.secret', 'this.password', 'this.privateKey', 'this.apiKey', 'this.uid', 'this.walletAddress' ];
+    if (!content.includes ('encode(')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    let changed = false;
+    const call = /(?<![\w.])(?:this\.)?encode\(((?:this\.)?[A-Za-z_]\w*)\)/g;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes ('encode(')) {
+            continue;
+        }
+        let start = i;
+        while ((start > 0) && !/^    (?:public|private|protected|internal)\b/.test (lines[start])) start--;
+        let end = i + 1;
+        while ((end < lines.length) && !/^    (?:public|private|protected|internal)\b/.test (lines[end])) end++;
+        const proven = (name: string): boolean => {
+            if (name.startsWith ('this.')) {
+                return stringFields.includes (name);
+            }
+            const decl = new RegExp ('(?:^|[(,{;]|\\s)([A-Za-z_][\\w.<>\\[\\], ]*?\\??)\\s+' + name + '\\s*(?:=(?!=)|;|,|\\)|\\bin\\b)', 'g');
+            let seen = 0;
+            for (let k = start; k < end; k++) {
+                const text = lines[k].replace (/"(?:[^"\\]|\\.)*"/g, '""');
+                for (const m of text.matchAll (decl)) {
+                    const type = m[1].trim ().split (/[\s(,]+/).pop ();
+                    if ([ 'return', 'else', 'new', 'throw', 'await', 'case', 'in', 'is', 'as' ].includes (type)) {
+                        continue;
+                    }
+                    if ((type !== 'string') && (type !== 'string?')) {
+                        return false;
+                    }
+                    seen++;
+                }
+            }
+            return seen > 0;
+        };
+        const next = lines[i].replace (call, (all, name) => (proven (name) ? name : all));
+        if (next !== lines[i]) {
+            lines[i] = next;
+            changed = true;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
 }
 
 // ws caches Exchange.Options.cs declares with a typed row (`IDictionary<string, IDictionary<string, object>>`):
