@@ -2847,7 +2847,7 @@ export default class toobit extends Exchange {
         const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.push(this.extend(this.parseTransactionWithType(this.safeDict(response, i, {}), currency, transactType), paramsUntil));
         }
         const sorted = this.sortBy(results, 'timestamp');
         const currencyCode = (currency !== undefined) ? currency['code'] : undefined;

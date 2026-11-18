@@ -180634,18 +180634,19 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 tradesLength = trades.length;
             }
             if (isArray && tradesLength > 0) {
+                const headTrade = trades[0];
                 // move properties that are defined in trades up into the order
                 if (parseSymbol) {
-                    orderDict['symbol'] = trades[0]['symbol'];
+                    orderDict['symbol'] = headTrade['symbol'];
                 }
                 if (parseSide) {
-                    orderDict['side'] = trades[0]['side'];
+                    orderDict['side'] = headTrade['side'];
                 }
                 if (this.safeString(orderDict, 'type') === undefined) {
-                    orderDict['type'] = trades[0]['type'];
+                    orderDict['type'] = headTrade['type'];
                 }
                 if (this.safeString(orderDict, 'id') === undefined) {
-                    orderDict['id'] = trades[0]['order'];
+                    orderDict['id'] = headTrade['order'];
                 }
                 if (parseFilled) {
                     filled = '0';
@@ -182208,7 +182209,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const transactionsArray = this.toArray(transactions);
         let result = [];
         for(let i = 0; i < transactionsArray.length; i++){
-            const transaction = this.extend(this.parseTransaction(transactionsArray[i], currency), params);
+            const transaction = this.extend(this.parseTransaction(this.safeDict(transactionsArray, i, {}), currency), params);
             result.push(transaction);
         }
         result = this.sortBy(result, 'timestamp');
@@ -184306,9 +184307,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return res;
     }
     handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest = undefined, params = {}) {
-        const [newMaxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(params, method, 'maxEntriesPerRequest');
-        const maxEntriesPerRequestOption = newMaxEntriesPerRequest !== undefined ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        const maxEntriesPerRequestResolved = maxEntriesPerRequestOption === undefined ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        const maxEntriesPerRequestDefault = maxEntriesPerRequest === undefined ? 1000 : maxEntriesPerRequest;
+        const [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(params, method, 'maxEntriesPerRequest', maxEntriesPerRequestDefault);
         return [
             maxEntriesPerRequestResolved,
             paramsMaxEntriesPerRequest
@@ -454188,7 +454189,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
+            const [triggerDirection] = this.handleTriggerDirectionAndParams(paramsRecvWindow);
             let directionSuffix = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -529734,14 +529735,15 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const deltaNonce = this.safeInteger(data, 'u');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheSize = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.push(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market(symbol);
             const isStockMarket = market['stock'] === true || marketId !== undefined && (marketId.indexOf('.US_') >= 0 || marketId.indexOf('.HK_') >= 0);
             const defaultSnapshotDelay = isStockMarket ? 0 : 10;
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay));
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
             }
@@ -540967,12 +540969,15 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             [instTypeDefault, paramsProductType] = this.handleProductTypeAndParams(market, params);
         }
         const [instTypeOption, paramsInstType] = this.handleOptionStringAndParams(paramsProductType, methodName, 'instType', instTypeDefault);
-        let instType = instTypeOption;
         if (uta && instTypeOption !== undefined) {
-            instType = instTypeOption.toLowerCase();
+            const instTypeLower = instTypeOption.toLowerCase();
+            return [
+                instTypeLower,
+                paramsInstType
+            ];
         }
         return [
-            instType,
+            instTypeOption,
             paramsInstType
         ];
     }
@@ -608708,7 +608713,7 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
         }
         return await this.subscribePrivate(type, messageHash, paramsMarketType);
     }
-    handleBalance(type, client, message) {
+    handleBalance(client, message, type) {
         // spot
         //    [
         //       {
@@ -610051,7 +610056,7 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
                 'accounts_p',
                 'wallets'
             ], []);
-            this.handleBalance(type, client, accounts);
+            this.handleBalance(client, accounts, type);
         }
     }
     handleAuthenticate(client, message) {
@@ -634569,7 +634574,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const transactType = type === 'deposits' ? 'deposit' : 'withdrawal';
         const results = [];
         for(let i = 0; i < response.length; i++){
-            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.push(this.extend(this.parseTransactionWithType(this.safeDict(response, i, {}), currency, transactType), paramsUntil));
         }
         const sorted = this.sortBy(results, 'timestamp');
         const currencyCode = currency !== undefined ? currency['code'] : undefined;

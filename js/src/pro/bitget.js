@@ -114,11 +114,11 @@ export default class bitget extends bitgetRest {
             [instTypeDefault, paramsProductType] = this.handleProductTypeAndParams(market, params);
         }
         const [instTypeOption, paramsInstType] = this.handleOptionStringAndParams(paramsProductType, methodName, 'instType', instTypeDefault);
-        let instType = instTypeOption;
         if (uta && (instTypeOption !== undefined)) {
-            instType = instTypeOption.toLowerCase();
+            const instTypeLower = instTypeOption.toLowerCase();
+            return [instTypeLower, paramsInstType];
         }
-        return [instType, paramsInstType];
+        return [instTypeOption, paramsInstType];
     }
     /**
      * @method

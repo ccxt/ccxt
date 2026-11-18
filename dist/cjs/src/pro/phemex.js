@@ -326,7 +326,7 @@ class phemex extends phemex$1["default"] {
         }
         return await this.subscribePrivate(type, messageHash, paramsMarketType);
     }
-    handleBalance(type, client, message) {
+    handleBalance(client, message, type) {
         // spot
         //    [
         //       {
@@ -1665,7 +1665,7 @@ class phemex extends phemex$1["default"] {
                 type = 'perpetual';
             }
             const accounts = this.safeListN(message, ['accounts', 'accounts_p', 'wallets'], []);
-            this.handleBalance(type, client, accounts);
+            this.handleBalance(client, accounts, type);
         }
     }
     handleAuthenticate(client, message) {

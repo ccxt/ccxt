@@ -4233,18 +4233,19 @@ export class BaseExchange {
                 tradesLength = trades.length;
             }
             if (isArray && (tradesLength > 0)) {
+                const headTrade = trades[0];
                 // move properties that are defined in trades up into the order
                 if (parseSymbol) {
-                    orderDict['symbol'] = trades[0]['symbol'];
+                    orderDict['symbol'] = headTrade['symbol'];
                 }
                 if (parseSide) {
-                    orderDict['side'] = trades[0]['side'];
+                    orderDict['side'] = headTrade['side'];
                 }
                 if (this.safeString(orderDict, 'type') === undefined) {
-                    orderDict['type'] = trades[0]['type'];
+                    orderDict['type'] = headTrade['type'];
                 }
                 if (this.safeString(orderDict, 'id') === undefined) {
-                    orderDict['id'] = trades[0]['order'];
+                    orderDict['id'] = headTrade['order'];
                 }
                 if (parseFilled) {
                     filled = '0';
@@ -5847,7 +5848,7 @@ export class BaseExchange {
         const transactionsArray = this.toArray(transactions);
         let result = [];
         for (let i = 0; i < transactionsArray.length; i++) {
-            const transaction = this.extend(this.parseTransaction(transactionsArray[i], currency), params);
+            const transaction = this.extend(this.parseTransaction(this.safeDict(transactionsArray, i, {}), currency), params);
             result.push(transaction);
         }
         result = this.sortBy(result, 'timestamp');
@@ -7850,9 +7851,9 @@ export class BaseExchange {
         return res;
     }
     handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest = undefined, params = {}) {
-        const [newMaxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(params, method, 'maxEntriesPerRequest');
-        const maxEntriesPerRequestOption = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        const maxEntriesPerRequestResolved = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        const maxEntriesPerRequestDefault = (maxEntriesPerRequest === undefined) ? 1000 : maxEntriesPerRequest;
+        const [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(params, method, 'maxEntriesPerRequest', maxEntriesPerRequestDefault);
         return [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest];
     }
     async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
