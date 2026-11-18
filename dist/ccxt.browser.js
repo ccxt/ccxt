@@ -408857,7 +408857,8 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
                     ':Invalid nonce': _base_errors_js__rspack_import_2.InvalidNonce,
                     ':IInsufficient funds': _base_errors_js__rspack_import_2.InsufficientFunds,
                     ':Cancel pending': _base_errors_js__rspack_import_2.CancelPending,
-                    ':Rate limit exceeded': _base_errors_js__rspack_import_2.RateLimitExceeded
+                    ':Rate limit exceeded': _base_errors_js__rspack_import_2.RateLimitExceeded,
+                    'trading restricted for': _base_errors_js__rspack_import_2.RestrictedLocation
                 }
             }
         });
