@@ -269,7 +269,7 @@ public partial class BaseExchange
                     var body3 = body2 as dict;
                     var bodyList = body3.Keys;
                     foreach (string key in bodyList) {
-                        formdata.Add(new StringContent(getValue(body3, key).ToString(), Encoding.UTF8), key);
+                        formdata.Add(new StringContent(body3[key].ToString(), Encoding.UTF8), key);
                     }
                     request.Content = formdata;
                 } else {
