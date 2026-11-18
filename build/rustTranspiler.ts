@@ -4493,7 +4493,8 @@ function borrowLiteralBoxes(content: string): string {
 }
 
 // The base safe readers take their container as `impl KeyRead`, which reads `&Value`, `&Dict`, `&List` and
-// `&Option<Dict|List>` exactly as it reads the owned value: a local of one of those types is lent, not cloned.
+// `&Option<Dict|List>` exactly as it reads the owned value: a local of one of those types is lent, not cloned;
+// a dispatch argument (`__it.next()` over `__args: Vec<Value>`) is a `Value`.
 const RUST_KEYREAD_READER_CALL = /\b((?:self|exchange\d*)\.safe_(?:value|string|integer|number|float|bool|dict|list|timestamp)\w*\()([A-Za-z_]\w*)\.clone\(\)(?=, )/g;
 const RUST_KEYREAD_LENT_TYPE = /^(?:Value|(?:crate::value::|ccxt::value::)?(?:Dict|List)|Option<(?:crate::value::|ccxt::value::)?(?:Dict|List)>)$/;
 function lendReaderContainers(content: string): string {
@@ -4502,7 +4503,7 @@ function lendReaderContainers(content: string): string {
     const lent = (pos: number, name: string): boolean => {
         let lo = 0, hi = fnStarts.length - 1, start = 0;
         while (lo <= hi) { const mid = (lo + hi) >> 1; if (fnStarts[mid] <= pos) { start = fnStarts[mid]; lo = mid + 1; } else hi = mid - 1; }
-        const decl = new RegExp(`(?:\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?|[(,|]\\s*(?:mut )?${name}:\\s*([^,)|]+?)\\s*[,)|])`, 'g');
+        const decl = new RegExp(`(?:\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\(|__it\\.next\\(\\)\\.unwrap_or_default\\(\\);)?|[(,|]\\s*(?:mut )?${name}:\\s*([^,)|]+?)\\s*[,)|])`, 'g');
         let last: RegExpExecArray | undefined;
         const scope = content.slice(start, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
         for (const m of scope.matchAll(decl)) last = m as RegExpExecArray;
