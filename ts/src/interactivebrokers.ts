@@ -1835,6 +1835,7 @@ export default class interactivebrokers extends Exchange {
     async marketsEndpointCall (request: Dict, ep: string, defaultValue: any = undefined) {
         const opts = this.safeDict (this.options, 'fetchMarkets', {});
         const retries = this.safeInteger (opts, 'endpointRetries', 3);
+        let retryDelay = this.safeInteger (opts, 'retryDelay', 1000);
         for (let i = 0; i < retries; i++) {
             const isLastRetry = (i >= retries - 1);
             let data: any = undefined;
@@ -1842,6 +1843,7 @@ export default class interactivebrokers extends Exchange {
                 if (ep === 'webapiGetV1ApiTrsrvSecdef') {
                     data = await this.webapiGetV1ApiTrsrvSecdef (request);
                 } else if (ep === 'webapiPostV1ApiIserverScannerRun') {
+                    retryDelay = 1000;
                     data = await this.webapiPostV1ApiIserverScannerRun (request);
                 } else if (ep === 'webapiGetV1ApiTrsrvFutures') {
                     data = await this.webapiGetV1ApiTrsrvFutures (request);
@@ -1862,7 +1864,7 @@ export default class interactivebrokers extends Exchange {
                     if (isLastRetry) {
                         throw e;
                     }
-                    await this.sleep (this.safeInteger (opts, 'retryDelay', 1000));
+                    await this.sleep (retryDelay);
                 }
             }
             if (data !== undefined) {
