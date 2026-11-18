@@ -460,7 +460,7 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const receiver = takeType (name) ?? takeInOpType (name);
         if (receiver === undefined) return;
         const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
-        const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
+        const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type) || WS_CACHE_CLASSES.test (receiver.type);
         if (!isDict && !isList) return;
         const nullableKey = takeNullableKeyType (keyMask, true);
         if (!nullableKey && !takeKeyType (keyMask, true)) {
@@ -1505,7 +1505,7 @@ const COLLECTION_RETURN_DICT_METHODS: string[] = [
 // (one helper name can be a different method per venue class). Admitted only when every call site
 // passes a string, every override is still `object`, and every body use is an identity under `string?`.
 const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
-    'BaseExchange': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'calculateFee': [ 0, 1, 2 ], 'repayIsolatedMargin': [ 0 ], 'repayMargin': [ 2 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'BaseExchange': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'calculateFee': [ 0, 1, 2 ], 'calculateRateLimiterCost': [ 2 ], 'repayIsolatedMargin': [ 0 ], 'repayMargin': [ 2 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'alpaca': { 'FetchTransactionsHelper': [ 0, 1 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
     'apex': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ] },
     'aster': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'isInverse': [ 0 ], 'isLinear': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
@@ -1553,7 +1553,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'foxbit': { 'FetchOrdersByStatus': [ 0, 1 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'gate': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchOrdersByStatus': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createOrderRequest': [ 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'fetchOrderRequest': [ 0 ], 'getSettlementCurrencies': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'prepareOrdersByStatusRequest': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
     'gemini': { 'parseMarketActive': [ 0 ], 'parseTransactionStatus': [ 0 ] },
-    'grvt': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'grvt': { 'FetchFundingHistory': [ 0 ], 'filterTransfersByType': [ 1 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
     'hashkey': { 'CreateSpotOrder': [ 0, 1, 2 ], 'CreateSwapOrder': [ 0, 1, 2 ], 'FetchOpenSpotOrders': [ 0 ], 'FetchOpenSwapOrders': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'createSpotOrderRequest': [ 1, 2 ], 'createSwapOrderRequest': [ 1, 2 ], 'encodeAccountType': [ 0 ], 'encodeFlowType': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseAccountType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
     'hibachi': { 'FetchMySettlementHistory': [ 0 ], 'createOrderRequest': [ 1, 2, 3 ], 'editOrderRequest': [ 2, 3, 4 ], 'orderMessage': [ 3, 4 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'hitbtc': { 'FetchTransactionsHelper': [ 0, 1 ], 'createOrderRequest': [ 1, 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
@@ -1648,7 +1648,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
 // Non-core helper `object since/limit/until/amount/price` parameters narrowed to the box every caller
 // passes (exact Int64?/double?/null, no conversion), keyed by method -> position across the whole tree
 // (overrides are invariant); body uses must be identities and positions needing a shadow are excluded.
-const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price' ];
+const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 'status', 'outcomeSide', 'marketCount', 'id' ];
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'amountToPredictionPrecision': { 1: 'double?' },
@@ -1668,9 +1668,11 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'fetchOrdersHelper': { 1: 'Int64?', 2: 'Int64?' },
     'getAssetHistoryRows': { 1: 'Int64?', 2: 'Int64?' },
     'getClosestLimit': { 0: 'Int64?' },
+    'handleSubscriptionStatus': { 2: 'Int64?' },
     'handlePaginationParams': { 1: 'Int64?' },
     'internalFetchTransfers': { 2: 'Int64?', 3: 'Int64?' },
     'opinionOrderRawAmounts': { 2: 'double?', 3: 'double?' },
+    'opinionOutcomeByMarketIdSide': { 1: 'Int64?' },
     'orderRequestWs': { 4: 'double?', 5: 'double?' },
     'parseBorrowRateHistories': { 2: 'Int64?', 3: 'Int64?' },
     'parseContractOrderBook': { 2: 'Int64?' },
@@ -1688,6 +1690,7 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'parseTradingViewOHLCV': { 3: 'Int64?' },
     'parseTransactionsByType': { 3: 'Int64?', 4: 'Int64?' },
     'parseWsOHLCVs': { 3: 'Int64?', 4: 'Int64?' },
+    'parseWsOrderStatus': { 0: 'Int64?' },
     'parseWsTrades': { 2: 'Int64?', 3: 'Int64?' },
     'prepareAccountRequest': { 0: 'Int64?' },
     'prepareAccountRequestWithCurrencyCode': { 1: 'Int64?' },
@@ -1696,6 +1699,7 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'requestWalletHistoryRows': { 4: 'Int64?' },
     'seedOrderBook': { 2: 'Int64?' },
     'signAndCreateOrder': { 5: 'double?' },
+    'titleForMarketSymbol': { 2: 'Int64?' },
     'tokenizedConvertHistory': { 0: 'Int64?', 1: 'Int64?' },
 };
 
