@@ -1924,6 +1924,11 @@ const CSHARP_LOCAL_NEW_TYPES = {};
 // value `await` unwraps. Only methods whose C# signature this module can vouch for are
 // listed; a name that is not here and is not a generated api wrapper stays `object`.
 export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
+    // Exchange.ts pagination cores (CSHARP_ASYNC_CORE_RETURNS): Task<IList<object>> on the one base declaration
+    'fetchPaginatedCallDynamic': 'IList<object>',
+    'fetchPaginatedCallDeterministic': 'IList<object>',
+    'fetchPaginatedCallCursor': 'IList<object>',
+    'fetchPaginatedCallIncremental': 'IList<object>',
     // ts/src/base/Exchange.ts `async isUTAEnabled (params = {}): Promise<boolean>` and the
     // kucoin override; build/csharp-worker.ts prints `Task<bool>` for the annotation
     // (the stub returns a literal false), so the awaited value is a plain C# bool.
@@ -1986,6 +1991,7 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // CSHARP_AWAITED_CORE_RETURNS lists, proven per declaration (single declaration each)
     'fetchSecurities': 'List<object>',
     'completeRawTopics': 'List<object>',
+    'fetchRawTopicsByQueries': 'List<object>',
 };
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
@@ -6145,6 +6151,10 @@ function callReturnType (csharp, initializer) {
         const localType = CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
         if (localType !== undefined) {
             return localType;
+        }
+        // a TS-array receiver binds Exchange.cs `IList<object> arraySlice(object, ...)` (byte[] has its own overload)
+        if (methodName === 'arraySlice' && arraySliceCallIsProvenList (csharp, initializer)) {
+            return 'IList<object>';
         }
         // a venue method whose own body proves a non-null string at this site (its printed
         // signature stays `string?`, so the candidate starts nullable and the declaration
@@ -15977,6 +15987,11 @@ export function installCsharpConditionOperands (transpiler) {
 // printFunctionType so overrides match the hand-written base; returns are funnel-cast unless
 // already typed. Keep in sync with the awaited-locals map, which registers the same names.
 export const CSHARP_ASYNC_CORE_RETURNS = {
+    // Exchange.ts: every path returns `this.filterBySinceLimit (...)`, declared IList<object>
+    'fetchPaginatedCallDynamic': 'IList<object>',
+    'fetchPaginatedCallDeterministic': 'IList<object>',
+    'fetchPaginatedCallCursor': 'IList<object>',
+    'fetchPaginatedCallIncremental': 'IList<object>',
     'loadMarkets': 'IDictionary<string, object>',
     'loadMarketsHelper': 'IDictionary<string, object>',
     'fetchCurrencies': 'IDictionary<string, object>',
@@ -16054,7 +16069,8 @@ function asyncCoreReturnIsAlreadyTyped (value) {
         // loadOutcome () hands the mapped row to itself: safeOutcome is now itself retyped to
         // IDictionary<string, object> (CSHARP_COLLECTION_RETURN_METHODS), so the two spellings
         // of that call need no boundary cast — only the still-`Task<object>` fetchOutcome does
-        || /^this\.safeOutcome\s*\(/.test (value);
+        || /^this\.safeOutcome\s*\(/.test (value)
+        || /^this\.filterBySinceLimit\s*\(/.test (value);
 }
 
 // ===== awaited same-file cores =====
@@ -16122,6 +16138,7 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     // completeRawTopics returns its List<object> result local
     'fetchSecurities': 'List<object>',
     'completeRawTopics': 'List<object>',
+    'fetchRawTopicsByQueries': 'List<object>',
 };
 
 // cores whose Dictionary and IDictionary return arms join to the interface (collectionArmWidening)

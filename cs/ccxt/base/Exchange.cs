@@ -870,27 +870,28 @@ public partial class BaseExchange
         return value != null;
     }
 
-    public object arraySlice(object array, object first, object second = null)
+    // byte[] receivers (signing seeds) keep their byte[] / List<byte> slices
+    public object arraySlice(byte[] byteArray, object first, object second = null)
+    {
+        var firstInt = Convert.ToInt32(first);
+        if (second == null)
+        {
+            if (firstInt < 0)
+            {
+                var index = byteArray.Length + firstInt;
+                index = index < 0 ? 0 : index;
+                return byteArray[index..].ToList();
+            }
+            return byteArray[firstInt..].ToList();
+        }
+        var secondInt2 = Convert.ToInt32(second);
+        return byteArray[firstInt..secondInt2];
+    }
+
+    public IList<object> arraySlice(object array, object first, object second = null)
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
-
-        if (array is byte[])
-        {
-            var byteArray = (byte[])array;
-            if (second == null)
-            {
-                if (firstInt < 0)
-                {
-                    var index = byteArray.Length + firstInt;
-                    index = index < 0 ? 0 : index;
-                    return byteArray[index..].ToList();
-                }
-                return byteArray[firstInt..].ToList();
-            }
-            var secondInt2 = Convert.ToInt32(second);
-            return byteArray[firstInt..secondInt2];
-        }
 
         // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
         // List<T> is invariant so none of those IS an IList<object> - re-box through the
