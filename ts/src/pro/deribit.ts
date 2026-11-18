@@ -21,6 +21,8 @@ export default class deribit extends deribitRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -464,6 +466,35 @@ export default class deribit extends deribitRest {
         const interval = this.safeString (parts, 2, '');
         const messageHash = 'trades|' + symbol + '|' + interval;
         client.resolve (this.trades[symbol], messageHash);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] the interval the subscription was opened with. Possible values: 100ms, raw
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel for a list of symbols
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] the interval the subscription was opened with. Possible values: 100ms, raw
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
+        return await this.unWatchMultipleWrapper ('trades', 'trades', interval, symbols, paramsInterval);
     }
 
     /**
@@ -972,6 +1003,96 @@ export default class deribit extends deribitRest {
         return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name deribit#unWatchMultipleWrapper
+     * @description sends a public/unsubscribe request for a list of symbols and registers the pending unsubscription under the request id
+     * @param {string} topic unified cache topic: trades, orderbook, ticker
+     * @param {string} channelName exchange channel name
+     * @param {string} channelDescriptor exchange channel suffix, the interval the subscription was opened with
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchMultipleWrapper (topic: string, channelName: string, channelDescriptor: Str, symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchMultipleWrapper() requires a symbols argument');
+        }
+        const url = this.urls['api']['ws'];
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const rawSubscriptions: string[] = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            const marketId = this.safeString (market, 'id', '');
+            const symbol = this.safeString (market, 'symbol', '');
+            const subMessageHash = channelName + '|' + symbol + '|' + channelDescriptor;
+            rawSubscriptions.push (channelName + '.' + marketId + '.' + channelDescriptor);
+            subMessageHashes.push (subMessageHash);
+            messageHashes.push ('unsubscribe:' + subMessageHash);
+        }
+        const requestId = this.requestId ();
+        const requestIdString = requestId.toString ();
+        const channels: Dict = {
+            'channels': rawSubscriptions,
+        };
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'public/unsubscribe',
+            'params': channels,
+            'id': requestId,
+        };
+        // the acknowledgement carries only the request id, so the pending unsubscription is stored under it
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestIdString,
+            'topic': topic,
+            'symbols': symbolsNormalized,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'subscribeHashes': rawSubscriptions,
+        };
+        const extendedRequest = this.deepExtend (request, params);
+        return await this.watchMultiple (url, messageHashes, extendedRequest, [ requestIdString ], subscription);
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 3,
+        //         "result": ["trades.BTC_USDC-PERPETUAL.100ms"],
+        //         "usIn": "1655393625889396",
+        //         "usOut": "1655393625889518",
+        //         "usDiff": 122,
+        //         "testnet": false
+        //     }
+        //
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const subscribeHashes = this.safeList (subscription, 'subscribeHashes', []);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const unsubHash = this.safeString (messageHashes, i);
+            const subHash = this.safeString (subMessageHashes, i);
+            const subscribeHash = this.safeString (subscribeHashes, i, '');
+            // subscriptions are keyed by the raw channel name, which differs from the message hash
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
+        const requestId = this.safeString (subscription, 'id', '');
+        if (requestId in client.subscriptions) {
+            delete client.subscriptions[requestId];
+        }
+    }
+
     override handleMessage (client: Client, message: Dict) {
         //
         // error
@@ -1060,6 +1181,14 @@ export default class deribit extends deribitRest {
                 return;
             }
             throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
+        }
+        const messageId = this.safeString (message, 'id');
+        if ((messageId !== undefined) && (messageId in client.subscriptions)) {
+            const subscription = this.safeDict (client.subscriptions, messageId);
+            if ((subscription !== undefined) && this.safeBool (subscription, 'unsubscribe', false)) {
+                this.handleUnSubscription (client, subscription);
+                return;
+            }
         }
         const result: Dict = this.safeDict (message, 'result', {});
         const accessToken = this.safeString (result, 'access_token');

@@ -279,6 +279,83 @@
                 ]
             }
         ],
+        "unWatchTrades": [
+            {
+                "description": "inverse swap trades unsubscribe acknowledged by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "trades.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795002930945276",
+                        "usOut": "1795002930945452",
+                        "usDiff": 176,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "trades.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "inverse swap and spot trades unsubscribe in one request, deribit acknowledges both channels in one message",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "trades.BTC_USDT.100ms",
+                            "trades.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795005609599046",
+                        "usOut": "1795005609599379",
+                        "usDiff": 333,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "trades.BTC-PERPETUAL.100ms",
+                                "trades.BTC_USDT.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
         "watchOrderBook": [
             {
                 "description": "inverse swap orderbook",
