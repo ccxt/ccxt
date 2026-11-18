@@ -1895,7 +1895,7 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_open_v1_common_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_open_v1_common_time", &[params]).await;
         return self.safe_integer_k(&response, "timestamp", &[]);
         Value::Null
         }).await?))
@@ -1919,7 +1919,7 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_open_v1_common_symbols(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_open_v1_common_symbols", &[params]).await;
         //
         //     {
         //         "code":0,
@@ -2004,10 +2004,10 @@ impl Tokocrypto {
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             let __ws_arg_0 = self.extend(&request, &[&params]);
-            response = self.public_get_open_v1_market_depth(&[__ws_arg_0]).await.into_opt_dict();
+            response = self.call_method_o("public_get_open_v1_market_depth", &[__ws_arg_0]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            response = self.binance_get_depth(&[__ws_arg_1]).await.into_opt_dict();
+            response = self.call_method_o("binance_get_depth", &[__ws_arg_1]).await;
         }
         //
         // future
@@ -2092,7 +2092,7 @@ impl Tokocrypto {
             // open/v1/market/trades answers an empty list for every market, the
             // aggregate endpoint is the one that carries data for these markets
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            let mut responseInner: crate::value::Dict = self.public_get_open_v1_market_agg_trades(&[__ws_arg_2]).await.into_dict();
+            let mut responseInner: crate::value::Dict = self.call_method_t("public_get_open_v1_market_agg_trades", &[__ws_arg_2]).await;
             //
             //    {
             //       "code": 0,
@@ -2470,7 +2470,7 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_account_spot(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_account_spot", &[__ws_arg_8]).await;
         return self.parse_balance_custom(&response, type_var.as_deref(), marginMode.as_deref());
         Value::Null
         }).await?))
@@ -2478,8 +2478,6 @@ impl Tokocrypto {
 
     pub fn parse_balance_custom(&self, response: impl Into<crate::Value>, type_var: Option<&str>, marginMode: Option<&str>) -> Value {
         let mut response: Value = response.into();
-        let mut type_var: Value = type_var.into();
-        let mut marginMode: Value = marginMode.into();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "updateTime", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2782,7 +2780,7 @@ impl Tokocrypto {
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[paramsRequest]);
-        let mut response: crate::value::Dict = self.private_post_open_v1_orders(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_open_v1_orders", &[__ws_arg_9]).await;
         //
         //     {
         //         "code": 0,
@@ -2845,7 +2843,7 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_orders(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_orders", &[__ws_arg_10]).await;
         //
         //     {
         //         "code": 0,
@@ -2927,7 +2925,7 @@ impl Tokocrypto {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_orders(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_orders", &[__ws_arg_11]).await;
         //
         //     {
         //         "code": 0,
@@ -3066,7 +3064,7 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_open_v1_orders_cancel(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_open_v1_orders_cancel", &[__ws_arg_14]).await;
         //
         //     {
         //         "code": 0,
@@ -3148,7 +3146,7 @@ impl Tokocrypto {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_orders_trades(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_orders_trades", &[__ws_arg_15]).await;
         //
         //     {
         //         "code": 0,
@@ -3213,14 +3211,14 @@ impl Tokocrypto {
         let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
         let mut network: Option<String> = self.safe_string_upper_k_opt(&params, "network", &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // handle ERC20>ETH alias
-        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(&params, Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (network.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         if (network.is_some()) {
             request.insert("network".into(), network.map(Value::from).unwrap_or(Value::Null));
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_deposits_address", &[__ws_arg_16]).await;
         //
         //     {
         //         "code":0,
@@ -3307,7 +3305,7 @@ impl Tokocrypto {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_deposits(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_deposits", &[__ws_arg_17]).await;
         //
         //     {
         //         "code":0,
@@ -3383,7 +3381,7 @@ impl Tokocrypto {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_open_v1_withdraws(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_withdraws", &[__ws_arg_18]).await;
         //
         //     {
         //         "code":0,
@@ -3494,7 +3492,7 @@ impl Tokocrypto {
             request.insert("network".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_post_open_v1_withdraws(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_open_v1_withdraws", &[__ws_arg_19]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))

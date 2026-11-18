@@ -1266,7 +1266,7 @@ impl Luno {
     m
 });
         }
-        let mut response: crate::value::Dict = self.private_get_send_networks(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_send_networks", &[params]).await;
         //
         //     {
         //         "networks": [
@@ -1306,7 +1306,7 @@ impl Luno {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.exchange_get_markets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("exchange_get_markets", &[params]).await;
         //
         //     {
         //         "markets":[
@@ -1458,7 +1458,7 @@ impl Luno {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.private_get_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_balance", &[params]).await;
         let mut wallets: crate::value::List = self.safe_list_k_t(&response, "balance");
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1506,7 +1506,7 @@ impl Luno {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1547,10 +1547,10 @@ impl Luno {
         let mut response: Option<crate::value::Dict> = None;
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) <= ((100i64) as f64) {
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            response = self.public_get_orderbook_top(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("public_get_orderbook_top", &[__ws_arg_2]).await;
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_orderbook(&[__ws_arg_3]).await.into_opt_dict();
+            response = self.call_method_o("public_get_orderbook", &[__ws_arg_3]).await;
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
@@ -1599,7 +1599,7 @@ impl Luno {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_id(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_id", &[__ws_arg_4]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -1626,7 +1626,7 @@ impl Luno {
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_listorders(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_listorders", &[__ws_arg_5]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "orders");
         return self.parse_orders(&orders, market.as_ref(), &[Value::from(since), Value::from(limit)]);
 
@@ -1745,7 +1745,7 @@ impl Luno {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
         let mut rawTickers: crate::value::List = self.safe_list_k_t(&response, "tickers");
         let mut tickers: crate::value::Dict = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into())).into_dict();
         let mut ids: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -1799,7 +1799,7 @@ impl Luno {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_6]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1843,7 +1843,7 @@ impl Luno {
             request.insert("since".into(), since.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[__ws_arg_7]).await;
         //
         //      {
         //          "trades":[
@@ -1906,7 +1906,7 @@ impl Luno {
             request.insert("since".into(), Value::Int(((self.milliseconds()) - duration)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.exchange_private_get_candles(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("exchange_private_get_candles", &[__ws_arg_8]).await;
         //
         //     {
         //          "candles": [
@@ -1973,7 +1973,7 @@ impl Luno {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_listtrades(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_listtrades", &[__ws_arg_9]).await;
         //
         //      {
         //          "trades":[
@@ -2031,7 +2031,7 @@ impl Luno {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_fee_info(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fee_info", &[__ws_arg_10]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
@@ -2095,13 +2095,13 @@ impl Luno {
                 request.insert("base_volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
             }
             let __ws_arg_11 = self.extend(&request, &[&params]);
-            response = self.private_post_marketorder(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("private_post_marketorder", &[__ws_arg_11]).await;
         }  else {
             request.insert("volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
             request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
             request.insert("type".into(), (if (side.as_str() == Some("buy")) { Value::Str("BID".into()) } else { Value::Str("ASK".into()) }));
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_postorder(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("private_post_postorder", &[__ws_arg_12]).await;
         }
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " createOrder() returned empty response")));
@@ -2148,7 +2148,7 @@ impl Luno {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_stoporder(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_stoporder", &[__ws_arg_13]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -2247,7 +2247,7 @@ impl Luno {
             m
         });
         let __ws_arg_15 = self.extend(params, &[Value::Map(request)]);
-        let mut response: crate::value::Dict = self.private_get_accounts_id_transactions(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_accounts_id_transactions", &[__ws_arg_15]).await;
         let mut entries: crate::value::List = self.safe_list_k_t(&response, "transactions");
         return self.parse_ledger(&entries, currency.as_ref(), &[since, limit]);
         Value::Null
@@ -2326,7 +2326,7 @@ impl Luno {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_funding_address(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_funding_address", &[__ws_arg_16]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2364,7 +2364,7 @@ impl Luno {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_funding_address(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_funding_address", &[__ws_arg_17]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2404,7 +2404,7 @@ impl Luno {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_send_fee(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_send_fee", &[__ws_arg_18]).await;
         //
         //     {
         //         "currency": "XBT",

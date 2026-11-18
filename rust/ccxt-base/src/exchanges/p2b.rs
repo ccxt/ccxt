@@ -973,7 +973,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_markets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_markets", &[params]).await;
         //
         //    {
         //        "success": true,
@@ -1033,7 +1033,7 @@ impl P2b {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
         //
         //    {
         //        success: true,
@@ -1095,7 +1095,7 @@ impl P2b {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_0]).await;
         //
         //    {
         //        success: true,
@@ -1161,7 +1161,7 @@ impl P2b {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_depth_result(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_depth_result", &[__ws_arg_1]).await;
         //
         //    {
         //        "success": true,
@@ -1237,7 +1237,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_history(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_history", &[__ws_arg_2]).await;
         //
         //    {
         //        success: true,
@@ -1305,7 +1305,7 @@ impl P2b {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_kline(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_kline", &[__ws_arg_3]).await;
         //
         //    {
         //        success: true,
@@ -1356,7 +1356,7 @@ impl P2b {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_account_balances(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_balances", &[params]).await;
         //
         //    {
         //        "success": true,
@@ -1425,7 +1425,7 @@ impl P2b {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_order_new(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order_new", &[__ws_arg_4]).await;
         //
         //    {
         //        "success": true,
@@ -1490,7 +1490,7 @@ impl P2b {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_order_cancel(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order_cancel", &[__ws_arg_5]).await;
         //
         //    {
         //        "success": true,
@@ -1562,7 +1562,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_6]).await;
         //
         //    {
         //        "success": true,
@@ -1636,7 +1636,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_account_order(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_order", &[__ws_arg_7]).await;
         //
         //    {
         //        "success": true,
@@ -1737,7 +1737,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_account_market_deal_history(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_market_deal_history", &[__ws_arg_8]).await;
         //
         //    {
         //        "success": true,
@@ -1843,7 +1843,7 @@ impl P2b {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_account_order_history(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_order_history", &[__ws_arg_9]).await;
         //
         //    {
         //        "success": true,

@@ -2132,7 +2132,7 @@ impl Cryptocom {
             m
         }).into_dict();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = self.v1_private_post_private_get_currency_networks(&[Value::Dict(paramsSkipFetchCurrencies)]).await.into_dict();
+            response = self.call_method_t("v1_private_post_private_get_currency_networks", &[Value::Dict(paramsSkipFetchCurrencies)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut erString: Option<String> = self.exception_message(e.clone(), &[]).as_str().map(str::to_owned);
@@ -2213,7 +2213,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_instruments(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_instruments", &[params]).await;
         //
         //     {
         //         "id": 1,
@@ -2465,7 +2465,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_tickers(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_tickers", &[__ws_arg_0]).await;
         //
         //     {
         //         "id": -1,
@@ -2584,7 +2584,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_time".into(), Value::from(until));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_order_history(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_order_history", &[__ws_arg_1]).await;
         //
         //     {
         //         "id": 1686881486183,
@@ -2684,7 +2684,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_ts".into(), Value::from(until));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_trades(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_trades", &[__ws_arg_2]).await;
         //
         //     {
         //         "id": -1,
@@ -2779,7 +2779,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_ts".into(), Value::from(until));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_candlestick(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_candlestick", &[__ws_arg_3]).await;
         //
         //     {
         //         "id": -1,
@@ -2843,7 +2843,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("depth".into(), crate::runtime::Math::min(&limit, &Value::Int(50))); // max 50
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_book(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_book", &[__ws_arg_4]).await;
         //
         //     {
         //         "id": -1,
@@ -2893,7 +2893,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_post_private_user_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_user_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -2934,7 +2934,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_order_detail(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_order_detail", &[__ws_arg_5]).await;
         //
         //     {
         //         "id": 1686872583882,
@@ -3121,7 +3121,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
-        let mut response: crate::value::Dict = self.v1_private_post_private_create_order(&[Value::Dict(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_create_order", &[Value::Dict(request)]).await;
         //
         //     {
         //         "id": 1686804664362,
@@ -3168,7 +3168,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
             while { if !__for_first_593 { i += 1; } __for_first_593 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
@@ -3187,7 +3187,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_create_order_list(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_create_order_list", &[__ws_arg_6]).await;
         //
         // {
         //     "id": 12,
@@ -3411,7 +3411,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: crate::value::Dict = self.edit_order_request(id.as_str(), symbol.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
-        let mut response: crate::value::Dict = self.v1_private_post_private_amend_order(&[Value::Dict(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_amend_order", &[Value::Dict(request)]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
         Value::Null
@@ -3482,7 +3482,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_cancel_all_orders(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_cancel_all_orders", &[__ws_arg_7]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -3527,7 +3527,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_cancel_order(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_cancel_order", &[__ws_arg_8]).await;
         //
         //     {
         //         "id": 1686882846638,
@@ -3580,7 +3580,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_594: bool = true;
             while { if !__for_first_594 { i += 1; } __for_first_594 = false; i < (ids.len() as i64) } {
-            let mut id: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
+            let mut id: Option<String> = self.safe_string_opt(&ids, Value::Int(i), &[]);
             let mut order: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
@@ -3597,7 +3597,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_cancel_order_list(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_cancel_order_list", &[__ws_arg_9]).await;
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_orders(&result, Some(&market), &[Value::Null, Value::Null, params]);
         Value::Null
@@ -3632,7 +3632,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_595: bool = true;
             while { if !__for_first_595 { i += 1; } __for_first_595 = false; i < (orders.len() as i64) } {
-            let mut order: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3652,7 +3652,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_cancel_order_list(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_cancel_order_list", &[__ws_arg_10]).await;
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_orders(&result, None, &[Value::Null, Value::Null, params]);
         Value::Null
@@ -3696,7 +3696,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_open_orders(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_open_orders", &[__ws_arg_11]).await;
         //
         //     {
         //         "id": 1686806134961,
@@ -3797,7 +3797,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_time".into(), Value::from(until));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_trades(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_trades", &[__ws_arg_12]).await;
         //
         //     {
         //         "id": 1686942003520,
@@ -3898,7 +3898,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("network_id".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_create_withdrawal(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_create_withdrawal", &[__ws_arg_13]).await;
         //
         //    {
         //        "id":-1,
@@ -3951,7 +3951,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_deposit_address(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_deposit_address", &[__ws_arg_14]).await;
         //
         //     {
         //         "id": 1234555011221,
@@ -4099,7 +4099,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_ts".into(), Value::from(until));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_deposit_history(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_deposit_history", &[__ws_arg_15]).await;
         //
         //     {
         //         "id": 1688701375714,
@@ -4179,7 +4179,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_ts".into(), Value::from(until));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_withdrawal_history(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_withdrawal_history", &[__ws_arg_16]).await;
         //
         //     {
         //         "id": 1688613879534,
@@ -4323,7 +4323,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_currency_networks(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_currency_networks", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut currencyMap: Option<crate::value::List> = self.safe_list_k_o(&data, "currency_map");
         return self.parse_deposit_withdraw_fees(&currencyMap, &[codes, Value::Str("full_name".into())]);
@@ -4379,7 +4379,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_time".into(), Value::from(until));
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_transactions(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_transactions", &[__ws_arg_17]).await;
         //
         //     {
         //         "id": 1686813195698,
@@ -4467,7 +4467,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_accounts(&[params.clone()]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_accounts", &[params.clone()]).await;
         //
         //     {
         //         "id": 1234567894321,
@@ -4546,7 +4546,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_expired_settlement_price(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_expired_settlement_price", &[__ws_arg_18]).await;
         //
         //     {
         //         "id": -1,
@@ -4660,7 +4660,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_valuations(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_valuations", &[__ws_arg_19]).await;
         //
         //     {
         //         "id": -1,
@@ -4746,7 +4746,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("end_ts".into(), Value::from(until));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_get_valuations(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_get_valuations", &[__ws_arg_20]).await;
         //
         //     {
         //         "id": -1,
@@ -4820,7 +4820,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_positions(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_positions", &[__ws_arg_21]).await;
         //
         //     {
         //         "id": 1688015952050,
@@ -4896,7 +4896,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_positions(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_positions", &[__ws_arg_22]).await;
         //
         //     {
         //         "id": 1688015952050,
@@ -5027,7 +5027,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price.map(Value::from).unwrap_or(Value::Null))));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_close_position(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_close_position", &[__ws_arg_23]).await;
         //
         //    {
         //        "id" : 1700830813298,
@@ -5075,7 +5075,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_instrument_fee_rate(&[__ws_arg_24]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_instrument_fee_rate", &[__ws_arg_24]).await;
         //
         //    {
         //        "id": 1,
@@ -5121,7 +5121,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_post_private_get_fee_rate(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_get_fee_rate", &[params]).await;
         //
         //   {
         //       "id": 1,

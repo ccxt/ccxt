@@ -989,7 +989,7 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_v2_user_api_exchange_markets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v2_user_api_exchange_markets", &[params]).await;
         //
         //     {
         //         "result": [
@@ -1034,7 +1034,7 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_v1_exchange_market_assets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v1_exchange_market_assets", &[params]).await;
         //
         //     {
         //         'state': '0',
@@ -1092,7 +1092,7 @@ impl Cryptomus {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v2_user_api_exchange_markets_price(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v2_user_api_exchange_markets_price", &[__ws_arg_0]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1137,7 +1137,7 @@ impl Cryptomus {
         let mut paramsLevel: crate::value::Dict = levelOptionparamsLevelVariable.1;
         request.insert("level".into(), Value::from(levelOption));
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsLevel]);
-        let mut response: crate::value::Dict = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v1_exchange_market_order_book_currency_pair", &[__ws_arg_1]).await;
         //
         //     {
         //         "data": {
@@ -1198,7 +1198,7 @@ impl Cryptomus {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v1_exchange_market_trades_currency_pair(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v1_exchange_market_trades_currency_pair", &[__ws_arg_2]).await;
         //
         //     {
         //         "data": [
@@ -1250,7 +1250,7 @@ impl Cryptomus {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_v2_user_api_exchange_account_balance(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v2_user_api_exchange_account_balance", &[__ws_arg_3]).await;
         //
         //     {
         //         "result": [
@@ -1345,7 +1345,7 @@ impl Cryptomus {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (clientOrderId.is_some()) { Value::Str("clientOrderId".into()) } else { Value::Null }, &[]);
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -1357,13 +1357,13 @@ impl Cryptomus {
         let mut cost: Option<String> = costParam.clone();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
-            let mut requiresPriceAndParams: Value = { let __t = self.handle_option_bool_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) };
+            let requiresPriceAndParams = self.handle_option_bool_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
             let mut paramsMarket: crate::value::Dict = Value::from(&paramsCost).into_dict();
             if sideBuy {
-                paramsMarket = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).into_dict();
+                paramsMarket = requiresPriceAndParams.1;
             }
             if sideBuy {
-                let mut createMarketBuyOrderRequiresPrice: Option<bool> = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
+                let mut createMarketBuyOrderRequiresPrice: Option<bool> = requiresPriceAndParams.0;
                 if (createMarketBuyOrderRequiresPrice == Some(true)) {
                     if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")));
@@ -1378,7 +1378,7 @@ impl Cryptomus {
                 request.insert("quantity".into(), amountToString.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_4 = self.extend(&request, &[&paramsMarket]);
-            response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_4]).await.into_opt_dict();
+            response = self.call_method_o("private_post_v2_user_api_exchange_orders_market", &[__ws_arg_4]).await;
         }  else if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price parameter for a ").into()), type_var).into()), " order")));
@@ -1386,7 +1386,7 @@ impl Cryptomus {
             request.insert("quantity".into(), amountToString.map(Value::from).unwrap_or(Value::Null));
             request.insert("price".into(), price);
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsCost]);
-            response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("private_post_v2_user_api_exchange_orders", &[__ws_arg_5]).await;
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a type parameter (limit or market)")));
         }
@@ -1426,7 +1426,7 @@ impl Cryptomus {
         });
         request.insert("orderId".into(), id);
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_v2_user_api_exchange_orders_order_id", &[__ws_arg_6]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1481,7 +1481,7 @@ impl Cryptomus {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_v2_user_api_exchange_orders_history(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v2_user_api_exchange_orders_history", &[__ws_arg_7]).await;
         //
         //     {
         //         "result": [
@@ -1579,7 +1579,7 @@ impl Cryptomus {
             request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_v2_user_api_exchange_orders(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v2_user_api_exchange_orders", &[__ws_arg_8]).await;
         //
         //     {
         //         "result": [
@@ -1638,7 +1638,7 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.private_get_v2_user_api_exchange_account_tariffs(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v2_user_api_exchange_account_tariffs", &[params]).await;
         //
         //     {
         //         result: {

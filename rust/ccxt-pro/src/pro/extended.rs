@@ -87,7 +87,7 @@ impl Extended {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "find_subscription" => self.find_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -430,7 +430,7 @@ impl Extended {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1326,7 +1326,7 @@ impl Extended {
                 isAccountUpdate = true;
             }
             if (type_var.as_deref() == Some("BALANCE")) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("balance"))) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("spotBalances"))) {
-                self.handle_balance(client.clone(), message.clone());
+                self.handle_balance(&client, message.clone());
                 isAccountUpdate = true;
             }
             if (type_var.as_deref() == Some("MP")) {

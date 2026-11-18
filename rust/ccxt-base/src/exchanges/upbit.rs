@@ -1335,7 +1335,7 @@ impl Upbit {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_withdraws_chance(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_withdraws_chance", &[__ws_arg_0]).await;
         //
         //     {
         //         "member_level": {
@@ -1456,7 +1456,7 @@ impl Upbit {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_chance(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_chance", &[__ws_arg_1]).await;
         //
         //     {
         //         "bid_fee": "0.0015",
@@ -1687,7 +1687,7 @@ impl Upbit {
                 ids = Some(self.ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default());
             }
         }  else {
-            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]).into_opt_list();
+            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]);
             ids = Some(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(","));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1856,7 +1856,7 @@ impl Upbit {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             tickers = self.public_get_ticker_all(&[__ws_arg_3]).await.into_list();
         }  else {
-            let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+            let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
             let mut promises: Vec<Value> = Vec::new();
             let mut queries: Vec<Value> = self.ids_query_strings(ids.map_or(Value::Null, Value::Arr)).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
@@ -2007,7 +2007,7 @@ impl Upbit {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_chance(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_chance", &[__ws_arg_6]).await;
         //
         //     {
         //         "bid_fee": "0.0005",
@@ -2358,10 +2358,10 @@ impl Upbit {
         let mut paramsRequest: crate::value::Dict = self.omit_t(&paramsOrdType, &["timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"], &[]);
         if test {
             let __ws_arg_9 = self.extend(&request, &[&paramsRequest]);
-            response = self.private_post_orders_test(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("private_post_orders_test", &[__ws_arg_9]).await;
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_orders(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("private_post_orders", &[__ws_arg_10]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
@@ -2400,7 +2400,7 @@ impl Upbit {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_order(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2525,7 +2525,7 @@ impl Upbit {
         let mut paramsRequest: crate::value::Dict = self.omit_t(&paramsOrdType, &["newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"], &[]);
         // console.log ('check the each request paramsOmitted: ', request);
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let mut response: crate::value::Dict = self.private_post_orders_cancel_and_new(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_cancel_and_new", &[__ws_arg_12]).await;
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
         //     side: 'bid',                                         //previous order data
@@ -2637,7 +2637,7 @@ impl Upbit {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deposit(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deposit", &[__ws_arg_14]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, currency.as_ref());
 
     Value::Null
@@ -2721,7 +2721,7 @@ impl Upbit {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_withdraw(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_withdraw", &[__ws_arg_16]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, currency.as_ref());
 
     Value::Null
@@ -2946,7 +2946,7 @@ impl Upbit {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_order(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_order", &[__ws_arg_20]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -3021,7 +3021,7 @@ impl Upbit {
                 m.insert("net_type".to_string(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(&currency, "code", &[])]));
             m
         }), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.private_get_deposits_coin_address(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deposits_coin_address", &[__ws_arg_21]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, None);
         Value::Null
         }).await?))
@@ -3059,7 +3059,7 @@ impl Upbit {
         });
         // https://github.com/ccxt/ccxt/issues/6452
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_deposits_generate_coin_address(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_deposits_generate_coin_address", &[__ws_arg_22]).await;
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -3138,10 +3138,10 @@ impl Upbit {
                 request.insert("secondary_address".into(), tagResolved.map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_post_withdraws_coin(&[__ws_arg_23]).await.into_opt_dict();
+            response = self.call_method_o("private_post_withdraws_coin", &[__ws_arg_23]).await;
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsTag]);
-            response = self.private_post_withdraws_krw(&[__ws_arg_24]).await.into_opt_dict();
+            response = self.call_method_o("private_post_withdraws_krw", &[__ws_arg_24]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, None);
         Value::Null

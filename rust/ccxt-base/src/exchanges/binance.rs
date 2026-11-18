@@ -9761,7 +9761,6 @@ impl Binance {
 }
 
     pub fn is_inverse(&self, type_var: &str, subType: Option<&str>) -> Value {
-        let mut type_var: Value = type_var.into();
         return Value::Bool(subType == Some("inverse"));
 
     Value::Null
@@ -9829,7 +9828,7 @@ impl Binance {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_equity_tokenized_redeem", &[__ws_arg_0]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -9861,7 +9860,7 @@ impl Binance {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_equity_tokenized_redeem", &[__ws_arg_1]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -9892,7 +9891,7 @@ impl Binance {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_get_equity_tokenized_convert_status(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_get_equity_tokenized_convert_status", &[__ws_arg_2]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -9932,7 +9931,7 @@ impl Binance {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_3 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_get_equity_tokenized_history", &[__ws_arg_3]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -9987,11 +9986,11 @@ impl Binance {
         let mut subType: Option<String> = self.handle_sub_type_and_params(Value::Str("fetchTime".into()), None, &[params]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut response: Option<crate::value::Dict> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            response = self.fapi_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
+            response = self.call_method_o("fapi_public_get_time", &[Value::from(&query)]).await;
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            response = self.dapi_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
+            response = self.call_method_o("dapi_public_get_time", &[Value::from(&query)]).await;
         }  else {
-            response = self.public_get_time(&[Value::Dict(query)]).await.into_opt_dict();
+            response = self.call_method_o("public_get_time", &[Value::Dict(query)]).await;
         }
         return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
@@ -10800,7 +10799,7 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         if (market).option {
             let __ws_arg_11 = self.extend(&request, &[&params]);
-            response = self.eapi_public_get_depth(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("eapi_public_get_depth", &[__ws_arg_11]).await;
         }  else if ((market).linear == Some(true)) {
             let mut rpi: bool = self.safe_bool_k_opt(&params, "rpi", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params.clone(), Value::Str("rpi".into()), &[]);
@@ -10808,17 +10807,17 @@ impl Binance {
                 // rpi limit only supports 1000
                 request.insert("limit".into(), Value::Int(1000));
                 let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-                response = self.fapi_public_get_rpi_depth(&[__ws_arg_12]).await.into_opt_dict();
+                response = self.call_method_o("fapi_public_get_rpi_depth", &[__ws_arg_12]).await;
             }  else {
                 let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
-                response = self.fapi_public_get_depth(&[__ws_arg_13]).await.into_opt_dict();
+                response = self.call_method_o("fapi_public_get_depth", &[__ws_arg_13]).await;
             }
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_14 = self.extend(&request, &[&params]);
-            response = self.dapi_public_get_depth(&[__ws_arg_14]).await.into_opt_dict();
+            response = self.call_method_o("dapi_public_get_depth", &[__ws_arg_14]).await;
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_depth(&[__ws_arg_15]).await.into_opt_dict();
+            response = self.call_method_o("public_get_depth", &[__ws_arg_15]).await;
         }
         //
         // future
@@ -10883,7 +10882,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.sapi_get_system_status(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_get_system_status", &[params]).await;
         //
         //     {
         //         "status": 0,              // 0: normal，1：system maintenance
@@ -11060,7 +11059,7 @@ impl Binance {
             response = self.dapi_public_get_ticker_book_ticker(&[__ws_arg_23]).await;
         }  else if (type_var.as_deref() == Some("spot")) {
             if (symbolsNormalized.is_some()) {
-                request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)])));
+                request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map_or(Value::Null, Value::Arr)));
             }
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.public_get_ticker_book_ticker(&[__ws_arg_24]).await;
@@ -11068,7 +11067,7 @@ impl Binance {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBidsAsks() does not support ").into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), " markets yet")));
         }
         if !(matches!(&response, Value::Arr(_))) {
-            response = Value::from(vec![response.clone()]);
+            response = Value::from(vec![response]);
         }
         return self.parse_tickers(response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -11172,10 +11171,10 @@ impl Binance {
             let mut rolling: bool = self.safe_bool_k_opt(&paramsMarketType, "rolling", &[Value::Bool(false)]).unwrap_or(false);
             paramsMarketType = self.omit_t(&paramsMarketType, Value::Str("rolling".into()), &[]);
             if rolling {
-                symbolsNormalized = self.market_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+                symbolsNormalized = self.market_symbols(&[std::mem::take(&mut symbolsNormalized).map_or(Value::Null, Value::Arr)]);
                 let mut request: crate::value::Dict = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbols".to_string(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)])));
+                        m.insert("symbols".to_string(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map_or(Value::Null, Value::Arr)));
                     m
                 }).into_dict();
                 let __ws_arg_25 = self.extend(request, &[&paramsMarketType]);
@@ -11187,7 +11186,7 @@ impl Binance {
                     m
                 });
                 if (symbolsNormalized.is_some()) {
-                    request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)])));
+                    request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).map_or(Value::Null, Value::Arr)));
                 }
                 let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarketType]);
                 response = self.public_get_ticker24hr(&[__ws_arg_26]).await;
@@ -11704,7 +11703,7 @@ impl Binance {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " editSpotOrder() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
         }
         let mut payload: crate::value::Dict = self.edit_spot_order_request(id, Some(symbol), type_var, side, amount, &[price, params]).into_dict();
-        let mut response: crate::value::Dict = self.private_post_order_cancel_replace(&[Value::Dict(payload)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order_cancel_replace", &[Value::Dict(payload)]).await;
         //
         // spot
         //
@@ -11752,7 +11751,6 @@ impl Binance {
 
     pub fn edit_spot_order_request(&self, id: &str, symbol: Option<&str>, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut type_var: Value = type_var.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11761,7 +11759,7 @@ impl Binance {
         if (type_var == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
-        if (side == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         /*
@@ -11781,13 +11779,13 @@ impl Binance {
          */
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]);
-        if (side == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editSpotOrderRequest() requires a side argument")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("side".to_string(), (if let Some(__s) = Some(side) { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
         let mut initialUppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
@@ -11970,18 +11968,18 @@ impl Binance {
         if ((market).linear == Some(true)) {
             if isPortfolioMargin {
                 let __ws_arg_50 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_put_um_order(&[__ws_arg_50]).await.into_opt_dict();
+                response = self.call_method_o("papi_put_um_order", &[__ws_arg_50]).await;
             }  else {
                 let __ws_arg_51 = self.extend(&request, &[&paramsPapi]);
-                response = self.fapi_private_put_order(&[__ws_arg_51]).await.into_opt_dict();
+                response = self.call_method_o("fapi_private_put_order", &[__ws_arg_51]).await;
             }
         }  else if ((market).inverse == Some(true)) {
             if isPortfolioMargin {
                 let __ws_arg_52 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_put_cm_order(&[__ws_arg_52]).await.into_opt_dict();
+                response = self.call_method_o("papi_put_cm_order", &[__ws_arg_52]).await;
             }  else {
                 let __ws_arg_53 = self.extend(request, &[&paramsPapi]);
-                response = self.dapi_private_put_order(&[__ws_arg_53]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_put_order", &[__ws_arg_53]).await;
             }
         }
         //
@@ -12097,7 +12095,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_286: bool = true;
             while { if !__for_first_286 { i += 1; } __for_first_286 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             orderSymbols.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut id: Option<String> = self.safe_string_k_opt(&rawOrder, "id", &[]);
@@ -12225,7 +12223,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_287: bool = true;
             while { if !__for_first_287 { i += 1; } __for_first_287 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             orderSymbols.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -12364,57 +12362,57 @@ impl Binance {
         let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, __ws_arg_55]).as_map().cloned().unwrap_or_default();
         let mut response: Option<crate::value::Dict> = None;
         if (market).option {
-            response = self.eapi_private_post_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+            response = self.call_method_o("eapi_private_post_order", &[Value::Map(request.clone())]).await;
         }  else if sor {
             if test {
-                response = self.private_post_sor_order_test(&[Value::Map(request.clone())]).await.into_opt_dict();
+                response = self.call_method_o("private_post_sor_order_test", &[Value::Map(request.clone())]).await;
             }  else {
-                response = self.private_post_sor_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                response = self.call_method_o("private_post_sor_order", &[Value::Map(request.clone())]).await;
             }
         }  else if isLinear {
             if isPortfolioMargin.as_bool() == Some(true) {
                 if isConditional.as_bool() == Some(true) {
                     request.insert("algoType".into(), Value::Str("CONDITIONAL".into()));
-                    response = self.papi_post_um_algo_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("papi_post_um_algo_order", &[Value::Map(request.clone())]).await;
                 }  else {
-                    response = self.papi_post_um_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("papi_post_um_order", &[Value::Map(request.clone())]).await;
                 }
             }  else {
                 if isConditional.as_bool() == Some(true) {
                     request.insert("algoType".into(), Value::Str("CONDITIONAL".into()));
-                    response = self.fapi_private_post_algo_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_post_algo_order", &[Value::Map(request.clone())]).await;
                 }  else {
-                    response = self.fapi_private_post_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_post_order", &[Value::Map(request.clone())]).await;
                 }
             }
         }  else if isInverse {
             if isPortfolioMargin.as_bool() == Some(true) {
                 if isConditional.as_bool() == Some(true) {
-                    response = self.papi_post_cm_conditional_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("papi_post_cm_conditional_order", &[Value::Map(request.clone())]).await;
                 }  else {
-                    response = self.papi_post_cm_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("papi_post_cm_order", &[Value::Map(request.clone())]).await;
                 }
             }  else {
                 if isConditional.as_bool() == Some(true) {
                     request.insert("algoType".into(), Value::Str("CONDITIONAL".into()));
-                    response = self.dapi_private_post_algo_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("dapi_private_post_algo_order", &[Value::Map(request.clone())]).await;
                 }  else {
-                    response = self.dapi_private_post_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("dapi_private_post_order", &[Value::Map(request.clone())]).await;
                 }
             }
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) || isPortfolioMargin.as_bool() == Some(true) {
             if isPortfolioMargin.as_bool() == Some(true) {
-                response = self.papi_post_margin_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_margin_order", &[Value::Map(request.clone())]).await;
             }  else {
-                response = self.sapi_post_margin_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+                response = self.call_method_o("sapi_post_margin_order", &[Value::Map(request.clone())]).await;
             }
         }  else {
             if stock {
-                response = self.sapi_post_equity_order_place(&[Value::Map(request.clone())]).await.into_opt_dict();
+                response = self.call_method_o("sapi_post_equity_order_place", &[Value::Map(request.clone())]).await;
             }  else if test {
-                response = self.private_post_order_test(&[Value::Map(request.clone())]).await.into_opt_dict();
+                response = self.call_method_o("private_post_order_test", &[Value::Map(request.clone())]).await;
             }  else {
-                response = self.private_post_order(&[Value::Map(request)]).await.into_opt_dict();
+                response = self.call_method_o("private_post_order", &[Value::Map(request)]).await;
             }
         }
         if (response.is_none()) {
@@ -13204,50 +13202,50 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         if isOptionType {
             let __ws_arg_58 = self.extend(&request, &[&paramsStock]);
-            response = self.eapi_private_get_order(&[__ws_arg_58]).await.into_opt_dict();
+            response = self.call_method_o("eapi_private_get_order", &[__ws_arg_58]).await;
         }  else if isLinearType {
             if (isPortfolioMargin == Some(true)) {
                 let __ws_arg_59 = self.extend(&request, &[&paramsStock]);
-                response = self.papi_get_um_order(&[__ws_arg_59]).await.into_opt_dict();
+                response = self.call_method_o("papi_get_um_order", &[__ws_arg_59]).await;
             }  else {
                 if (isConditional == Some(true)) {
                     let __ws_arg_60 = self.extend(&request, &[&paramsStock]);
-                    response = self.fapi_private_get_algo_order(&[__ws_arg_60]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_get_algo_order", &[__ws_arg_60]).await;
                 }  else {
                     let __ws_arg_61 = self.extend(&request, &[&paramsStock]);
-                    response = self.fapi_private_get_order(&[__ws_arg_61]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_get_order", &[__ws_arg_61]).await;
                 }
             }
         }  else if isInverseType {
             if (isPortfolioMargin == Some(true)) {
                 let __ws_arg_62 = self.extend(&request, &[&paramsStock]);
-                response = self.papi_get_cm_order(&[__ws_arg_62]).await.into_opt_dict();
+                response = self.call_method_o("papi_get_cm_order", &[__ws_arg_62]).await;
             }  else {
                 if (isConditional == Some(true)) {
                     let __ws_arg_63 = self.extend(&request, &[&paramsStock]);
-                    response = self.dapi_private_get_algo_order(&[__ws_arg_63]).await.into_opt_dict();
+                    response = self.call_method_o("dapi_private_get_algo_order", &[__ws_arg_63]).await;
                 }  else {
                     let __ws_arg_64 = self.extend(&request, &[&paramsStock]);
-                    response = self.dapi_private_get_order(&[__ws_arg_64]).await.into_opt_dict();
+                    response = self.call_method_o("dapi_private_get_order", &[__ws_arg_64]).await;
                 }
             }
         }  else if (type_var.as_deref() == Some("margin")) || (marginMode.is_some()) || (isPortfolioMargin == Some(true)) {
             if (isPortfolioMargin == Some(true)) {
                 let __ws_arg_65 = self.extend(&request, &[&paramsStock]);
-                response = self.papi_get_margin_order(&[__ws_arg_65]).await.into_opt_dict();
+                response = self.call_method_o("papi_get_margin_order", &[__ws_arg_65]).await;
             }  else {
                 if (marginMode.as_deref() == Some("isolated")) {
                     request.insert("isIsolated".into(), Value::Bool(true));
                 }
                 let __ws_arg_66 = self.extend(&request, &[&paramsStock]);
-                response = self.sapi_get_margin_order(&[__ws_arg_66]).await.into_opt_dict();
+                response = self.call_method_o("sapi_get_margin_order", &[__ws_arg_66]).await;
             }
         }  else if stock {
             let __ws_arg_67 = self.extend(&request, &[&paramsStock]);
-            response = self.sapi_get_equity_order_detail(&[__ws_arg_67]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_equity_order_detail", &[__ws_arg_67]).await;
         }  else {
             let __ws_arg_68 = self.extend(Value::Map(request), &[&paramsStock]);
-            response = self.private_get_order(&[__ws_arg_68]).await.into_opt_dict();
+            response = self.call_method_o("private_get_order", &[__ws_arg_68]).await;
         }
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " parseOrder() returned empty response")));
@@ -13423,7 +13421,7 @@ impl Binance {
                 response = self.sapi_get_margin_all_orders(&[__ws_arg_79]).await.into_opt_list();
             }  else if stock.as_bool() == Some(true) {
                 let __ws_arg_80 = self.extend(&request, &[&paramsPaginate]);
-                let mut equityResponse: crate::value::Dict = self.sapi_get_equity_order_history(&[__ws_arg_80]).await.into_dict();
+                let mut equityResponse: crate::value::Dict = self.call_method_t("sapi_get_equity_order_history", &[__ws_arg_80]).await;
                 response = self.safe_list_k_or_o(&equityResponse, "rows", Value::from(vec![]));
             }  else {
                 let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsPaginate]);
@@ -13626,12 +13624,12 @@ impl Binance {
             m
         });
         let isPortfolioMarginparamsPapiVariable = self.handle_option_bool_and_params2(params, Value::Str("fetchOpenOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]);
-        let mut isPortfolioMargin: Value = isPortfolioMarginparamsPapiVariable.0.map_or(Value::Null, Value::Bool);
+        let mut isPortfolioMargin: Option<bool> = isPortfolioMarginparamsPapiVariable.0;
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.1;
         let mut isConditional: Value = self.safe_bool_n(Value::from(&paramsPapi), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPapi, &["stop", "trigger", "conditional"], &[]);
-        let mut isPortfolioMarginConditional: bool = isPortfolioMargin.as_bool() == Some(true) && isConditional.as_bool() == Some(true);
-        if (isConditional.as_bool() == Some(true)) && !(isPortfolioMargin.as_bool() == Some(true)) && ((market).swap || (market).future) {
+        let mut isPortfolioMarginConditional: bool = (isPortfolioMargin == Some(true)) && isConditional.as_bool() == Some(true);
+        if (isConditional.as_bool() == Some(true)) && !(isPortfolioMargin == Some(true)) && ((market).swap || (market).future) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOpenOrder() does not support conditional orders, use fetchOrder() or fetchOpenOrders() with the trigger param instead")));
         }
         let mut orderIdRequest: String = "orderId".to_string();
@@ -13641,30 +13639,30 @@ impl Binance {
         request.insert(orderIdRequest, id.clone());
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin == Some(true) {
                 if (isConditional.as_bool() == Some(true)) {
                     let __ws_arg_95 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.papi_get_um_algo_algo_order(&[__ws_arg_95]).await.into_opt_dict();
+                    response = self.call_method_o("papi_get_um_algo_algo_order", &[__ws_arg_95]).await;
                 }  else {
                     let __ws_arg_96 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.papi_get_um_open_order(&[__ws_arg_96]).await.into_opt_dict();
+                    response = self.call_method_o("papi_get_um_open_order", &[__ws_arg_96]).await;
                 }
             }  else {
                 let __ws_arg_97 = self.extend(&request, &[&paramsOmitted]);
-                response = self.fapi_private_get_open_order(&[__ws_arg_97]).await.into_opt_dict();
+                response = self.call_method_o("fapi_private_get_open_order", &[__ws_arg_97]).await;
             }
         }  else if ((market).inverse == Some(true)) {
-            if isPortfolioMargin.as_bool() == Some(true) {
+            if isPortfolioMargin == Some(true) {
                 if (isConditional.as_bool() == Some(true)) {
                     let __ws_arg_98 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.papi_get_cm_conditional_open_order(&[__ws_arg_98]).await.into_opt_dict();
+                    response = self.call_method_o("papi_get_cm_conditional_open_order", &[__ws_arg_98]).await;
                 }  else {
                     let __ws_arg_99 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.papi_get_cm_open_order(&[__ws_arg_99]).await.into_opt_dict();
+                    response = self.call_method_o("papi_get_cm_open_order", &[__ws_arg_99]).await;
                 }
             }  else {
                 let __ws_arg_100 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.dapi_private_get_open_order(&[__ws_arg_100]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_get_open_order", &[__ws_arg_100]).await;
             }
         }  else {
             if (market).option {
@@ -14118,60 +14116,60 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         if isOptionType {
             let __ws_arg_101 = self.extend(&request, &[&paramsStock]);
-            response = self.eapi_private_delete_order(&[__ws_arg_101]).await.into_opt_dict();
+            response = self.call_method_o("eapi_private_delete_order", &[__ws_arg_101]).await;
         }  else if isLinearType {
             if (isPortfolioMargin == Some(true)) {
                 if (isConditional == Some(true)) {
                     let __ws_arg_102 = self.extend(&request, &[&paramsStock]);
-                    response = self.papi_delete_um_algo_order(&[__ws_arg_102]).await.into_opt_dict();
+                    response = self.call_method_o("papi_delete_um_algo_order", &[__ws_arg_102]).await;
                 }  else {
                     let __ws_arg_103 = self.extend(&request, &[&paramsStock]);
-                    response = self.papi_delete_um_order(&[__ws_arg_103]).await.into_opt_dict();
+                    response = self.call_method_o("papi_delete_um_order", &[__ws_arg_103]).await;
                 }
             }  else {
                 if (isConditional == Some(true)) {
                     let __ws_arg_104 = self.extend(&request, &[&paramsStock]);
-                    response = self.fapi_private_delete_algo_order(&[__ws_arg_104]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_delete_algo_order", &[__ws_arg_104]).await;
                 }  else {
                     let __ws_arg_105 = self.extend(&request, &[&paramsStock]);
-                    response = self.fapi_private_delete_order(&[__ws_arg_105]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_delete_order", &[__ws_arg_105]).await;
                 }
             }
         }  else if isInverseType {
             if (isPortfolioMargin == Some(true)) {
                 if (isConditional == Some(true)) {
                     let __ws_arg_106 = self.extend(&request, &[&paramsStock]);
-                    response = self.papi_delete_cm_conditional_order(&[__ws_arg_106]).await.into_opt_dict();
+                    response = self.call_method_o("papi_delete_cm_conditional_order", &[__ws_arg_106]).await;
                 }  else {
                     let __ws_arg_107 = self.extend(&request, &[&paramsStock]);
-                    response = self.papi_delete_cm_order(&[__ws_arg_107]).await.into_opt_dict();
+                    response = self.call_method_o("papi_delete_cm_order", &[__ws_arg_107]).await;
                 }
             }  else {
                 if (isConditional == Some(true)) {
                     let __ws_arg_108 = self.extend(&request, &[&paramsStock]);
-                    response = self.dapi_private_delete_algo_order(&[__ws_arg_108]).await.into_opt_dict();
+                    response = self.call_method_o("dapi_private_delete_algo_order", &[__ws_arg_108]).await;
                 }  else {
                     let __ws_arg_109 = self.extend(&request, &[&paramsStock]);
-                    response = self.dapi_private_delete_order(&[__ws_arg_109]).await.into_opt_dict();
+                    response = self.call_method_o("dapi_private_delete_order", &[__ws_arg_109]).await;
                 }
             }
         }  else if (type_var.as_deref() == Some("margin")) || (marginMode.is_some()) || (isPortfolioMargin == Some(true)) {
             if (isPortfolioMargin == Some(true)) {
                 let __ws_arg_110 = self.extend(&request, &[&paramsStock]);
-                response = self.papi_delete_margin_order(&[__ws_arg_110]).await.into_opt_dict();
+                response = self.call_method_o("papi_delete_margin_order", &[__ws_arg_110]).await;
             }  else {
                 if (marginMode.as_deref() == Some("isolated")) {
                     request.insert("isIsolated".into(), Value::Bool(true));
                 }
                 let __ws_arg_111 = self.extend(&request, &[&paramsStock]);
-                response = self.sapi_delete_margin_order(&[__ws_arg_111]).await.into_opt_dict();
+                response = self.call_method_o("sapi_delete_margin_order", &[__ws_arg_111]).await;
             }
         }  else if stock {
             let __ws_arg_112 = self.extend(&request, &[&paramsStock]);
-            response = self.sapi_post_equity_order_cancel(&[__ws_arg_112]).await.into_opt_dict();
+            response = self.call_method_o("sapi_post_equity_order_cancel", &[__ws_arg_112]).await;
         }  else {
             let __ws_arg_113 = self.extend(Value::Map(request), &[&paramsStock]);
-            response = self.private_delete_order(&[__ws_arg_113]).await.into_opt_dict();
+            response = self.call_method_o("private_delete_order", &[__ws_arg_113]).await;
         }
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " parseOrder() returned empty response")));
@@ -14773,7 +14771,6 @@ impl Binance {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_dust_trades(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14801,7 +14798,7 @@ impl Binance {
             request.insert("accountType".into(), accountType.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_139 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.sapi_get_asset_dribblet(&[__ws_arg_139]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_get_asset_dribblet", &[__ws_arg_139]).await;
         //     {
         //       "total": "4",
         //       "userAssetDribblets": [
@@ -14993,7 +14990,7 @@ impl Binance {
                 request.insert("endTime".into(), Value::from(until));
             }
             let __ws_arg_140 = self.extend(&request, &[&paramsOmitted2]);
-            let mut raw: crate::value::Dict = self.sapi_get_fiat_orders(&[__ws_arg_140]).await.into_dict();
+            let mut raw: crate::value::Dict = self.call_method_t("sapi_get_fiat_orders", &[__ws_arg_140]).await;
             response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
         }  else {
             if (code != Value::Null) {
@@ -15094,7 +15091,7 @@ impl Binance {
                 request.insert("beginTime".into(), since.clone());
             }
             let __ws_arg_142 = self.extend(&request, &[&paramsPaginate]);
-            let mut raw: crate::value::Dict = self.sapi_get_fiat_orders(&[__ws_arg_142]).await.into_dict();
+            let mut raw: crate::value::Dict = self.call_method_t("sapi_get_fiat_orders", &[__ws_arg_142]).await;
             response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]);
         }  else {
             if (code != Value::Null) {
@@ -15300,7 +15297,7 @@ impl Binance {
             }
         }
         let __ws_arg_144 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.sapi_post_asset_transfer(&[__ws_arg_144]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_asset_transfer", &[__ws_arg_144]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -15393,10 +15390,10 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         if internal {
             let __ws_arg_145 = self.extend(&request, &[&paramsOmitted]);
-            response = self.sapi_get_pay_transactions(&[__ws_arg_145]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_pay_transactions", &[__ws_arg_145]).await;
         }  else {
             let __ws_arg_146 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_get_asset_transfer(&[__ws_arg_146]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_asset_transfer", &[__ws_arg_146]).await;
         }
         let mut rows: crate::value::List = self.safe_list2_t(&response, Value::Str("rows".into()), Value::Str("data".into()));
         return self.parse_transfers(&rows, currency.as_ref(), &[since, limit]);
@@ -15442,7 +15439,7 @@ impl Binance {
         }
         // has support for the 'network' parameter
         let __ws_arg_147 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.sapi_get_capital_deposit_address(&[__ws_arg_147]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_get_capital_deposit_address", &[__ws_arg_147]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -15675,7 +15672,7 @@ impl Binance {
         }
         request.insert("amount".into(), Value::from(self.currency_to_precision(crate::value::KeyRead::key_read(&&currency, "code"), amount, &[networkCode.map(Value::from).unwrap_or(Value::Null)])));
         let __ws_arg_148 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.sapi_post_capital_withdraw_apply(&[__ws_arg_148]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_capital_withdraw_apply", &[__ws_arg_148]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -15763,22 +15760,22 @@ impl Binance {
         if isLinear {
             if isPortfolioMargin {
                 let __ws_arg_149 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_get_um_commission_rate(&[__ws_arg_149]).await.into_opt_dict();
+                response = self.call_method_o("papi_get_um_commission_rate", &[__ws_arg_149]).await;
             }  else {
                 let __ws_arg_150 = self.extend(&request, &[&paramsPapi]);
-                response = self.fapi_private_get_commission_rate(&[__ws_arg_150]).await.into_opt_dict();
+                response = self.call_method_o("fapi_private_get_commission_rate", &[__ws_arg_150]).await;
             }
         }  else if isInverse {
             if isPortfolioMargin {
                 let __ws_arg_151 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_get_cm_commission_rate(&[__ws_arg_151]).await.into_opt_dict();
+                response = self.call_method_o("papi_get_cm_commission_rate", &[__ws_arg_151]).await;
             }  else {
                 let __ws_arg_152 = self.extend(&request, &[&paramsPapi]);
-                response = self.dapi_private_get_commission_rate(&[__ws_arg_152]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_get_commission_rate", &[__ws_arg_152]).await;
             }
         }  else {
             let __ws_arg_153 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_get_asset_trade_fee(&[__ws_arg_153]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_asset_trade_fee", &[__ws_arg_153]).await;
         }
         //
         // spot
@@ -15849,11 +15846,11 @@ impl Binance {
         let mut isInverse: bool = self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool().unwrap_or_default();
         let mut response: Option<crate::value::Dict> = None;
         if isSpotOrMargin {
-            response = self.sapi_get_asset_trade_fee(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_asset_trade_fee", &[Value::from(&paramsSubType)]).await;
         }  else if isLinear {
-            response = self.fapi_private_get_account_config(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_get_account_config", &[Value::from(&paramsSubType)]).await;
         }  else if isInverse {
-            response = self.dapi_private_get_account(&[Value::Dict(paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("dapi_private_get_account", &[Value::Dict(paramsSubType)]).await;
         }
         //
         // sapi / spot
@@ -16080,7 +16077,7 @@ impl Binance {
             m
         });
         let __ws_arg_154 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_futures_transfer(&[__ws_arg_154]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_futures_transfer", &[__ws_arg_154]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency));
 
     Value::Null
@@ -17251,28 +17248,28 @@ impl Binance {
         let mut response: Option<crate::value::Dict> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                response = self.papi_v2_get_um_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
+                response = self.call_method_o("papi_v2_get_um_account", &[Value::from(&paramsPapi)]).await;
             }  else {
                 let useV2paramsUseV2Variable = self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("useV2".into()), &[Value::Bool(false)]);
                 let mut useV2: bool = useV2paramsUseV2Variable.0 == Some(true);
                 let mut paramsUseV2: crate::value::Dict = useV2paramsUseV2Variable.1;
                 if !useV2 {
-                    response = self.fapi_private_v3_get_account(&[Value::from(&paramsUseV2)]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_v3_get_account", &[Value::from(&paramsUseV2)]).await;
                 }  else {
-                    response = self.fapi_private_v2_get_account(&[Value::Dict(paramsUseV2)]).await.into_opt_dict();
+                    response = self.call_method_o("fapi_private_v2_get_account", &[Value::Dict(paramsUseV2)]).await;
                 }
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                response = self.papi_get_cm_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
+                response = self.call_method_o("papi_get_cm_account", &[Value::from(&paramsPapi)]).await;
             }  else {
-                response = self.dapi_private_get_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_get_account", &[Value::from(&paramsPapi)]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositions() supports linear and inverse contracts only")));
         }
-        let mut filterClosed: Value = (self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)])).0.map_or(Value::Null, Value::Bool);
-        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed]).into_list();
+        let mut filterClosed: Option<bool> = (self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)])).0;
+        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed.map_or(Value::Null, Value::Bool)]).into_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
@@ -17599,18 +17596,18 @@ impl Binance {
         if ((market).linear == Some(true)) {
             if isPortfolioMargin {
                 let __ws_arg_169 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_um_leverage(&[__ws_arg_169]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_um_leverage", &[__ws_arg_169]).await;
             }  else {
                 let __ws_arg_170 = self.extend(&request, &[&paramsPapi]);
-                response = self.fapi_private_post_leverage(&[__ws_arg_170]).await.into_opt_dict();
+                response = self.call_method_o("fapi_private_post_leverage", &[__ws_arg_170]).await;
             }
         }  else if ((market).inverse == Some(true)) {
             if isPortfolioMargin {
                 let __ws_arg_171 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_cm_leverage(&[__ws_arg_171]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_cm_leverage", &[__ws_arg_171]).await;
             }  else {
                 let __ws_arg_172 = self.extend(Value::Map(request), &[&paramsPapi]);
-                response = self.dapi_private_post_leverage(&[__ws_arg_172]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_post_leverage", &[__ws_arg_172]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setLeverage() supports linear and inverse contracts only")));
@@ -17677,10 +17674,10 @@ impl Binance {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if ((market).linear == Some(true)) {
                 let __ws_arg_173 = self.extend(&request, &[&params]);
-                response = self.fapi_private_post_margin_type(&[__ws_arg_173]).await.into_opt_dict();
+                response = self.call_method_o("fapi_private_post_margin_type", &[__ws_arg_173]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_174 = self.extend(Value::Map(request), &[params]);
-                response = self.dapi_private_post_margin_type(&[__ws_arg_174]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_post_margin_type", &[__ws_arg_174]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setMarginMode() supports linear and inverse contracts only")));
             }
@@ -17764,18 +17761,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
                 let __ws_arg_175 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_cm_position_side_dual(&[__ws_arg_175]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_cm_position_side_dual", &[__ws_arg_175]).await;
             }  else {
                 let __ws_arg_176 = self.extend(&request, &[&paramsPapi]);
-                response = self.dapi_private_post_position_side_dual(&[__ws_arg_176]).await.into_opt_dict();
+                response = self.call_method_o("dapi_private_post_position_side_dual", &[__ws_arg_176]).await;
             }
         }  else if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
                 let __ws_arg_177 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_um_position_side_dual(&[__ws_arg_177]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_um_position_side_dual", &[__ws_arg_177]).await;
             }  else {
                 let __ws_arg_178 = self.extend(Value::Map(request), &[&paramsPapi]);
-                response = self.fapi_private_post_position_side_dual(&[__ws_arg_178]).await.into_opt_dict();
+                response = self.call_method_o("fapi_private_post_position_side_dual", &[__ws_arg_178]).await;
             }
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " setPositionMode() supports linear and inverse contracts only")));
@@ -18440,11 +18437,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if ((market).linear == Some(true)) {
             code = Value::from((market).quote.clone()).as_str().map(str::to_owned);
             let __ws_arg_187 = self.extend(&request, &[&params]);
-            response = self.fapi_private_post_position_margin(&[__ws_arg_187]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_post_position_margin", &[__ws_arg_187]).await;
         }  else {
             code = Value::from((market).base.clone()).as_str().map(str::to_owned);
             let __ws_arg_188 = self.extend(Value::Map(request), &[params]);
-            response = self.dapi_private_post_position_margin(&[__ws_arg_188]).await.into_opt_dict();
+            response = self.call_method_o("dapi_private_post_position_margin", &[__ws_arg_188]).await;
         }
         //
         //     {
@@ -18764,7 +18761,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_194 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_giftcard_create_code(&[__ws_arg_194]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_giftcard_create_code", &[__ws_arg_194]).await;
         //
         //     {
         //         "code": "000000",
@@ -18809,7 +18806,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_195 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_giftcard_redeem_code(&[__ws_arg_195]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_giftcard_redeem_code", &[__ws_arg_195]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -18835,7 +18832,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_196 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_get_giftcard_verify(&[__ws_arg_196]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_get_giftcard_verify", &[__ws_arg_196]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -18896,14 +18893,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Option<crate::value::Dict> = None;
         if isPortfolioMargin {
             let __ws_arg_197 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.papi_get_margin_margin_interest_history(&[__ws_arg_197]).await.into_opt_dict();
+            response = self.call_method_o("papi_get_margin_margin_interest_history", &[__ws_arg_197]).await;
         }  else {
             if (symbol != Value::Null) {
                 market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 std::sync::Arc::make_mut(&mut requestUntil).insert("isolatedSymbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
             let __ws_arg_198 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.sapi_get_margin_interest_history(&[__ws_arg_198]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_margin_interest_history", &[__ws_arg_198]).await;
         }
         //
         // spot margin
@@ -18995,16 +18992,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             { let __destr_tmp = self.handle_option_string_and_params2(&paramsPapi, Value::Str("repayCrossMargin".into()), Value::Str("repayCrossMarginMethod".into()), Value::Str("method".into()), &[]); method = __destr_tmp.0.as_str().map(str::to_owned); paramsPapi = __destr_tmp.1; }
             if (method.as_deref() == Some("papiPostMarginRepayDebt")) {
                 let __ws_arg_199 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_margin_repay_debt(&[__ws_arg_199]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_margin_repay_debt", &[__ws_arg_199]).await;
             }  else {
                 let __ws_arg_200 = self.extend(&request, &[&paramsPapi]);
-                response = self.papi_post_repay_loan(&[__ws_arg_200]).await.into_opt_dict();
+                response = self.call_method_o("papi_post_repay_loan", &[__ws_arg_200]).await;
             }
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("REPAY".into()));
             let __ws_arg_201 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_201]).await.into_opt_dict();
+            response = self.call_method_o("sapi_post_margin_borrow_repay", &[__ws_arg_201]).await;
         }
         return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
@@ -19050,7 +19047,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_202 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[__ws_arg_202]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_margin_borrow_repay", &[__ws_arg_202]).await;
         return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
@@ -19096,12 +19093,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.1;
         if isPortfolioMargin {
             let __ws_arg_203 = self.extend(&request, &[&paramsPapi]);
-            response = self.papi_post_margin_loan(&[__ws_arg_203]).await.into_opt_dict();
+            response = self.call_method_o("papi_post_margin_loan", &[__ws_arg_203]).await;
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("BORROW".into()));
             let __ws_arg_204 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_204]).await.into_opt_dict();
+            response = self.call_method_o("sapi_post_margin_borrow_repay", &[__ws_arg_204]).await;
         }
         return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
@@ -19147,7 +19144,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_205 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[__ws_arg_205]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_post_margin_borrow_repay", &[__ws_arg_205]).await;
         return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
@@ -19316,13 +19313,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Option<crate::value::Dict> = None;
         if (market).option {
             let __ws_arg_208 = self.extend(&request, &[&params]);
-            response = self.eapi_public_get_open_interest(&[__ws_arg_208]).await.into_opt_dict();
+            response = self.call_method_o("eapi_public_get_open_interest", &[__ws_arg_208]).await;
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_209 = self.extend(&request, &[&params]);
-            response = self.dapi_public_get_open_interest(&[__ws_arg_209]).await.into_opt_dict();
+            response = self.call_method_o("dapi_public_get_open_interest", &[__ws_arg_209]).await;
         }  else {
             let __ws_arg_210 = self.extend(Value::Map(request), &[params]);
-            response = self.fapi_public_get_open_interest(&[__ws_arg_210]).await.into_opt_dict();
+            response = self.call_method_o("fapi_public_get_open_interest", &[__ws_arg_210]).await;
         }
         //
         // futures (fapi)
@@ -19729,9 +19726,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // we still have two working endpoints but positionMode is common for linear and inverse markets
         // thus we do not throw an error if the subType is not specified and default to linear for now
         if (subType.as_deref() == Some("inverse")) {
-            response = self.dapi_private_get_position_side_dual(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("dapi_private_get_position_side_dual", &[Value::from(&paramsSubType)]).await;
         }  else {
-            response = self.fapi_private_get_position_side_dual(&[Value::Dict(paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_get_position_side_dual", &[Value::Dict(paramsSubType)]).await;
         }
         //
         //    {
@@ -20185,7 +20182,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_223 = self.extend(Value::Map(request), &[params]);
-        let mut response: Option<crate::value::Dict> = self.sapi_post_convert_get_quote(&[__ws_arg_223]).await.into_opt_dict();
+        let mut response: Option<crate::value::Dict> = self.call_method_o("sapi_post_convert_get_quote", &[__ws_arg_223]).await;
         //
         //     {
         //         "quoteId":"12415572564",
@@ -20249,11 +20246,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("targetAsset".into(), toCode.clone());
             request.insert("amount".into(), amount);
             let __ws_arg_224 = self.extend(&request, &[&params]);
-            response = self.sapi_post_asset_convert_transfer(&[__ws_arg_224]).await.into_opt_dict();
+            response = self.call_method_o("sapi_post_asset_convert_transfer", &[__ws_arg_224]).await;
         }  else {
             request.insert("quoteId".into(), id.clone());
             let __ws_arg_225 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_post_convert_accept_quote(&[__ws_arg_225]).await.into_opt_dict();
+            response = self.call_method_o("sapi_post_convert_accept_quote", &[__ws_arg_225]).await;
         }
         let mut fromCurrency: crate::types::Currency = self.currency(fromCode);
         let mut toCurrency: crate::types::Currency = self.currency(toCode);
@@ -20306,11 +20303,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("startTime".into(), Value::Int((now - msInDay)));
             request.insert("endTime".into(), Value::from(now));
             let __ws_arg_226 = self.extend(&request, &[&params]);
-            response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_226]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_asset_convert_transfer_query_by_page", &[__ws_arg_226]).await;
         }  else {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_227 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_get_convert_order_status(&[__ws_arg_227]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_convert_order_status", &[__ws_arg_227]).await;
         }
         let mut data: Option<crate::value::Dict> = response.clone();
         if (code.as_str() == Some("BUSD")) {
@@ -20392,7 +20389,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             toCurrencyKey = Some("targetAsset".to_string());
             responseQuery = Some("rows".to_string());
             let __ws_arg_228 = self.extend(&request, &[&paramsOmitted]);
-            response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_228]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_asset_convert_transfer_query_by_page", &[__ws_arg_228]).await;
         }  else {
             if ((if let Some(__r) = startTime { Some(endTimeResolved - __r) } else { None })) > Some(msInThirtyDays) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")));
@@ -20404,7 +20401,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             toCurrencyKey = Some("toAsset".to_string());
             responseQuery = Some("list".to_string());
             let __ws_arg_229 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_get_convert_trade_flow(&[__ws_arg_229]).await.into_opt_dict();
+            response = self.call_method_o("sapi_get_convert_trade_flow", &[__ws_arg_229]).await;
         }
         let mut rows: crate::value::List = self.safe_list_t(&response, responseQuery.map(Value::from).unwrap_or(Value::Null));
         return self.parse_conversions(&rows, &[code, fromCurrencyKey.map(Value::from).unwrap_or(Value::Null), toCurrencyKey.map(Value::from).unwrap_or(Value::Null), since, limit]);
@@ -20604,7 +20601,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("linear")) {
             let __ws_arg_232 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.fapi_public_get_symbol_adl_risk(&[__ws_arg_232]).await.into_opt_dict();
+            response = self.call_method_o("fapi_public_get_symbol_adl_risk", &[__ws_arg_232]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchADLRank() supports linear subTypes only")));
         }

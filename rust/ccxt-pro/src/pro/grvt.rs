@@ -389,7 +389,7 @@ impl Grvt {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -515,7 +515,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -700,7 +700,7 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_360: bool = true;
             while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: crate::value::List = self.safe_list_t(symbolsAndTimeframes.clone(), Value::Int(i));
+            let mut data: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
             let mut symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
@@ -811,7 +811,7 @@ impl Grvt {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![Value::from(symbolValue)])).to_str_vec(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![Value::from(symbolValue).to_string()], limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }

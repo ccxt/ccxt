@@ -2043,7 +2043,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_post_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_time", &[params]).await;
         return self.safe_integer_k(&response, "result", &[]);
         Value::Null
         }).await?))
@@ -2076,7 +2076,7 @@ impl Derive {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let mut response: crate::value::Dict = self.private_post_get_subaccounts(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_subaccounts", &[__ws_arg_0]).await;
         //
         //     {
         //         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
@@ -2131,7 +2131,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tokenResponse: crate::value::Dict = self.public_get_get_all_currencies(&[params]).await.into_dict();
+        let mut tokenResponse: crate::value::Dict = self.call_method_t("public_get_get_all_currencies", &[params]).await;
         //
         //     {
         //         "id": "b343bc1c-8417-485f-9022-e18787909856",
@@ -2363,7 +2363,7 @@ impl Derive {
             });
             let __ws_arg_1 = self.extend(&request, &[Value::Map(requestExtension)]);
             let mut requestExtended: crate::value::Dict = self.extend_t(__ws_arg_1, &[&paramsOmitted]); // nested because the csharp base defines extend with two arguments only
-            let mut response: crate::value::Dict = self.public_post_get_all_instruments(&[Value::Dict(requestExtended)]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("public_post_get_all_instruments", &[Value::Dict(requestExtended)]).await;
             let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
             let mut data: crate::value::List = self.safe_list_k_t(&result, "instruments");
             allInstruments = self.array_concat_t(Value::Arr(allInstruments), &data);
@@ -2411,7 +2411,7 @@ impl Derive {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_ticker(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_ticker", &[__ws_arg_2]).await;
         //
         //     {
         //         "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
@@ -2479,7 +2479,7 @@ impl Derive {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_ticker(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_ticker", &[__ws_arg_3]).await;
         //
         //     {
         //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
@@ -2548,7 +2548,7 @@ impl Derive {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_ticker(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_ticker", &[__ws_arg_4]).await;
         //
         //     {
         //         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
@@ -2629,7 +2629,7 @@ impl Derive {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_ticker(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_ticker", &[__ws_arg_5]).await;
         // the response sample is listed in fetchGreeks, both methods read the same endpoint
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.parse_option(&result, None, &[(market).raw.clone()]);
@@ -2702,7 +2702,7 @@ impl Derive {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_option_settlement_prices(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_option_settlement_prices", &[__ws_arg_6]).await;
         //
         //     {
         //         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
@@ -2759,7 +2759,7 @@ impl Derive {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_option_settlement_history(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_option_settlement_history", &[__ws_arg_7]).await;
         //
         //     {
         //         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
@@ -2912,7 +2912,7 @@ impl Derive {
             request.insert("to_timestamp".into(), Value::from(until));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_post_get_trade_history(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_trade_history", &[__ws_arg_8]).await;
         //
         //     {
         //         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
@@ -3137,11 +3137,11 @@ impl Derive {
         if (priceType.as_deref() == Some("index")) {
             request.insert("currency".into(), Value::from((market).base_id.as_deref()));
             let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
-            response = self.public_post_get_index_chart_data(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("public_post_get_index_chart_data", &[__ws_arg_9]).await;
         }  else {
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_post_get_tradingview_chart_data(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("public_post_get_tradingview_chart_data", &[__ws_arg_10]).await;
         }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
         return self.parse_ohlc_vs(&result, Some(&market), &[timeframe, since, limit]);
@@ -3193,7 +3193,7 @@ impl Derive {
             request.insert("end_timestamp".into(), Value::from(until)); // the venue silently ignores the to_timestamp spelling other endpoints use
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_post_get_funding_rate_history(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_funding_rate_history", &[__ws_arg_11]).await;
         //
         //     {
         //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
@@ -3513,10 +3513,10 @@ impl Derive {
         let mut response: Option<crate::value::Dict> = None;
         if test {
             let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_post_order_debug(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("private_post_order_debug", &[__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_order(&[__ws_arg_13]).await.into_opt_dict();
+            response = self.call_method_o("private_post_order", &[__ws_arg_13]).await;
         }
         //
         //     {
@@ -3676,7 +3676,7 @@ impl Derive {
         request.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsDeriveWalletAddress, &["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"], &[]);
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_replace(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_replace", &[__ws_arg_14]).await;
         //
         //     {
         //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
@@ -3818,15 +3818,15 @@ impl Derive {
             request.insert("label".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             let mut paramsLabel: crate::value::Dict = self.omit_t(&paramsOmitted, &["clientOrderId", "label"], &[]);
             let __ws_arg_15 = self.extend(&request, &[&paramsLabel]);
-            response = self.private_post_cancel_by_label(&[__ws_arg_15]).await.into_opt_dict();
+            response = self.call_method_o("private_post_cancel_by_label", &[__ws_arg_15]).await;
         }  else {
             request.insert("order_id".into(), id);
             if isTrigger {
                 let __ws_arg_16 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_post_cancel_trigger_order(&[__ws_arg_16]).await.into_opt_dict();
+                response = self.call_method_o("private_post_cancel_trigger_order", &[__ws_arg_16]).await;
             }  else {
                 let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_post_cancel(&[__ws_arg_17]).await.into_opt_dict();
+                response = self.call_method_o("private_post_cancel", &[__ws_arg_17]).await;
             }
         }
         //
@@ -3927,10 +3927,10 @@ impl Derive {
         if (market.is_some()) {
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_19 = self.extend(&request, &[&paramsDeriveSubaccountId]);
-            response = self.private_post_cancel_by_instrument(&[__ws_arg_19]).await.into_opt_dict();
+            response = self.call_method_o("private_post_cancel_by_instrument", &[__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_cancel_all(&[__ws_arg_20]).await.into_opt_dict();
+            response = self.call_method_o("private_post_cancel_all", &[__ws_arg_20]).await;
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4005,7 +4005,7 @@ impl Derive {
             request.insert("to_timestamp".into(), Value::from(until));
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_order_history(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_order_history", &[__ws_arg_21]).await;
         //
         //     {
         //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
@@ -4113,7 +4113,7 @@ impl Derive {
             m
         });
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_order(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_order", &[__ws_arg_22]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref());
         Value::Null
@@ -4167,10 +4167,10 @@ impl Derive {
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
             let __ws_arg_23 = self.extend(&request, &[&paramsDeriveSubaccountId]);
-            response = self.private_post_get_trigger_orders(&[__ws_arg_23]).await.into_opt_dict();
+            response = self.call_method_o("private_post_get_trigger_orders", &[__ws_arg_23]).await;
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_get_open_orders(&[__ws_arg_24]).await.into_opt_dict();
+            response = self.call_method_o("private_post_get_open_orders", &[__ws_arg_24]).await;
         }
         //
         //     {
@@ -4376,7 +4376,7 @@ impl Derive {
             request.insert("from_timestamp".into(), since.clone());
         }
         let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_trade_history(&[__ws_arg_25]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_trade_history", &[__ws_arg_25]).await;
         //
         //     {
         //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
@@ -4479,7 +4479,7 @@ impl Derive {
             request.insert("from_timestamp".into(), since.clone());
         }
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_trade_history(&[__ws_arg_26]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_trade_history", &[__ws_arg_26]).await;
         //
         //     {
         //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
@@ -4593,7 +4593,7 @@ impl Derive {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsDeriveSubaccountId, &["subaccount_id"], &[]);
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_get_positions(&[__ws_arg_27]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_positions", &[__ws_arg_27]).await;
         //
         //     {
         //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
@@ -4702,7 +4702,7 @@ impl Derive {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_get_funding_history(&[__ws_arg_28]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_funding_history", &[__ws_arg_28]).await;
         //
         //     {
         //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
@@ -4784,7 +4784,7 @@ impl Derive {
             });
             let mut subaccountParams: crate::value::Dict = self.omit_t(params.clone(), Value::Str("subaccount_id".into()), &[]);
             let __ws_arg_29 = self.extend(Value::Map(subaccountRequest), &[&subaccountParams]);
-            let mut subaccountResponse: crate::value::Dict = self.private_post_get_subaccount(&[__ws_arg_29]).await.into_dict();
+            let mut subaccountResponse: crate::value::Dict = self.call_method_t("private_post_get_subaccount", &[__ws_arg_29]).await;
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             let mut subaccountResult: crate::value::Dict = self.safe_dict_k_t(&subaccountResponse, "result");
             return self.parse_balance_list(Value::from(vec![Value::Dict(subaccountResult)]));
@@ -4798,7 +4798,7 @@ impl Derive {
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let mut response: crate::value::Dict = self.private_post_get_all_portfolios(&[__ws_arg_30]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_all_portfolios", &[__ws_arg_30]).await;
         //
         //     {
         //         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
@@ -5186,7 +5186,7 @@ impl Derive {
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let mut response: crate::value::Dict = self.private_post_transfer_spot(&[__ws_arg_31]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_transfer_spot", &[__ws_arg_31]).await;
         //
         //     {
         //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
@@ -5258,7 +5258,7 @@ impl Derive {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_get_erc20_transfer_history(&[__ws_arg_32]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_erc20_transfer_history", &[__ws_arg_32]).await;
         //
         //     {
         //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
@@ -5343,7 +5343,7 @@ impl Derive {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_post_get_interest_rate_history(&[__ws_arg_33]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_interest_rate_history", &[__ws_arg_33]).await;
         //
         //     {
         //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
@@ -5440,7 +5440,7 @@ impl Derive {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_get_interest_history(&[__ws_arg_34]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_interest_history", &[__ws_arg_34]).await;
         //
         //     {
         //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
@@ -5550,7 +5550,7 @@ impl Derive {
         });
         // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
         let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let mut response: crate::value::Dict = self.private_post_withdraw(&[__ws_arg_35]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw", &[__ws_arg_35]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency)).as_map().cloned().unwrap_or_default();
         transaction.insert("type".into(), Value::Str("withdrawal".into()));
@@ -5607,7 +5607,7 @@ impl Derive {
             request.insert("start_timestamp".into(), since.clone());
         }
         let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_deposit_history(&[__ws_arg_36]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_deposit_history", &[__ws_arg_36]).await;
         //
         //     {
         //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
@@ -5685,7 +5685,7 @@ impl Derive {
             request.insert("start_timestamp".into(), since.clone());
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut response: crate::value::Dict = self.private_post_get_withdrawal_history(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_withdrawal_history", &[__ws_arg_37]).await;
         //
         //     {
         //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",

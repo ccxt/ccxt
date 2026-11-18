@@ -577,7 +577,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         //
         let mut depositInfoString: Value = self.safe_string(&depositAddress, Value::Str("DepositInfo".into()), &[Value::Str("[]".into())]);
         let mut depositInfo: Value = json_parse(&depositInfoString);
-        let mut depositInfoLength: i64 = get_array_length(&depositInfo).as_i64().unwrap_or_default();
+        let mut depositInfoLength: i64 = Value::Int(depositInfo.len() as i64).as_i64().unwrap_or_default();
         let mut lastString: String = self.safe_string(depositInfo, Value::Int((depositInfoLength - 1)), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(lastString.split("?memo=").map(Value::from).collect());
         let mut address: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -1901,7 +1901,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_ping(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ping", &[params]).await;
         //
         //     {
         //         "msg":"PONG"
@@ -1944,7 +1944,7 @@ impl Ndax {
             m
         });
         let __ws_arg_0 = self.extend(&request, &[&params]);
-        let mut response: crate::value::Dict = self.public_get_authenticate(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_authenticate", &[__ws_arg_0]).await;
         //
         //     {
         //         "Authenticated":true,
@@ -1971,7 +1971,7 @@ impl Ndax {
                 m
             });
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            let mut responseInner: crate::value::Dict = self.public_get_authenticate2_fa(&[__ws_arg_1]).await.into_dict();
+            let mut responseInner: crate::value::Dict = self.call_method_t("public_get_authenticate2_fa", &[__ws_arg_1]).await;
             //
             //     {
             //         "Authenticated": true,
@@ -2158,7 +2158,7 @@ impl Ndax {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_get_level1(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_get_level1", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2593,7 +2593,7 @@ impl Ndax {
             request.insert("StopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_send_order(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_send_order", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2664,7 +2664,7 @@ impl Ndax {
             request.insert("ClientOrderId".into(), Value::from(clientOrderId));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_cancel_replace_order(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_replace_order", &[__ws_arg_12]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2765,7 +2765,7 @@ impl Ndax {
             request.insert("IntrumentId".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_cancel_all_orders(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_all_orders", &[__ws_arg_14]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -2823,7 +2823,7 @@ impl Ndax {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "ClOrderId"], &[]);
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_order", &[__ws_arg_15]).await;
         let mut order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).into_dict();
         return self.extend(order, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2982,7 +2982,7 @@ impl Ndax {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_get_order_status(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_get_order_status", &[__ws_arg_18]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
         Value::Null
         }).await?))
@@ -3128,7 +3128,7 @@ impl Ndax {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_get_deposit_info(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_get_deposit_info", &[__ws_arg_20]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -3410,7 +3410,7 @@ impl Ndax {
                 m.insert("ProductId".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let mut withdrawTemplateTypesResponse: crate::value::Dict = self.private_get_get_withdraw_template_types(&[Value::Map(withdrawTemplateTypesRequest)]).await.into_dict();
+        let mut withdrawTemplateTypesResponse: crate::value::Dict = self.call_method_t("private_get_get_withdraw_template_types", &[Value::Map(withdrawTemplateTypesRequest)]).await;
         //
         //     {
         //         "result": true,
@@ -3438,7 +3438,7 @@ impl Ndax {
                 m.insert("AccountProviderId".to_string(), crate::value::KeyRead::key_read(&&firstTemplateType, "AccountProviderId"));
             m
         });
-        let mut withdrawTemplateResponse: crate::value::Dict = self.private_get_get_withdraw_template(&[Value::Map(withdrawTemplateRequest)]).await.into_dict();
+        let mut withdrawTemplateResponse: crate::value::Dict = self.call_method_t("private_get_get_withdraw_template", &[Value::Map(withdrawTemplateRequest)]).await;
         //
         //     {
         //         "result": true,
@@ -3474,7 +3474,7 @@ impl Ndax {
                 m.insert("Payload".to_string(), json_stringify(&Value::Map(withdrawPayload)));
             m
         });
-        let mut response: crate::value::Dict = self.private_post_create_withdraw_ticket(&[self.deep_extend(Value::Map(withdrawRequest), &[&paramsOmitted])]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_create_withdraw_ticket", &[self.deep_extend(Value::Map(withdrawRequest), &[&paramsOmitted])]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))

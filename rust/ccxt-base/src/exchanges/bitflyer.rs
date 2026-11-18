@@ -324,7 +324,6 @@ impl crate::exchange::DerivedExchange for Bitflyer {
     Value::Null
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
-        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1177,7 +1176,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: crate::value::Dict = self.public_get_getboard(&[__ws_arg_0]).await.into_dict();
+        let mut orderbook: crate::value::Dict = self.call_method_t("public_get_getboard", &[__ws_arg_0]).await;
         return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
@@ -1214,7 +1213,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_getticker(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_getticker", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1294,7 +1293,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_gettradingcommission(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_gettradingcommission", &[__ws_arg_3]).await;
         //
         //   {
         //       commission_rate: '0.0020'
@@ -1356,7 +1355,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut result: crate::value::Dict = self.private_post_sendchildorder(&[__ws_arg_4]).await.into_dict();
+        let mut result: crate::value::Dict = self.call_method_t("private_post_sendchildorder", &[__ws_arg_4]).await;
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         let mut id: Option<String> = self.safe_string_k_opt(&result, "child_order_acceptance_id", &[]);
         return self.safe_order(Value::Map({
@@ -1404,7 +1403,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_cancelchildorder(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancelchildorder", &[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1655,7 +1654,7 @@ impl Bitflyer {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("product_code".to_string(), self.market_ids(&[symbols]));
+                m.insert("product_code".to_string(), self.market_ids(&[symbols]).map_or(Value::Null, Value::Arr));
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -1705,7 +1704,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_withdraw(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -1852,7 +1851,7 @@ impl Bitflyer {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_getfundingrate(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_getfundingrate", &[__ws_arg_14]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market));
         Value::Null
         }).await?))

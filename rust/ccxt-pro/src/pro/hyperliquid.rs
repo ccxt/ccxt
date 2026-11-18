@@ -118,7 +118,7 @@ impl Hyperliquid {
             "edit_order_ws" => { crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.to_vec()); crate::Value::Null },
             "expire_pending_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("expire_pending_unsubscribe", args.to_vec()); crate::Value::Null },
             "handle_active_asset_ctx" => self.handle_active_asset_ctx(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_liquidations" => { self.handle_my_liquidations(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
@@ -503,7 +503,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders_ws((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders_ws(vec![id.to_string()], symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
@@ -795,7 +795,7 @@ impl Hyperliquid {
                 defaultDex = dexName;
             }
         }
-        let mut paramsOmitted: crate::value::Dict = (if (defaultDex.is_some()) { self.omit(&params, Value::Str("dex".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (defaultDex.is_some()) { Value::Str("dex".into()) } else { Value::Null }, &[]);
         if (defaultDex.is_some()) {
             messageHash = format!("{}{}", "tickers:", defaultDex.as_deref().unwrap_or("null"));
             subscription.insert("type".into(), Value::Str("allMids".into()));
@@ -951,7 +951,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_my_liquidations_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_my_liquidations_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1812,7 +1812,7 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1891,7 +1891,7 @@ impl Hyperliquid {
             std::sync::Arc::make_mut(&mut rawBalances).push(clearinghouseState.clone());
             info = clearinghouseState.clone();
             timestamp = self.safe_integer_k(clearinghouseState, "time", &[]).as_i64();
-            self.handle_positions(&client, message);
+            self.handle_positions(client, message);
         }
         {
                         let mut i: i64 = 0;
@@ -1962,7 +1962,7 @@ impl Hyperliquid {
             account.insert("total".into(), self.safe_string_k(balance, "total", &[]));
         }
         if (accountType != Value::Null) {
-            if (self.safe_value(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
+            if (self.safe_value(&self.balance, accountType.clone(), &[]) == Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -964,7 +964,7 @@ impl Zaif {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_get_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_info", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1002,7 +1002,7 @@ impl Zaif {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_depth_pair(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_depth_pair", &[__ws_arg_0]).await;
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
@@ -1039,7 +1039,7 @@ impl Zaif {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: crate::value::Dict = self.public_get_ticker_pair(&[__ws_arg_1]).await.into_dict();
+        let mut ticker: crate::value::Dict = self.call_method_t("public_get_ticker_pair", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -1153,7 +1153,7 @@ impl Zaif {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade", &[__ws_arg_3]).await;
         let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1196,7 +1196,7 @@ impl Zaif {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_order", &[__ws_arg_4]).await;
         //
         //    {
         //        "success": 1,
@@ -1255,7 +1255,7 @@ impl Zaif {
             request.insert("currency_pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_active_orders(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_active_orders", &[__ws_arg_5]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
@@ -1305,7 +1305,7 @@ impl Zaif {
             request.insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_history(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_history", &[__ws_arg_6]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
         Value::Null
@@ -1359,7 +1359,7 @@ impl Zaif {
             request.insert("message".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut result: crate::value::Dict = self.private_post_withdraw(&[__ws_arg_7]).await.into_dict();
+        let mut result: crate::value::Dict = self.call_method_t("private_post_withdraw", &[__ws_arg_7]).await;
         //
         //     {
         //         "success": 1,

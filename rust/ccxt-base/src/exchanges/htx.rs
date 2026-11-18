@@ -5348,7 +5348,7 @@ impl Htx {
         let mut eta: Option<i64> = None;
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            response = self.spot_public_get_v2_market_status(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_v2_market_status", &[Value::from(&paramsMarketType)]).await;
             //
             //     {
             //         "code": 200,
@@ -5372,7 +5372,7 @@ impl Htx {
             let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchStatus".into()), None, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
             let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            response = self.contract_public_get_heartbeat(&[Value::Dict(paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_heartbeat", &[Value::Dict(paramsSubType)]).await;
             //
             //     {
             //         "status": "ok",
@@ -5445,9 +5445,9 @@ impl Htx {
         type_var = self.safe_string_k_opt(&params, "type", &[type_var.map(Value::from).unwrap_or(Value::Null)]);
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("future")) || (type_var.as_deref() == Some("swap")) {
-            response = self.contract_public_get_api_v1_timestamp(&[params.clone()]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_api_v1_timestamp", &[params.clone()]).await;
         }  else {
-            response = self.spot_public_get_v1_common_timestamp(&[params]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_v1_common_timestamp", &[params]).await;
         }
         return self.safe_integer2(&response, Value::Str("data".into()), Value::Str("ts".into()), &[]);
         Value::Null
@@ -5500,7 +5500,7 @@ impl Htx {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_v2_reference_transact_fee_rate(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v2_reference_transact_fee_rate", &[__ws_arg_0]).await;
         //
         //     {
         //         "code":200,
@@ -5579,7 +5579,7 @@ impl Htx {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_public_get_v1_common_exchange(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_v1_common_exchange", &[__ws_arg_1]).await;
         return self.parse_trading_limits(self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5589,7 +5589,6 @@ impl Htx {
 }
 
     pub fn parse_trading_limits(&self, mut limits: Value, symbol: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5716,19 +5715,19 @@ impl Htx {
             if (subTypeStr.as_deref() == Some("linear")) {
                 request.insert("business_type".into(), Value::Str("all".into())); // override default to fetch all linear markets
                 let __ws_arg_2 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_linear_swap_api_v1_swap_contract_info(&[__ws_arg_2]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_linear_swap_api_v1_swap_contract_info", &[__ws_arg_2]).await;
             }  else if (subTypeStr.as_deref() == Some("inverse")) {
                 if (typeStr.as_deref() == Some("future")) {
                     let __ws_arg_3 = self.extend(&request, &[&params]);
-                    response = self.contract_public_get_api_v1_contract_contract_info(&[__ws_arg_3]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_api_v1_contract_contract_info", &[__ws_arg_3]).await;
                 }  else if (typeStr.as_deref() == Some("swap")) {
                     let __ws_arg_4 = self.extend(&request, &[&params]);
-                    response = self.contract_public_get_swap_api_v1_swap_contract_info(&[__ws_arg_4]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_swap_api_v1_swap_contract_info", &[__ws_arg_4]).await;
                 }
             }
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-            response = self.spot_public_get_v1_common_symbols(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_v1_common_symbols", &[__ws_arg_5]).await;
         }
         //
         // spot
@@ -6151,21 +6150,21 @@ impl Htx {
         if ((market).linear == Some(true)) {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             let __ws_arg_6 = self.extend(&request, &[&params]);
-            response = self.contract_public_get_linear_swap_ex_market_detail_merged(&[__ws_arg_6]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_linear_swap_ex_market_detail_merged", &[__ws_arg_6]).await;
         }  else if ((market).inverse == Some(true)) {
             if (market).future {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_7 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_market_detail_merged(&[__ws_arg_7]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_market_detail_merged", &[__ws_arg_7]).await;
             }  else if (market).swap {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_8 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_swap_ex_market_detail_merged(&[__ws_arg_8]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_swap_ex_market_detail_merged", &[__ws_arg_8]).await;
             }
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-            response = self.spot_public_get_market_detail_merged(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_market_detail_merged", &[__ws_arg_9]).await;
         }
         //
         // spot
@@ -6280,14 +6279,14 @@ impl Htx {
                     request.insert("business_type".into(), Value::Str("all".into()));
                 }
                 let __ws_arg_10 = self.extend(&request, &[&paramsSubType]);
-                response = self.contract_public_get_linear_swap_ex_market_detail_batch_merged(&[__ws_arg_10]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_linear_swap_ex_market_detail_batch_merged", &[__ws_arg_10]).await;
             }  else if inverse {
                 if future {
                     let __ws_arg_11 = self.extend(&request, &[&paramsSubType]);
-                    response = self.contract_public_get_market_detail_batch_merged(&[__ws_arg_11]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_market_detail_batch_merged", &[__ws_arg_11]).await;
                 }  else if swap {
                     let __ws_arg_12 = self.extend(&request, &[&paramsSubType]);
-                    response = self.contract_public_get_swap_ex_market_detail_batch_merged(&[__ws_arg_12]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_swap_ex_market_detail_batch_merged", &[__ws_arg_12]).await;
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTickers() you have to set params[\"type\"] to either \"swap\" or \"future\" for inverse contracts")));
                 }
@@ -6296,7 +6295,7 @@ impl Htx {
             }
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.spot_public_get_market_tickers(&[__ws_arg_13]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_market_tickers", &[__ws_arg_13]).await;
         }
         //
         // spot
@@ -6390,11 +6389,11 @@ impl Htx {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if ((type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"))) && (subType.as_deref() == Some("linear")) {
-            response = self.contract_public_get_linear_swap_ex_market_trade(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_linear_swap_ex_market_trade", &[Value::from(&paramsMarketType)]).await;
         }  else if (type_var.as_deref() == Some("swap")) && (subType.as_deref() == Some("inverse")) {
-            response = self.contract_public_get_swap_ex_market_trade(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_ex_market_trade", &[Value::from(&paramsMarketType)]).await;
         }  else if (type_var.as_deref() == Some("future")) && (subType.as_deref() == Some("inverse")) {
-            response = self.contract_public_get_market_trade(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_market_trade", &[Value::Dict(paramsMarketType)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLastPrices() does not support ").into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), " markets yet")));
         }
@@ -6572,7 +6571,6 @@ impl Htx {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_spot_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6586,7 +6584,7 @@ impl Htx {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_v1_order_orders_order_id_matchresults(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v1_order_orders_order_id_matchresults", &[__ws_arg_18]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&data, None, &[Value::from(since), Value::from(limit)]);
 
@@ -6655,7 +6653,7 @@ impl Htx {
             }
             { let (__until0, __until1) = self.handle_until_option(Value::Str("end-time".into()), Value::Dict(request), &paramsMarketType, &[]); request = __until0; paramsUntil = Value::Dict(__until1); }
             let __ws_arg_19 = self.extend(&request, &[&paramsUntil]);
-            response = self.spot_private_get_v1_order_matchresults(&[__ws_arg_19]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_get_v1_order_matchresults", &[__ws_arg_19]).await;
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument")));
@@ -6670,7 +6668,7 @@ impl Htx {
                     std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone()); // default 100, max 500
                 }
                 let __ws_arg_20 = self.extend(&request, &[&paramsUntil]);
-                response = self.contract_private_get_v5_trade_order_details(&[__ws_arg_20]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_get_v5_trade_order_details", &[__ws_arg_20]).await;
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (limit != Value::Null) {
                     std::sync::Arc::make_mut(&mut request).insert("page_size".into(), limit.clone()); // default 100, max 500
@@ -6680,10 +6678,10 @@ impl Htx {
                 if (marketType.as_deref() == Some("future")) {
                     std::sync::Arc::make_mut(&mut request).insert("symbol".into(), self.safe_string_k(&market, "settleId", &[]));
                     let __ws_arg_21 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_api_v3_contract_matchresults_exact(&[__ws_arg_21]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v3_contract_matchresults_exact", &[__ws_arg_21]).await;
                 }  else if (marketType.as_deref() == Some("swap")) {
                     let __ws_arg_22 = self.extend(request, &[paramsUntil]);
-                    response = self.contract_private_post_swap_api_v3_swap_matchresults_exact(&[__ws_arg_22]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v3_swap_matchresults_exact", &[__ws_arg_22]).await;
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMyTrades() does not support ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets")));
                 }
@@ -6840,25 +6838,25 @@ impl Htx {
             if ((market).inverse == Some(true)) {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_23 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_market_history_trade(&[__ws_arg_23]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_market_history_trade", &[__ws_arg_23]).await;
             }  else if ((market).linear == Some(true)) {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_24 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_linear_swap_ex_market_history_trade(&[__ws_arg_24]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_linear_swap_ex_market_history_trade", &[__ws_arg_24]).await;
             }
         }  else if (market).swap {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             if ((market).inverse == Some(true)) {
                 let __ws_arg_25 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_swap_ex_market_history_trade(&[__ws_arg_25]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_swap_ex_market_history_trade", &[__ws_arg_25]).await;
             }  else if ((market).linear == Some(true)) {
                 let __ws_arg_26 = self.extend(&request, &[&params]);
-                response = self.contract_public_get_linear_swap_ex_market_history_trade(&[__ws_arg_26]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_linear_swap_ex_market_history_trade", &[__ws_arg_26]).await;
             }
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-            response = self.spot_public_get_market_history_trade(&[__ws_arg_27]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_market_history_trade", &[__ws_arg_27]).await;
         }
         //
         //     {
@@ -6996,29 +6994,29 @@ impl Htx {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_28 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_mark_price_kline(&[__ws_arg_28]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_mark_price_kline", &[__ws_arg_28]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     let __ws_arg_29 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_index(&[__ws_arg_29]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_index", &[__ws_arg_29]).await;
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else {
                     let __ws_arg_30 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_market_history_kline(&[__ws_arg_30]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_market_history_kline", &[__ws_arg_30]).await;
                 }
             }  else if ((market).linear == Some(true)) {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_31 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[__ws_arg_31]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_linear_swap_mark_price_kline", &[__ws_arg_31]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
                     let __ws_arg_32 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_linear_swap_premium_index_kline(&[__ws_arg_32]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_linear_swap_premium_index_kline", &[__ws_arg_32]).await;
                 }  else {
                     let __ws_arg_33 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_linear_swap_ex_market_history_kline(&[__ws_arg_33]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_linear_swap_ex_market_history_kline", &[__ws_arg_33]).await;
                 }
             }
         }  else if (market).swap {
@@ -7026,28 +7024,28 @@ impl Htx {
             if ((market).inverse == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_34 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_swap_mark_price_kline(&[__ws_arg_34]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_swap_mark_price_kline", &[__ws_arg_34]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
                     let __ws_arg_35 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_swap_premium_index_kline(&[__ws_arg_35]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_swap_premium_index_kline", &[__ws_arg_35]).await;
                 }  else {
                     let __ws_arg_36 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_swap_ex_market_history_kline(&[__ws_arg_36]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_swap_ex_market_history_kline", &[__ws_arg_36]).await;
                 }
             }  else if ((market).linear == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
                     let __ws_arg_37 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[__ws_arg_37]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_linear_swap_mark_price_kline", &[__ws_arg_37]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
                     let __ws_arg_38 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_index_market_history_linear_swap_premium_index_kline(&[__ws_arg_38]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_index_market_history_linear_swap_premium_index_kline", &[__ws_arg_38]).await;
                 }  else {
                     let __ws_arg_39 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_public_get_linear_swap_ex_market_history_kline(&[__ws_arg_39]).await.into_opt_dict();
+                    response = self.call_method_o("contract_public_get_linear_swap_ex_market_history_kline", &[__ws_arg_39]).await;
                 }
             }
         }  else {
@@ -7060,7 +7058,7 @@ impl Htx {
                     request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(2000))); // max 2000
                 }
                 let __ws_arg_40 = self.extend(&request, &[&paramsHistorical]);
-                response = self.spot_public_get_market_history_kline(&[__ws_arg_40]).await.into_opt_dict();
+                response = self.call_method_o("spot_public_get_market_history_kline", &[__ws_arg_40]).await;
             }  else {
                 // "from & to" only available for the this endpoint
                 if (since != Value::Null) {
@@ -7073,7 +7071,7 @@ impl Htx {
                     request.insert("size".into(), crate::runtime::Math::min(&Value::Int(1000), &limit)); // max 1000, otherwise default returns 150
                 }
                 let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsHistorical]);
-                response = self.spot_public_get_market_history_candles(&[__ws_arg_41]).await.into_opt_dict();
+                response = self.call_method_o("spot_public_get_market_history_candles", &[__ws_arg_41]).await;
             }
         }
         //
@@ -7115,7 +7113,7 @@ impl Htx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.spot_private_get_v1_account_accounts(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v1_account_accounts", &[params]).await;
         //
         //     {
         //         "status":"ok",
@@ -7206,7 +7204,7 @@ impl Htx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_public_get_v2_reference_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_v2_reference_currencies", &[params]).await;
         //
         //    {
         //        "code": 200,
@@ -7359,30 +7357,30 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if isMultiAssetMode || (linear && (swap || future)) {
             let __ws_arg_42 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.contract_private_get_v5_account_balance(&[__ws_arg_42]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_get_v5_account_balance", &[__ws_arg_42]).await;
         }  else if spot || margin {
             if margin {
                 if isolated {
                     let __ws_arg_43 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.spot_private_get_v1_margin_accounts_balance(&[__ws_arg_43]).await.into_opt_dict();
+                    response = self.call_method_o("spot_private_get_v1_margin_accounts_balance", &[__ws_arg_43]).await;
                 }  else {
                     let __ws_arg_44 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.spot_private_get_v1_cross_margin_accounts_balance(&[__ws_arg_44]).await.into_opt_dict();
+                    response = self.call_method_o("spot_private_get_v1_cross_margin_accounts_balance", &[__ws_arg_44]).await;
                 }
             }  else {
                 self.load_accounts(&[]).await;
                 let mut accountId: Option<String> = self.fetch_account_id_by_type(type_var.as_deref().unwrap_or_default(), None, None, &[Value::from(&paramsMarginMode)]).await.as_str().map(str::to_owned);
                 request.insert("account-id".into(), accountId.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_45 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.spot_private_get_v1_account_accounts_account_id_balance(&[__ws_arg_45]).await.into_opt_dict();
+                response = self.call_method_o("spot_private_get_v1_account_accounts_account_id_balance", &[__ws_arg_45]).await;
             }
         }  else if inverse {
             if future {
                 let __ws_arg_46 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.contract_private_post_api_v1_contract_account_info(&[__ws_arg_46]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_api_v1_contract_account_info", &[__ws_arg_46]).await;
             }  else {
                 let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-                response = self.contract_private_post_swap_api_v1_swap_account_info(&[__ws_arg_47]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v1_swap_account_info", &[__ws_arg_47]).await;
             }
         }
         //
@@ -7679,11 +7677,11 @@ impl Htx {
                 // they expect clientOrderId instead of client-order-id
                 // request['clientOrderId'] = clientOrderId;
                 let __ws_arg_48 = self.extend(&request, &[&paramsMarketType]);
-                response = self.spot_private_get_v1_order_orders_get_client_order(&[__ws_arg_48]).await.into_opt_dict();
+                response = self.call_method_o("spot_private_get_v1_order_orders_get_client_order", &[__ws_arg_48]).await;
             }  else {
                 request.insert("order-id".into(), id.clone());
                 let __ws_arg_49 = self.extend(&request, &[&paramsMarketType]);
-                response = self.spot_private_get_v1_order_orders_order_id(&[__ws_arg_49]).await.into_opt_dict();
+                response = self.call_method_o("spot_private_get_v1_order_orders_order_id", &[__ws_arg_49]).await;
             }
         }  else {
             let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
@@ -7722,7 +7720,7 @@ impl Htx {
                         request.insert("type".into(), Value::Str("tp".into()));
                     }
                     let __ws_arg_50 = self.extend(&request, &[&paramsClientOrderId]);
-                    response = self.contract_private_get_v5_algo_order(&[__ws_arg_50]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_get_v5_algo_order", &[__ws_arg_50]).await;
                 }  else {
                     if (symbol == Value::Null) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires a symbol argument")));
@@ -7733,17 +7731,17 @@ impl Htx {
                     let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                     request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
                     let __ws_arg_51 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.contract_private_get_v5_trade_order(&[__ws_arg_51]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_get_v5_trade_order", &[__ws_arg_51]).await;
                 }
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (marketType.as_deref() == Some("future")) {
                     request.insert("symbol".into(), self.safe_string_k(&market, "settleId", &[]));
                     let __ws_arg_52 = self.extend(&request, &[&paramsClientOrderId]);
-                    response = self.contract_private_post_api_v1_contract_order_info(&[__ws_arg_52]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v1_contract_order_info", &[__ws_arg_52]).await;
                 }  else if (marketType.as_deref() == Some("swap")) {
                     request.insert("contract_code".into(), self.safe_string_k(&market, "id", &[]));
                     let __ws_arg_53 = self.extend(Value::Map(request), &[&paramsClientOrderId]);
-                    response = self.contract_private_post_swap_api_v1_swap_order_info(&[__ws_arg_53]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v1_swap_order_info", &[__ws_arg_53]).await;
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() does not support ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets")));
                 }
@@ -7924,10 +7922,10 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spot_private_get_v1_order_orders")) {
             let __ws_arg_54 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.spot_private_get_v1_order_orders(&[__ws_arg_54]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_get_v1_order_orders", &[__ws_arg_54]).await;
         }  else {
             let __ws_arg_55 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.spot_private_get_v1_order_history(&[__ws_arg_55]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_get_v1_order_history", &[__ws_arg_55]).await;
         }
         //
         // spot_private_get_v1_order_orders GET /v1/order/orders
@@ -8032,10 +8030,10 @@ impl Htx {
                     std::sync::Arc::make_mut(&mut request).insert("type".into(), Value::Str("tp".into()));
                 }
                 let __ws_arg_56 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.contract_private_get_v5_algo_order_history(&[__ws_arg_56]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_get_v5_algo_order_history", &[__ws_arg_56]).await;
             }  else {
                 let __ws_arg_57 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.contract_private_get_v5_trade_order_history(&[__ws_arg_57]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_get_v5_trade_order_history", &[__ws_arg_57]).await;
             }
         }  else if ((market).inverse == Some(true)) {
             std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::from((market).id.as_deref()));
@@ -8045,31 +8043,31 @@ impl Htx {
             if (market).swap {
                 if (trigger == Some(true)) {
                     let __ws_arg_58 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_swap_api_v1_swap_trigger_hisorders(&[__ws_arg_58]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v1_swap_trigger_hisorders", &[__ws_arg_58]).await;
                 }  else if stopLossTakeProfit {
                     let __ws_arg_59 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_swap_api_v1_swap_tpsl_hisorders(&[__ws_arg_59]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v1_swap_tpsl_hisorders", &[__ws_arg_59]).await;
                 }  else if trailing {
                     let __ws_arg_60 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_swap_api_v1_swap_track_hisorders(&[__ws_arg_60]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v1_swap_track_hisorders", &[__ws_arg_60]).await;
                 }  else {
                     let __ws_arg_61 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_swap_api_v3_swap_hisorders(&[__ws_arg_61]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v3_swap_hisorders", &[__ws_arg_61]).await;
                 }
             }  else if (market).future {
                 std::sync::Arc::make_mut(&mut request).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
                 if (trigger == Some(true)) {
                     let __ws_arg_62 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_api_v1_contract_trigger_hisorders(&[__ws_arg_62]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v1_contract_trigger_hisorders", &[__ws_arg_62]).await;
                 }  else if stopLossTakeProfit {
                     let __ws_arg_63 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_api_v1_contract_tpsl_hisorders(&[__ws_arg_63]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v1_contract_tpsl_hisorders", &[__ws_arg_63]).await;
                 }  else if trailing {
                     let __ws_arg_64 = self.extend(&request, &[&paramsUntil]);
-                    response = self.contract_private_post_api_v1_contract_track_hisorders(&[__ws_arg_64]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v1_contract_track_hisorders", &[__ws_arg_64]).await;
                 }  else {
                     let __ws_arg_65 = self.extend(request, &[&paramsUntil]);
-                    response = self.contract_private_post_api_v3_contract_hisorders(&[__ws_arg_65]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v3_contract_hisorders", &[__ws_arg_65]).await;
                 }
             }
         }
@@ -8391,7 +8389,7 @@ impl Htx {
             }
             let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("account-id".into()), &[]);
             let __ws_arg_68 = self.extend(&request, &[&paramsOmitted]);
-            response = self.spot_private_get_v1_order_open_orders(&[__ws_arg_68]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_get_v1_order_open_orders", &[__ws_arg_68]).await;
         }  else {
             if (symbol != Value::Null) {
                 // throw new crate::exchange_errors::arguments_required (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -8424,40 +8422,40 @@ impl Htx {
                         request.insert("type".into(), Value::Str("tp".into()));
                     }
                     let __ws_arg_69 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.contract_private_get_v5_algo_order_opens(&[__ws_arg_69]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_get_v5_algo_order_opens", &[__ws_arg_69]).await;
                 }  else {
                     let __ws_arg_70 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.contract_private_get_v5_trade_order_opens(&[__ws_arg_70]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_get_v5_trade_order_opens", &[__ws_arg_70]).await;
                 }
             }  else if (subType.as_deref() == Some("inverse")) {
                 if (marketType.as_deref() == Some("swap")) {
                     if (trigger == Some(true)) {
                         let __ws_arg_71 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_trigger_openorders(&[__ws_arg_71]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_trigger_openorders", &[__ws_arg_71]).await;
                     }  else if stopLossTakeProfit {
                         let __ws_arg_72 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_tpsl_openorders(&[__ws_arg_72]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_tpsl_openorders", &[__ws_arg_72]).await;
                     }  else if trailing {
                         let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_track_openorders(&[__ws_arg_73]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_track_openorders", &[__ws_arg_73]).await;
                     }  else {
                         let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_openorders(&[__ws_arg_74]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_openorders", &[__ws_arg_74]).await;
                     }
                 }  else if (marketType.as_deref() == Some("future")) {
                     request.insert("symbol".into(), self.safe_string_k(&market, "settleId", &[Value::Str("usdt".into())]));
                     if (trigger == Some(true)) {
                         let __ws_arg_75 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_trigger_openorders(&[__ws_arg_75]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_trigger_openorders", &[__ws_arg_75]).await;
                     }  else if stopLossTakeProfit {
                         let __ws_arg_76 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_tpsl_openorders(&[__ws_arg_76]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_tpsl_openorders", &[__ws_arg_76]).await;
                     }  else if trailing {
                         let __ws_arg_77 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_track_openorders(&[__ws_arg_77]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_track_openorders", &[__ws_arg_77]).await;
                     }  else {
                         let __ws_arg_78 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_openorders(&[__ws_arg_78]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_openorders", &[__ws_arg_78]).await;
                     }
                 }
             }
@@ -9260,14 +9258,14 @@ impl Htx {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() does not support trailing orders for spot markets")));
             }
             let mut spotRequest: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params.clone()]).await.into_dict();
-            response = self.spot_private_post_v1_order_orders_place(&[Value::Dict(spotRequest)]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_v1_order_orders_place", &[Value::Dict(spotRequest)]).await;
         }  else {
             let mut contractRequest: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params.clone()]).into_dict();
             if ((market).linear == Some(true)) {
                 if isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder {
-                    response = self.contract_private_post_v5_algo_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_v5_algo_order", &[Value::from(&contractRequest)]).await;
                 }  else {
-                    response = self.contract_private_post_v5_trade_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_v5_trade_order", &[Value::from(&contractRequest)]).await;
                 }
             }  else if ((market).inverse == Some(true)) {
                 let mut offset: Option<String> = self.safe_string_k_opt(params, "offset", &[]);
@@ -9276,23 +9274,23 @@ impl Htx {
                 }
                 if (market).swap {
                     if isTrigger {
-                        response = self.contract_private_post_swap_api_v1_swap_trigger_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_trigger_order", &[Value::from(&contractRequest)]).await;
                     }  else if isStopLossTriggerOrder || isTakeProfitTriggerOrder {
-                        response = self.contract_private_post_swap_api_v1_swap_tpsl_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_tpsl_order", &[Value::from(&contractRequest)]).await;
                     }  else if isTrailingPercentOrder {
-                        response = self.contract_private_post_swap_api_v1_swap_track_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_track_order", &[Value::from(&contractRequest)]).await;
                     }  else {
-                        response = self.contract_private_post_swap_api_v1_swap_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_order", &[Value::from(&contractRequest)]).await;
                     }
                 }  else if (market).future {
                     if isTrigger {
-                        response = self.contract_private_post_api_v1_contract_trigger_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_trigger_order", &[Value::from(&contractRequest)]).await;
                     }  else if isStopLossTriggerOrder || isTakeProfitTriggerOrder {
-                        response = self.contract_private_post_api_v1_contract_tpsl_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_tpsl_order", &[Value::from(&contractRequest)]).await;
                     }  else if isTrailingPercentOrder {
-                        response = self.contract_private_post_api_v1_contract_track_order(&[Value::from(&contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_track_order", &[Value::from(&contractRequest)]).await;
                     }  else {
-                        response = self.contract_private_post_api_v1_contract_order(&[Value::Dict(contractRequest)]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_order", &[Value::Dict(contractRequest)]).await;
                     }
                 }
             }
@@ -9469,7 +9467,7 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_785: bool = true;
             while { if !__for_first_785 { i += 1; } __for_first_785 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
                 symbol = marketId.clone();
@@ -9511,16 +9509,16 @@ impl Htx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-            response = self.private_post_order_batch_orders(&[Value::Arr(ordersRequests)]).await.into_opt_dict();
+            response = self.call_method_o("private_post_order_batch_orders", &[Value::Arr(ordersRequests)]).await;
         }  else {
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                response = self.contract_private_post_v5_trade_batch_orders(&[Value::Arr(ordersRequests)]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_v5_trade_batch_orders", &[Value::Arr(ordersRequests)]).await;
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("orders_data".into(), Value::Arr(ordersRequests));
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-                    response = self.contract_private_post_swap_api_v1_swap_batchorder(&[Value::Map(request.clone())]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_swap_api_v1_swap_batchorder", &[Value::Map(request.clone())]).await;
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
-                    response = self.contract_private_post_api_v1_contract_batchorder(&[Value::Map(request)]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_api_v1_contract_batchorder", &[Value::Map(request)]).await;
                 }
             }
         }
@@ -9663,12 +9661,12 @@ impl Htx {
             if (clientOrderId.is_none()) {
                 request.insert("order-id".into(), id.clone());
                 let __ws_arg_80 = self.extend(&request, &[&query]);
-                response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[__ws_arg_80]).await.into_opt_dict();
+                response = self.call_method_o("spot_private_post_v1_order_orders_order_id_submitcancel", &[__ws_arg_80]).await;
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 query = self.omit_t(Value::Dict(query), &["client-order-id", "clientOrderId"], &[]);
                 let __ws_arg_81 = self.extend(&request, &[&query]);
-                response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[__ws_arg_81]).await.into_opt_dict();
+                response = self.call_method_o("spot_private_post_v1_order_orders_submit_cancel_client_order", &[__ws_arg_81]).await;
             }
         }  else {
             if (symbol == Value::Null) {
@@ -9703,39 +9701,39 @@ impl Htx {
                         query = self.omit_t(Value::Dict(query), &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]);
                     }
                     let mut requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[&query])]);
-                    response = self.contract_private_post_v5_algo_cancel_orders(&[requestBody]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_v5_algo_cancel_orders", &[requestBody]).await;
                 }  else {
                     let __ws_arg_82 = self.extend(&request, &[&query]);
-                    response = self.contract_private_post_v5_trade_cancel_order(&[__ws_arg_82]).await.into_opt_dict();
+                    response = self.call_method_o("contract_private_post_v5_trade_cancel_order", &[__ws_arg_82]).await;
                 }
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_83 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_83]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_trigger_cancel", &[__ws_arg_83]).await;
                     }  else if (stopLossTakeProfit == Some(true)) {
                         let __ws_arg_84 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_84]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_tpsl_cancel", &[__ws_arg_84]).await;
                     }  else if trailing {
                         let __ws_arg_85 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_track_cancel(&[__ws_arg_85]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_track_cancel", &[__ws_arg_85]).await;
                     }  else {
                         let __ws_arg_86 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_86]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_cancel", &[__ws_arg_86]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_87 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_87]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_trigger_cancel", &[__ws_arg_87]).await;
                     }  else if (stopLossTakeProfit == Some(true)) {
                         let __ws_arg_88 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_88]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_tpsl_cancel", &[__ws_arg_88]).await;
                     }  else if trailing {
                         let __ws_arg_89 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_api_v1_contract_track_cancel(&[__ws_arg_89]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_track_cancel", &[__ws_arg_89]).await;
                     }  else {
                         let __ws_arg_90 = self.extend(Value::Map(request), &[&query]);
-                        response = self.contract_private_post_api_v1_contract_cancel(&[__ws_arg_90]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_cancel", &[__ws_arg_90]).await;
                     }
                 }
             }  else {
@@ -9880,7 +9878,7 @@ impl Htx {
                 query = self.omit_t(Value::Dict(query), &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
             }
             let __ws_arg_92 = self.extend(&request, &[&query]);
-            response = self.spot_private_post_v1_order_orders_batchcancel(&[__ws_arg_92]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_v1_order_orders_batchcancel", &[__ws_arg_92]).await;
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a symbol argument")));
@@ -9911,29 +9909,29 @@ impl Htx {
                     }
                 }
                 let __ws_arg_93 = self.extend(&request, &[&query]);
-                response = self.contract_private_post_v5_trade_cancel_batch_orders(&[__ws_arg_93]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_v5_trade_cancel_batch_orders", &[__ws_arg_93]).await;
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_94 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_94]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_trigger_cancel", &[__ws_arg_94]).await;
                     }  else if stopLossTakeProfit {
                         let __ws_arg_95 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_95]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_tpsl_cancel", &[__ws_arg_95]).await;
                     }  else {
                         let __ws_arg_96 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_96]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_cancel", &[__ws_arg_96]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_97 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_97]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_trigger_cancel", &[__ws_arg_97]).await;
                     }  else if stopLossTakeProfit {
                         let __ws_arg_98 = self.extend(&request, &[&query]);
-                        response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_98]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_tpsl_cancel", &[__ws_arg_98]).await;
                     }  else {
                         let __ws_arg_99 = self.extend(Value::Map(request), &[&query]);
-                        response = self.contract_private_post_api_v1_contract_cancel(&[__ws_arg_99]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_cancel", &[__ws_arg_99]).await;
                     }
                 }
             }  else {
@@ -10176,7 +10174,7 @@ impl Htx {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             let __ws_arg_100 = self.extend(&request, &[&paramsMarketType]);
-            response = self.spot_private_post_v1_order_orders_batch_cancel_open_orders(&[__ws_arg_100]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_v1_order_orders_batch_cancel_open_orders", &[__ws_arg_100]).await;
             //
             //     {
             //         "code": 200,
@@ -10207,35 +10205,35 @@ impl Htx {
             let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, &["stop", "stopLossTakeProfit", "trailing", "trigger"], &[]);
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_101 = self.extend(&request, &[&paramsOmitted]);
-                response = self.contract_private_post_v5_trade_cancel_all_orders(&[__ws_arg_101]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_v5_trade_cancel_all_orders", &[__ws_arg_101]).await;
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_102 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_trigger_cancelall(&[__ws_arg_102]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_trigger_cancelall", &[__ws_arg_102]).await;
                     }  else if stopLossTakeProfit {
                         let __ws_arg_103 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_tpsl_cancelall(&[__ws_arg_103]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_tpsl_cancelall", &[__ws_arg_103]).await;
                     }  else if trailing {
                         let __ws_arg_104 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_track_cancelall(&[__ws_arg_104]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_track_cancelall", &[__ws_arg_104]).await;
                     }  else {
                         let __ws_arg_105 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_swap_api_v1_swap_cancelall(&[__ws_arg_105]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_swap_api_v1_swap_cancelall", &[__ws_arg_105]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_106 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_trigger_cancelall(&[__ws_arg_106]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_trigger_cancelall", &[__ws_arg_106]).await;
                     }  else if stopLossTakeProfit {
                         let __ws_arg_107 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_tpsl_cancelall(&[__ws_arg_107]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_tpsl_cancelall", &[__ws_arg_107]).await;
                     }  else if trailing {
                         let __ws_arg_108 = self.extend(&request, &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_track_cancelall(&[__ws_arg_108]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_track_cancelall", &[__ws_arg_108]).await;
                     }  else {
                         let __ws_arg_109 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                        response = self.contract_private_post_api_v1_contract_cancelall(&[__ws_arg_109]).await.into_opt_dict();
+                        response = self.call_method_o("contract_private_post_api_v1_contract_cancelall", &[__ws_arg_109]).await;
                     }
                 }
             }  else {
@@ -10287,7 +10285,7 @@ impl Htx {
             m
         });
         let __ws_arg_110 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_private_post_algo_orders_cancel_all_after(&[__ws_arg_110]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_algo_orders_cancel_all_after", &[__ws_arg_110]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -10324,7 +10322,7 @@ impl Htx {
             m
         });
         let __ws_arg_111 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_v2_account_deposit_address(&[__ws_arg_111]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v2_account_deposit_address", &[__ws_arg_111]).await;
         //
         //     {
         //         "code": 200,
@@ -10394,7 +10392,7 @@ impl Htx {
             m
         });
         let __ws_arg_112 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_v2_account_withdraw_address(&[__ws_arg_112]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v2_account_withdraw_address", &[__ws_arg_112]).await;
         //
         //     {
         //         "code": 200,
@@ -10473,7 +10471,7 @@ impl Htx {
         }
         request.insert("size".into(), Value::from(limitValue)); // max 100
         let __ws_arg_113 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_v1_query_deposit_withdraw(&[__ws_arg_113]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v1_query_deposit_withdraw", &[__ws_arg_113]).await;
         //
         //    {
         //         "status": "ok",
@@ -10550,7 +10548,7 @@ impl Htx {
         }
         request.insert("size".into(), Value::from(limitValue)); // max 100
         let __ws_arg_114 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_v1_query_deposit_withdraw(&[__ws_arg_114]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v1_query_deposit_withdraw", &[__ws_arg_114]).await;
         //
         //    {
         //         "status": "ok",
@@ -10697,7 +10695,7 @@ impl Htx {
         }
         request.insert("amount".into(), Value::from(amountValue));
         let __ws_arg_115 = self.extend(Value::Map(request), &[&paramsFee]);
-        let mut response: crate::value::Dict = self.spot_private_post_v1_dw_withdraw_api_create(&[__ws_arg_115]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_v1_dw_withdraw_api_create", &[__ws_arg_115]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -10775,21 +10773,21 @@ impl Htx {
             type_var = self.safe_string_k_opt(&paramsSubType, "type", &[type_var.map(Value::from).unwrap_or(Value::Null)]);
             request.insert("type".into(), type_var.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_116 = self.extend(&request, &[&paramsSubType]);
-            response = self.spot_private_post_v1_futures_transfer(&[__ws_arg_116]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_v1_futures_transfer", &[__ws_arg_116]).await;
         }  else if fromSpot && toCross {
             let __ws_arg_117 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_post_cross_margin_transfer_in(&[__ws_arg_117]).await.into_opt_dict();
+            response = self.call_method_o("private_post_cross_margin_transfer_in", &[__ws_arg_117]).await;
         }  else if fromCross && toSpot {
             let __ws_arg_118 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_post_cross_margin_transfer_out(&[__ws_arg_118]).await.into_opt_dict();
+            response = self.call_method_o("private_post_cross_margin_transfer_out", &[__ws_arg_118]).await;
         }  else if fromSpot && toIsolated {
             request.insert("symbol".into(), toAccountId.clone());
             let __ws_arg_119 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_post_dw_transfer_in_margin(&[__ws_arg_119]).await.into_opt_dict();
+            response = self.call_method_o("private_post_dw_transfer_in_margin", &[__ws_arg_119]).await;
         }  else if fromIsolated && toSpot {
             request.insert("symbol".into(), fromAccountId.clone());
             let __ws_arg_120 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_post_dw_transfer_out_margin(&[__ws_arg_120]).await.into_opt_dict();
+            response = self.call_method_o("private_post_dw_transfer_out_margin", &[__ws_arg_120]).await;
         }  else {
             let mut query: crate::value::Dict = Value::from(&paramsSubType).into_dict();
             if (subType.as_deref() == Some("linear")) {
@@ -10811,7 +10809,7 @@ impl Htx {
             request.insert("from".into(), (if fromSpot { Value::Str("spot".into()) } else { fromAccountId }));
             request.insert("to".into(), (if toSpot { Value::Str("spot".into()) } else { toAccountId }));
             let __ws_arg_121 = self.extend(Value::Map(request), &[&query]);
-            response = self.v2_private_post_account_transfer(&[__ws_arg_121]).await.into_opt_dict();
+            response = self.call_method_o("v2_private_post_account_transfer", &[__ws_arg_121]).await;
         }
         //
         //    {
@@ -10874,7 +10872,7 @@ impl Htx {
             request.insert("start_time".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         if (until.is_some()) {
             request.insert("end_time".into(), Value::from(until));
         }
@@ -10882,7 +10880,7 @@ impl Htx {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_122 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_get_v5_account_universal_transfer_records(&[__ws_arg_122]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v5_account_universal_transfer_records", &[__ws_arg_122]).await;
         //
         //     {
         //         "code": 200,
@@ -10930,7 +10928,7 @@ impl Htx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.spot_private_get_v1_margin_loan_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v1_margin_loan_info", &[params]).await;
         //
         // {
         //     "status": "ok",
@@ -11081,13 +11079,13 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).inverse == Some(true)) {
             let __ws_arg_123 = self.extend(&request, &[&paramsPaginate]);
-            response = self.contract_public_get_swap_api_v1_swap_historical_funding_rate(&[__ws_arg_123]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_api_v1_swap_historical_funding_rate", &[__ws_arg_123]).await;
         }  else if ((market).linear == Some(true)) {
             let (__until0, __until1) = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsPaginate, &[]);
             let mut requestUntil: crate::value::Dict = __until0;
             let mut paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_124 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_public_get_v5_market_funding_rate_history(&[__ws_arg_124]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_v5_market_funding_rate_history", &[__ws_arg_124]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRateHistory() supports inverse and linear swaps only")));
         }
@@ -11121,7 +11119,7 @@ impl Htx {
                 let mut __for_first_791: bool = true;
                 while { if !__for_first_791 { i += 1; } __for_first_791 = false; i < (result.len() as i64) } {
                 let mut entry: Option<crate::value::Dict> = crate::value::KeyRead::read(&&result, &Value::Int(i)).into_opt_dict();
-                add_element_to_object(&mut entry, &Value::Str("current_page".into()), cursor.clone());
+                if let Some(__rdm) = &mut entry { std::sync::Arc::make_mut(__rdm).insert("current_page".to_string(), Value::from(cursor.clone())); }
                 let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "contract_code", &[]);
                 let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
                 let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_time", &[]).as_i64();
@@ -11190,10 +11188,10 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).inverse == Some(true)) {
             let __ws_arg_125 = self.extend(&request, &[&params]);
-            response = self.contract_public_get_swap_api_v1_swap_funding_rate(&[__ws_arg_125]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_api_v1_swap_funding_rate", &[__ws_arg_125]).await;
         }  else if ((market).linear == Some(true)) {
             let __ws_arg_126 = self.extend(Value::Map(request), &[params]);
-            response = self.contract_public_get_v5_market_funding_rate(&[__ws_arg_126]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_v5_market_funding_rate", &[__ws_arg_126]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRate() supports inverse and linear swaps only")));
         }
@@ -11259,7 +11257,7 @@ impl Htx {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRates() not support this market type")));
         }  else if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_127 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.contract_public_get_swap_api_v1_swap_batch_funding_rate(&[__ws_arg_127]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_api_v1_swap_batch_funding_rate", &[__ws_arg_127]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRates() not support this market type")));
         }
@@ -11338,14 +11336,14 @@ impl Htx {
                 request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
             let __ws_arg_128 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.private_get_margin_loan_orders(&[__ws_arg_128]).await.into_opt_dict();
+            response = self.call_method_o("private_get_margin_loan_orders", &[__ws_arg_128]).await;
         }  else {
             if (code != Value::Null) {
                 let mut currency: crate::types::Currency = self.currency(code.clone());
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
             let __ws_arg_129 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_get_cross_margin_loan_orders(&[__ws_arg_129]).await.into_opt_dict();
+            response = self.call_method_o("private_get_cross_margin_loan_orders", &[__ws_arg_129]).await;
         }
         //
         //    {
@@ -11441,7 +11439,7 @@ impl Htx {
                     std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
                 }
                 let __ws_arg_130 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.contract_private_get_v5_account_bills(&[__ws_arg_130]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_get_v5_account_bills", &[__ws_arg_130]).await;
             }  else {
                 std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::from((market).id.as_deref()));
                 //
@@ -11465,12 +11463,12 @@ impl Htx {
                 //     }
                 //
                 let __ws_arg_131 = self.extend(&request, &[&paramsUntil]);
-                response = self.contract_private_post_swap_api_v3_swap_financial_record_exact(&[__ws_arg_131]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v3_swap_financial_record_exact", &[__ws_arg_131]).await;
             }
         }  else {
             std::sync::Arc::make_mut(&mut request).insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_132 = self.extend(request, &[&paramsUntil]);
-            response = self.contract_private_post_api_v3_contract_financial_record_exact(&[__ws_arg_132]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_post_api_v3_contract_financial_record_exact", &[__ws_arg_132]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_incomes(&data, &[(market).raw.clone(), since, limit]);
@@ -11529,14 +11527,14 @@ impl Htx {
             let mut marginMode: Option<String> = marginModeAndParams.get(0).and_then(Value::as_str).map(str::to_owned);
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_133 = self.extend(&request, &[&query]);
-            response = self.contract_private_post_v5_position_lever(&[__ws_arg_133]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_post_v5_position_lever", &[__ws_arg_133]).await;
         }  else {
             if (marketType.as_deref() == Some("future")) {
                 let __ws_arg_134 = self.extend(&request, &[&query]);
-                response = self.contract_private_post_api_v1_contract_switch_lever_rate(&[__ws_arg_134]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_api_v1_contract_switch_lever_rate", &[__ws_arg_134]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_135 = self.extend(Value::Map(request), &[&query]);
-                response = self.contract_private_post_swap_api_v1_swap_switch_lever_rate(&[__ws_arg_135]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v1_swap_switch_lever_rate", &[__ws_arg_135]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setLeverage() not support this market type")));
             }
@@ -11600,12 +11598,12 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("linear")) {
-            response = self.contract_private_get_v5_trade_position_opens(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_get_v5_trade_position_opens", &[Value::from(&paramsMarketType)]).await;
         }  else {
             if (marketType.as_deref() == Some("future")) {
-                response = self.contract_private_post_api_v1_contract_position_info(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_api_v1_contract_position_info", &[Value::from(&paramsMarketType)]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                response = self.contract_private_post_swap_api_v1_swap_position_info(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v1_swap_position_info", &[Value::Dict(paramsMarketType)]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositions() not support this market type")));
             }
@@ -11680,14 +11678,14 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
             let __ws_arg_137 = self.extend(&request, &[&query]);
-            response = self.contract_private_get_v5_trade_position_opens(&[__ws_arg_137]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_get_v5_trade_position_opens", &[__ws_arg_137]).await;
         }  else {
             if (marketType.as_deref() == Some("future")) {
                 let __ws_arg_138 = self.extend(&request, &[&query]);
-                response = self.contract_private_post_api_v1_contract_account_position_info(&[__ws_arg_138]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_api_v1_contract_account_position_info", &[__ws_arg_138]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_139 = self.extend(Value::Map(request), &[&query]);
-                response = self.contract_private_post_swap_api_v1_swap_account_position_info(&[__ws_arg_139]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v1_swap_account_position_info", &[__ws_arg_139]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPosition() not support this market type")));
             }
@@ -11811,7 +11809,7 @@ impl Htx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_141 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.spot_private_get_v2_account_ledger(&[__ws_arg_141]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_v2_account_ledger", &[__ws_arg_141]).await;
         //
         //     {
         //         "code": 200,
@@ -11872,7 +11870,7 @@ impl Htx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.contract_public_get_linear_swap_api_v1_swap_adjustfactor(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_linear_swap_api_v1_swap_adjustfactor", &[params]).await;
         //
         //    {
         //        "status": "ok",
@@ -11970,19 +11968,19 @@ impl Htx {
             request.insert("symbol".into(), Value::from((market).base_id.as_deref())); // currency code on coin-m futures
             // coin-m futures
             let __ws_arg_142 = self.extend(&request, &[&params]);
-            response = self.contract_public_get_api_v1_contract_his_open_interest(&[__ws_arg_142]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_api_v1_contract_his_open_interest", &[__ws_arg_142]).await;
         }  else if ((market).linear == Some(true)) {
             request.insert("contract_type".into(), Value::Str("swap".into()));
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             // USDT-M
             let __ws_arg_143 = self.extend(&request, &[&params]);
-            response = self.contract_public_get_linear_swap_api_v1_swap_his_open_interest(&[__ws_arg_143]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_linear_swap_api_v1_swap_his_open_interest", &[__ws_arg_143]).await;
         }  else {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             // coin-m swaps
             let __ws_arg_144 = self.extend(Value::Map(request), &[params]);
-            response = self.contract_public_get_swap_api_v1_swap_his_open_interest(&[__ws_arg_144]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_api_v1_swap_his_open_interest", &[__ws_arg_144]).await;
         }
         //
         //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
@@ -12097,10 +12095,10 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("future")) {
             let __ws_arg_145 = self.extend(&request, &[&paramsMarketType]);
-            response = self.contract_public_get_api_v1_contract_open_interest(&[__ws_arg_145]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_api_v1_contract_open_interest", &[__ws_arg_145]).await;
         }  else if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_146 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.contract_public_get_swap_api_v1_swap_open_interest(&[__ws_arg_146]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_api_v1_swap_open_interest", &[__ws_arg_146]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOpenInterests() does not currently support linear markets")));
         }
@@ -12153,15 +12151,15 @@ impl Htx {
             request.insert("symbol".into(), Value::from((market).base_id.as_deref()));
             // COIN-M futures
             let __ws_arg_147 = self.extend(&request, &[&params]);
-            response = self.contract_public_get_api_v1_contract_open_interest(&[__ws_arg_147]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_api_v1_contract_open_interest", &[__ws_arg_147]).await;
         }  else if ((market).linear == Some(true)) {
             // USDT-M swaps
             let __ws_arg_148 = self.extend(&request, &[&params]);
-            response = self.contract_public_get_v5_market_open_interest(&[__ws_arg_148]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_v5_market_open_interest", &[__ws_arg_148]).await;
         }  else {
             // COIN-M swaps
             let __ws_arg_149 = self.extend(Value::Map(request), &[params]);
-            response = self.contract_public_get_swap_api_v1_swap_open_interest(&[__ws_arg_149]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_swap_api_v1_swap_open_interest", &[__ws_arg_149]).await;
         }
         //
         // USDT-M linear swap
@@ -12278,7 +12276,7 @@ impl Htx {
             m
         });
         let __ws_arg_152 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_margin_orders(&[__ws_arg_152]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_margin_orders", &[__ws_arg_152]).await;
         //
         // Isolated
         //
@@ -12331,7 +12329,7 @@ impl Htx {
             m
         });
         let __ws_arg_153 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_cross_margin_orders(&[__ws_arg_153]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cross_margin_orders", &[__ws_arg_153]).await;
         //
         // Cross
         //
@@ -12387,7 +12385,7 @@ impl Htx {
             m
         });
         let __ws_arg_154 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_private_post_account_repayment(&[__ws_arg_154]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_account_repayment", &[__ws_arg_154]).await;
         //
         //     {
         //         "code":200,
@@ -12447,7 +12445,7 @@ impl Htx {
             m
         });
         let __ws_arg_155 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_private_post_account_repayment(&[__ws_arg_155]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_account_repayment", &[__ws_arg_155]).await;
         //
         //     {
         //         "code":200,
@@ -12561,14 +12559,14 @@ impl Htx {
         if (market).swap {
             if ((market).linear == Some(true)) {
                 let __ws_arg_156 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.contract_public_get_v5_market_settlement_history(&[__ws_arg_156]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_v5_market_settlement_history", &[__ws_arg_156]).await;
             }  else {
                 let __ws_arg_157 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.contract_public_get_swap_api_v1_swap_settlement_records(&[__ws_arg_157]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_swap_api_v1_swap_settlement_records", &[__ws_arg_157]).await;
             }
         }  else {
             let __ws_arg_158 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_public_get_api_v1_contract_settlement_records(&[__ws_arg_158]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_api_v1_contract_settlement_records", &[__ws_arg_158]).await;
         }
         //
         // coin-m swap
@@ -12675,7 +12673,7 @@ impl Htx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.spot_public_get_v2_reference_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_v2_reference_currencies", &[params]).await;
         //
         //    {
         //        "code": 200,
@@ -12911,16 +12909,16 @@ impl Htx {
                     std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
                 }
                 let __ws_arg_159 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.contract_public_get_v5_market_liquidation_orders(&[__ws_arg_159]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_v5_market_liquidation_orders", &[__ws_arg_159]).await;
             }  else {
                 std::sync::Arc::make_mut(&mut requestUntil).insert("contract".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_160 = self.extend(&requestUntil, &[&paramsUntil]);
-                response = self.contract_public_get_swap_api_v3_swap_liquidation_orders(&[__ws_arg_160]).await.into_opt_dict();
+                response = self.call_method_o("contract_public_get_swap_api_v3_swap_liquidation_orders", &[__ws_arg_160]).await;
             }
         }  else if (market).future {
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_161 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_public_get_api_v3_contract_liquidation_orders(&[__ws_arg_161]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_api_v3_contract_liquidation_orders", &[__ws_arg_161]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLiquidations() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
         }
@@ -12998,7 +12996,7 @@ impl Htx {
                 m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (clientOrderId.is_some()) { Value::Str("clientOrderId".into()) } else { Value::Null }, &[]);
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -13009,7 +13007,7 @@ impl Htx {
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_162 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.contract_private_post_v5_trade_position(&[__ws_arg_162]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_post_v5_trade_position", &[__ws_arg_162]).await;
         }  else {
             self.check_required_argument(Value::Str("closePosition".into()), side.clone(), Value::Str("side".into()), &[]);
             let mut amount: Option<String> = self.safe_string2_opt(Value::from(&paramsOmitted), Value::Str("volume".into()), Value::Str("amount".into()), &[]);
@@ -13021,10 +13019,10 @@ impl Htx {
             let mut paramsVolume: crate::value::Dict = self.omit_t(&paramsOmitted, &["volume", "amount"], &[]);
             if (market).swap {
                 let __ws_arg_163 = self.extend(&request, &[&paramsVolume]);
-                response = self.contract_private_post_swap_api_v1_swap_lightning_close_position(&[__ws_arg_163]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v1_swap_lightning_close_position", &[__ws_arg_163]).await;
             }  else {
                 let __ws_arg_164 = self.extend(Value::Map(request), &[&paramsVolume]);
-                response = self.contract_private_post_api_v1_lightning_close_position(&[__ws_arg_164]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_api_v1_lightning_close_position", &[__ws_arg_164]).await;
             }
         }
         if ((market).linear == Some(true)) {
@@ -13076,7 +13074,7 @@ impl Htx {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " setPositionMode can only be used for linear markets")));
         }
         let __ws_arg_165 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_private_post_v5_position_mode(&[__ws_arg_165]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_post_v5_position_mode", &[__ws_arg_165]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -13128,12 +13126,12 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("linear")) {
-            response = self.contract_private_get_v5_trade_position_opens(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_get_v5_trade_position_opens", &[Value::from(&paramsMarketType)]).await;
         }  else {
             if (marketType.as_deref() == Some("future")) {
-                response = self.contract_private_post_api_v1_contract_position_info(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_api_v1_contract_position_info", &[Value::from(&paramsMarketType)]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                response = self.contract_private_post_swap_api_v1_swap_position_info(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+                response = self.call_method_o("contract_private_post_swap_api_v1_swap_position_info", &[Value::Dict(paramsMarketType)]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositionsADLRank() not support this market type")));
             }

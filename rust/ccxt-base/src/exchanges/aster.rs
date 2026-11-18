@@ -2759,7 +2759,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut sapiResult: crate::value::Dict = self.sapi_public_get_v3_exchange_info(&[params]).await.into_dict();
+        let mut sapiResult: crate::value::Dict = self.call_method_t("sapi_public_get_v3_exchange_info", &[params]).await;
         let mut sapiRows: crate::value::List = self.safe_list_k_t(&sapiResult, "assets");
         return self.parse_currencies(&sapiRows);
         Value::Null
@@ -2930,9 +2930,9 @@ impl Aster {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.fapi_public_get_v3_time(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("fapi_public_get_v3_time", &[Value::from(&paramsMarketType)]).await;
         }  else {
-            response = self.sapi_public_get_v3_time(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("sapi_public_get_v3_time", &[Value::Dict(paramsMarketType)]).await;
         }
         return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
@@ -3188,10 +3188,10 @@ impl Aster {
         }
         if (market).swap {
             let __ws_arg_10 = self.extend(&request, &[&params]);
-            response = self.fapi_public_get_v3_depth(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("fapi_public_get_v3_depth", &[__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_public_get_v3_depth(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("sapi_public_get_v3_depth", &[__ws_arg_11]).await;
         }
         //
         // both SPOT & PERP has same format
@@ -3603,7 +3603,7 @@ impl Aster {
         if (marketType.as_deref() == Some("swap")) {
             data = self.fapi_private_get_v3_balance(&[Value::from(&paramsMarketType)]).await.into_list();
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.sapi_private_get_v3_account(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("sapi_private_get_v3_account", &[Value::Dict(paramsMarketType)]).await;
             data = self.safe_list_k_t(&response, "balances");
         }
         return self.parse_balance_list(&data);
@@ -3679,7 +3679,7 @@ impl Aster {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.fapi_private_post_v3_margin_type(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_private_post_v3_margin_type", &[__ws_arg_18]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -3705,7 +3705,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.fapi_private_get_v3_position_side_dual(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_private_get_v3_position_side_dual", &[params]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
@@ -3797,10 +3797,10 @@ impl Aster {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             let __ws_arg_20 = self.extend(&request, &[&params]);
-            response = self.fapi_private_get_v3_commission_rate(&[__ws_arg_20]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_get_v3_commission_rate", &[__ws_arg_20]).await;
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_private_get_v3_commission_rate(&[__ws_arg_21]).await.into_opt_dict();
+            response = self.call_method_o("sapi_private_get_v3_commission_rate", &[__ws_arg_21]).await;
         }
         return self.parse_trading_fee(&response, Some(&market));
         Value::Null
@@ -3881,10 +3881,10 @@ impl Aster {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
-            response = self.fapi_private_get_v3_order(&[__ws_arg_22]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_get_v3_order", &[__ws_arg_22]).await;
         }  else {
             let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_private_get_v3_order(&[__ws_arg_23]).await.into_opt_dict();
+            response = self.call_method_o("sapi_private_get_v3_order", &[__ws_arg_23]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
@@ -3934,10 +3934,10 @@ impl Aster {
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
-            response = self.sapi_private_get_v3_open_order(&[__ws_arg_24]).await.into_opt_dict();
+            response = self.call_method_o("sapi_private_get_v3_open_order", &[__ws_arg_24]).await;
         }  else {
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.fapi_private_get_v3_open_order(&[__ws_arg_25]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_get_v3_open_order", &[__ws_arg_25]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
@@ -4109,9 +4109,9 @@ impl Aster {
         let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            response = self.fapi_private_post_v3_order(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_post_v3_order", &[Value::from(&request)]).await;
         }  else {
-            response = self.sapi_private_post_v3_order(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("sapi_private_post_v3_order", &[Value::Dict(request)]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
@@ -4149,7 +4149,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_231: bool = true;
             while { if !__for_first_231 { i += 1; } __for_first_231 = false; i < ordersLength } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut currentMarket: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             orderSymbols.push(Value::from((currentMarket).symbol.clone()));
@@ -4463,10 +4463,10 @@ impl Aster {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             let __ws_arg_33 = self.extend(&request, &[&paramsOmitted]);
-            response = self.fapi_private_delete_v3_order(&[__ws_arg_33]).await.into_opt_dict();
+            response = self.call_method_o("fapi_private_delete_v3_order", &[__ws_arg_33]).await;
         }  else {
             let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.sapi_private_delete_v3_order(&[__ws_arg_34]).await.into_opt_dict();
+            response = self.call_method_o("sapi_private_delete_v3_order", &[__ws_arg_34]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
@@ -4577,7 +4577,7 @@ impl Aster {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.fapi_private_post_v3_leverage(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_private_post_v3_leverage", &[__ws_arg_37]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -4728,7 +4728,7 @@ impl Aster {
         });
         let mut code: String = (market).quote.clone();
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.fapi_private_post_v3_position_margin(&[__ws_arg_39]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_private_post_v3_position_margin", &[__ws_arg_39]).await;
         let __ws_arg_40 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market));
         return self.extend(__ws_arg_40, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4905,7 +4905,7 @@ impl Aster {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // max 1000
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -5479,9 +5479,9 @@ impl Aster {
         }
         self.load_markets_and_sign_in().await;
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
-        let mut response: crate::value::Dict = self.fapi_private_get_v4_account(&[params.clone()]).await.into_dict();
-        let mut filterClosed: Value = (self.handle_option_bool_and_params(params, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)])).0.map_or(Value::Null, Value::Bool);
-        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed]).into_list();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_private_get_v4_account", &[params.clone()]).await;
+        let mut filterClosed: Option<bool> = (self.handle_option_bool_and_params(params, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)])).0;
+        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed.map_or(Value::Null, Value::Bool)]).into_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
@@ -5702,7 +5702,7 @@ impl Aster {
         request.insert("amount".into(), Value::from(self.currency_to_precision(code, amount, &[Value::from(network.as_deref())])));
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_private_post_v3_aster_user_withdraw", &[__ws_arg_45]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -5760,7 +5760,7 @@ impl Aster {
         request.insert("kindType".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         request.insert("clientTranId".into(), clientTranId.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("sapi_private_post_v3_asset_wallet_transfer", &[__ws_arg_46]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -5925,7 +5925,7 @@ impl Aster {
                     m
                 });
                 let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
-                let mut authResponse: crate::value::Dict = self.fapi_private_post_v3_approve_builder(&[__ws_arg_47]).await.into_dict();
+                let mut authResponse: crate::value::Dict = self.call_method_t("fapi_private_post_v3_approve_builder", &[__ws_arg_47]).await;
                 //
                 // {"code": 200,"msg": "success"}
                 //

@@ -952,7 +952,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_api_server_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_api_server_time", &[params]).await;
         return self.safe_integer_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
@@ -1115,7 +1115,7 @@ impl Indodax {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_get_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_info", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1153,7 +1153,7 @@ impl Indodax {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: crate::value::Dict = self.public_get_api_depth_pair(&[__ws_arg_0]).await.into_dict();
+        let mut orderbook: crate::value::Dict = self.call_method_t("public_get_api_depth_pair", &[__ws_arg_0]).await;
         return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into())]);
         Value::Null
         }).await?))
@@ -1190,7 +1190,7 @@ impl Indodax {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_api_ticker_pair(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_api_ticker_pair", &[__ws_arg_1]).await;
         //
         //     {
         //         "ticker": {
@@ -1250,7 +1250,7 @@ impl Indodax {
         //     }
         // }
         //
-        let mut response: crate::value::Dict = self.public_get_api_ticker_all(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_api_ticker_all", &[params]).await;
         let mut tickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "tickers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1426,7 +1426,7 @@ impl Indodax {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_get_order(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_order", &[__ws_arg_4]).await;
         let mut orders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1480,7 +1480,7 @@ impl Indodax {
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_open_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_open_orders", &[__ws_arg_6]).await;
         let mut openOrdersResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1554,7 +1554,7 @@ impl Indodax {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_order_history(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order_history", &[__ws_arg_7]).await;
         let mut historyResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1648,7 +1648,7 @@ impl Indodax {
             request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut result: crate::value::Dict = self.private_post_trade(&[__ws_arg_8]).await.into_dict();
+        let mut result: crate::value::Dict = self.call_method_t("private_post_trade", &[__ws_arg_8]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "return");
         let mut id: Option<String> = self.safe_string_k_opt(&data, "order_id", &[]);
         return self.safe_order(Value::Map({
@@ -1702,7 +1702,7 @@ impl Indodax {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_order", &[__ws_arg_9]).await;
         //
         //    {
         //        "success": 1,
@@ -1752,7 +1752,7 @@ impl Indodax {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_withdraw_fee(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_fee", &[__ws_arg_10]).await;
         //
         //     {
         //         "success": 1,
@@ -1804,7 +1804,7 @@ impl Indodax {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_withdraw_fee(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_fee", &[__ws_arg_11]).await;
         //
         //     {
         //         "success": 1,
@@ -1871,7 +1871,7 @@ impl Indodax {
             request.insert("end".into(), self.yyyymmdd(Value::Int(self.milliseconds()), &[]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trans_history(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trans_history", &[__ws_arg_12]).await;
         //
         //     {
         //         "success": 1,
@@ -2022,7 +2022,7 @@ impl Indodax {
             request.insert("withdraw_memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.private_post_withdraw_coin(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_coin", &[__ws_arg_13]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2061,7 +2061,7 @@ impl Indodax {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_get_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_info", &[params]).await;
         //
         //    {
         //        success: '1',

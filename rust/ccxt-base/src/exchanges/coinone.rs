@@ -1162,7 +1162,7 @@ impl Coinone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v2_public_get_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_public_get_currencies", &[params]).await;
         //
         //     {
         //         "result": "success",
@@ -1213,7 +1213,7 @@ impl Coinone {
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
             m
         });
-        let mut response: crate::value::Dict = self.v2_public_get_ticker_new_quote_currency(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_public_get_ticker_new_quote_currency", &[Value::Map(request)]).await;
         //
         //     {
         //         "result": "success",
@@ -1355,7 +1355,7 @@ impl Coinone {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v2_private_post_account_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_account_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1397,7 +1397,7 @@ impl Coinone {
             request.insert("size".into(), limit); // only support 5, 10, 15, 16
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_public_get_orderbook_quote_currency_target_currency(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_public_get_orderbook_quote_currency_target_currency", &[__ws_arg_0]).await;
         //
         //     {
         //         "result": "success",
@@ -1465,10 +1465,10 @@ impl Coinone {
             request.insert("quote_currency".into(), crate::value::KeyRead::key_read(&&market, "quote"));
             request.insert("target_currency".into(), crate::value::KeyRead::key_read(&&market, "base"));
             let __ws_arg_1 = self.extend(&request, &[&params]);
-            response = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_1]).await.into_opt_dict();
+            response = self.call_method_o("v2_public_get_ticker_new_quote_currency_target_currency", &[__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            response = self.v2_public_get_ticker_new_quote_currency(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("v2_public_get_ticker_new_quote_currency", &[__ws_arg_2]).await;
         }
         //
         //     {
@@ -1540,7 +1540,7 @@ impl Coinone {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_public_get_ticker_new_quote_currency_target_currency", &[__ws_arg_3]).await;
         //
         //     {
         //         "result": "success",
@@ -1621,7 +1621,7 @@ impl Coinone {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(200)));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_public_get_trades_quote_currency_target_currency(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_public_get_trades_quote_currency_target_currency", &[__ws_arg_4]).await;
         //
         //     {
         //         "result": "success",
@@ -1700,7 +1700,7 @@ impl Coinone {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_1_private_post_order_limit(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_1_private_post_order_limit", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1741,7 +1741,7 @@ impl Coinone {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_private_post_order_query_order(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_order_query_order", &[__ws_arg_6]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1800,7 +1800,7 @@ impl Coinone {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_1_private_post_order_open_orders(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_1_private_post_order_open_orders", &[__ws_arg_7]).await;
         //
         //     {
         //         "result": "success",
@@ -1860,7 +1860,7 @@ impl Coinone {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v2_private_post_order_complete_orders(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_order_complete_orders", &[__ws_arg_8]).await;
         //
         // despite the name of the endpoint it returns trades which may have a duplicate orderId
         // https://github.com/ccxt/ccxt/pull/7067
@@ -1958,7 +1958,7 @@ impl Coinone {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v2_private_post_account_deposit_address(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_private_post_account_deposit_address", &[params]).await;
         //
         //     {
         //         "result": "success",

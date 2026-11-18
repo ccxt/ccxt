@@ -670,7 +670,7 @@ impl Opinion {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: crate::value::Dict = self.opinion_public_get_market(&[__ws_arg_0]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("opinion_public_get_market", &[__ws_arg_0]).await;
             let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
             let mut rawMarkets: crate::value::List = self.safe_list_k_t(&result, "list");
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
@@ -945,14 +945,14 @@ impl Opinion {
         m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&singleRest]);
-                singleResponse = self.opinion_public_get_market_slug_slug(&[__ws_arg_1]).await.into_opt_dict();
+                singleResponse = self.call_method_o("opinion_public_get_market_slug_slug", &[__ws_arg_1]).await;
             }  else {
                 let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketId".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&singleRest]);
-                singleResponse = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_2]).await.into_opt_dict();
+                singleResponse = self.call_method_o("opinion_public_get_market_categorical_market_id", &[__ws_arg_2]).await;
             }
             let mut singleResult: crate::value::Dict = self.safe_dict_k_t(&singleResponse, "result");
             let mut singleData: crate::value::Dict = self.safe_dict_k_t(&singleResult, "data");
@@ -986,7 +986,7 @@ impl Opinion {
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: crate::value::Dict = self.opinion_public_get_market(&[__ws_arg_3]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("opinion_public_get_market", &[__ws_arg_3]).await;
             let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
             let mut pageEvents: crate::value::List = self.safe_list_k_t(&result, "list");
             let mut pageEventsLength: i64 = pageEvents.len() as i64;
@@ -1063,14 +1063,14 @@ impl Opinion {
         m.insert("slug".to_string(), id.clone());
     m
 }), &[&params]);
-            response = self.opinion_public_get_market_slug_slug(&[__ws_arg_4]).await.into_opt_dict();
+            response = self.call_method_o("opinion_public_get_market_slug_slug", &[__ws_arg_4]).await;
         }  else {
             let __ws_arg_5 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketId".to_string(), id);
     m
 }), &[params]);
-            response = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("opinion_public_get_market_categorical_market_id", &[__ws_arg_5]).await;
         }
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "data");
@@ -1459,7 +1459,7 @@ impl Opinion {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.opinion_public_get_token_orderbook(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_public_get_token_orderbook", &[__ws_arg_15]).await;
         //
         //     {
         //         "errmsg": "",
@@ -1522,7 +1522,7 @@ impl Opinion {
                 m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[params]);
-        let mut response: crate::value::Dict = self.opinion_public_get_token_price_history(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_public_get_token_price_history", &[__ws_arg_16]).await;
         //
         //     {
         //         "errmsg": "",
@@ -1583,10 +1583,10 @@ impl Opinion {
         if (existing.is_some()) {
             return existing.map_or(Value::Null, Value::Dict);
         }
-        let mut response: crate::value::Dict = self.opinion_public_get_quote_token(&[Value::Map({
+        let mut response: crate::value::Dict = self.call_method_t("opinion_public_get_quote_token", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]).await.into_dict();
+        })]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut list: crate::value::List = self.safe_list_k_t(&result, "list");
         let mut listLength: i64 = list.len() as i64;
@@ -1627,10 +1627,10 @@ impl Opinion {
         if (cached.is_some()) {
             return cached.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut response: crate::value::Dict = self.opinion_private_get_user_auth(&[Value::Map({
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_user_auth", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]).await.into_dict();
+        })]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut walletUsers: crate::value::Dict = self.safe_dict_k_t(&result, "walletUsers");
         let mut multiSignAddress: Value = self.safe_string_k(&walletUsers, "56", &[self.walletAddress.clone()]);
@@ -1889,7 +1889,7 @@ impl Opinion {
                 m.insert("postOnly".to_string(), Value::Bool(postOnly));
             m
         }), &[&rest]);
-        let mut response: crate::value::Dict = self.opinion_private_post_order(&[Value::Dict(orderBody)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_post_order", &[Value::Dict(orderBody)]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orderData: crate::value::Dict = self.safe_dict_k_t(&result, "orderData");
         return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &orderData, outcomeObj.as_ref());
@@ -1926,7 +1926,7 @@ impl Opinion {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.opinion_private_post_order_cancel(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_post_order_cancel", &[__ws_arg_19]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut canceled: bool = self.safe_bool_k_opt(&result, "result", &[Value::Bool(false)]).unwrap_or(false);
         // a false result does NOT mean the order is still open — it may already be filled,
@@ -2010,7 +2010,7 @@ impl Opinion {
             request.insert("marketId".into(), self.safe_integer_k(&info, "marketId", &[]));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.opinion_private_get_order(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_order", &[__ws_arg_20]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orders: crate::value::List = self.safe_list_k_t(&result, "list");
         return self.parse_prediction_orders(Value::Arr(orders), &[crate::Value::from(outcomeObj.as_ref()), since, limit]);
@@ -2050,7 +2050,7 @@ impl Opinion {
                 m.insert("orderId".to_string(), id);
             m
         }), &[params]);
-        let mut response: crate::value::Dict = self.opinion_private_get_order_order_id(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_order_order_id", &[__ws_arg_21]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orderData: crate::value::Dict = self.safe_dict_k_t(&result, "orderData");
         return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &orderData, outcomeObj.as_ref());
@@ -2170,7 +2170,7 @@ impl Opinion {
             request.insert("marketId".into(), self.safe_integer_k(&info, "marketId", &[]));
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_trade_user_wallet_address", &[__ws_arg_24]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "list");
         let mut tradesLength: i64 = trades.len() as i64;
@@ -2213,11 +2213,11 @@ impl Opinion {
         if (existing != Value::Null) {
             return existing;
         }
-        let mut response: crate::value::Dict = self.opinion_public_get_market_market_id(&[Value::Map({
+        let mut response: crate::value::Dict = self.call_method_t("opinion_public_get_market_market_id", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), marketId);
             m
-        })]).await.into_dict();
+        })]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "data");
         let mut market: crate::value::Dict = self.parse_opinion_market(&data, None).into_dict();
@@ -2272,7 +2272,7 @@ impl Opinion {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.opinion_private_get_user_balance(&[__ws_arg_25]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_user_balance", &[__ws_arg_25]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut rawBalances: crate::value::List = self.safe_list_k_t(&result, "balances");
         let mut rawBalancesLength: i64 = rawBalances.len() as i64;
@@ -2335,7 +2335,7 @@ impl Opinion {
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.opinion_private_get_positions_user_wallet_address(&[__ws_arg_26]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_positions_user_wallet_address", &[__ws_arg_26]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut positions: crate::value::List = self.safe_list_k_t(&result, "list");
         if (outcomesLength == 0) {
@@ -2473,7 +2473,7 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.opinion_private_post_auth_api_key(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_post_auth_api_key", &[params]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.set_api_credentials(&result);
 
@@ -2493,7 +2493,7 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.opinion_private_get_auth_api_key(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_get_auth_api_key", &[params]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.set_api_credentials(&result);
 
@@ -2513,7 +2513,7 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.opinion_private_delete_auth_api_key(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("opinion_private_delete_auth_api_key", &[params]).await;
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Null); }
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.

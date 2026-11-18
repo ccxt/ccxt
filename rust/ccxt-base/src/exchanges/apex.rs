@@ -1300,7 +1300,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_v3_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_time", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.safe_integer_k(&data, "time", &[]);
         Value::Null
@@ -1329,7 +1329,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_v3_account_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account_balance", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data);
         Value::Null
@@ -1353,7 +1353,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_v3_account(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_account(self, &data);
 
@@ -1378,7 +1378,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_v3_symbols(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut spotConfig: crate::value::Dict = self.safe_dict_k_t(&data, "spotConfig");
         let mut multiChain: crate::value::Dict = self.safe_dict_k_t(&spotConfig, "multiChain");
@@ -1500,7 +1500,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_v3_symbols(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut contractConfig: crate::value::Dict = self.safe_dict_k_t(&data, "contractConfig");
         let mut perpetualContract: crate::value::List = self.safe_list_k_t(&contractConfig, "perpetualContract");
@@ -1541,7 +1541,7 @@ impl Apex {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v3_ticker(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_ticker", &[__ws_arg_0]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&market));
@@ -1572,7 +1572,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_v3_data_all_ticker_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_data_all_ticker_info", &[params]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
@@ -1626,7 +1626,7 @@ impl Apex {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.public_get_v3_klines(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_klines", &[__ws_arg_1]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut OHLCVs: crate::value::List = self.safe_list_t(&data, self.safe_string_k(&market, "id2", &[]));
         return self.parse_ohlc_vs(&OHLCVs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
@@ -1668,7 +1668,7 @@ impl Apex {
         });
         request.insert("limit".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit })); // max 100, default 100
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v3_depth(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_depth", &[__ws_arg_2]).await;
         //
         // {
         //     "a": [
@@ -1742,7 +1742,7 @@ impl Apex {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(500); // default is 50
         request.insert("limit".into(), Value::from(limitResolved));
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v3_trades(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_trades", &[__ws_arg_3]).await;
         //
         // [
         //  {
@@ -1800,7 +1800,7 @@ impl Apex {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v3_ticker(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_ticker", &[__ws_arg_4]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &rawTicker, Some(&market));
@@ -1862,7 +1862,7 @@ impl Apex {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v3_history_funding(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_history_funding", &[__ws_arg_5]).await;
         //
         // {
         //     "historyFunds": [
@@ -2144,7 +2144,7 @@ impl Apex {
         }
         request.insert("signature".into(), signature);
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted3]);
-        let mut response: crate::value::Dict = self.private_post_v3_order(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_order", &[__ws_arg_6]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
         Value::Null
@@ -2180,7 +2180,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut configResponse: crate::value::Dict = self.public_get_v3_symbols(&[params.clone()]).await.into_dict();
+        let mut configResponse: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[params.clone()]).await;
         let mut configData: crate::value::Dict = self.safe_dict_k_t(&configResponse, "data");
         let mut contractConfig: crate::value::Dict = self.safe_dict_k_t(&configData, "contractConfig");
         let mut spotConfig: crate::value::Dict = self.safe_dict_k_t(&configData, "spotConfig");
@@ -2189,7 +2189,7 @@ impl Apex {
         let mut receiverZkAccountId: String = self.safe_string_k(&globalConfig, "contractAssetPoolZkAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut receiverSubAccountId: String = self.safe_string_k(&globalConfig, "contractAssetPoolSubAccount", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut receiverAccountId: String = self.safe_string_k(&globalConfig, "contractAssetPoolAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut accountResponse: crate::value::Dict = self.private_get_v3_account(&[params.clone()]).await.into_dict();
+        let mut accountResponse: crate::value::Dict = self.call_method_t("private_get_v3_account", &[params.clone()]).await;
         let mut accountData: crate::value::Dict = self.safe_dict_k_t(&accountResponse, "data");
         let mut spotAccount: crate::value::Dict = self.safe_dict_k_t(&accountData, "spotAccount");
         let mut zkAccountId: String = self.safe_string_k(&spotAccount, "zkAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2263,7 +2263,7 @@ impl Apex {
                 m
             }).into_dict();
             let __ws_arg_7 = self.extend(request, &[&paramsOmitted]);
-            let mut response: crate::value::Dict = self.private_post_v3_contract_transfer_out(&[__ws_arg_7]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("private_post_v3_contract_transfer_out", &[__ws_arg_7]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut currentTime: i64 = self.milliseconds();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
@@ -2313,7 +2313,7 @@ impl Apex {
                 m
             }).into_dict();
             let __ws_arg_10 = self.extend(request, &[&paramsOmitted]);
-            let mut response: crate::value::Dict = self.private_post_v3_transfer_out(&[__ws_arg_10]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("private_post_v3_transfer_out", &[__ws_arg_10]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut currentTime: i64 = self.milliseconds();
             let __ws_arg_11 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&self.currency(code)));
@@ -2367,7 +2367,7 @@ impl Apex {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_v3_delete_open_orders(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_delete_open_orders", &[__ws_arg_14]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::from(vec![<Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref())]);
         Value::Null
@@ -2405,11 +2405,11 @@ impl Apex {
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_15 = self.extend(&request, &[self.omit(&params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
-            response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await.into_opt_dict();
+            response = self.call_method_o("private_post_v3_delete_client_order_id", &[__ws_arg_15]).await;
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_v3_delete_order(&[__ws_arg_16]).await.into_opt_dict();
+            response = self.call_method_o("private_post_v3_delete_order", &[__ws_arg_16]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.safe_order(Value::Dict(data), None);
@@ -2453,11 +2453,11 @@ impl Apex {
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_17 = self.extend(&request, &[self.omit(&params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
-            response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("private_get_v3_order_by_client_order_id", &[__ws_arg_17]).await;
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_v3_order(&[__ws_arg_18]).await.into_opt_dict();
+            response = self.call_method_o("private_get_v3_order", &[__ws_arg_18]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
@@ -2492,7 +2492,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_v3_open_orders(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_open_orders", &[params]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&orders, None, &[since, limit]);
         Value::Null
@@ -2553,7 +2553,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_v3_history_orders(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_history_orders", &[__ws_arg_19]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
@@ -2602,7 +2602,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "clientId"], &[]);
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_v3_order_fills(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_order_fills", &[__ws_arg_20]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_trades(&orders, None, &[since, limit]);
@@ -2662,7 +2662,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_v3_fills(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_fills", &[__ws_arg_21]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_trades(&orders, market.as_ref(), &[since, limit]);
@@ -2721,7 +2721,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_v3_funding(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_funding", &[__ws_arg_22]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut fundingValues: crate::value::List = self.safe_list_k_t(&data, "fundingValues");
         return self.parse_incomes(&fundingValues, &[crate::Value::from(market.as_ref()), since, limit]);
@@ -2768,7 +2768,7 @@ impl Apex {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_v3_set_initial_margin_rate(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_set_initial_margin_rate", &[__ws_arg_23]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::Dict(data);
         Value::Null
@@ -2798,7 +2798,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_v3_account(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut positions: crate::value::List = self.safe_list_k_t(&data, "positions");
         return self.parse_positions(&positions, &[symbols]);

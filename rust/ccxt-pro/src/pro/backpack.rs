@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
         Box::pin(async move {
             match method {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_balance" => self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_stock_ticker" => self.handle_stock_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
@@ -114,7 +114,7 @@ impl Backpack {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_balance" => self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -444,9 +444,9 @@ impl Backpack {
             self.watch_public(topics, Value::from(messageHashes), &[Value::Dict(payload)]).await;
         }
         if bidAsk.as_bool() == Some(true) {
-            return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
+            return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
+        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
 
     Value::Null
 }
@@ -1140,9 +1140,9 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_43: bool = true;
             while { if !__for_first_43 { i += 1; } __for_first_43 = false; i < symbolsLength } {
-            let mut marketId: Option<String> = self.safe_string_opt(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(0), &[]);
+            let mut marketId: Option<String> = self.safe_string_opt(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut tf: String = self.safe_string(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.clone()), &[Value::from(tf)]);
             self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -1199,9 +1199,9 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_44: bool = true;
             while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < symbolsLength } {
-            let mut marketId: Option<String> = self.safe_string_opt(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(0), &[]);
+            let mut marketId: Option<String> = self.safe_string_opt(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut tf: String = self.safe_string(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.clone()), &[Value::from(tf)]);
             self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -1290,7 +1290,7 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchTrades", params).await;
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), query).await);
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), query).await);
         Value::Null
         }).await?))
     }
@@ -1318,7 +1318,7 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchTrades", params).await;
-        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), query).await);
+        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], query).await);
         Value::Null
         }).await?))
     }
@@ -1561,7 +1561,7 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchOrderBook", params).await;
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), limit.as_i64(), query).await);
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit.as_i64(), query).await);
         Value::Null
         }).await?))
     }
@@ -1643,7 +1643,7 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchOrderBook", params).await;
-        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), query).await);
+        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(vec![symbol.to_string()], query).await);
         Value::Null
         }).await?))
     }
@@ -1725,15 +1725,16 @@ impl Backpack {
         let mut deltaNonce: Option<i64> = self.safe_integer_k(&data, "u", &[]).as_i64();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if (nonce.is_none()) {
-            let mut cacheLength: Value = Value::Int(storedOrderBook.book_field("cache").len() as i64);
+            let mut cacheSize: i64 = storedOrderBook.book_field("cache").len() as i64;
+            let mut cacheLength: Option<i64> = self.parse_to_int(Value::from(cacheSize));
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache_push(Value::from(&data));
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isStockMarket: bool = ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
             let mut defaultSnapshotDelay: i64 = (if isStockMarket { 0 } else { 10 });
-            let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::from(defaultSnapshotDelay)]);
-            if is_equal(&cacheLength, &snapshotDelay) {
+            let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::from(defaultSnapshotDelay)]));
+            if (cacheLength == snapshotDelay) {
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2108,7 +2109,7 @@ impl Backpack {
  * @param {object} message stream envelope
  * @returns {boolean} whether a balance was updated
  */
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
@@ -2489,7 +2490,7 @@ impl Backpack {
         if (event.as_deref() == Some("stockPrice")) || (event.as_deref() == Some("stockIndicativeQuote")) {
             self.handle_stock_ticker(&client, &message);
         }  else if (event.as_deref() == Some("balanceUpdate")) {
-            self.handle_balance(client.clone(), message.clone());
+            self.handle_balance(&client, message.clone());
         }  else if (event.as_deref() == Some("rfqAccepted")) || (event.as_deref() == Some("rfqCandidate")) || (event.as_deref() == Some("rfqAcceptedBinding")) || (event.as_deref() == Some("rfqFilled")) || (event.as_deref() == Some("rfqCancelled")) || (event.as_deref() == Some("quoteAccepted")) || (event.as_deref() == Some("quoteCancelled")) {
             self.handle_order(&client, message.clone());
         }  else if (event.as_deref() == Some("ticker")) || (event.as_deref() == Some("externalTicker")) {

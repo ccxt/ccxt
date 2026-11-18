@@ -5785,7 +5785,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_system_status(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_system_status", &[params]).await;
         //
         // Note, if there is no maintenance around, the 'data' array is empty
         //
@@ -5859,7 +5859,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_public_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_time", &[params]).await;
         //
         //     {
         //         "code": "0",
@@ -5894,7 +5894,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.private_get_account_config(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_config", &[params]).await;
         //
         //     {
         //         "code": "0",
@@ -6047,7 +6047,7 @@ impl Okx {
             return self.parse_markets(&markets);
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_public_instruments(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_instruments", &[__ws_arg_11]).await;
         //
         // spot, future, swap, option
         //
@@ -6140,7 +6140,7 @@ impl Okx {
         //
         //     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         //
-        let mut response: crate::value::Dict = self.private_get_asset_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_currencies", &[params]).await;
         //
         //    {
         //        "code": "0",
@@ -6245,13 +6245,13 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if rpi {
             let __ws_arg_12 = self.extend(&request, &[&paramsMethod]);
-            response = self.public_get_market_books_rpi(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("public_get_market_books_rpi", &[__ws_arg_12]).await;
         }  else if isFullBook || largeLimit {
             let __ws_arg_13 = self.extend(&request, &[&paramsMethod]);
-            response = self.public_get_market_books_full(&[__ws_arg_13]).await.into_opt_dict();
+            response = self.call_method_o("public_get_market_books_full", &[__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMethod]);
-            response = self.public_get_market_books(&[__ws_arg_14]).await.into_opt_dict();
+            response = self.call_method_o("public_get_market_books", &[__ws_arg_14]).await;
         }
         //
         //     {
@@ -6317,7 +6317,7 @@ impl Okx {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_ticker(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_ticker", &[__ws_arg_15]).await;
         //
         //     {
         //         "code": "0",
@@ -6394,7 +6394,7 @@ impl Okx {
             }
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.public_get_market_tickers(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_tickers", &[__ws_arg_16]).await;
         //
         //     {
         //         "code": "0",
@@ -6457,7 +6457,7 @@ impl Okx {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_public_mark_price(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_mark_price", &[__ws_arg_17]).await;
         //
         // {
         //     "code": "0",
@@ -6521,7 +6521,7 @@ impl Okx {
             }
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.public_get_public_mark_price(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_mark_price", &[__ws_arg_18]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -6575,7 +6575,7 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (market).option {
             let __ws_arg_19 = self.extend(&request, &[&paramsPaginate]);
-            response = self.public_get_public_option_trades(&[__ws_arg_19]).await.into_opt_dict();
+            response = self.call_method_o("public_get_public_option_trades", &[__ws_arg_19]).await;
         }  else {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone()); // default 100
@@ -6585,10 +6585,10 @@ impl Okx {
             let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
             if (method.as_deref() == Some("publicGetMarketTrades")) {
                 let __ws_arg_20 = self.extend(&request, &[&paramsMethod]);
-                response = self.public_get_market_trades(&[__ws_arg_20]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_trades", &[__ws_arg_20]).await;
             }  else if (method.as_deref() == Some("publicGetMarketHistoryTrades")) {
                 let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsMethod]);
-                response = self.public_get_market_history_trades(&[__ws_arg_21]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_history_trades", &[__ws_arg_21]).await;
             }
         }
         //
@@ -6736,10 +6736,10 @@ impl Okx {
         if (priceType.as_deref() == Some("mark")) {
             if isHistoryCandles {
                 let __ws_arg_22 = self.extend(&request, &[&paramsType]);
-                response = self.public_get_market_history_mark_price_candles(&[__ws_arg_22]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_history_mark_price_candles", &[__ws_arg_22]).await;
             }  else {
                 let __ws_arg_23 = self.extend(&request, &[&paramsType]);
-                response = self.public_get_market_mark_price_candles(&[__ws_arg_23]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_mark_price_candles", &[__ws_arg_23]).await;
             }
         }  else if (priceType.as_deref() == Some("index")) {
             let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
@@ -6749,10 +6749,10 @@ impl Okx {
             request.insert("instId".into(), marketInfo.get("instFamily").cloned().unwrap_or(Value::Null)); // okx index candles require instFamily instead of instId
             if isHistoryCandles {
                 let __ws_arg_24 = self.extend(&request, &[&paramsType]);
-                response = self.public_get_market_history_index_candles(&[__ws_arg_24]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_history_index_candles", &[__ws_arg_24]).await;
             }  else {
                 let __ws_arg_25 = self.extend(&request, &[&paramsType]);
-                response = self.public_get_market_index_candles(&[__ws_arg_25]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_index_candles", &[__ws_arg_25]).await;
             }
         }  else {
             if isHistoryCandles {
@@ -6761,10 +6761,10 @@ impl Okx {
                     request.insert("limit".into(), Value::Int(300)); // reassign to 300, but this whole logic needs to be simplified...
                 }
                 let __ws_arg_26 = self.extend(&request, &[&paramsType]);
-                response = self.public_get_market_history_candles(&[__ws_arg_26]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_history_candles", &[__ws_arg_26]).await;
             }  else {
                 let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsType]);
-                response = self.public_get_market_candles(&[__ws_arg_27]).await.into_opt_dict();
+                response = self.call_method_o("public_get_market_candles", &[__ws_arg_27]).await;
             }
         }
         //
@@ -6840,7 +6840,7 @@ impl Okx {
         }
         let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]) } else { paramsPaginate });
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.public_get_public_funding_rate_history(&[__ws_arg_28]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_funding_rate_history", &[__ws_arg_28]).await;
         //
         //     {
         //         "code":"0",
@@ -7021,7 +7021,7 @@ impl Okx {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTradingFee() supports spot, swap, future or option markets only")));
         }
         let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_account_trade_fee(&[__ws_arg_29]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_trade_fee", &[__ws_arg_29]).await;
         //
         //     {
         //         "code": "0",
@@ -7080,10 +7080,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("funding")) {
             let __ws_arg_30 = self.extend(&request, &[&query]);
-            response = self.private_get_asset_balances(&[__ws_arg_30]).await.into_opt_dict();
+            response = self.call_method_o("private_get_asset_balances", &[__ws_arg_30]).await;
         }  else {
             let __ws_arg_31 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_account_balance(&[__ws_arg_31]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_balance", &[__ws_arg_31]).await;
         }
         return self.parse_balance_by_type(marketType.as_deref(), &response);
         Value::Null
@@ -7587,15 +7587,15 @@ impl Okx {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
-            request = Value::from(vec![request.clone()]);
+            request = Value::from(vec![request]);
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method == "privatePostTradeOrder") {
-            response = self.private_post_trade_order(&[request.clone()]).await.into_opt_dict();
+            response = self.call_method_o("private_post_trade_order", &[request.clone()]).await;
         }  else if (method == "privatePostTradeOrderAlgo") {
-            response = self.private_post_trade_order_algo(&[request.clone()]).await.into_opt_dict();
+            response = self.call_method_o("private_post_trade_order_algo", &[request.clone()]).await;
         }  else {
-            response = self.private_post_trade_batch_orders(&[request]).await.into_opt_dict();
+            response = self.call_method_o("private_post_trade_batch_orders", &[request]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
@@ -7635,7 +7635,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1014: bool = true;
             while { if !__for_first_1014 { i += 1; } __for_first_1014 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: String = self.safe_string_k(&rawOrder, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
@@ -7655,7 +7655,7 @@ impl Okx {
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
-        let mut response: crate::value::Dict = self.private_post_trade_batch_orders(&[Value::from(ordersRequests)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_batch_orders", &[Value::from(ordersRequests)]).await;
         // {
         //     "code": "0",
         //     "data": [
@@ -7685,7 +7685,6 @@ impl Okx {
     }
 
     pub fn edit_order_request(&self, id: Option<&str>, symbol: Option<&str>, type_var: &str, side: &str, optional_args: &[Value]) -> Value {
-        let mut side: Value = side.into();
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -7854,10 +7853,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (isAlgoOrder == Some(true)) {
             let __ws_arg_34 = self.extend(&request, &[&params]);
-            response = self.private_post_trade_amend_algos(&[__ws_arg_34]).await.into_opt_dict();
+            response = self.call_method_o("private_post_trade_amend_algos", &[__ws_arg_34]).await;
         }  else {
             let __ws_arg_35 = self.extend(request, &[params]);
-            response = self.private_post_trade_amend_order(&[__ws_arg_35]).await.into_opt_dict();
+            response = self.call_method_o("private_post_trade_amend_order", &[__ws_arg_35]).await;
         }
         //
         //     {
@@ -7912,7 +7911,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1015: bool = true;
             while { if !__for_first_1015 { i += 1; } __for_first_1015 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrders() requires a symbol for each order")));
@@ -7935,7 +7934,7 @@ impl Okx {
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
-        let mut response: crate::value::Dict = self.private_post_trade_amend_batch_orders(&[Value::from(ordersRequests)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_amend_batch_orders", &[Value::from(ordersRequests)]).await;
         //
         //     {
         //         "code": "0",
@@ -7992,7 +7991,7 @@ impl Okx {
         let mut trailing: bool = self.safe_bool_k_opt(&params, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if isTrigger || trailing {
-            let mut orderInner: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id.clone()])).to_str_vec(), symbol.as_str(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut orderInner: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], symbol.as_str(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut canceledInner: Option<crate::value::Dict> = (match orderInner.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
             return canceledInner.map_or(Value::Null, Value::Dict);
         }
@@ -8013,7 +8012,7 @@ impl Okx {
         }
         let mut query: crate::value::Dict = self.omit_t(params, &["clOrdId", "clientOrderId"], &[]);
         let __ws_arg_36 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_post_trade_cancel_order(&[__ws_arg_36]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_cancel_order", &[__ws_arg_36]).await;
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut order: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
@@ -8145,9 +8144,9 @@ impl Okx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privatePostTradeCancelAlgos")) {
-            response = self.private_post_trade_cancel_algos(&[Value::from(request.clone())]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.call_method_o("private_post_trade_cancel_algos", &[Value::from(request.clone())]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
-            response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.call_method_o("private_post_trade_cancel_batch_orders", &[Value::from(request)]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         //
         //     {
@@ -8227,7 +8226,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1019: bool = true;
             while { if !__for_first_1019 { i += 1; } __for_first_1019 = false; i < (orders.len() as i64) } {
-            let mut order: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
             let mut clientOrderId: Option<String> = self.safe_string2_opt(&order, Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -8252,9 +8251,9 @@ impl Okx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privatePostTradeCancelAlgos")) {
-            response = self.private_post_trade_cancel_algos(&[Value::from(request.clone())]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.call_method_o("private_post_trade_cancel_algos", &[Value::from(request.clone())]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
-            response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = self.call_method_o("private_post_trade_cancel_batch_orders", &[Value::from(request)]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         //
         //     {
@@ -8318,7 +8317,7 @@ impl Okx {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_cancel_all_after(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_cancel_all_after", &[__ws_arg_37]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -8404,10 +8403,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrderAlgo")) {
             let __ws_arg_38 = self.extend(&request, &[&query]);
-            response = self.private_get_trade_order_algo(&[__ws_arg_38]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_order_algo", &[__ws_arg_38]).await;
         }  else {
             let __ws_arg_39 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_trade_order(&[__ws_arg_39]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_order", &[__ws_arg_39]).await;
         }
         //
         // Spot and Swap
@@ -8584,10 +8583,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
             let __ws_arg_40 = self.extend(&request, &[&query]);
-            response = self.private_get_trade_orders_algo_pending(&[__ws_arg_40]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_algo_pending", &[__ws_arg_40]).await;
         }  else {
             let __ws_arg_41 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_trade_orders_pending(&[__ws_arg_41]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_pending", &[__ws_arg_41]).await;
         }
         //
         //     {
@@ -8776,10 +8775,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(&request, &[&send]);
-            response = self.private_get_trade_orders_algo_history(&[__ws_arg_42]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_algo_history", &[__ws_arg_42]).await;
         }  else {
             let __ws_arg_43 = self.extend(Value::Map(request), &[&send]);
-            response = self.private_get_trade_orders_history(&[__ws_arg_43]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_history", &[__ws_arg_43]).await;
         }
         //
         //     {
@@ -8977,13 +8976,13 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(&request, &[&send]);
-            response = self.private_get_trade_orders_algo_history(&[__ws_arg_44]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_algo_history", &[__ws_arg_44]).await;
         }  else if (method.as_deref() == Some("privateGetTradeOrdersHistoryArchive")) {
             let __ws_arg_45 = self.extend(&request, &[&send]);
-            response = self.private_get_trade_orders_history_archive(&[__ws_arg_45]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_history_archive", &[__ws_arg_45]).await;
         }  else {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&send]);
-            response = self.private_get_trade_orders_history(&[__ws_arg_46]).await.into_opt_dict();
+            response = self.call_method_o("private_get_trade_orders_history", &[__ws_arg_46]).await;
         }
         //
         //     {
@@ -9144,7 +9143,7 @@ impl Okx {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone()); // default 100, max 100
         }
         let __ws_arg_47 = self.extend(requestUntil, &[&query]);
-        let mut response: crate::value::Dict = self.private_get_trade_fills_history(&[__ws_arg_47]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_fills_history", &[__ws_arg_47]).await;
         //
         //     {
         //         "code": "0",
@@ -9289,13 +9288,13 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetAccountBillsArchive")) {
             let __ws_arg_49 = self.extend(&requestUntil, &[&query]);
-            response = self.private_get_account_bills_archive(&[__ws_arg_49]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_bills_archive", &[__ws_arg_49]).await;
         }  else if (method.as_deref() == Some("privateGetAssetBills")) {
             let __ws_arg_50 = self.extend(&requestUntil, &[&query]);
-            response = self.private_get_asset_bills(&[__ws_arg_50]).await.into_opt_dict();
+            response = self.call_method_o("private_get_asset_bills", &[__ws_arg_50]).await;
         }  else {
             let __ws_arg_51 = self.extend(requestUntil, &[&query]);
-            response = self.private_get_account_bills(&[__ws_arg_51]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_bills", &[__ws_arg_51]).await;
         }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -9402,7 +9401,7 @@ impl Okx {
             m
         });
         let __ws_arg_52 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_asset_deposit_address(&[__ws_arg_52]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_deposit_address", &[__ws_arg_52]).await;
         //
         //     {
         //         "code": "0",
@@ -9560,7 +9559,7 @@ impl Okx {
         }
         let mut query: crate::value::Dict = self.omit_t(&paramsWithdrawTag, Value::from(omitKeys), &[]);
         let __ws_arg_53 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_post_asset_withdrawal(&[__ws_arg_53]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_asset_withdrawal", &[__ws_arg_53]).await;
         //
         //     {
         //         "code": "0",
@@ -9635,7 +9634,7 @@ impl Okx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_54 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_54]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_deposit_history", &[__ws_arg_54]).await;
         //
         //     {
         //         "code": "0",
@@ -9709,7 +9708,7 @@ impl Okx {
             request.insert("ccy".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_55 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_asset_deposit_history(&[__ws_arg_55]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_deposit_history", &[__ws_arg_55]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut deposit: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &deposit, currency.as_ref());
@@ -9771,7 +9770,7 @@ impl Okx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_56 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_56]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_withdrawal_history", &[__ws_arg_56]).await;
         //
         //     {
         //         "code": "0",
@@ -9837,7 +9836,7 @@ impl Okx {
             request.insert("ccy".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_57 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[__ws_arg_57]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_withdrawal_history", &[__ws_arg_57]).await;
         //
         //    {
         //        "code": "0",
@@ -9958,7 +9957,7 @@ impl Okx {
             m
         });
         let __ws_arg_58 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: crate::value::Dict = self.private_get_account_leverage_info(&[__ws_arg_58]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_leverage_info", &[__ws_arg_58]).await;
         //
         //     {
         //        "code": "0",
@@ -10017,7 +10016,7 @@ impl Okx {
             request.insert("instType".into(), self.convert_to_instrument_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_59 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_get_account_positions(&[__ws_arg_59]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_positions", &[__ws_arg_59]).await;
         //
         //     {
         //         "code": "0",
@@ -10124,10 +10123,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetAccountPositionsHistory")) {
             let __ws_arg_60 = self.extend(&request, &[&params]);
-            response = self.private_get_account_positions_history(&[__ws_arg_60]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_positions_history", &[__ws_arg_60]).await;
         }  else {
             let __ws_arg_61 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_account_positions(&[__ws_arg_61]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_positions", &[__ws_arg_61]).await;
         }
         //
         //     {
@@ -10270,7 +10269,7 @@ impl Okx {
             request.insert("to".into(), self.safe_string_k(&params, "to", &[Value::Str("6".into())]));
         }
         let __ws_arg_62 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_asset_transfer(&[__ws_arg_62]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_asset_transfer", &[__ws_arg_62]).await;
         //
         //     {
         //         "code": "0",
@@ -10337,7 +10336,7 @@ impl Okx {
             m
         });
         let __ws_arg_63 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_asset_transfer_state(&[__ws_arg_63]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_transfer_state", &[__ws_arg_63]).await;
         //
         //     {
         //         "code": "0",
@@ -10409,7 +10408,7 @@ impl Okx {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_64 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.private_get_account_bills_archive(&[__ws_arg_64]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_bills_archive", &[__ws_arg_64]).await;
         //
         //    {
         //        "code": "0",
@@ -10525,7 +10524,7 @@ impl Okx {
             m
         });
         let __ws_arg_65 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_public_funding_rate(&[__ws_arg_65]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_funding_rate", &[__ws_arg_65]).await;
         //
         //    {
         //        "code": "0",
@@ -10594,7 +10593,7 @@ impl Okx {
             m
         });
         let __ws_arg_66 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_public_funding_rate(&[__ws_arg_66]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_funding_rate", &[__ws_arg_66]).await;
         //
         //    {
         //        "code": "0",
@@ -10682,7 +10681,7 @@ impl Okx {
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
         let __ws_arg_67 = self.extend(requestUntil, &[&query]);
-        let mut response: crate::value::Dict = self.private_get_account_bills_archive(&[__ws_arg_67]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_bills_archive", &[__ws_arg_67]).await;
         //
         //    {
         //        "bal": "0.0242946200998573",
@@ -10805,7 +10804,7 @@ impl Okx {
             request.insert("posSide".into(), Value::from(posSide));
         }
         let __ws_arg_68 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: crate::value::Dict = self.private_post_account_set_leverage(&[__ws_arg_68]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_set_leverage", &[__ws_arg_68]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -10890,7 +10889,7 @@ impl Okx {
             m
         });
         let __ws_arg_69 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_account_set_position_mode(&[__ws_arg_69]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_set_position_mode", &[__ws_arg_69]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -10945,7 +10944,7 @@ impl Okx {
             m
         });
         let __ws_arg_70 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_account_set_leverage(&[__ws_arg_70]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_set_leverage", &[__ws_arg_70]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -10972,7 +10971,7 @@ impl Okx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_account_interest_rate(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_interest_rate", &[params]).await;
         //
         //    {
         //        "code": "0",
@@ -11037,7 +11036,7 @@ impl Okx {
             m
         });
         let __ws_arg_71 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_account_interest_rate(&[__ws_arg_71]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_interest_rate", &[__ws_arg_71]).await;
         //
         //    {
         //        "code": "0",
@@ -11141,7 +11140,7 @@ impl Okx {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_72 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_finance_savings_lending_rate_history(&[__ws_arg_72]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_finance_savings_lending_rate_history", &[__ws_arg_72]).await;
         //
         //     {
         //         "code": "0",
@@ -11194,7 +11193,7 @@ impl Okx {
             request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_73 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_finance_savings_lending_rate_history(&[__ws_arg_73]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_finance_savings_lending_rate_history", &[__ws_arg_73]).await;
         //
         //     {
         //         "code": "0",
@@ -11235,7 +11234,7 @@ impl Okx {
             m
         });
         let __ws_arg_74 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_account_position_margin_balance(&[__ws_arg_74]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_position_margin_balance", &[__ws_arg_74]).await;
         //
         //     {
         //       "code": "0",
@@ -11366,7 +11365,7 @@ impl Okx {
             request.insert("instId".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: crate::value::Dict = self.public_get_public_position_tiers(&[__ws_arg_76]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_position_tiers", &[__ws_arg_76]).await;
         //
         //    {
         //        "code": "0",
@@ -11452,7 +11451,7 @@ impl Okx {
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: crate::value::Dict = self.private_get_account_interest_accrued(&[__ws_arg_77]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_interest_accrued", &[__ws_arg_77]).await;
         //
         //    {
         //        "code": "0",
@@ -11514,7 +11513,7 @@ impl Okx {
             m
         });
         let __ws_arg_78 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_account_borrow_repay(&[__ws_arg_78]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_borrow_repay", &[__ws_arg_78]).await;
         //
         //     {
         //         "code": "0",
@@ -11578,7 +11577,7 @@ impl Okx {
             m
         });
         let __ws_arg_79 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_account_borrow_repay(&[__ws_arg_79]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_borrow_repay", &[__ws_arg_79]).await;
         //
         //     {
         //         "code": "0",
@@ -11667,7 +11666,7 @@ impl Okx {
             m
         });
         let __ws_arg_80 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_public_open_interest(&[__ws_arg_80]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_open_interest", &[__ws_arg_80]).await;
         //
         //     {
         //         "code": "0",
@@ -11749,7 +11748,7 @@ impl Okx {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
         }
         let __ws_arg_81 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let mut response: crate::value::Dict = self.public_get_public_open_interest(&[__ws_arg_81]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_open_interest", &[__ws_arg_81]).await;
         //
         //     {
         //         "code": "0",
@@ -11840,7 +11839,7 @@ impl Okx {
             let mut instrumentRequestWindow: Value = instrumentRequestWindowparamsWindowVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_82 = self.extend(instrumentRequestWindow, &[&paramsWindow]);
-            response = self.public_get_rubik_stat_contracts_open_interest_history(&[__ws_arg_82]).await.into_opt_dict();
+            response = self.call_method_o("public_get_rubik_stat_contracts_open_interest_history", &[__ws_arg_82]).await;
             //
             //    {
             //        "code": "0",
@@ -11861,7 +11860,7 @@ impl Okx {
         }
         if (type_var.as_deref() == Some("option")) {
             let __ws_arg_83 = self.extend(&request, &[&paramsMarketType]);
-            response = self.public_get_rubik_stat_option_open_interest_volume(&[__ws_arg_83]).await.into_opt_dict();
+            response = self.call_method_o("public_get_rubik_stat_option_open_interest_volume", &[__ws_arg_83]).await;
         }  else {
             if (since != Value::Null) {
                 request.insert("begin".into(), since.clone());
@@ -11872,7 +11871,7 @@ impl Okx {
             }
             let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsMarketType, &["until"], &[]) } else { paramsMarketType });
             let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_get_rubik_stat_contracts_open_interest_volume(&[__ws_arg_84]).await.into_opt_dict();
+            response = self.call_method_o("public_get_rubik_stat_contracts_open_interest_volume", &[__ws_arg_84]).await;
         }
         //
         //    {
@@ -12013,7 +12012,7 @@ impl Okx {
             request.insert("ccy".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let __ws_arg_85 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_asset_currencies(&[__ws_arg_85]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_currencies", &[__ws_arg_85]).await;
         //
         //    {
         //        "code": "0",
@@ -12092,7 +12091,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]).into_opt_list();
+        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1031: bool = true;
@@ -12215,7 +12214,7 @@ impl Okx {
             request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.public_get_public_delivery_exercise_history(&[__ws_arg_86]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_delivery_exercise_history", &[__ws_arg_86]).await;
         //
         //     {
         //         "code": "0",
@@ -12297,10 +12296,10 @@ impl Okx {
         }).into_dict();
         if (method.as_deref() == Some("privateGetAccountBills")) {
             let __ws_arg_87 = self.extend(&request, &[&query]);
-            response = self.private_get_account_bills(&[__ws_arg_87]).await.into_dict();
+            response = self.call_method_t("private_get_account_bills", &[__ws_arg_87]).await;
         }  else {
             let __ws_arg_88 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_account_bills_archive(&[__ws_arg_88]).await.into_dict();
+            response = self.call_method_t("private_get_account_bills_archive", &[__ws_arg_88]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut result: Vec<Value> = Vec::new();
@@ -12432,7 +12431,7 @@ impl Okx {
             m
         });
         let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.public_get_public_underlying(&[__ws_arg_90]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_underlying", &[__ws_arg_90]).await;
         //
         //     {
         //         "code": "0",
@@ -12489,7 +12488,7 @@ impl Okx {
             m
         });
         let __ws_arg_91 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_public_opt_summary(&[__ws_arg_91]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_opt_summary", &[__ws_arg_91]).await;
         //
         //     {
         //         "code": "0",
@@ -12597,7 +12596,7 @@ impl Okx {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["uly", "instFamily"], &[]);
         let __ws_arg_92 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_get_public_opt_summary(&[__ws_arg_92]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_public_opt_summary", &[__ws_arg_92]).await;
         //
         //     {
         //         "code": "0",
@@ -12695,7 +12694,7 @@ impl Okx {
             request.insert("ccy".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_93 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: crate::value::Dict = self.private_post_trade_close_position(&[__ws_arg_93]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_close_position", &[__ws_arg_93]).await;
         //
         //    {
         //        "code": "1",
@@ -12750,7 +12749,7 @@ impl Okx {
             m
         });
         let __ws_arg_94 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_ticker(&[__ws_arg_94]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_ticker", &[__ws_arg_94]).await;
         //
         //     {
         //         "code": "0",
@@ -12816,7 +12815,7 @@ impl Okx {
             m
         });
         let __ws_arg_95 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_tickers(&[__ws_arg_95]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_tickers", &[__ws_arg_95]).await;
         //
         //     {
         //         "code": "0",
@@ -12937,7 +12936,7 @@ impl Okx {
             m
         });
         let __ws_arg_96 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_asset_convert_estimate_quote(&[__ws_arg_96]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_asset_convert_estimate_quote", &[__ws_arg_96]).await;
         //
         //     {
         //         "code": "0",
@@ -13012,7 +13011,7 @@ impl Okx {
             m
         });
         let __ws_arg_97 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_asset_convert_trade(&[__ws_arg_97]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_asset_convert_trade", &[__ws_arg_97]).await;
         //
         //     {
         //         "code": "0",
@@ -13077,7 +13076,7 @@ impl Okx {
             m
         });
         let __ws_arg_98 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_asset_convert_history(&[__ws_arg_98]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_convert_history", &[__ws_arg_98]).await;
         //
         //     {
         //         "code": "0",
@@ -13158,7 +13157,7 @@ impl Okx {
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_99 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_get_asset_convert_history(&[__ws_arg_99]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_convert_history", &[__ws_arg_99]).await;
         return self.parse_conversions(self.safe_list_k(&response, "data", &[Value::from(vec![])]), &[code, Value::Str("baseCcy".into()), Value::Str("quoteCcy".into()), since, limit]);
         Value::Null
         }).await?))
@@ -13186,7 +13185,7 @@ impl Okx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_asset_convert_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_asset_convert_currencies", &[params]).await;
         //
         //     {
         //         "code": "0",
@@ -13327,10 +13326,10 @@ impl Okx {
         let mut threeMonthsAgo: i64 = (now - 7776000000);
         if (since == Value::Null) || (since.as_i64() > Some(oneWeekAgo)) {
             let __ws_arg_100 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_account_bills(&[__ws_arg_100]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_bills", &[__ws_arg_100]).await;
         }  else if since.as_i64() > Some(threeMonthsAgo) {
             let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_account_bills_archive(&[__ws_arg_101]).await.into_opt_dict();
+            response = self.call_method_o("private_get_account_bills_archive", &[__ws_arg_101]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")));
         }
@@ -13441,7 +13440,7 @@ impl Okx {
             request.insert("instType".into(), instType.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_positions_history(&[__ws_arg_102]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_positions_history", &[__ws_arg_102]).await;
         //
         //    {
         //        code: '0',
@@ -13530,7 +13529,7 @@ impl Okx {
         let mut requestWindow: Value = requestWindowparamsWindowVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsWindow: crate::value::Dict = requestWindowparamsWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_103 = self.extend(requestWindow, &[&paramsWindow]);
-        let mut response: crate::value::Dict = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[__ws_arg_103]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_rubik_stat_contracts_long_short_account_ratio_contract", &[__ws_arg_103]).await;
         //
         //     {
         //         "code": "0",

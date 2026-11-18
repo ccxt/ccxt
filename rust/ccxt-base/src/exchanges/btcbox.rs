@@ -750,7 +750,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promise1: crate::value::Dict = self.public_get_tickers(&[]).await.into_dict();
+        let mut promise1: crate::value::Dict = self.call_method_t("public_get_tickers", &[]).await;
         let mut promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webApiGetAjaxCoinCoinInfo".into()), Value::Bool(true), &[]).await;
         let response1response2Variable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(promise1), promise2])).await.as_array().cloned().unwrap_or_default();
         let mut response1: Value = response1response2Variable.get(0).cloned().unwrap_or(Value::Null);
@@ -873,7 +873,7 @@ impl Btcbox {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -914,7 +914,7 @@ impl Btcbox {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_depth(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_depth", &[__ws_arg_0]).await;
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
@@ -954,7 +954,7 @@ impl Btcbox {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -982,7 +982,7 @@ impl Btcbox {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
         return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
@@ -1073,7 +1073,7 @@ impl Btcbox {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_add(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_add", &[__ws_arg_3]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1114,7 +1114,7 @@ impl Btcbox {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_cancel(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_cancel", &[__ws_arg_4]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1172,7 +1172,7 @@ impl Btcbox {
             m
         }), &[params.clone()]);
         let __ws_arg_5 = self.extend(request, &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_view(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_view", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))

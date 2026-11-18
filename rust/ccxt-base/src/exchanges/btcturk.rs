@@ -916,7 +916,7 @@ impl Btcturk {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_server_exchangeinfo(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_server_exchangeinfo", &[params]).await;
         //
         //    {
         //        "data": {
@@ -990,7 +990,7 @@ impl Btcturk {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_users_balances(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_users_balances", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1028,7 +1028,7 @@ impl Btcturk {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_orderbook(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbook", &[__ws_arg_0]).await;
         //     {
         //       "data": {
         //         "timestamp": 1618827901241,
@@ -1071,7 +1071,7 @@ impl Btcturk {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_ticker(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[params]).await;
         let mut tickers: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
         return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
@@ -1147,7 +1147,7 @@ impl Btcturk {
             request.insert("last".into(), limit.clone());
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[__ws_arg_1]).await;
         //
         //     {
         //       "data": [
@@ -1246,7 +1246,7 @@ impl Btcturk {
             }
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.graph_get_klines_history(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("graph_get_klines_history", &[__ws_arg_2]).await;
         //
         //    {
         //        "s": "ok",
@@ -1383,7 +1383,7 @@ impl Btcturk {
             request.insert("newClientOrderId".into(), Value::from(self.uuid(&[])));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_order(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[__ws_arg_3]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
         Value::Null
@@ -1418,7 +1418,7 @@ impl Btcturk {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_order(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[__ws_arg_4]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1465,7 +1465,7 @@ impl Btcturk {
             request.insert("pairSymbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_orders", &[__ws_arg_5]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
         let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
@@ -1515,7 +1515,7 @@ impl Btcturk {
             request.insert("startTime".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_all_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_all_orders", &[__ws_arg_6]).await;
         // {
         //   "data": [
         //     {
@@ -1586,7 +1586,7 @@ impl Btcturk {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: crate::value::Dict = self.private_get_users_transactions_trade(&[]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_users_transactions_trade", &[]).await;
         //
         //     {
         //       "data": [

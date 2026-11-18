@@ -406,12 +406,12 @@ impl Deepcoin {
             listenKey = self.safe_string_k(&self.options, "listenKey", &[]);
             let mut response: Option<crate::value::Dict> = None;
             if (listenKey == Value::Null) {
-                response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await.into_opt_dict();
+                response = self.parent.call_method_o("private_get_deepcoin_listenkey_acquire", &[params.clone()]).await;
             }  else if expired {
                 let mut method: Option<String> = self.safe_string_k_opt(&self.options, "method", &[Value::Str("privateGetDeepcoinListenkeyExtend".into())]);
                 let mut getNewKey: bool = method.as_deref() == Some("privateGetDeepcoinListenkeyAcquire");
                 if getNewKey {
-                    response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await.into_opt_dict();
+                    response = self.parent.call_method_o("private_get_deepcoin_listenkey_acquire", &[params.clone()]).await;
                 }  else {
                     let mut request: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -419,7 +419,7 @@ impl Deepcoin {
                         m
                     });
                     let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-                    response = self.parent.private_get_deepcoin_listenkey_extend(&[__ws_arg_3]).await.into_opt_dict();
+                    response = self.parent.call_method_o("private_get_deepcoin_listenkey_extend", &[__ws_arg_3]).await;
                 }
             }
             if (response.is_some()) {
@@ -1650,9 +1650,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn parse_position_side(&self, direction: Option<&str>) -> Value {
-        let mut direction: Value = direction.into();
-        if (direction == Value::Null) {
-            return direction;
+        if (direction.is_none()) {
+            return Value::from(direction);
         }
         let mut directions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1660,15 +1659,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("1".to_string(), Value::Str("short".into()));
             m
         });
-        return self.safe_string(&directions, direction.clone(), &[direction]);
+        return self.safe_string(&directions, Value::from(direction), &[Value::from(direction)]);
 
     Value::Null
 }
 
     pub fn parse_ws_margin_mode(&self, marginMode: Option<&str>) -> Value {
-        let mut marginMode: Value = marginMode.into();
-        if (marginMode == Value::Null) {
-            return marginMode;
+        if (marginMode.is_none()) {
+            return Value::from(marginMode);
         }
         let mut modes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1676,7 +1674,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("1".to_string(), Value::Str("cross".into()));
             m
         });
-        return self.safe_string(&modes, marginMode.clone(), &[marginMode]);
+        return self.safe_string(&modes, Value::from(marginMode), &[Value::from(marginMode)]);
 
     Value::Null
 }

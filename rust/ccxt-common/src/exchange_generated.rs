@@ -1169,7 +1169,7 @@ pub trait ExchangeBase:
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("watchLiquidationsForSymbols")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("watchLiquidationsForSymbols")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return crate::types::IntoRaw::into_raw(self.watch_liquidations_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+            return crate::types::IntoRaw::into_raw(self.watch_liquidations_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchLiquidations() is not supported yet")));
         Value::Null
@@ -1208,7 +1208,7 @@ pub trait ExchangeBase:
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("watchMyLiquidationsForSymbols")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("watchMyLiquidationsForSymbols")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            return crate::types::IntoRaw::into_raw(self.watch_my_liquidations_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+            return crate::types::IntoRaw::into_raw(self.watch_my_liquidations_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchMyLiquidations() is not supported yet")));
         Value::Null
@@ -3229,6 +3229,7 @@ pub trait ExchangeBase:
                 tradesLength = trades.len() as i64;
             }
             if isArray && (tradesLength > 0) {
+
                 // move properties that are defined in trades up into the order
                 if parseSymbol {
                     add_element_to_object(&mut orderDict, &Value::Str("symbol".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "symbol"));
@@ -4411,7 +4412,7 @@ pub trait ExchangeBase:
     Value::Null
 } }
 
-    fn market_ids(&self, optional_args: &[Value]) -> Value {
+    fn market_ids(&self, optional_args: &[Value]) -> Option<crate::value::List> {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         /*
          * @param {string[]|undefined} symbols list of unified symbols
@@ -4419,7 +4420,7 @@ pub trait ExchangeBase:
          * Overloads: non-null `string[]` input yields `string[]`; optional input yields `Strings`.
          */
         if (symbols == Value::Null) {
-            return symbols;
+            return None;
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -4432,9 +4433,9 @@ pub trait ExchangeBase:
             }
         }
         }
-        return Value::from(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
 
     fn currency_ids(&self, optional_args: &[Value]) -> Value {
@@ -4536,10 +4537,10 @@ pub trait ExchangeBase:
     None
 }
 
-    fn market_codes(&self, optional_args: &[Value]) -> Value {
+    fn market_codes(&self, optional_args: &[Value]) -> Option<crate::value::List> {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         if (codes == Value::Null) {
-            return codes;
+            return None;
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -4549,9 +4550,9 @@ pub trait ExchangeBase:
             result.push(self.common_currency_code(codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
-        return Value::from(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
 
     fn parse_order_book_bids_asks(&self, bidasks: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
@@ -5449,7 +5450,10 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
             while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (transactionsArray.len() as i64) } {
-            let mut transaction: crate::value::Dict = self.extend_t(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, transactionsArray.get(i as usize).cloned().unwrap_or(Value::Null), currency), &[params.clone()]);
+            let mut transaction: crate::value::Dict = self.extend_t(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, self.safe_dict(&transactionsArray, Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), currency), &[params.clone()]);
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(transaction));
         }
         }
@@ -5714,7 +5718,7 @@ pub trait ExchangeBase:
         if symbolWithUnknownStatus.as_bool() == Some(true) {
             activeStatuses.push(Value::Null);
         }
-        filteredMarkets = self.filter_by_array(filteredMarkets.clone(), Value::Str("active".into()), Value::from(activeStatuses), &[Value::Bool(false)]);
+        filteredMarkets = self.filter_by_array(std::mem::take(&mut filteredMarkets), Value::Str("active".into()), Value::from(activeStatuses), &[Value::Bool(false)]);
         return self.get_list_from_object_values(filteredMarkets, Value::Str("symbol".into()));
 
     Value::Null
@@ -9126,12 +9130,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable = self.handle_option_integer_and_params(params, method, Value::Str("maxEntriesPerRequest".into()), &[]);
-        let mut newMaxEntriesPerRequest: Option<i64> = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.0;
-        let mut paramsMaxEntriesPerRequest: crate::value::Dict = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.1;
-        let mut maxEntriesPerRequestOption: Value = (if (newMaxEntriesPerRequest.is_some()) { Value::from(newMaxEntriesPerRequest) } else { maxEntriesPerRequest });
-        let mut maxEntriesPerRequestResolved: Value = (if (maxEntriesPerRequestOption == Value::Null) { Value::Int(1000) } else { maxEntriesPerRequestOption }); // default to 1000
-        return Value::from(vec![maxEntriesPerRequestResolved, Value::Dict(paramsMaxEntriesPerRequest)]);
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        let mut maxEntriesPerRequestDefault: Value = (if (maxEntriesPerRequest == Value::Null) { Value::Int(1000) } else { maxEntriesPerRequest });
+        let maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable = self.handle_option_integer_and_params(params, method, Value::Str("maxEntriesPerRequest".into()), &[maxEntriesPerRequestDefault]);
+        let mut maxEntriesPerRequestResolved: Option<i64> = maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable.0;
+        let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable.1;
+        return Value::from(vec![Value::from(maxEntriesPerRequestResolved), Value::Dict(paramsMaxEntriesPerRequest)]);
 
     Value::Null
 }
@@ -9999,8 +10003,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn convert_market_id_expire_date(&self, date: Option<&str>) -> Value {
-        let mut date: Value = date.into();
-        if (date == Value::Null) {
+        if (date.is_none()) {
             return Value::Null;
         }
         // parse 03JAN24 to 240103.
@@ -10021,16 +10024,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
-        let mut datePadded: Option<String> = date.as_str().map(str::to_owned);
-        if (Value::Int(date.len() as i64).as_f64() == Some(6.0)) {
-            datePadded = Some(format!("{}{}", "0", date));
+        let mut datePadded: Option<String> = date.map(str::to_owned);
+        if (Value::Int(Value::from(date).len() as i64).as_f64() == Some(6.0)) {
+            datePadded = Some(format!("{}{}", "0", Value::from(date)));
         }
         let mut year: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
         let mut monthName: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(2).take(3).collect::<String>()) } else { None });
         let mut month: Option<String> = self.safe_string_opt(&monthMappping, monthName.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut day: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(5).take(2).collect::<String>()) } else { None });
         if (month.is_none()) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " invalid expiry date ").into()), date)));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " invalid expiry date ").into()), Value::from(date))));
         }
         let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day.as_deref().unwrap_or("null"), month.as_deref().unwrap_or("null")).into()), year.as_deref().unwrap_or("null"));
         return Value::from(reconstructedDate);
@@ -12149,7 +12152,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.fetch_order((self.safe_string_k(order.clone(), "id", &[Value::Str("".into())])).as_str().unwrap_or_default(), (self.safe_string_k(order, "symbol", &[])).as_str(), params).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_order((self.safe_string_k(&order, "id", &[Value::Str("".into())])).as_str().unwrap_or_default(), (self.safe_string_k(order, "symbol", &[])).as_str(), params).await);
         Value::Null
         }).await?))
     } }
@@ -12665,7 +12668,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("clientOrderIds".to_string(), clientOrderIds);
             m
         })]);
-        return crate::types::IntoRaw::into_raw(self.cancel_orders((Value::from(vec![])).to_str_vec(), symbol.as_str(), Value::Dict(extendedParams)).await);
+        return crate::types::IntoRaw::into_raw(self.cancel_orders(Vec::<String>::new(), symbol.as_str(), Value::Dict(extendedParams)).await);
         Value::Null
         }).await?))
     } }
@@ -12701,7 +12704,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.cancel_order((self.safe_string_k(order.clone(), "id", &[Value::Str("".into())])).as_str().unwrap_or_default(), (self.safe_string_k(order, "symbol", &[])).as_str(), params).await);
+        return crate::types::IntoRaw::into_raw(self.cancel_order((self.safe_string_k(&order, "id", &[Value::Str("".into())])).as_str().unwrap_or_default(), (self.safe_string_k(order, "symbol", &[])).as_str(), params).await);
         Value::Null
         }).await?))
     } }
@@ -13511,9 +13514,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "load_time_difference" => self.load_time_difference(&args[..]).await,
             "load_trading_limits" => self.load_trading_limits(&args[..]).await,
             "market" => crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-            "market_codes" => self.market_codes(&args[..]),
+            "market_codes" => self.market_codes(&args[..]).map_or(Value::Null, Value::Arr),
             "market_id" => self.market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "market_ids" => self.market_ids(&args[..]),
+            "market_ids" => self.market_ids(&args[..]).map_or(Value::Null, Value::Arr),
             "market_non_virtual" => crate::types::IntoRaw::into_raw(self.market_non_virtual(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
             "market_or_null" => self.market_or_null(&args[..]),
             "market_symbols" => self.market_symbols(&args[..]).map_or(Value::Null, Value::Arr),

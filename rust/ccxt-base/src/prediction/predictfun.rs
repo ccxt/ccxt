@@ -1004,7 +1004,7 @@ impl Predictfun {
                     m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[&rest]);
-            let mut response: crate::value::Dict = self.predictfun_get_v1_categories_slug(&[__ws_arg_1]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_categories_slug", &[__ws_arg_1]).await;
             let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
             rawTopics = std::sync::Arc::new(vec![data.map_or(Value::Null, Value::Dict)]);
         }  else if queriesLength > 0 {
@@ -1313,7 +1313,7 @@ impl Predictfun {
                 m
             });
             let __ws_arg_2 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: crate::value::Dict = self.predictfun_get_v1_search(&[__ws_arg_2]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_search", &[__ws_arg_2]).await;
             //
             //     {
             //         "data": {
@@ -2029,7 +2029,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.predictfun_get_v1_markets_id_orderbook(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_markets_id_orderbook", &[__ws_arg_3]).await;
         //
         //     {
         //         "data":
@@ -2131,7 +2131,7 @@ impl Predictfun {
         // outcome - last price and volume live behind /last-sale and /stats, one request each,
         // so they are left undefined rather than spending extra calls on them
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.predictfun_get_v1_markets_id(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_markets_id", &[__ws_arg_4]).await;
         //
         //     {
         //         "data": {
@@ -2315,7 +2315,7 @@ impl Predictfun {
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         let __ws_arg_5 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.predictfun_get_v1_orders_matches(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_matches", &[__ws_arg_5]).await;
         // the venue answers with the shape documented in fetchTrades below
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut wallet: Option<String> = signerAddress.as_deref().map(str::to_lowercase);
@@ -2412,7 +2412,7 @@ impl Predictfun {
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.predictfun_get_v1_orders_matches(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_matches", &[__ws_arg_6]).await;
         //
         //     {
         //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA1VDIzOjU1OjU2WiJ9",
@@ -2639,7 +2639,7 @@ impl Predictfun {
         if (cached.is_some()) && (now < expiresAt) {
             return cached.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut messageResponse: crate::value::Dict = self.predictfun_get_v1_auth_message(&[params]).await.into_dict();
+        let mut messageResponse: crate::value::Dict = self.call_method_t("predictfun_get_v1_auth_message", &[params]).await;
         //
         //     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
         //
@@ -2656,7 +2656,7 @@ impl Predictfun {
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: crate::value::Dict = self.predictfun_post_v1_auth(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_auth", &[Value::Map(request)]).await;
         //
         //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
         //
@@ -2968,7 +2968,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.predictfun_post_v1_orders(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_orders", &[__ws_arg_9]).await;
         //
         //     {
         //         "data": {
@@ -3052,11 +3052,11 @@ impl Predictfun {
             });
             let mut rest: crate::value::Dict = self.omit_t(params.clone(), Value::Str("address".into()), &[]);
             let __ws_arg_10 = self.extend(Value::Map(request), &[&rest]);
-            response = self.predictfun_get_v1_positions_address(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("predictfun_get_v1_positions_address", &[__ws_arg_10]).await;
         }  else {
             // the JWT is what names the wallet whose positions come back
             self.authenticate(&[]).await;
-            response = self.predictfun_get_v1_positions(&[params]).await.into_opt_dict();
+            response = self.call_method_o("predictfun_get_v1_positions", &[params]).await;
         }
         //
         //     {
@@ -3189,7 +3189,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id.clone()])).to_str_vec(), outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " cancelOrder() could not remove ").into()), id)));
@@ -3246,7 +3246,7 @@ impl Predictfun {
         });
         // this only pulls the orders off the book, it does not cancel them on chain
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.predictfun_post_v1_orders_remove_by_hash(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_orders_remove_by_hash", &[__ws_arg_12]).await;
         //
         //     {
         //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
@@ -3332,7 +3332,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.predictfun_get_v1_orders_hash(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_hash", &[__ws_arg_13]).await;
         //
         //     {
         //         "data": {
@@ -3476,7 +3476,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.predictfun_get_v1_orders(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders", &[__ws_arg_16]).await;
         //
         //     {
         //         "cursor": null,

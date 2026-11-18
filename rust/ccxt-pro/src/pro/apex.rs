@@ -238,7 +238,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -420,7 +420,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -708,7 +708,7 @@ impl Apex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsNormalized, &[]);
+        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
@@ -751,7 +751,7 @@ impl Apex {
             let mut marketId: Option<String> = self.safe_string_opt(&topicParts, Value::Int((topicLength - 1)), &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null]);
             symbol = self.safe_string_k_opt(&market, "symbol", &[]);
-            let mut ticker: crate::value::Dict = self.safe_dict_t(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut ticker: crate::value::Dict = self.safe_dict_t(&self.tickers, symbol.clone().map(Value::from).unwrap_or(Value::Null));
             let mut rawTicker: crate::value::Dict = self.safe_dict_k_t(&ticker, "info");
             let mut merged: crate::value::Dict = self.extend_t(rawTicker, &[&data]);
             parsed = self.parse_ticker(Value::Dict(merged), None).as_map().cloned().unwrap_or_default();
@@ -832,7 +832,7 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let mut data: crate::value::List = self.safe_list_t(symbolsAndTimeframes.clone(), Value::Int(i));
+            let mut data: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
             let mut symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

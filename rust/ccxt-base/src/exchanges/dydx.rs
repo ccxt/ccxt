@@ -1462,7 +1462,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.indexer_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_time", &[params]).await;
         return self.safe_integer_k(&response, "epoch", &[]);
         Value::Null
         }).await?))
@@ -1492,7 +1492,7 @@ impl Dydx {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.indexer_get_perpetual_markets(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_perpetual_markets", &[__ws_arg_0]).await;
         //
         // {
         //     "markets": {
@@ -1571,7 +1571,7 @@ impl Dydx {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.indexer_get_trades_perpetual_market_market(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_trades_perpetual_market_market", &[__ws_arg_1]).await;
         //
         // {
         //     "trades": [
@@ -1648,7 +1648,7 @@ impl Dydx {
             request.insert("toISO".into(), self.iso8601(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((duration * count)))) } else { None }))));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_candles_perpetual_markets_market", &[__ws_arg_2]).await;
         //
         // {
         //     "candles": [
@@ -1721,7 +1721,7 @@ impl Dydx {
             request.insert("effectiveBeforeOrAt".into(), self.iso8601(until));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.indexer_get_historical_funding_market(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_historical_funding_market", &[__ws_arg_3]).await;
         //
         // {
         //     "historicalFunding": [
@@ -1839,7 +1839,7 @@ impl Dydx {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut order: crate::value::Dict = self.indexer_get_orders_order_id(&[__ws_arg_4]).await.into_dict();
+        let mut order: crate::value::Dict = self.call_method_t("indexer_get_orders_order_id", &[__ws_arg_4]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None);
         Value::Null
         }).await?))
@@ -2046,7 +2046,7 @@ impl Dydx {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
-        let mut response: crate::value::Dict = self.indexer_get_perpetual_positions(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_perpetual_positions", &[__ws_arg_8]).await;
         //
         // {
         //     "positions": [
@@ -2214,7 +2214,7 @@ impl Dydx {
         //     }
         // }
         //
-        let mut response: crate::value::Dict = self.node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address", &[Value::Map(request)]).await;
         let mut account: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2251,26 +2251,24 @@ impl Dydx {
 }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut type_var: Value = type_var.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (type_var == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
-        if (side == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         let mut reduceOnly: bool = self.safe_bool2_opt(&params, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
-        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut orderType: String = type_var.to_string().to_uppercase();
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        if (side == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrderRequest() requires a side argument")));
         }
-        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
+        let mut orderSide: String = side.to_string().to_uppercase();
         let mut subaccountId: i64 = 0;
         let subaccountIdOptionparamsSubAccountIdVariable = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subaccountId)]);
         let mut subaccountIdOption: Option<i64> = subaccountIdOptionparamsSubAccountIdVariable.0;
@@ -2432,7 +2430,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.node_rpc_get_abci_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rpc_get_abci_info", &[params]).await;
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2518,7 +2516,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rpc_get_broadcast_tx_sync", &[Value::Map(request)]).await;
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2661,7 +2659,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rpc_get_broadcast_tx_sync", &[Value::Map(request)]).await;
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2763,7 +2761,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rpc_get_broadcast_tx_sync", &[Value::Map(request)]).await;
         //
         // {
         //     "jsonrpc": "2.0",
@@ -2819,7 +2817,7 @@ impl Dydx {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.indexer_get_orderbooks_perpetual_market_market(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_orderbooks_perpetual_market_market", &[__ws_arg_9]).await;
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
@@ -2893,7 +2891,7 @@ impl Dydx {
                 m.insert("txBytes".to_string(), txBytes.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: crate::value::Dict = self.node_rest_post_cosmos_tx_v1beta1_simulate(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rest_post_cosmos_tx_v1beta1_simulate", &[Value::Map(request)]).await;
         //
         // {
         //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
@@ -3064,7 +3062,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rpc_get_broadcast_tx_sync", &[Value::Map(request)]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, None);
         Value::Null
         }).await?))
@@ -3184,7 +3182,7 @@ impl Dydx {
             m
         });
         // nodeRpcGetBroadcastTxAsync
-        let mut response: crate::value::Dict = self.node_rpc_get_broadcast_tx_sync(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("node_rpc_get_broadcast_tx_sync", &[Value::Map(request)]).await;
         //
         // {
         //     "jsonrpc": "2.0",
@@ -3327,9 +3325,6 @@ impl Dydx {
     }
 
     pub async fn fetch_transactions_helper(&mut self, methodName: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut code: Value = code.into();
-        let mut since: Value = since.into();
-        let mut limit: Value = limit.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3347,7 +3342,7 @@ impl Dydx {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
-        let mut response: crate::value::Dict = self.indexer_get_transfers(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_transfers", &[__ws_arg_10]).await;
         //
         // {
         //     "transfers": [
@@ -3405,7 +3400,7 @@ impl Dydx {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let mut response: crate::value::Dict = self.indexer_get_addresses_address(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_addresses_address", &[__ws_arg_11]).await;
         //
         // {
         //     "subaccounts": [
@@ -3508,7 +3503,7 @@ impl Dydx {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSubaccountNumber]);
-        let mut response: crate::value::Dict = self.indexer_get_addresses_address_subaccount_number_subaccount_number(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("indexer_get_addresses_address_subaccount_number_subaccount_number", &[__ws_arg_12]).await;
         //
         // {
         //     "subaccount": {

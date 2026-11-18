@@ -1720,7 +1720,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_openapi_v1_ping(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_openapi_v1_ping", &[params]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".into()));
@@ -1752,7 +1752,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_openapi_v1_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_openapi_v1_time", &[params]).await;
         return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
         }).await?))
@@ -1776,7 +1776,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_openapi_v1_exchange_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_openapi_v1_exchange_info", &[params]).await;
         //
         //     {
         //         "timezone": "UTC",
@@ -2078,7 +2078,7 @@ impl Coinsph {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_openapi_quote_v1_depth(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_openapi_quote_v1_depth", &[__ws_arg_6]).await;
         //
         //     {
         //         "lastUpdateId": "1667022157000699400",
@@ -2342,7 +2342,7 @@ impl Coinsph {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_openapi_v1_account(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_openapi_v1_account", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -2455,10 +2455,10 @@ impl Coinsph {
         }).into_dict();
         if testOrder {
             let __ws_arg_11 = self.extend(&request, &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order_test(&[__ws_arg_11]).await.into_dict();
+            response = self.call_method_t("private_post_openapi_v1_order_test", &[__ws_arg_11]).await;
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order(&[__ws_arg_12]).await.into_dict();
+            response = self.call_method_t("private_post_openapi_v1_order", &[__ws_arg_12]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
@@ -2502,7 +2502,7 @@ impl Coinsph {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "origClientOrderId"], &[]);
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_openapi_v1_order(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_openapi_v1_order", &[__ws_arg_13]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2638,7 +2638,7 @@ impl Coinsph {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "origClientOrderId"], &[]);
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_openapi_v1_order", &[__ws_arg_16]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2958,7 +2958,7 @@ impl Coinsph {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_openapi_wallet_v1_withdraw_apply(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_openapi_wallet_v1_withdraw_apply", &[__ws_arg_19]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -3118,7 +3118,7 @@ impl Coinsph {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_openapi_wallet_v1_deposit_address(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_openapi_wallet_v1_deposit_address", &[__ws_arg_22]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))

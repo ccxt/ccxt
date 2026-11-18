@@ -1052,7 +1052,7 @@ impl Independentreserve {
         //     ['Xbt', 'Eth', 'Usdt', ...]
         let mut quoteCurrenciesPromise: crate::value::List = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await.into_list();
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        let mut limitsPromise: crate::value::Dict = self.public_get_get_order_minimum_volumes(&[params]).await.into_dict();
+        let mut limitsPromise: crate::value::Dict = self.call_method_t("public_get_get_order_minimum_volumes", &[params]).await;
         let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(baseCurrenciesPromise), Value::Arr(quoteCurrenciesPromise), Value::Dict(limitsPromise)])).await.into_list();
         let mut limits: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(2));
         //
@@ -1246,7 +1246,7 @@ impl Independentreserve {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_get_order_book(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_get_order_book", &[__ws_arg_0]).await;
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "CreatedTimestampUtc", &[]));
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("BuyOrders".into()), Value::Str("SellOrders".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
         Value::Null
@@ -1284,7 +1284,7 @@ impl Independentreserve {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_get_market_summary(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_get_market_summary", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1348,7 +1348,7 @@ impl Independentreserve {
                 m.insert("orderGuid".to_string(), id);
             m
         }), &[params]);
-        let mut response: crate::value::Dict = self.private_post_get_order_details(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_order_details", &[__ws_arg_2]).await;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1398,7 +1398,7 @@ impl Independentreserve {
         request.insert("pageIndex".into(), Value::Int(1));
         request.insert("pageSize".into(), Value::from(limitResolved));
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_get_open_orders(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_open_orders", &[__ws_arg_3]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "Data");
         return self.parse_orders(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
@@ -1445,7 +1445,7 @@ impl Independentreserve {
         request.insert("pageIndex".into(), Value::Int(1));
         request.insert("pageSize".into(), Value::from(limitResolved));
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_get_closed_orders(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_closed_orders", &[__ws_arg_4]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "Data");
         return self.parse_orders(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
@@ -1490,7 +1490,7 @@ impl Independentreserve {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_get_trades(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_trades", &[__ws_arg_5]).await;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1537,7 +1537,7 @@ impl Independentreserve {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_get_recent_trades(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_get_recent_trades", &[__ws_arg_6]).await;
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "Trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
@@ -1671,10 +1671,10 @@ impl Independentreserve {
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), price);
             let __ws_arg_7 = self.extend(&request, &[&params]);
-            response = self.private_post_place_limit_order(&[__ws_arg_7]).await.into_opt_dict();
+            response = self.call_method_o("private_post_place_limit_order", &[__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_place_market_order(&[__ws_arg_8]).await.into_opt_dict();
+            response = self.call_method_o("private_post_place_market_order", &[__ws_arg_8]).await;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1717,7 +1717,7 @@ impl Independentreserve {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_cancel_order(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_order", &[__ws_arg_9]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -1753,7 +1753,7 @@ impl Independentreserve {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_get_digital_currency_deposit_address(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_digital_currency_deposit_address", &[__ws_arg_10]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, None);
         Value::Null
         }).await?))
@@ -1813,7 +1813,7 @@ impl Independentreserve {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " withdraw () does not accept params[\"networkCode\"]")));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.private_post_withdraw_digital_currency(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_digital_currency", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))

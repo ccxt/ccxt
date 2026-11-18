@@ -1286,7 +1286,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_post_get_pairs_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_pairs_info", &[params]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1333,7 +1333,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_post_get_server_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_server_time", &[params]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1408,10 +1408,10 @@ impl Cex {
             m
         });
         if (symbols != Value::Null) {
-            request.insert("pairs".into(), self.market_ids(&[symbols.clone()]));
+            request.insert("pairs".into(), self.market_ids(&[symbols.clone()]).map_or(Value::Null, Value::Arr));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_ticker(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_ticker", &[__ws_arg_0]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1492,7 +1492,7 @@ impl Cex {
             request.insert("pageSize".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); // has a bug, still returns more trades
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.public_post_get_trade_history(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_trade_history", &[__ws_arg_1]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1548,7 +1548,7 @@ impl Cex {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_get_order_book(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_order_book", &[__ws_arg_2]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1639,7 +1639,7 @@ impl Cex {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.public_post_get_candles(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_get_candles", &[__ws_arg_3]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1685,7 +1685,7 @@ impl Cex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_get_my_current_fee(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_current_fee", &[params]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1772,7 +1772,7 @@ impl Cex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_get_my_account_status_v3(&[params.clone()]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_account_status_v3", &[params.clone()]).await;
         //
         //    {
         //        "ok": "ok",
@@ -1830,7 +1830,7 @@ impl Cex {
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accountBalance: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privatePostGetMyAccountStatusV3")) {
-            let mut response: crate::value::Dict = self.private_post_get_my_account_status_v3(&[Value::from(&paramsMethod)]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_account_status_v3", &[Value::from(&paramsMethod)]).await;
             //
             //    {
             //        "ok": "ok",
@@ -1851,7 +1851,7 @@ impl Cex {
     m
 }));
         }  else {
-            let mut response: crate::value::Dict = self.private_post_get_my_wallet_balance(&[Value::Dict(paramsMethod)]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_wallet_balance", &[Value::Dict(paramsMethod)]).await;
             //
             //    {
             //        "ok": "ok",
@@ -1929,7 +1929,7 @@ impl Cex {
             request.insert("serverCreateTimestampTo".into(), Value::from(until));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_post_get_my_orders(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_orders", &[__ws_arg_4]).await;
         //
         // if called without `pair`
         //
@@ -2195,7 +2195,7 @@ impl Cex {
             request.insert("stopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsTriggerPrice]);
-        let mut response: crate::value::Dict = self.private_post_do_my_new_order(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_do_my_new_order", &[__ws_arg_7]).await;
         //
         // on success
         //
@@ -2283,7 +2283,7 @@ impl Cex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_do_cancel_my_order(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_do_cancel_my_order", &[__ws_arg_8]).await;
         //
         //      {"ok":"ok","data":{}}
         //
@@ -2316,7 +2316,7 @@ impl Cex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_do_cancel_all_orders(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_do_cancel_all_orders", &[params]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2397,7 +2397,7 @@ impl Cex {
             request.insert("dateTo".into(), Value::from(until));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_post_get_my_transaction_history(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_transaction_history", &[__ws_arg_9]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2479,7 +2479,7 @@ impl Cex {
             request.insert("dateTo".into(), Value::from(until));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_post_get_my_funding_history(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_my_funding_history", &[__ws_arg_10]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2585,10 +2585,10 @@ impl Cex {
         let mut response: Option<crate::value::Dict> = None;
         if fromMain {
             let __ws_arg_11 = self.extend(&request, &[&params]);
-            response = self.private_post_do_deposit_funds_from_wallet(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("private_post_do_deposit_funds_from_wallet", &[__ws_arg_11]).await;
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_do_withdrawal_funds_to_wallet(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("private_post_do_withdrawal_funds_to_wallet", &[__ws_arg_12]).await;
         }
         // both endpoints return the same structure, the only difference is that
         // the "accountId" is filled with the "subAccount"
@@ -2627,7 +2627,7 @@ impl Cex {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_do_my_internal_transfer(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_do_my_internal_transfer", &[__ws_arg_13]).await;
         //
         //    {
         //        "ok": "ok",
@@ -2685,7 +2685,7 @@ impl Cex {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.private_post_get_deposit_address(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_get_deposit_address", &[__ws_arg_14]).await;
         //
         //    {
         //        "ok": "ok",

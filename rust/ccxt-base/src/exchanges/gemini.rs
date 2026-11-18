@@ -2149,7 +2149,7 @@ impl Gemini {
             });
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
-            let mut rawResponse: crate::value::Dict = self.public_get_v1_symbols_details_symbol(&[__ws_arg_0]).await.into_dict();
+            let mut rawResponse: crate::value::Dict = self.call_method_t("public_get_v1_symbols_details_symbol", &[__ws_arg_0]).await;
             let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, &rawResponse);
             if (parsed != Value::Null) {
                 result.push(parsed);
@@ -2294,7 +2294,7 @@ impl Gemini {
             request.insert("limit_asks".into(), limit);
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v1_book_symbol(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v1_book_symbol", &[__ws_arg_2]).await;
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
@@ -2315,7 +2315,7 @@ impl Gemini {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v1_pubticker_symbol(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v1_pubticker_symbol", &[__ws_arg_3]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
 
     Value::Null
@@ -2336,7 +2336,7 @@ impl Gemini {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v2_ticker_symbol(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v2_ticker_symbol", &[__ws_arg_4]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
 
     Value::Null
@@ -2542,7 +2542,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_post_v1_notionalvolume(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_notionalvolume", &[params]).await;
         //
         //      {
         //          "web_maker_fee_bps": 25,
@@ -2663,7 +2663,7 @@ impl Gemini {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_v1_order_status(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_order_status", &[__ws_arg_6]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2820,7 +2820,7 @@ impl Gemini {
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_v1_order_new(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_order_new", &[__ws_arg_7]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2857,7 +2857,7 @@ impl Gemini {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_v1_order_cancel(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_order_cancel", &[__ws_arg_8]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2953,7 +2953,7 @@ impl Gemini {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.private_post_v1_withdraw_currency(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_withdraw_currency", &[__ws_arg_10]).await;
         //
         //   for BTC
         //     {
@@ -3157,7 +3157,7 @@ impl Gemini {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_v1_deposit_currency_new_address(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_deposit_currency_new_address", &[__ws_arg_13]).await;
         let mut address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -3258,7 +3258,7 @@ impl Gemini {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v1_riskstats_symbol(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v1_riskstats_symbol", &[__ws_arg_15]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &response, Some(&market));
         Value::Null
         }).await?))

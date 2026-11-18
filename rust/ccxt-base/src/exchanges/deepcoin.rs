@@ -1795,7 +1795,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_market_instruments(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_market_instruments", &[__ws_arg_1]).await;
         //
         // spot
         //
@@ -1893,7 +1893,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_market_books(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_market_books", &[__ws_arg_8]).await;
         //
         //     {
         //         "code": "0",
@@ -2004,13 +2004,13 @@ impl Deepcoin {
         let mut response: Option<crate::value::Dict> = None;
         if (price.as_deref() == Some("mark")) {
             let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
-            response = self.public_get_deepcoin_market_mark_price_candles(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("public_get_deepcoin_market_mark_price_candles", &[__ws_arg_9]).await;
         }  else if (price.as_deref() == Some("index")) {
             let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
-            response = self.public_get_deepcoin_market_index_candles(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("public_get_deepcoin_market_index_candles", &[__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_get_deepcoin_market_candles(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("public_get_deepcoin_market_candles", &[__ws_arg_11]).await;
         }
         //
         //     {
@@ -2078,7 +2078,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_market_tickers(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_market_tickers", &[__ws_arg_12]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -2125,7 +2125,7 @@ impl Deepcoin {
         let mut productGroup: Option<String> = self.get_product_group_from_market(Some(&market)).as_str().map(str::to_owned);
         request.insert("productGroup".into(), productGroup.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_market_trades(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_market_trades", &[__ws_arg_13]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&data, Some(&market), &[since, limit]);
         Value::Null
@@ -2189,7 +2189,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_account_balances(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_account_balances", &[__ws_arg_14]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -2252,7 +2252,7 @@ impl Deepcoin {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_asset_deposit_list(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_asset_deposit_list", &[__ws_arg_15]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut items: crate::value::List = self.safe_list_k_t(&data, "data");
         let mut transactionParams: indexmap::IndexMap<String, Value> = ({
@@ -2321,7 +2321,7 @@ impl Deepcoin {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_asset_withdraw_list(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_asset_withdraw_list", &[__ws_arg_16]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut items: crate::value::List = self.safe_list_k_t(&data, "data");
         let mut transactionParams: indexmap::IndexMap<String, Value> = ({
@@ -2384,7 +2384,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_asset_recharge_chain_list(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_asset_recharge_chain_list", &[__ws_arg_17]).await;
         //
         //     {
         //         "code": "0",
@@ -2456,7 +2456,7 @@ impl Deepcoin {
         if (network.is_some()) {
             network = self.safe_string_opt(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(&params, Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (network.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         let mut addressess: Vec<crate::types::DepositAddress> = (match self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut length: i64 = addressess.len() as i64;
         let mut index: i64 = 0;
@@ -2538,7 +2538,7 @@ impl Deepcoin {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, Value::Str("until".into()), &[]);
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_account_bills(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_account_bills", &[__ws_arg_18]).await;
         //
         //     {
         //         "code": "0",
@@ -2641,7 +2641,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsUserId]);
-        let mut response: crate::value::Dict = self.private_post_deepcoin_asset_transfer(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_deepcoin_asset_transfer", &[__ws_arg_19]).await;
         //
         //     {
         //         "code": "0",
@@ -2723,7 +2723,7 @@ impl Deepcoin {
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             // trigger orders
-            response = self.private_post_deepcoin_trade_trigger_order(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_trigger_order", &[Value::from(&request)]).await;
         }  else {
             // regular orders
             //
@@ -2739,7 +2739,7 @@ impl Deepcoin {
             //         }
             //     }
             //
-            response = self.private_post_deepcoin_trade_order(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_order", &[Value::Dict(request)]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
@@ -2748,8 +2748,6 @@ impl Deepcoin {
     }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut type_var: Value = type_var.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2761,10 +2759,10 @@ impl Deepcoin {
          * @name deepcoin#createOrderRequest
          * @description helper function to build request
          */
-        if (type_var == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
-        if (side == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2778,9 +2776,9 @@ impl Deepcoin {
             }
         }
         if isTriggerOrder {
-            return self.create_trigger_order_request(symbol, type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params.clone()]);
+            return self.create_trigger_order_request(symbol, Some(type_var), Some(side), amount.clone(), &[price.clone(), params.clone()]);
         }  else {
-            return self.create_regular_order_request(symbol, type_var.as_str(), side.as_str(), amount, &[price, params]);
+            return self.create_regular_order_request(symbol, Some(type_var), Some(side), amount, &[price, params]);
         }
 
     Value::Null
@@ -3148,7 +3146,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_trade_finish_order_by_id(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_trade_finish_order_by_id", &[__ws_arg_20]).await;
         //
         //     {
         //         "code": "0",
@@ -3238,7 +3236,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_trade_order_by_id(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_trade_order_by_id", &[__ws_arg_21]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut length: i64 = data.len() as i64;
         if (length == 0) {
@@ -3345,7 +3343,7 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_deepcoin_trade_trigger_orders_history(&[__ws_arg_22]).await.into_opt_dict();
+            response = self.call_method_o("private_get_deepcoin_trade_trigger_orders_history", &[__ws_arg_22]).await;
         }  else {
             //
             //     {
@@ -3394,7 +3392,7 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_get_deepcoin_trade_orders_history(&[__ws_arg_23]).await.into_opt_dict();
+            response = self.call_method_o("private_get_deepcoin_trade_orders_history", &[__ws_arg_23]).await;
         }
         // todo handle with since, until and pagination
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
@@ -3566,7 +3564,7 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_deepcoin_trade_trigger_orders_pending(&[__ws_arg_24]).await.into_opt_dict();
+            response = self.call_method_o("private_get_deepcoin_trade_trigger_orders_pending", &[__ws_arg_24]).await;
         }  else {
             request.insert("index".into(), Value::from(index));
             //
@@ -3616,7 +3614,7 @@ impl Deepcoin {
             //     }
             //
             let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_25]).await.into_opt_dict();
+            response = self.call_method_o("private_get_deepcoin_trade_v2_orders_pending", &[__ws_arg_25]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&data, Some(&market), &[since, limit, Value::Map({
@@ -3669,10 +3667,10 @@ impl Deepcoin {
         if trigger {
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params.clone(), Value::Str("trigger".into()), &[]);
             let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_post_deepcoin_trade_cancel_trigger_order(&[__ws_arg_26]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_cancel_trigger_order", &[__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_deepcoin_trade_cancel_order(&[__ws_arg_27]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_cancel_order", &[__ws_arg_27]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
@@ -3715,7 +3713,7 @@ impl Deepcoin {
         let mut productGroup: Option<String> = self.get_product_group_from_market(Some(&market)).as_str().map(str::to_owned);
         let mut marginMode: Option<String> = self.safe_string_k_opt(&params, "marginMode", &[]);
         let mut encodedMarginMode: i64 = (if (marginMode.as_deref() == Some("isolated")) { 0 } else { 1 });
-        let mut paramsOmitted: crate::value::Dict = (if (marginMode.is_some()) { self.omit(&params, Value::Str("marginMode".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (marginMode.is_some()) { Value::Str("marginMode".into()) } else { Value::Null }, &[]);
         let mergedparamsMergedVariable = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("cancelAllOrders".into()), Value::Str("merged".into()), &[Value::Bool(true)]);
         let mut merged: bool = mergedparamsMergedVariable.0 == Some(true);
         let mut paramsMerged: crate::value::Dict = mergedparamsMergedVariable.1;
@@ -3729,7 +3727,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsMerged]);
-        let mut response: crate::value::Dict = self.private_post_deepcoin_trade_swap_cancel_all(&[__ws_arg_28]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_deepcoin_trade_swap_cancel_all", &[__ws_arg_28]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&data, Some(&market), &[]);
         Value::Null
@@ -3802,7 +3800,7 @@ impl Deepcoin {
             }
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params.clone(), &["stopLossPrice", "takeProfitPrice"], &[]);
             let __ws_arg_29 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_29]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_replace_order_sltp", &[__ws_arg_29]).await;
         }  else {
             if (price != Value::Null) {
                 if (symbolResolved.is_some()) {
@@ -3819,7 +3817,7 @@ impl Deepcoin {
                 }
             }
             let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_deepcoin_trade_replace_order(&[__ws_arg_30]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_replace_order", &[__ws_arg_30]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
@@ -3864,7 +3862,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_deepcoin_trade_batch_cancel_order(&[__ws_arg_31]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_deepcoin_trade_batch_cancel_order", &[__ws_arg_31]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&data, market.as_ref(), &[]);
         Value::Null
@@ -3942,7 +3940,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_account_positions(&[__ws_arg_32]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_account_positions", &[__ws_arg_32]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_positions(&data, &[Value::from(vec![Value::from((market).symbol.clone())])]);
         Value::Null
@@ -3989,7 +3987,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_account_positions(&[__ws_arg_33]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_account_positions", &[__ws_arg_33]).await;
         //
         //     {
         //         "code": "0",
@@ -4080,7 +4078,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsMrgPosition]);
-        let mut response: crate::value::Dict = self.private_post_deepcoin_account_set_leverage(&[__ws_arg_34]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_deepcoin_account_set_leverage", &[__ws_arg_34]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -4132,7 +4130,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_trade_fund_rate_current_funding_rate(&[__ws_arg_35]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_trade_fund_rate_current_funding_rate", &[__ws_arg_35]).await;
         //
         //     {
         //         "code": "0",
@@ -4192,7 +4190,7 @@ impl Deepcoin {
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_trade_fund_rate_current_funding_rate(&[__ws_arg_36]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_trade_fund_rate_current_funding_rate", &[__ws_arg_36]).await;
         //
         //     {
         //         "code": "0",
@@ -4257,7 +4255,7 @@ impl Deepcoin {
             request.insert("size".into(), limit.clone()); // default 20, max 100
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_deepcoin_trade_fund_rate_history(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_deepcoin_trade_fund_rate_history", &[__ws_arg_37]).await;
         //
         //     {
         //         "code": "0",
@@ -4351,7 +4349,7 @@ impl Deepcoin {
         }
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsMarketType, Value::Str("until".into()), &[]) } else { paramsMarketType });
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_deepcoin_trade_fills(&[__ws_arg_38]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deepcoin_trade_fills", &[__ws_arg_38]).await;
         //
         //     {
         //         "code": "0",
@@ -4468,14 +4466,14 @@ impl Deepcoin {
         let mut response: Option<crate::value::Dict> = None;
         if (positionId.is_none()) && (positionIds.is_none()) {
             let __ws_arg_39 = self.extend(&request, &[&params]);
-            response = self.private_post_deepcoin_trade_batch_close_position(&[__ws_arg_39]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_batch_close_position", &[__ws_arg_39]).await;
         }  else {
             if (positionId.is_some()) {
                 request.insert("positionIds".into(), Value::from(vec![positionId.clone().map(Value::from).unwrap_or(Value::Null)]));
             }
-            let mut paramsOmitted: crate::value::Dict = (if (positionId.is_some()) { self.omit(&params, Value::Str("positionId".into()), &[]) } else { params }).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (positionId.is_some()) { Value::Str("positionId".into()) } else { Value::Null }, &[]);
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_40]).await.into_opt_dict();
+            response = self.call_method_o("private_post_deepcoin_trade_close_position_by_ids", &[__ws_arg_40]).await;
         }
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, data, Some(&market));

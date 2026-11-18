@@ -98,7 +98,7 @@ impl Lbank {
             "fetch_order_book_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_order_book_ws", args.to_vec()); crate::Value::Null },
             "fetch_ticker_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_ticker_ws", args.to_vec()); crate::Value::Null },
             "fetch_trades_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_trades_ws", args.to_vec()); crate::Value::Null },
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => { self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1166,7 +1166,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1470,7 +1470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut authenticated: Option<crate::value::Dict> = self.safe_dict_k_o(__ch.subscriptions.clone(), "authenticated");
             if (authenticated.is_none()) {
-                let mut response: crate::value::Dict = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await.into_dict();
+                let mut response: crate::value::Dict = self.parent.call_method_t("spot_private_post_subscribe_get_key", &[params.clone()]).await;
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
@@ -1493,7 +1493,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m
                     });
                     let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-                    let mut response: crate::value::Dict = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await.into_dict();
+                    let mut response: crate::value::Dict = self.parent.call_method_t("spot_private_post_subscribe_refresh_key", &[__ws_arg_0]).await;
                     //
                     //    {"result": "true"}
                     //

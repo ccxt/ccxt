@@ -1204,7 +1204,7 @@ impl Bitso {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_ledger(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_ledger", &[__ws_arg_0]).await;
         //
         //     {
         //         "success": true,
@@ -1266,7 +1266,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_available_books(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_available_books", &[params]).await;
         //
         //     {
         //         "success":true,
@@ -1448,7 +1448,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut catalogues: crate::value::Dict = self.public_get_catalogues(&[params]).await.into_dict();
+        let mut catalogues: crate::value::Dict = self.call_method_t("public_get_catalogues", &[params]).await;
         //
         //     {
         //         "payload": {
@@ -1502,7 +1502,7 @@ impl Bitso {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1540,7 +1540,7 @@ impl Bitso {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_order_book(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_order_book", &[__ws_arg_2]).await;
         let mut orderbook: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "payload");
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "updated_at", &[]));
         return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
@@ -1579,7 +1579,7 @@ impl Bitso {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_3]).await;
         let mut ticker: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "payload");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
@@ -1635,7 +1635,7 @@ impl Bitso {
             }
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_ohlc(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ohlc", &[__ws_arg_4]).await;
         //
         //     {
         //         "success":true,
@@ -1697,7 +1697,7 @@ impl Bitso {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[__ws_arg_5]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         return self.parse_trades(&payload, Some(&market), &[since, limit]);
         Value::Null
@@ -1725,7 +1725,7 @@ impl Bitso {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fees", &[params]).await;
         //
         //    {
         //        "success": true,
@@ -1853,7 +1853,7 @@ impl Bitso {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsMarker]);
-        let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_trades", &[__ws_arg_7]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         return self.parse_trades(&payload, Some(&market), &[since, limit]);
         Value::Null
@@ -1904,7 +1904,7 @@ impl Bitso {
             request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_8]).await;
         let mut payload: crate::value::Dict = self.safe_dict_k_t(&response, "payload");
         let mut id: Option<String> = self.safe_string_k_opt(&payload, "oid", &[]);
         return self.safe_order(Value::Map({
@@ -1948,7 +1948,7 @@ impl Bitso {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_orders_oid(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_oid", &[__ws_arg_9]).await;
         //
         //     {
         //         "success": true,
@@ -2003,7 +2003,7 @@ impl Bitso {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_orders(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders", &[__ws_arg_10]).await;
         //
         //     {
         //         "success": true,
@@ -2048,7 +2048,7 @@ impl Bitso {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")));
         }
-        let mut response: crate::value::Dict = self.private_delete_orders_all(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_all", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -2137,7 +2137,7 @@ impl Bitso {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsMarker]);
-        let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_open_orders", &[__ws_arg_12]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         return self.parse_orders(&payload, Some(&market), &[since, limit]);
         Value::Null
@@ -2169,11 +2169,11 @@ impl Bitso {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_orders_oid(&[Value::Map({
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_oid", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("oid".to_string(), id.clone());
             m
-        })]).await.into_dict();
+        })]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         let mut numOrders: i64 = payload.len() as i64;
         if (numOrders == 1) {
@@ -2220,7 +2220,7 @@ impl Bitso {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_order_trades_oid(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_order_trades_oid", &[__ws_arg_13]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         return self.parse_trades(&payload, Some(&market), &[]);
         Value::Null
@@ -2238,7 +2238,6 @@ impl Bitso {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut code: Value = code.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2252,7 +2251,7 @@ impl Bitso {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_fundings_fid(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fundings_fid", &[__ws_arg_14]).await;
         //
         //     {
         //         "success": true,
@@ -2314,7 +2313,7 @@ impl Bitso {
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        let mut response: crate::value::Dict = self.private_get_fundings(&[params.clone()]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fundings", &[params.clone()]).await;
         //
         //     {
         //         "success": true,
@@ -2373,7 +2372,7 @@ impl Bitso {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_funding_destination(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_funding_destination", &[__ws_arg_15]).await;
         let mut payload: crate::value::Dict = self.safe_dict_k_t(&response, "payload");
         let mut address: Option<String> = self.safe_string_k_opt(&payload, "account_identifier", &[]);
         let mut tag: Option<String> = None;
@@ -2415,7 +2414,7 @@ impl Bitso {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fees", &[params]).await;
         //
         //    {
         //        "success": true,
@@ -2546,7 +2545,7 @@ impl Bitso {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fees", &[params]).await;
         //
         //    {
         //        "success": true,

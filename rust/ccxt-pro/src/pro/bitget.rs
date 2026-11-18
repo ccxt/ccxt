@@ -113,7 +113,7 @@ impl Bitget {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_inst_type" => self.get_inst_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "handle_authenticate" => { self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_check_sum_error" => { crate::exchange_stubs::enqueue_spawn("handle_check_sum_error", args.to_vec()); crate::Value::Null },
             "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -314,11 +314,11 @@ impl Bitget {
         let instTypeOptionparamsInstTypeVariable = self.handle_option_string_and_params(paramsProductType, methodName, Value::Str("instType".into()), &[instTypeDefault.map(Value::from).unwrap_or(Value::Null)]);
         let mut instTypeOption: Option<String> = instTypeOptionparamsInstTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeOptionparamsInstTypeVariable.1;
-        let mut instType: Option<String> = instTypeOption.clone();
         if uta && (instTypeOption.is_some()) {
-            instType = instTypeOption.as_deref().map(str::to_lowercase);
+            let mut instTypeLower: Option<String> = instTypeOption.as_deref().map(str::to_lowercase);
+            return Value::from(vec![instTypeLower.map(Value::from).unwrap_or(Value::Null), Value::from(&paramsInstType)]);
         }
-        return Value::from(vec![instType.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsInstType)]);
+        return Value::from(vec![instTypeOption.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsInstType)]);
 
     Value::Null
 }
@@ -478,7 +478,7 @@ impl Bitget {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsList, &[]);
+        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -763,7 +763,7 @@ impl Bitget {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsList, &[]);
+        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -923,8 +923,8 @@ impl Bitget {
         let mut channel: Option<String> = None;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: Option<String> = None;
-        let mut values: Value = { let __t = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) };
-        let mut uta: Option<bool> = values.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
+        let values = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
+        let mut uta: Option<bool> = values.0;
         let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit_t(params, Value::Str("stock".into()), &[]);
         let mut isStockSpot: bool = (isStock == Some(true)) && (market).spot;
@@ -1137,7 +1137,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1561,7 +1561,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1686,8 +1686,8 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut values: Value = { let __t = self.handle_option_bool_and_params(params.clone(), Value::Str("watchTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) };
-        let mut uta: Option<bool> = values.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
+        let values = self.handle_option_bool_and_params(params.clone(), Value::Str("watchTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
+        let mut uta: Option<bool> = values.0;
         let mut channelTopic: String = "trade".to_string();
         if (uta == Some(true)) {
             channelTopic = "publicTrade".to_string();
@@ -3076,12 +3076,12 @@ impl Bitget {
     m
 }));
         let utaparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
-        let mut uta: Value = utaparamsUtaVariable.0.map_or(Value::Null, Value::Bool);
+        let mut uta: Option<bool> = utaparamsUtaVariable.0;
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.1;
         let stockparamsStockVariable = self.handle_option_bool_and_params(&paramsUta, Value::Str("watchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
-        let mut stock: Value = stockparamsStockVariable.0.map_or(Value::Null, Value::Bool);
+        let mut stock: Option<bool> = stockparamsStockVariable.0;
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.1;
-        let mut isStockOrUta: bool = (stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true));
+        let mut isStockOrUta: bool = (stock == Some(true)) || (uta == Some(true));
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[Value::from(&paramsStock)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3139,7 +3139,7 @@ impl Bitget {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -3249,7 +3249,7 @@ impl Bitget {
                     let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                     let mut account: Value = self.account();
                     if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                        account = self.safe_dict(self.balance.clone(), Value::from(code.as_deref()), &[account.clone()]);
+                        account = self.safe_dict(&self.balance, Value::from(code.as_deref()), &[std::mem::take(&mut account)]);
                     }
                     let mut borrow: Option<String> = self.safe_string_k_opt(&entry, "borrow", &[]);
                     let mut debts: Option<String> = self.safe_string_k_opt(&entry, "debts", &[]);
@@ -3269,7 +3269,7 @@ impl Bitget {
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: Value = self.account();
                 if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    account = self.safe_dict(self.balance.clone(), Value::from(code.as_deref()), &[account.clone()]);
+                    account = self.safe_dict(&self.balance, Value::from(code.as_deref()), &[std::mem::take(&mut account)]);
                 }
                 let mut borrow: Option<String> = self.safe_string_k_opt(&rawBalance, "borrow", &[]);
                 if (borrow.is_some()) {

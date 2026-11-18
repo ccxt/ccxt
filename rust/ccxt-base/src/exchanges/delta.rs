@@ -2093,7 +2093,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_settings(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_settings", &[params]).await;
         // full response sample under `fetchStatus`
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.safe_integer_product_k(&result, "server_time", Value::Float(0.001), &[]);
@@ -2118,7 +2118,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_settings(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_settings", &[params]).await;
         //
         //     {
         //         "result": {
@@ -2210,7 +2210,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_assets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_assets", &[params]).await;
         //
         //    {
         //        "result": [
@@ -2336,7 +2336,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_products(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_products", &[params]).await;
         //
         //     {
         //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -2689,7 +2689,7 @@ impl Delta {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers_symbol(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers_symbol", &[__ws_arg_0]).await;
         //
         // spot
         //
@@ -2842,7 +2842,7 @@ impl Delta {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
         //
         // spot
         //
@@ -3032,7 +3032,7 @@ impl Delta {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_l2orderbook_symbol(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_l2orderbook_symbol", &[__ws_arg_1]).await;
         //
         //     {
         //         "result":{
@@ -3090,7 +3090,7 @@ impl Delta {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades_symbol(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades_symbol", &[__ws_arg_2]).await;
         //
         //     {
         //         "result":[
@@ -3180,7 +3180,7 @@ impl Delta {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["price", "until"], &[]);
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_get_history_candles(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_history_candles", &[__ws_arg_3]).await;
         //
         //     {
         //         "success":true,
@@ -3217,7 +3217,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut response: crate::value::Dict = self.private_get_wallet_balances(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_wallet_balances", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -3251,7 +3251,7 @@ impl Delta {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_positions(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_positions", &[__ws_arg_4]).await;
         //
         //     {
         //         "result":{
@@ -3289,7 +3289,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut response: crate::value::Dict = self.private_get_positions_margined(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_positions_margined", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -3385,7 +3385,7 @@ impl Delta {
         }
         let mut paramsOmitted2: crate::value::Dict = (if (reduceOnly == Some(true)) { self.omit_t(&paramsOmitted, Value::Str("reduceOnly".into()), &[]) } else { paramsOmitted });
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_5]).await;
         //
         //     {
         //         "result":{
@@ -3477,7 +3477,7 @@ impl Delta {
             request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_put_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_put_orders", &[__ws_arg_6]).await;
         //
         //     {
         //         "success": true,
@@ -3535,7 +3535,7 @@ impl Delta {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_orders(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders", &[__ws_arg_7]).await;
         //
         //     {
         //         "result":{
@@ -3609,7 +3609,7 @@ impl Delta {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_orders_all(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_all", &[__ws_arg_8]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -3658,11 +3658,11 @@ impl Delta {
         if (clientOrderId.is_some()) {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_orders_client_order_id_client_oid(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("private_get_orders_client_order_id_client_oid", &[__ws_arg_9]).await;
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_order_id(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("private_get_orders_order_id", &[__ws_arg_10]).await;
         }
         //
         //     {
@@ -3777,10 +3777,10 @@ impl Delta {
         let mut response: Option<crate::value::Dict> = None;
         if (method == "privateGetOrders") {
             let __ws_arg_11 = self.extend(&request, &[&params]);
-            response = self.private_get_orders(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("private_get_orders", &[__ws_arg_11]).await;
         }  else if (method == "privateGetOrdersHistory") {
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_orders_history(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("private_get_orders_history", &[__ws_arg_12]).await;
         }
         //
         //     {
@@ -3852,7 +3852,7 @@ impl Delta {
             request.insert("page_size".into(), limit.clone());
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_fills(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fills", &[__ws_arg_13]).await;
         //
         //     {
         //         "meta":{
@@ -3942,7 +3942,7 @@ impl Delta {
             request.insert("page_size".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_wallet_transactions(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_wallet_transactions", &[__ws_arg_14]).await;
         //
         //     {
         //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -4017,9 +4017,9 @@ impl Delta {
         if (networkCode.is_some()) {
             request.insert("network".into(), self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code]));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (networkCode.is_some()) { self.omit(&params, Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (networkCode.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_deposits_address(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deposits_address", &[__ws_arg_15]).await;
         //
         //    {
         //        "success": true,
@@ -4075,7 +4075,7 @@ impl Delta {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers_symbol(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers_symbol", &[__ws_arg_16]).await;
         //
         //     {
         //         "result": {
@@ -4155,7 +4155,7 @@ impl Delta {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[__ws_arg_17]).await;
         //
         //     {
         //         "result": [
@@ -4280,7 +4280,7 @@ impl Delta {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_positions_change_margin(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_positions_change_margin", &[__ws_arg_18]).await;
         //
         //     {
         //         "result": {
@@ -4342,7 +4342,7 @@ impl Delta {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers_symbol(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers_symbol", &[__ws_arg_19]).await;
         //
         //     {
         //         "result": {
@@ -4430,7 +4430,7 @@ impl Delta {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_products_product_id_orders_leverage(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_products_product_id_orders_leverage", &[__ws_arg_20]).await;
         //
         //     {
         //         "result": {
@@ -4520,7 +4520,7 @@ impl Delta {
             request.insert("page_size".into(), Value::from(limit));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_products(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_products", &[__ws_arg_22]).await;
         //
         //     {
         //         "result": [
@@ -4701,7 +4701,7 @@ impl Delta {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers_symbol(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers_symbol", &[__ws_arg_23]).await;
         //
         //     {
         //         "result": {
@@ -4788,7 +4788,7 @@ impl Delta {
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_positions_close_all(&[__ws_arg_24]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_positions_close_all", &[__ws_arg_24]).await;
         //
         // {"result":{},"success":true}
         //
@@ -4826,7 +4826,7 @@ impl Delta {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: crate::value::Dict = self.private_get_profile(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_profile", &[params]).await;
         //
         //     {
         //         "result": {
@@ -4962,7 +4962,7 @@ impl Delta {
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers_symbol(&[__ws_arg_26]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers_symbol", &[__ws_arg_26]).await;
         //
         //     {
         //         "result": {
@@ -5124,7 +5124,7 @@ impl Delta {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
-        let mut response: crate::value::Dict = self.private_get_positions_margined(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_positions_margined", &[params]).await;
         //
         //     {
         //         "result":

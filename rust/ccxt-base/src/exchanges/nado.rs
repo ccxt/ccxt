@@ -1528,9 +1528,9 @@ impl Nado {
         let mut isTriggerOrder: bool = placeOrder.contains_key("trigger");
         let mut response: Option<crate::value::Dict> = None;
         if isTriggerOrder {
-            response = self.trigger_private_post_execute(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("trigger_private_post_execute", &[Value::from(&request)]).await;
         }  else {
-            response = self.gateway_private_post_execute(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("gateway_private_post_execute", &[Value::Dict(request)]).await;
         }
         let __ws_arg_0 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1619,7 +1619,8 @@ impl Nado {
         let mut isTriggerOrder: bool = ((isStopOrder || isStopLossOrder) || isTakeProfitOrder);
         if isStopOrder {
             // the final omit drops triggerDirection from the request
-            let mut triggerDirection: Option<String> = self.safe_string_opt(self.handle_trigger_direction_and_params(&paramsRecvWindow, &[]), Value::Int(0), &[]);
+            let triggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(&paramsRecvWindow, &[]).as_array().cloned().unwrap_or_default();
+            let mut triggerDirection: Option<String> = triggerDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut directionSuffix: String = "below".to_string();
             if (triggerDirection.as_deref() == Some("ascending")) {
                 directionSuffix = "above".to_string();
@@ -1735,7 +1736,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]).await.into_dict();
-        let mut response: crate::value::Dict = self.gateway_private_post_execute(&[Value::from(&request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_private_post_execute", &[Value::from(&request)]).await;
         //
         //     {
         //         "status": "success",
@@ -1908,7 +1909,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut canceled: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return canceled.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -1949,9 +1950,9 @@ impl Nado {
         let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.trigger_private_post_execute(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("trigger_private_post_execute", &[Value::from(&request)]).await;
         }  else {
-            response = self.gateway_private_post_execute(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("gateway_private_post_execute", &[Value::Dict(request)]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut cancelledOrders: crate::value::List = self.safe_list_k_t(&data, "cancelled_orders");
@@ -2072,9 +2073,9 @@ impl Nado {
         let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.trigger_private_post_execute(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("trigger_private_post_execute", &[Value::from(&request)]).await;
         }  else {
-            response = self.gateway_private_post_execute(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("gateway_private_post_execute", &[Value::Dict(request)]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut cancelledOrders: crate::value::List = self.safe_list_k_t(&data, "cancelled_orders");
@@ -2207,7 +2208,7 @@ impl Nado {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_4]).await;
         //
         //     {
         //         "status": "success",
@@ -2300,7 +2301,7 @@ impl Nado {
         let mut signature: Option<String> = self.sign_fetch_trigger_orders(Value::Map(tx), chainId.as_deref(), endpointAddress.as_deref());
         request.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsRecvWindow]);
-        let mut response: crate::value::Dict = self.trigger_private_post_query(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trigger_private_post_query", &[__ws_arg_5]).await;
         //
         // {
         //     "status": "success",
@@ -2393,7 +2394,7 @@ impl Nado {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_7]).await;
         //
         // single product
         //
@@ -2500,7 +2501,7 @@ impl Nado {
                 m.insert("orders".to_string(), Value::Dict(ordersRequestUntil));
             m
         });
-        let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
         //
         //     {
         //         "orders": [
@@ -2667,7 +2668,7 @@ impl Nado {
                 m.insert("matches".to_string(), Value::Dict(matchesRequestUntil));
             m
         });
-        let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
         //
         //     {
         //         "matches": [
@@ -2748,7 +2749,7 @@ impl Nado {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_11]).await;
         //
         //     {
         //         "status": "success",
@@ -2878,7 +2879,7 @@ impl Nado {
                 m.insert("events".to_string(), Value::Dict(eventsRequestUntil));
             m
         });
-        let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
         //
         //     {
         //         "events": [
@@ -2986,7 +2987,7 @@ impl Nado {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_12]).await;
         //
         //     {
         //         "status": "success",
@@ -3082,7 +3083,7 @@ impl Nado {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.gateway_public_get_edge_query(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_edge_query", &[__ws_arg_14]).await;
         return self.safe_integer_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
@@ -3112,7 +3113,7 @@ impl Nado {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_15]).await;
         //
         //     {
         //         "status": "success",
@@ -3418,7 +3419,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.archive_v2_public_get_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_tickers", &[params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3499,7 +3500,7 @@ impl Nado {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchFundingRate() supports swap contracts only")));
         }
         let mut tickerId: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&market, "info"), "ticker_id", &[]);
-        let mut response: crate::value::Dict = self.archive_v2_public_get_contracts(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3583,7 +3584,7 @@ impl Nado {
                 m.insert("interest_and_funding".to_string(), Value::Map(fundingRequest));
             m
         });
-        let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsSubaccount])]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsSubaccount])]).await;
         //
         //     {
         //         "interest_payments": [],
@@ -3639,7 +3640,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
-        let mut response: crate::value::Dict = self.archive_v2_public_get_contracts(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3708,7 +3709,7 @@ impl Nado {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchOpenInterest() supports swap contracts only")));
         }
         let mut tickerId: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&market, "info"), "ticker_id", &[]);
-        let mut response: crate::value::Dict = self.archive_v2_public_get_contracts(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3761,7 +3762,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
-        let mut response: crate::value::Dict = self.archive_v2_public_get_contracts(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3835,7 +3836,7 @@ impl Nado {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.gateway_v2_public_get_orderbook(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("gateway_v2_public_get_orderbook", &[__ws_arg_17]).await;
         //
         //     {
         //         "product_id": 1,
@@ -3948,7 +3949,7 @@ impl Nado {
                 m.insert("candlesticks".to_string(), Value::Map(candlesticks));
             m
         });
-        let mut response: crate::value::Dict = self.archive_post(&[self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         //
         //     {
         //         "candlesticks": [
@@ -4134,7 +4135,7 @@ impl Nado {
                 m
             });
             let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-            let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_19]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_19]).await;
             { let __be_tmp = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

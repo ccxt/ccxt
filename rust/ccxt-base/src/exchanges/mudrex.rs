@@ -941,10 +941,10 @@ impl Mudrex {
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {
             let __ws_arg_0 = self.extend(&request, &[&paramsOmitted]);
-            response = self.market_get_price_mark_kline(&[__ws_arg_0]).await.into_opt_dict();
+            response = self.call_method_o("market_get_price_mark_kline", &[__ws_arg_0]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.market_get_price_kline(&[__ws_arg_1]).await.into_opt_dict();
+            response = self.call_method_o("market_get_price_kline", &[__ws_arg_1]).await;
         }
         //
         //     {
@@ -1031,7 +1031,7 @@ impl Mudrex {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_futures_asset_id(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_futures_asset_id", &[__ws_arg_3]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market));
         Value::Null
@@ -1066,7 +1066,7 @@ impl Mudrex {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_futures(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_futures", &[__ws_arg_4]).await;
         let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::from(vec![])]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (data.is_some()) {
@@ -1130,7 +1130,7 @@ impl Mudrex {
                     m.insert("offset".to_string(), Value::from(offset));
                 m
             }), &[params.clone()]);
-            let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("private_get_futures", &[Value::Dict(q)]).await;
             let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
             let mut items: crate::value::List = std::sync::Arc::new(Vec::new());
             if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
@@ -1218,13 +1218,13 @@ impl Mudrex {
                 request.insert("currency".into(), requested.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_wallet_funds(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("private_get_wallet_funds", &[__ws_arg_5]).await;
         }  else {
             if (requested.is_some()) {
                 request.insert("trade_currency".into(), requested.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_futures_funds(&[__ws_arg_6]).await.into_opt_dict();
+            response = self.call_method_o("private_get_futures_funds", &[__ws_arg_6]).await;
         }
         let mut currency: Option<String> = requested;
         if (currency.is_none()) {
@@ -1275,7 +1275,7 @@ impl Mudrex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_futures_asset_id_leverage(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_futures_asset_id_leverage", &[__ws_arg_8]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1331,7 +1331,7 @@ impl Mudrex {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["marginType"], &[]);
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_futures_asset_id_leverage(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_futures_asset_id_leverage", &[__ws_arg_9]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -1403,7 +1403,7 @@ impl Mudrex {
                 riskRequest.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let __ws_arg_10 = self.extend(Value::Map(riskRequest), &[&paramsOmitted]);
-            let mut riskResponse: crate::value::Dict = self.private_post_futures_positions_position_id_riskorder(&[__ws_arg_10]).await.into_dict();
+            let mut riskResponse: crate::value::Dict = self.call_method_t("private_post_futures_positions_position_id_riskorder", &[__ws_arg_10]).await;
             let mut riskData: crate::value::Dict = self.safe_dict_k_or(&riskResponse, "data", Value::from(&riskResponse));
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &riskData, Some(&market));
         }
@@ -1436,7 +1436,7 @@ impl Mudrex {
         }
         let mut orderParams: crate::value::Dict = self.omit_t(params, &["leverage", "reduceOnly", "takeProfit", "stopLoss"], &[]);
         let __ws_arg_11 = self.extend(&request, &[&orderParams]);
-        let mut response: crate::value::Dict = self.private_post_futures_asset_id_order(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_futures_asset_id_order", &[__ws_arg_11]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         let mut merged: crate::value::Dict = self.extend_t(&data, &[Value::Map({
@@ -1501,7 +1501,7 @@ impl Mudrex {
             request.insert("order_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_patch_futures_orders_order_id(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_patch_futures_orders_order_id", &[__ws_arg_12]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
         Value::Null
@@ -1563,7 +1563,7 @@ impl Mudrex {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_futures_orders_order_id(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_futures_orders_order_id", &[__ws_arg_13]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
         Value::Null
@@ -1605,7 +1605,7 @@ impl Mudrex {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_futures_orders_order_id(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_futures_orders_order_id", &[__ws_arg_14]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
         Value::Null
@@ -1642,9 +1642,9 @@ impl Mudrex {
         let mut request: crate::value::Dict = self.extend_t(Value::Map(q), &[params]);
         let mut response: Option<crate::value::Dict> = None;
         if (state == "closed") {
-            response = self.private_get_futures_orders_history(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("private_get_futures_orders_history", &[Value::from(&request)]).await;
         }  else {
-            response = self.private_get_futures_orders(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("private_get_futures_orders", &[Value::Dict(request)]).await;
         }
         let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
         let mut rows: crate::value::List = self.to_array_t(data);
@@ -1781,7 +1781,7 @@ impl Mudrex {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(q), &[params]);
-        let mut response: crate::value::Dict = self.private_get_futures_positions(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_futures_positions", &[__ws_arg_15]).await;
         let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
         if (data == Value::Null) {
             return Value::from(vec![]);
@@ -1841,7 +1841,7 @@ impl Mudrex {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_futures_positions_history(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_futures_positions_history", &[__ws_arg_16]).await;
         //
         //     {
         //         "success": true,
@@ -1931,13 +1931,13 @@ impl Mudrex {
             }
             let mut partialParams: crate::value::Dict = self.omit_t(params.clone(), &["order_type", "limit_price", "amount", "position_id"], &[]);
             let __ws_arg_17 = self.extend(&request, &[&partialParams]);
-            let mut partialResponse: crate::value::Dict = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_17]).await.into_dict();
+            let mut partialResponse: crate::value::Dict = self.call_method_t("private_post_futures_positions_position_id_close_partial", &[__ws_arg_17]).await;
             let mut partialData: crate::value::Dict = self.safe_dict_k_or(&partialResponse, "data", Value::from(&partialResponse));
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &partialData, Some(&market));
         }
         let mut closeParams: crate::value::Dict = self.omit_t(params, &["position_id"], &[]);
         let __ws_arg_18 = self.extend(Value::Map(request), &[&closeParams]);
-        let mut response: crate::value::Dict = self.private_post_futures_positions_position_id_close(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_futures_positions_position_id_close", &[__ws_arg_18]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
         Value::Null
@@ -1991,7 +1991,7 @@ impl Mudrex {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["position_id"], &[]);
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_futures_positions_position_id_add_margin", &[__ws_arg_19]).await;
         return self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2080,7 +2080,7 @@ impl Mudrex {
                 request.insert("offset".into(), Value::from(offset));
             }
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
-            let mut response: crate::value::Dict = self.private_get_futures_fee_history(&[__ws_arg_20]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("private_get_futures_fee_history", &[__ws_arg_20]).await;
             let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
             let mut dataLength: i64 = data.len() as i64;
             {
@@ -2221,10 +2221,10 @@ impl Mudrex {
         let mut response: Option<crate::value::Dict> = None;
         if useInr {
             let __ws_arg_21 = self.extend(&body, &[&params]);
-            response = self.private_post_futures_transfers_inr(&[__ws_arg_21]).await.into_opt_dict();
+            response = self.call_method_o("private_post_futures_transfers_inr", &[__ws_arg_21]).await;
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(body), &[params]);
-            response = self.private_post_wallet_futures_transfer(&[__ws_arg_22]).await.into_opt_dict();
+            response = self.call_method_o("private_post_wallet_futures_transfer", &[__ws_arg_22]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", response.clone().map_or(Value::Null, Value::Dict));
         return Value::Map({

@@ -97,7 +97,7 @@ impl Derive {
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_auth" => { self.handle_auth(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -499,7 +499,7 @@ impl Derive {
             result.insert(tickerSymbol, ticker);
             return Value::Map(result);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsResolved, &[]);
+        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsResolved, &[]);
         Value::Null
         }).await?))
     }
@@ -1516,7 +1516,7 @@ impl Derive {
     Value::Null
 }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1546,7 +1546,7 @@ impl Derive {
                 m
             });
         }
-        let mut subBalance: Value = self.safe_dict(self.balance.clone(), Value::from(subaccountIdKey.as_deref()), &[Value::Map({
+        let mut subBalance: Value = self.safe_dict(&self.balance, Value::from(subaccountIdKey.as_deref()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1585,7 +1585,7 @@ impl Derive {
         }
         if updated {
             { let __be_tmp = self.safe_balance(subBalance); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
-            client.resolve(self.safe_value(self.balance.clone(), subaccountIdKey.map(Value::from).unwrap_or(Value::Null), &[]), topic.as_str());
+            client.resolve(self.safe_value(&self.balance, subaccountIdKey.map(Value::from).unwrap_or(Value::Null), &[]), topic.as_str());
         }
         let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;
         if positionUpdatesLength > 0 {

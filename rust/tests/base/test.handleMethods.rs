@@ -125,9 +125,9 @@ fn helperTestHandleTypedOptions() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
-    let mut uta: Value = utaparams2Variable.0.map_or(Value::Null, Value::Bool);
+    let mut uta: Option<bool> = utaparams2Variable.0;
     let mut params2: Value = Value::Dict(utaparams2Variable.1);
-    assert!(ccxt::runtime::is_true(&(uta.clone())));
+    assert!((uta == Some(true)));
     let absentparams3Variable = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -149,17 +149,17 @@ fn helperTestHandleTypedOptions() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]);
-    let mut boolString: Value = boolStringparams5Variable.0.map_or(Value::Null, Value::Bool);
+    let mut boolString: Option<bool> = boolStringparams5Variable.0;
     let mut params5: Value = Value::Dict(boolStringparams5Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(boolString.as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(boolString == Some(false)))));
     let boolNumberparams6Variable = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("boolNumber".to_string(), Value::Int(1));
     m
 }), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]);
-    let mut boolNumber: Value = boolNumberparams6Variable.0.map_or(Value::Null, Value::Bool);
+    let mut boolNumber: Option<bool> = boolNumberparams6Variable.0;
     let mut params6: Value = Value::Dict(boolNumberparams6Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(boolNumber.as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(boolNumber == Some(true)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params6, Value::Dict(__d) if __d.contains_key("boolNumber"))))))));
     let mut caught: Value = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

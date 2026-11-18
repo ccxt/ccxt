@@ -1242,7 +1242,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_constants(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[params]).await;
         //
         //     {
         //         "coins": {
@@ -1388,7 +1388,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_constants(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[params]).await;
         //
         //    {
         //        "coins": {
@@ -1491,7 +1491,7 @@ impl Hollaex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_orderbooks(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbooks", &[params]).await;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1545,7 +1545,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_orderbook(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbook", &[__ws_arg_0]).await;
         //
         //     {
         //         "btc-usdt": {
@@ -1602,7 +1602,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_ticker(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1632,7 +1632,7 @@ impl Hollaex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -1703,7 +1703,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[__ws_arg_3]).await;
         //
         //     {
         //         "btc-usdt": [
@@ -1745,7 +1745,7 @@ impl Hollaex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_tiers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tiers", &[params]).await;
         //
         //     {
         //         "1": {
@@ -1894,7 +1894,7 @@ impl Hollaex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_user_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1931,7 +1931,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_order(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_order", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2038,7 +2038,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Option<crate::value::Dict> = self.private_get_order(&[__ws_arg_8]).await.into_opt_dict();
+        let mut response: Option<crate::value::Dict> = self.call_method_o("private_get_order", &[__ws_arg_8]).await;
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -2112,7 +2112,7 @@ impl Hollaex {
             request.insert("limit".into(), limit.clone()); // default 50, max 100
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders", &[__ws_arg_9]).await;
         //
         //     {
         //         "count": 1,
@@ -2223,7 +2223,7 @@ impl Hollaex {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"], &[]);
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_order(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[__ws_arg_10]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2260,7 +2260,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_order(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2349,7 +2349,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_trades", &[__ws_arg_13]).await;
         //
         //     {
         //         "count": 1,
@@ -2397,7 +2397,7 @@ impl Hollaex {
         }
         let mut network: Option<String> = self.safe_string_k_opt(&params, "network", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
-        let mut response: crate::value::Dict = self.private_get_user(&[Value::Dict(paramsOmitted)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user", &[Value::Dict(paramsOmitted)]).await;
         //
         //     {
         //         "id":620,
@@ -2498,7 +2498,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_user_deposits(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_deposits", &[__ws_arg_14]).await;
         //
         //     {
         //         "count": 1,
@@ -2557,7 +2557,7 @@ impl Hollaex {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_user_withdrawals(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[__ws_arg_15]).await;
         //
         //     {
         //         "count": 1,
@@ -2631,7 +2631,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_user_withdrawals(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[__ws_arg_16]).await;
         //
         //     {
         //         "count": 1,
@@ -2712,7 +2712,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[])]);
-        let mut response: crate::value::Dict = self.private_post_user_withdrawal(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_user_withdrawal", &[__ws_arg_17]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2739,7 +2739,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_constants(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[params]).await;
         //
         //     {
         //         "coins":{

@@ -971,7 +971,7 @@ impl Bit2c {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_account_balance_v2(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_balance_v2", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1009,7 +1009,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: crate::value::Dict = self.public_get_exchanges_pair_orderbook(&[__ws_arg_0]).await.into_dict();
+        let mut orderbook: crate::value::Dict = self.call_method_t("public_get_exchanges_pair_orderbook", &[__ws_arg_0]).await;
         // the full orderbook.json snapshot can contain dead orders - rows
         // published with a zero amount at their limit price, hours-stable and
         // sometimes crossing the real market. per the api docs the endpoint
@@ -1085,7 +1085,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_exchanges_pair_ticker(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_exchanges_pair_ticker", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1186,7 +1186,7 @@ impl Bit2c {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_account_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_balance", &[params]).await;
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -1279,10 +1279,10 @@ impl Bit2c {
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_4 = self.extend(&request, &[&params]);
-                response = self.private_post_order_add_order_market_price_buy(&[__ws_arg_4]).await.into_opt_dict();
+                response = self.call_method_o("private_post_order_add_order_market_price_buy", &[__ws_arg_4]).await;
             }  else {
                 let __ws_arg_5 = self.extend(&request, &[&params]);
-                response = self.private_post_order_add_order_market_price_sell(&[__ws_arg_5]).await.into_opt_dict();
+                response = self.call_method_o("private_post_order_add_order_market_price_sell", &[__ws_arg_5]).await;
             }
         }  else {
             request.insert("Price".into(), price.clone());
@@ -1291,7 +1291,7 @@ impl Bit2c {
             request.insert("Total".into(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)));
             request.insert("IsBid".into(), (Value::Bool(side.as_str() == Some("buy"))));
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_order_add_order(&[__ws_arg_6]).await.into_opt_dict();
+            response = self.call_method_o("private_post_order_add_order", &[__ws_arg_6]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
@@ -1326,7 +1326,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_order_cancel_order(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order_cancel_order", &[__ws_arg_7]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -1369,7 +1369,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_order_my_orders(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_order_my_orders", &[__ws_arg_8]).await;
         let mut orders: crate::value::Dict = self.safe_dict_t(&response, Value::from((market).id.as_deref()));
         let mut asks: crate::value::List = self.safe_list_k_t(&orders, "ask");
         let mut bids: crate::value::List = self.safe_list_k_t(&orders, "bid");
@@ -1410,7 +1410,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_order_get_by_id(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_order_get_by_id", &[__ws_arg_9]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1560,7 +1560,7 @@ impl Bit2c {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_funds_add_coin_funds_request(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_funds_add_coin_funds_request", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))

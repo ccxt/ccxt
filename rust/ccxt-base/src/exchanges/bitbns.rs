@@ -982,7 +982,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v1_get_platform_status(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_get_platform_status", &[params]).await;
         //
         //     {
         //         "data":{
@@ -1185,7 +1185,7 @@ impl Bitbns {
             request.insert("limit".into(), limit); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("www_get_order_fetch_orderbook", &[__ws_arg_0]).await;
         //
         //     {
         //         "bids":[
@@ -1232,7 +1232,7 @@ impl Bitbns {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.www_get_order_fetch_tickers(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("www_get_order_fetch_tickers", &[params]).await;
         return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
@@ -1259,7 +1259,7 @@ impl Bitbns {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_post_current_coin_balance_everything(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_post_current_coin_balance_everything", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1345,10 +1345,10 @@ impl Bitbns {
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
             let __ws_arg_1 = self.extend(&request, &[&paramsOmitted]);
-            response = self.v2_post_orders(&[__ws_arg_1]).await.into_opt_dict();
+            response = self.call_method_o("v2_post_orders", &[__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("v1_post_place_market_order_qnty_symbol", &[__ws_arg_2]).await;
         }
         //
         //     {
@@ -1413,7 +1413,7 @@ impl Bitbns {
         quoteSide.push_str(&tail);
         request.insert("side".into(), Value::from(quoteSide));
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        response = self.v2_post_cancel(&[__ws_arg_3]).await.into_opt_dict();
+        response = self.call_method_o("v2_post_cancel", &[__ws_arg_3]).await;
         let mut parsed: Value = (if (response.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1463,7 +1463,7 @@ impl Bitbns {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrder cannot fetch stop orders")));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_post_order_status_symbol(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_post_order_status_symbol", &[__ws_arg_4]).await;
         //
         //     {
         //         "data":[
@@ -1543,7 +1543,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v2_post_getordersnew(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v2_post_getordersnew", &[__ws_arg_5]).await;
         //
         //     {
         //         "data":[
@@ -1611,7 +1611,7 @@ impl Bitbns {
             request.insert("since".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_post_list_executed_orders_symbol(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_post_list_executed_orders_symbol", &[__ws_arg_6]).await;
         //
         //     {
         //         "data": [
@@ -1739,7 +1739,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_post_deposit_history_symbol(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_post_deposit_history_symbol", &[__ws_arg_8]).await;
         //
         //     {
         //         "data":[
@@ -1806,7 +1806,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_post_withdraw_history_symbol(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_post_withdraw_history_symbol", &[__ws_arg_9]).await;
         //
         //     ...
         //
@@ -1872,7 +1872,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_post_get_coin_address_symbol(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_post_get_coin_address_symbol", &[__ws_arg_10]).await;
         //
         //     {
         //         "data":{

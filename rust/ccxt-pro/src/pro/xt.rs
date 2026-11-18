@@ -110,7 +110,7 @@ impl Xt {
         match __n {
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "get_listen_key" => { crate::exchange_stubs::enqueue_spawn("get_listen_key", args.to_vec()); crate::Value::Null },
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => { crate::exchange_stubs::enqueue_spawn("handle_error_message", args.to_vec()); crate::Value::Null },
             "handle_funding_rate" => self.handle_funding_rate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -283,7 +283,7 @@ impl Xt {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut listenKey: Value = Value::Null;
                 if isContract {
-                    let mut response: crate::value::Dict = self.parent.private_linear_get_future_user_v1_user_listen_key(&[]).await.into_dict();
+                    let mut response: crate::value::Dict = self.parent.call_method_t("private_linear_get_future_user_v1_user_listen_key", &[]).await;
                     //
                     //    {
                     //        returnCode: '0',
@@ -294,7 +294,7 @@ impl Xt {
                     //
                     listenKey = self.safe_string_k(&response, "result", &[]);
                 }  else {
-                    let mut response: crate::value::Dict = self.parent.private_spot_post_ws_token(&[]).await.into_dict();
+                    let mut response: crate::value::Dict = self.parent.call_method_t("private_spot_post_ws_token", &[]).await;
                     //
                     //    {
                     //        "rc": 0,
@@ -639,7 +639,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
         let mut name: Option<String> = self.safe_string_k_opt(&params, "method", &[Value::from(defaultMethod)]);
         if (name.is_none()) {
-            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbols.clone(), &[]);
+            return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), symbols.clone(), &[]);
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
@@ -651,7 +651,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 return tickers;
             }
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), symbols, &[]);
+        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), symbols, &[]);
         Value::Null
         }).await?))
     }
@@ -1996,7 +1996,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //

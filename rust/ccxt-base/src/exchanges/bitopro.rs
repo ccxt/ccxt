@@ -1185,7 +1185,7 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_provisioning_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_provisioning_currencies", &[params]).await;
         //
         //     {
         //         "data":[
@@ -1227,7 +1227,7 @@ impl Bitopro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_provisioning_trading_pairs(&[]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_provisioning_trading_pairs", &[]).await;
         let mut markets: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_markets(&markets);
         Value::Null
@@ -1266,7 +1266,7 @@ impl Bitopro {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_tickers_pair(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers_pair", &[__ws_arg_0]).await;
         let mut ticker: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
@@ -1296,7 +1296,7 @@ impl Bitopro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_tickers(&[]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
@@ -1338,7 +1338,7 @@ impl Bitopro {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_order_book_pair(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_order_book_pair", &[__ws_arg_1]).await;
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
@@ -1379,7 +1379,7 @@ impl Bitopro {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades_pair(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades_pair", &[__ws_arg_2]).await;
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
@@ -1407,7 +1407,7 @@ impl Bitopro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_provisioning_limitations_and_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_provisioning_limitations_and_fees", &[params]).await;
         let mut tradingFeeRate: crate::value::Dict = self.safe_dict_k_t(&response, "tradingFeeRate");
         let mut first: Option<crate::value::Dict> = self.safe_dict_o(&tradingFeeRate, Value::Int(0));
         //
@@ -1555,7 +1555,7 @@ impl Bitopro {
             request.insert("to".into(), self.sum(&[fromSeconds, Value::from((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None }))]));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trading_history_pair(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trading_history_pair", &[__ws_arg_3]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         //
         //     {
@@ -1607,7 +1607,7 @@ impl Bitopro {
                 let mut closeValue: Value = self.safe_value(&copyFrom, Value::Int(4), &[]);
                 std::sync::Arc::make_mut(&mut result).push(Value::from(vec![timestamp.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), self.parse_number(Value::Str("0".into()), &[])]));
             }
-            timestamp = self.sum(&[timestamp.clone(), distanceInMs.clone()]);
+            timestamp = self.sum(&[std::mem::take(&mut timestamp), distanceInMs.clone()]);
             resultLength = result.len() as i64;
             copyFrom = self.safe_list(&result, Value::Int((resultLength - 1)), &[]);
         }
@@ -1679,7 +1679,7 @@ impl Bitopro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_accounts_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_accounts_balance", &[params]).await;
         let mut balances: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_balance_list(&balances);
         Value::Null
@@ -1769,7 +1769,7 @@ impl Bitopro {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_orders_pair(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_pair", &[__ws_arg_4]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1811,7 +1811,7 @@ impl Bitopro {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_orders_pair_id(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_pair_id", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1885,7 +1885,7 @@ impl Bitopro {
             request.insert(id.as_deref().unwrap_or("null").to_string(), ids);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_put_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_put_orders", &[__ws_arg_6]).await;
         //
         //     {
         //         "data":{
@@ -1934,10 +1934,10 @@ impl Bitopro {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("pair".into(), Value::from((market).id.as_deref()));
             let __ws_arg_7 = self.extend(&request, &[&params]);
-            response = self.private_delete_orders_pair(&[__ws_arg_7]).await.into_opt_dict();
+            response = self.call_method_o("private_delete_orders_pair", &[__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.private_delete_orders_all(&[__ws_arg_8]).await.into_opt_dict();
+            response = self.call_method_o("private_delete_orders_all", &[__ws_arg_8]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.parse_cancel_orders(&data);
@@ -1981,7 +1981,7 @@ impl Bitopro {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_pair_order_id(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_pair_order_id", &[__ws_arg_9]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2030,7 +2030,7 @@ impl Bitopro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_all_pair(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_all_pair", &[__ws_arg_10]).await;
         let mut orders: Option<crate::value::List> = self.safe_list_k_or_o(&response, "data", Value::from(vec![]));
         if (orders.is_none()) {
             orders = Value::from(vec![]).into_opt_list();
@@ -2077,7 +2077,7 @@ impl Bitopro {
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_open(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_open", &[__ws_arg_11]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null
@@ -2156,7 +2156,7 @@ impl Bitopro {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_trades_pair(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_trades_pair", &[__ws_arg_13]).await;
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
@@ -2224,7 +2224,7 @@ impl Bitopro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_wallet_deposit_history_currency(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_wallet_deposit_history_currency", &[__ws_arg_14]).await;
         let mut result: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_transactions(&result, Some(&currency), &[since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2278,7 +2278,7 @@ impl Bitopro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_wallet_withdraw_history_currency(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_wallet_withdraw_history_currency", &[__ws_arg_15]).await;
         let mut result: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_transactions(&result, Some(&currency), &[since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2318,7 +2318,7 @@ impl Bitopro {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_wallet_withdraw_currency_serial(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_wallet_withdraw_currency_serial", &[__ws_arg_16]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency));
 
@@ -2383,7 +2383,7 @@ impl Bitopro {
             request.insert("message".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_wallet_withdraw_currency", &[__ws_arg_17]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency));
         Value::Null
@@ -2414,7 +2414,7 @@ impl Bitopro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_get_provisioning_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_provisioning_currencies", &[params]).await;
         //
         //     {
         //         "data":[

@@ -7966,7 +7966,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_common_get_v2_public_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_common_get_v2_public_time", &[params]).await;
         //
         //     {
         //         "code": "00000",
@@ -8558,7 +8558,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_spot_get_v2_spot_public_coins(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_spot_get_v2_spot_public_coins", &[params]).await;
         //
         //    {
         //        "code": "00000",
@@ -8651,16 +8651,16 @@ if _try_result.is_err() {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_2 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.public_uta_get_v3_market_position_tier(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_position_tier", &[__ws_arg_2]).await;
         }  else if (market).swap || (market).future {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_3 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.public_mix_get_v2_mix_market_query_position_lever(&[__ws_arg_3]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_query_position_lever", &[__ws_arg_3]).await;
         }  else if (marginMode.as_deref() == Some("isolated")) {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_4 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.private_margin_get_v2_margin_isolated_tier_data(&[__ws_arg_4]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_isolated_tier_data", &[__ws_arg_4]).await;
         }  else if (marginMode.as_deref() == Some("cross")) {
             let mut code: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "code", &[]);
             if (code.is_none()) {
@@ -8670,7 +8670,7 @@ if _try_result.is_err() {
             let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_margin_get_v2_margin_crossed_tier_data(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_crossed_tier_data", &[__ws_arg_5]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarketLeverageTiers() symbol does not support market ").into()), Value::from((market).symbol.clone()))));
         }
@@ -8824,10 +8824,10 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (uta) {
             let __ws_arg_6 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_uta_get_v3_account_deposit_records(&[__ws_arg_6]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_account_deposit_records", &[__ws_arg_6]).await;
         }  else {
             let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_spot_get_v2_spot_wallet_deposit_records(&[__ws_arg_7]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_spot_wallet_deposit_records", &[__ws_arg_7]).await;
         }
         //
         //     {
@@ -8976,10 +8976,10 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (uta) {
             let __ws_arg_9 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_uta_post_v3_account_withdrawal(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_post_v3_account_withdrawal", &[__ws_arg_9]).await;
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_spot_post_v2_spot_wallet_withdrawal(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_post_v2_spot_wallet_withdrawal", &[__ws_arg_10]).await;
         }
         //
         //     {
@@ -9081,10 +9081,10 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (uta) {
             let __ws_arg_11 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_uta_get_v3_account_withdrawal_records(&[__ws_arg_11]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_account_withdrawal_records", &[__ws_arg_11]).await;
         }  else {
             let __ws_arg_12 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_spot_get_v2_spot_wallet_withdrawal_records(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_spot_wallet_withdrawal_records", &[__ws_arg_12]).await;
         }
         //
         //     {
@@ -9246,10 +9246,10 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (uta) {
             let __ws_arg_14 = self.extend(&request, &[&paramsNetworkCode]);
-            response = self.private_uta_get_v3_account_deposit_address(&[__ws_arg_14]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_account_deposit_address", &[__ws_arg_14]).await;
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-            response = self.private_spot_get_v2_spot_wallet_deposit_address(&[__ws_arg_15]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_spot_wallet_deposit_address", &[__ws_arg_15]).await;
         }
         //
         //     {
@@ -9329,18 +9329,18 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrderBook() requires a whitelisted API key for tokenized stock markets")));
             }
             let __ws_arg_16 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_uta_get_v3_account_reality_orderbook(&[__ws_arg_16]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_account_reality_orderbook", &[__ws_arg_16]).await;
         }  else if (uta) {
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_17 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_uta_get_v3_market_orderbook(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_orderbook", &[__ws_arg_17]).await;
         }  else if (market).spot {
             let __ws_arg_18 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_spot_get_v2_spot_market_orderbook(&[__ws_arg_18]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_spot_market_orderbook", &[__ws_arg_18]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.public_mix_get_v2_mix_market_merge_depth(&[__ws_arg_19]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_merge_depth", &[__ws_arg_19]).await;
         }
         //
         //     {
@@ -9426,14 +9426,14 @@ if _try_result.is_err() {
         if isStockOrUta {
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_20 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_uta_get_v3_market_tickers(&[__ws_arg_20]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_tickers", &[__ws_arg_20]).await;
         }  else if (market).spot {
             let __ws_arg_21 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_spot_get_v2_spot_market_tickers(&[__ws_arg_21]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_spot_market_tickers", &[__ws_arg_21]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.public_mix_get_v2_mix_market_ticker(&[__ws_arg_22]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_ticker", &[__ws_arg_22]).await;
         }
         //
         // spot
@@ -9602,7 +9602,7 @@ if _try_result.is_err() {
             let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsProductType]);
-            response = self.public_mix_get_v2_mix_market_symbol_price(&[__ws_arg_23]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_symbol_price", &[__ws_arg_23]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, data.get(0).cloned().unwrap_or(Value::Null), Some(&market));
@@ -9683,14 +9683,14 @@ if _try_result.is_err() {
                 request.insert("category".into(), Value::from(productType.as_deref()));
             }
             let __ws_arg_24 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_uta_get_v3_market_tickers(&[__ws_arg_24]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_tickers", &[__ws_arg_24]).await;
         }  else if (type_var.as_deref() == Some("spot")) && (passedSubType.is_none()) {
             let __ws_arg_25 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_spot_get_v2_spot_market_tickers(&[__ws_arg_25]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_spot_market_tickers", &[__ws_arg_25]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_26]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_tickers", &[__ws_arg_26]).await;
         }
         let mut symbolsResolved: Option<crate::value::List> = symbols.clone().into_opt_list();
         if isStock && (symbols == Value::Null) {
@@ -9914,7 +9914,7 @@ if _try_result.is_err() {
             }
             paramsPaginate = self.omit_t(&paramsPaginate, &["until", "idLessThan"], &[]);
             let __ws_arg_27 = self.extend(&request, &[&paramsPaginate]);
-            response = self.private_uta_get_v3_account_reality_fills(&[__ws_arg_27]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_account_reality_fills", &[__ws_arg_27]).await;
         }  else if (uta == Some(true)) {
             if (productType.as_deref() == Some("SPOT")) {
                 let mut marginMode: Option<String> = None;
@@ -9925,7 +9925,7 @@ if _try_result.is_err() {
             }
             std::sync::Arc::make_mut(&mut request).insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_28 = self.extend(&request, &[&paramsPaginate]);
-            response = self.public_uta_get_v3_market_fills(&[__ws_arg_28]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_fills", &[__ws_arg_28]).await;
         }  else if (market).spot {
             let mut spotOptions: crate::value::Dict = self.safe_dict_k_t(&options, "spot");
             let mut defaultSpotMethod: String = self.safe_string_k(&spotOptions, "method", &[Value::Str("publicSpotGetV2SpotMarketFillsHistory".into())]).as_str().unwrap_or("publicSpotGetV2SpotMarketFillsHistory").to_string();
@@ -9937,10 +9937,10 @@ if _try_result.is_err() {
                     std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
                 }
                 let __ws_arg_29 = self.extend(&request, &[&paramsPaginate]);
-                response = self.public_spot_get_v2_spot_market_fills_history(&[__ws_arg_29]).await.into_opt_dict();
+                response = self.call_method_o("public_spot_get_v2_spot_market_fills_history", &[__ws_arg_29]).await;
             }  else if (spotMethod.as_deref() == Some("publicSpotGetV2SpotMarketFills")) {
                 let __ws_arg_30 = self.extend(&request, &[&paramsPaginate]);
-                response = self.public_spot_get_v2_spot_market_fills(&[__ws_arg_30]).await.into_opt_dict();
+                response = self.call_method_o("public_spot_get_v2_spot_market_fills", &[__ws_arg_30]).await;
             }
         }  else {
             let mut swapOptions: crate::value::Dict = self.safe_dict_k_t(&options, "swap");
@@ -9954,10 +9954,10 @@ if _try_result.is_err() {
                     std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
                 }
                 let __ws_arg_31 = self.extend(&request, &[&paramsPaginate]);
-                response = self.public_mix_get_v2_mix_market_fills_history(&[__ws_arg_31]).await.into_opt_dict();
+                response = self.call_method_o("public_mix_get_v2_mix_market_fills_history", &[__ws_arg_31]).await;
             }  else if (swapMethod.as_deref() == Some("publicMixGetV2MixMarketFills")) {
                 let __ws_arg_32 = self.extend(request, &[&paramsPaginate]);
-                response = self.public_mix_get_v2_mix_market_fills(&[__ws_arg_32]).await.into_opt_dict();
+                response = self.call_method_o("public_mix_get_v2_mix_market_fills", &[__ws_arg_32]).await;
             }
         }
         //
@@ -10060,7 +10060,7 @@ if _try_result.is_err() {
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             request.insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_33 = self.extend(&request, &[&paramsUTA]);
-            let mut utaResponse: crate::value::Dict = self.private_uta_get_v3_account_fee_rate(&[__ws_arg_33]).await.into_dict();
+            let mut utaResponse: crate::value::Dict = self.call_method_t("private_uta_get_v3_account_fee_rate", &[__ws_arg_33]).await;
             //
             //     {
             //         "code": "00000",
@@ -10087,7 +10087,7 @@ if _try_result.is_err() {
             request.insert("businessType".into(), Value::Str("mix".into()));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsUTA]);
-        let mut response: crate::value::Dict = self.private_common_get_v2_common_trade_rate(&[__ws_arg_34]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_common_get_v2_common_trade_rate", &[__ws_arg_34]).await;
         //
         //     {
         //         "code": "00000",
@@ -10161,7 +10161,7 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " market")));
             }
             let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            let mut utaResponse: crate::value::Dict = self.private_uta_get_v3_account_all_fee_rate(&[__ws_arg_35]).await.into_dict();
+            let mut utaResponse: crate::value::Dict = self.call_method_t("private_uta_get_v3_account_all_fee_rate", &[__ws_arg_35]).await;
             //
             //     {
             //         "code": "00000",
@@ -10204,15 +10204,15 @@ if _try_result.is_err() {
             let mut margin: bool = self.safe_bool_k_opt(&paramsMarginMode, "margin", &[Value::Bool(false)]).unwrap_or(false);
             paramsMarginMode = self.omit_t(&paramsMarginMode, Value::Str("margin".into()), &[]);
             if (marginMode.is_some()) || margin {
-                response = self.public_margin_get_v2_margin_currencies(&[Value::from(&paramsMarginMode)]).await.into_opt_dict();
+                response = self.call_method_o("public_margin_get_v2_margin_currencies", &[Value::from(&paramsMarginMode)]).await;
             }  else {
-                response = self.public_spot_get_v2_spot_public_symbols(&[Value::from(&paramsMarginMode)]).await.into_opt_dict();
+                response = self.call_method_o("public_spot_get_v2_spot_public_symbols", &[Value::from(&paramsMarginMode)]).await;
             }
         }  else if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             let mut productType: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             std::sync::Arc::make_mut(&mut paramsMarginMode).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
-            response = self.public_mix_get_v2_mix_market_contracts(&[Value::Dict(paramsMarginMode)]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_contracts", &[Value::Dict(paramsMarginMode)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " market")));
         }
@@ -10629,11 +10629,11 @@ if _try_result.is_err() {
             let mut assets: Option<crate::value::List> = None;
             if (marketType.as_deref() == Some("funding")) {
                 let __ws_arg_41 = self.extend(&request, &[&paramsUTA]);
-                response = self.private_uta_get_v3_account_funding_assets(&[__ws_arg_41]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_get_v3_account_funding_assets", &[__ws_arg_41]).await;
                 assets = self.safe_list_k_or_o(&response, "data", Value::from(vec![]));
             }  else {
                 let __ws_arg_42 = self.extend(&request, &[&paramsUTA]);
-                response = self.private_uta_get_v3_account_assets(&[__ws_arg_42]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_get_v3_account_assets", &[__ws_arg_42]).await;
                 let mut results: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                 assets = self.safe_list_k_or_o(&results, "assets", Value::from(vec![]));
             }
@@ -10643,16 +10643,16 @@ if _try_result.is_err() {
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_43 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_mix_get_v2_mix_account_accounts(&[__ws_arg_43]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_account_accounts", &[__ws_arg_43]).await;
         }  else if (marginMode.as_deref() == Some("isolated")) {
             let __ws_arg_44 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_margin_get_v2_margin_isolated_account_assets(&[__ws_arg_44]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_isolated_account_assets", &[__ws_arg_44]).await;
         }  else if (marginMode.as_deref() == Some("cross")) {
             let __ws_arg_45 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_margin_get_v2_margin_crossed_account_assets(&[__ws_arg_45]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_crossed_account_assets", &[__ws_arg_45]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_spot_get_v2_spot_account_assets(&[__ws_arg_46]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_spot_account_assets", &[__ws_arg_46]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " accounts")));
         }
@@ -10993,31 +10993,31 @@ if _try_result.is_err() {
         if isStockOrUta {
             let mut request: crate::value::Dict = self.create_uta_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), Value::from(&paramsUTA)]).into_dict();
             if isStockSpot {
-                response = self.private_uta_post_v3_trade_place_reality_order(&[Value::from(&request)]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_post_v3_trade_place_reality_order", &[Value::from(&request)]).await;
             }  else if isStopLossOrTakeProfitTrigger {
-                response = self.private_uta_post_v3_trade_place_strategy_order(&[Value::from(&request)]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_post_v3_trade_place_strategy_order", &[Value::from(&request)]).await;
             }  else {
-                response = self.private_uta_post_v3_trade_place_order(&[Value::Dict(request)]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_post_v3_trade_place_order", &[Value::Dict(request)]).await;
             }
         }  else {
             let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsUTA)]).into_dict();
             if (market).spot {
                 if isTriggerOrder {
-                    response = self.private_spot_post_v2_spot_trade_place_plan_order(&[Value::from(&request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_post_v2_spot_trade_place_plan_order", &[Value::from(&request)]).await;
                 }  else if (marginMode.as_deref() == Some("isolated")) {
-                    response = self.private_margin_post_v2_margin_isolated_place_order(&[Value::from(&request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_margin_post_v2_margin_isolated_place_order", &[Value::from(&request)]).await;
                 }  else if (marginMode.as_deref() == Some("cross")) {
-                    response = self.private_margin_post_v2_margin_crossed_place_order(&[Value::from(&request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_margin_post_v2_margin_crossed_place_order", &[Value::from(&request)]).await;
                 }  else {
-                    response = self.private_spot_post_v2_spot_trade_place_order(&[Value::from(&request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_post_v2_spot_trade_place_order", &[Value::from(&request)]).await;
                 }
             }  else {
                 if isTriggerOrder || isTrailingPercentOrder {
-                    response = self.private_mix_post_v2_mix_order_place_plan_order(&[Value::from(&request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_mix_post_v2_mix_order_place_plan_order", &[Value::from(&request)]).await;
                 }  else if isStopLossOrTakeProfitTrigger {
-                    response = self.private_mix_post_v2_mix_order_place_tpsl_order(&[Value::from(&request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_mix_post_v2_mix_order_place_tpsl_order", &[Value::from(&request)]).await;
                 }  else {
-                    response = self.private_mix_post_v2_mix_order_place_order(&[Value::Dict(request)]).await.into_opt_dict();
+                    response = self.call_method_o("private_mix_post_v2_mix_order_place_order", &[Value::Dict(request)]).await;
                 }
             }
         }
@@ -11481,7 +11481,7 @@ if _try_result.is_err() {
         }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: crate::value::Dict = self.private_uta_post_v3_trade_place_batch(&[Value::from(ordersRequests)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_uta_post_v3_trade_place_batch", &[Value::from(ordersRequests)]).await;
         //
         //     {
         //         "code": "00000",
@@ -11536,14 +11536,14 @@ if _try_result.is_err() {
             return self.create_uta_orders(orders.clone(), &[Value::from(&paramsUTA)]).await;
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let mut firstOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(0));
+        let mut firstOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(0));
         let mut symbol: Option<String> = self.safe_string_k_opt(&firstOrder, "symbol", &[]);
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_384: bool = true;
             while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
                 symbol = marketId.clone();
@@ -11590,13 +11590,13 @@ if _try_result.is_err() {
             let mut productType: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
-            response = self.private_mix_post_v2_mix_order_batch_place_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_post_v2_mix_order_batch_place_order", &[Value::Map(request.clone())]).await;
         }  else if (marginMode.as_deref() == Some("isolated")) {
-            response = self.private_margin_post_v2_margin_isolated_batch_place_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_post_v2_margin_isolated_batch_place_order", &[Value::Map(request.clone())]).await;
         }  else if (marginMode.as_deref() == Some("cross")) {
-            response = self.private_margin_post_v2_margin_crossed_batch_place_order(&[Value::Map(request.clone())]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_post_v2_margin_crossed_batch_place_order", &[Value::Map(request.clone())]).await;
         }  else {
-            response = self.private_spot_post_v2_spot_trade_batch_orders(&[Value::Map(request)]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_post_v2_spot_trade_batch_orders", &[Value::Map(request)]).await;
         }
         //
         //     {
@@ -11752,13 +11752,13 @@ if _try_result.is_err() {
                 }
                 paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice"], &[]);
                 let __ws_arg_48 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_uta_post_v3_trade_modify_strategy_order(&[__ws_arg_48]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_post_v3_trade_modify_strategy_order", &[__ws_arg_48]).await;
             }  else {
                 if (price != Value::Null) {
                     request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
                 let __ws_arg_49 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_uta_post_v3_trade_modify_order(&[__ws_arg_49]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_post_v3_trade_modify_order", &[__ws_arg_49]).await;
             }
         }  else if (market).spot {
             let mut cost: Option<String> = self.safe_string_k_opt(&paramsOmitted, "cost", &[]);
@@ -11792,11 +11792,11 @@ if _try_result.is_err() {
             }
             if (triggerPrice.is_some()) {
                 let __ws_arg_50 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_spot_post_v2_spot_trade_modify_plan_order(&[__ws_arg_50]).await.into_opt_dict();
+                response = self.call_method_o("private_spot_post_v2_spot_trade_modify_plan_order", &[__ws_arg_50]).await;
             }  else {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 let __ws_arg_51 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_spot_post_v2_spot_trade_cancel_replace_order(&[__ws_arg_51]).await.into_opt_dict();
+                response = self.call_method_o("private_spot_post_v2_spot_trade_cancel_replace_order", &[__ws_arg_51]).await;
             }
         }  else {
             if !(market).swap && !(market).future {
@@ -11821,7 +11821,7 @@ if _try_result.is_err() {
                 }
                 request.insert("newCallbackRatio".into(), trailingPercent.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_52 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_52]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_modify_plan_order", &[__ws_arg_52]).await;
             }  else if isTakeProfitOrder || isStopLossOrder {
                 request.insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
                 request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
@@ -11834,7 +11834,7 @@ if _try_result.is_err() {
                     request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice)));
                 }
                 let __ws_arg_53 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_mix_post_v2_mix_order_modify_tpsl_order(&[__ws_arg_53]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_modify_tpsl_order", &[__ws_arg_53]).await;
             }  else if isTriggerOrder {
                 request.insert("newTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
                 if hasStopLoss {
@@ -11854,7 +11854,7 @@ if _try_result.is_err() {
                     request.insert("newStopSurplusTriggerType".into(), Value::from(tpType));
                 }
                 let __ws_arg_54 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_54]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_modify_plan_order", &[__ws_arg_54]).await;
             }  else {
                 let mut defaultNewClientOrderId: String = self.uuid(&[]);
                 let mut newClientOrderId: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("newClientOid".into()), Value::Str("newClientOrderId".into()), &[Value::from(defaultNewClientOrderId)]);
@@ -11869,7 +11869,7 @@ if _try_result.is_err() {
                     request.insert("newPresetStopSurplusPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice)));
                 }
                 let __ws_arg_55 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_mix_post_v2_mix_order_modify_order(&[__ws_arg_55]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_modify_order", &[__ws_arg_55]).await;
             }
         }
         //
@@ -12135,7 +12135,7 @@ if _try_result.is_err() {
             requestList.push(Value::Map(order));
         }
         }
-        let mut response: crate::value::Dict = self.private_uta_post_v3_trade_cancel_batch(&[Value::from(requestList)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_uta_post_v3_trade_cancel_batch", &[Value::from(requestList)]).await;
         //
         //     {
         //         "code": "00000",
@@ -12207,7 +12207,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_386: bool = true;
             while { if !__for_first_386 { i += 1; } __for_first_386 = false; i < (ids.len() as i64) } {
-            let mut individualId: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
+            let mut individualId: Option<String> = self.safe_string_opt(&ids, Value::Int(i), &[]);
             let mut orderId: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), individualId.map(Value::from).unwrap_or(Value::Null));
@@ -12231,14 +12231,14 @@ if _try_result.is_err() {
             if (marginMode.is_some()) {
                 if (marginMode.as_deref() == Some("cross")) {
                     let __ws_arg_66 = self.extend(&request, &[&paramsUTA]);
-                    response = self.private_margin_post_v2_margin_crossed_batch_cancel_order(&[__ws_arg_66]).await.into_opt_dict();
+                    response = self.call_method_o("private_margin_post_v2_margin_crossed_batch_cancel_order", &[__ws_arg_66]).await;
                 }  else {
                     let __ws_arg_67 = self.extend(&request, &[&paramsUTA]);
-                    response = self.private_margin_post_v2_margin_isolated_batch_cancel_order(&[__ws_arg_67]).await.into_opt_dict();
+                    response = self.call_method_o("private_margin_post_v2_margin_isolated_batch_cancel_order", &[__ws_arg_67]).await;
                 }
             }  else {
                 let __ws_arg_68 = self.extend(&request, &[&paramsUTA]);
-                response = self.private_spot_post_v2_spot_trade_batch_cancel_order(&[__ws_arg_68]).await.into_opt_dict();
+                response = self.call_method_o("private_spot_post_v2_spot_trade_batch_cancel_order", &[__ws_arg_68]).await;
             }
         }  else {
             let mut productType: Option<String> = None;
@@ -12246,10 +12246,10 @@ if _try_result.is_err() {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             if (trigger == Some(true)) {
                 let __ws_arg_69 = self.extend(&request, &[&paramsUTA]);
-                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_69]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_cancel_plan_order", &[__ws_arg_69]).await;
             }  else {
                 let __ws_arg_70 = self.extend(Value::Map(request), &[&paramsUTA]);
-                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_70]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_batch_cancel_orders", &[__ws_arg_70]).await;
             }
         }
         //
@@ -12332,7 +12332,7 @@ if _try_result.is_err() {
             }
             request.insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_71 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.private_uta_post_v3_trade_cancel_symbol_order(&[__ws_arg_71]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_post_v3_trade_cancel_symbol_order", &[__ws_arg_71]).await;
         }  else if (market).spot {
             if (marginMode.is_some()) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")));
@@ -12344,10 +12344,10 @@ if _try_result.is_err() {
                         m
                     });
                     let __ws_arg_72 = self.extend(Value::Map(stopRequest), &[&paramsMarginMode]);
-                    response = self.private_spot_post_v2_spot_trade_batch_cancel_plan_order(&[__ws_arg_72]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_post_v2_spot_trade_batch_cancel_plan_order", &[__ws_arg_72]).await;
                 }  else {
                     let __ws_arg_73 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.private_spot_post_v2_spot_trade_cancel_symbol_order(&[__ws_arg_73]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_post_v2_spot_trade_cancel_symbol_order", &[__ws_arg_73]).await;
                 }
                 //
                 //     {
@@ -12376,10 +12376,10 @@ if _try_result.is_err() {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             if (trigger == Some(true)) {
                 let __ws_arg_74 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_74]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_cancel_plan_order", &[__ws_arg_74]).await;
             }  else {
                 let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_75]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_post_v2_mix_order_batch_cancel_orders", &[__ws_arg_75]).await;
             }
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
@@ -12711,10 +12711,10 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut request).insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             if (trigger == Some(true)) {
                 let __ws_arg_79 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.private_uta_get_v3_trade_unfilled_strategy_orders(&[__ws_arg_79]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_get_v3_trade_unfilled_strategy_orders", &[__ws_arg_79]).await;
             }  else {
                 let __ws_arg_80 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.private_uta_get_v3_trade_unfilled_orders(&[__ws_arg_80]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_get_v3_trade_unfilled_orders", &[__ws_arg_80]).await;
             }
         }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) {
@@ -12724,18 +12724,18 @@ if _try_result.is_err() {
                 }
                 if (marginMode.as_deref() == Some("isolated")) {
                     let __ws_arg_81 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.private_margin_get_v2_margin_isolated_open_orders(&[__ws_arg_81]).await.into_opt_dict();
+                    response = self.call_method_o("private_margin_get_v2_margin_isolated_open_orders", &[__ws_arg_81]).await;
                 }  else if (marginMode.as_deref() == Some("cross")) {
                     let __ws_arg_82 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.private_margin_get_v2_margin_crossed_open_orders(&[__ws_arg_82]).await.into_opt_dict();
+                    response = self.call_method_o("private_margin_get_v2_margin_crossed_open_orders", &[__ws_arg_82]).await;
                 }
             }  else {
                 if (trigger == Some(true)) {
                     let __ws_arg_83 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.private_spot_get_v2_spot_trade_current_plan_order(&[__ws_arg_83]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_get_v2_spot_trade_current_plan_order", &[__ws_arg_83]).await;
                 }  else {
                     let __ws_arg_84 = self.extend(&request, &[&paramsMarginMode]);
-                    response = self.private_spot_get_v2_spot_trade_unfilled_orders(&[__ws_arg_84]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_get_v2_spot_trade_unfilled_orders", &[__ws_arg_84]).await;
                 }
             }
         }  else {
@@ -12744,15 +12744,15 @@ if _try_result.is_err() {
                 let mut planType: String = self.safe_string_k(&paramsMarginMode, "planType", &[Value::Str("track_plan".into())]).as_str().unwrap_or("track_plan").to_string();
                 std::sync::Arc::make_mut(&mut request).insert("planType".into(), Value::from(planType));
                 let __ws_arg_85 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_85]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_get_v2_mix_order_orders_plan_pending", &[__ws_arg_85]).await;
             }  else if isTrigger {
                 let mut planType: String = self.safe_string_k(&paramsMarginMode, "planType", &[Value::Str("normal_plan".into())]).as_str().unwrap_or("normal_plan").to_string();
                 std::sync::Arc::make_mut(&mut request).insert("planType".into(), Value::from(planType));
                 let __ws_arg_86 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_86]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_get_v2_mix_order_orders_plan_pending", &[__ws_arg_86]).await;
             }  else {
                 let __ws_arg_87 = self.extend(request, &[&paramsMarginMode]);
-                response = self.private_mix_get_v2_mix_order_orders_pending(&[__ws_arg_87]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_get_v2_mix_order_orders_pending", &[__ws_arg_87]).await;
             }
         }
         let mut sinceResolved: Option<i64> = (if (sinceDefault.is_none()) { since.as_i64() } else { sinceDefault });
@@ -13509,10 +13509,10 @@ if _try_result.is_err() {
         paramsProductType = self.omit_t(&paramsProductType, &["stop", "trigger"], &[]);
         if (trigger == Some(true)) {
             let __ws_arg_95 = self.extend(&request, &[&paramsProductType]);
-            response = self.private_uta_get_v3_trade_history_strategy_orders(&[__ws_arg_95]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_trade_history_strategy_orders", &[__ws_arg_95]).await;
         }  else {
             let __ws_arg_96 = self.extend(request, &[&paramsProductType]);
-            response = self.private_uta_get_v3_trade_history_orders(&[__ws_arg_96]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_trade_history_orders", &[__ws_arg_96]).await;
         }
         //
         // uta
@@ -13708,7 +13708,7 @@ if _try_result.is_err() {
         if (uta == Some(true)) {
             if (marketType.as_deref() == Some("funding")) {
                 let __ws_arg_97 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_uta_get_v3_account_funding_financial_records(&[__ws_arg_97]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_get_v3_account_funding_financial_records", &[__ws_arg_97]).await;
             }  else {
                 let mut marginMode: Option<String> = None;
                 { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -13727,7 +13727,7 @@ if _try_result.is_err() {
                     std::sync::Arc::make_mut(&mut request).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
                 }
                 let __ws_arg_98 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_98]).await.into_opt_dict();
+                response = self.call_method_o("private_uta_get_v3_account_financial_records", &[__ws_arg_98]).await;
             }
             let mut utaData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut list: crate::value::List = self.safe_list_k_t(&utaData, "list");
@@ -13735,7 +13735,7 @@ if _try_result.is_err() {
         }
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_99 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_99]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_spot_account_bills", &[__ws_arg_99]).await;
         }  else {
             if (symbol.is_some()) {
                 std::sync::Arc::make_mut(&mut request).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
@@ -13744,7 +13744,7 @@ if _try_result.is_err() {
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(market.as_ref(), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             std::sync::Arc::make_mut(&mut request).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_100 = self.extend(request, &[&paramsOmitted]);
-            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_100]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_account_bill", &[__ws_arg_100]).await;
         }
         //
         // spot
@@ -14068,7 +14068,7 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (uta == Some(true)) {
             let __ws_arg_101 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_uta_get_v3_trade_fills(&[__ws_arg_101]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_trade_fills", &[__ws_arg_101]).await;
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::from((market).id.as_deref())); }
             if (market).spot {
@@ -14079,21 +14079,21 @@ if _try_result.is_err() {
                     }
                     if (marginMode.as_deref() == Some("isolated")) {
                         let __ws_arg_102 = self.extend(&request, &[&paramsUTA]);
-                        response = self.private_margin_get_v2_margin_isolated_fills(&[__ws_arg_102]).await.into_opt_dict();
+                        response = self.call_method_o("private_margin_get_v2_margin_isolated_fills", &[__ws_arg_102]).await;
                     }  else if (marginMode.as_deref() == Some("cross")) {
                         let __ws_arg_103 = self.extend(&request, &[&paramsUTA]);
-                        response = self.private_margin_get_v2_margin_crossed_fills(&[__ws_arg_103]).await.into_opt_dict();
+                        response = self.call_method_o("private_margin_get_v2_margin_crossed_fills", &[__ws_arg_103]).await;
                     }
                 }  else {
                     let __ws_arg_104 = self.extend(&request, &[&paramsUTA]);
-                    response = self.private_spot_get_v2_spot_trade_fills(&[__ws_arg_104]).await.into_opt_dict();
+                    response = self.call_method_o("private_spot_get_v2_spot_trade_fills", &[__ws_arg_104]).await;
                 }
             }  else {
                 let mut productType: Option<String> = None;
                 { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
                 let __ws_arg_105 = self.extend(request, &[&paramsUTA]);
-                response = self.private_mix_get_v2_mix_order_fills(&[__ws_arg_105]).await.into_opt_dict();
+                response = self.call_method_o("private_mix_get_v2_mix_order_fills", &[__ws_arg_105]).await;
             }
         }
         //
@@ -14285,7 +14285,7 @@ if _try_result.is_err() {
         if (uta) {
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_106 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_106]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_position_current_position", &[__ws_arg_106]).await;
             //
             //     {
             //         "code": "00000",
@@ -14330,7 +14330,7 @@ if _try_result.is_err() {
             request.insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_107 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_mix_get_v2_mix_position_single_position(&[__ws_arg_107]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_position_single_position", &[__ws_arg_107]).await;
             //
             //     {
             //         "code": "00000",
@@ -14434,7 +14434,7 @@ if _try_result.is_err() {
         if (uta == Some(true)) {
             request.insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_108 = self.extend(&request, &[&paramsPaginate]);
-            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_108]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_position_current_position", &[__ws_arg_108]).await;
         }  else if (method.as_deref() == Some("privateMixGetV2MixPositionAllPosition")) {
             let mut marginCoin: Option<String> = self.safe_string_k_opt(&paramsPaginate, "marginCoin", &[Value::Str("USDT".into())]);
             if (market.is_some()) {
@@ -14455,7 +14455,7 @@ if _try_result.is_err() {
             request.insert("marginCoin".into(), marginCoin.map(Value::from).unwrap_or(Value::Null));
             request.insert("productType".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_109 = self.extend(&request, &[&paramsPaginate]);
-            response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_109]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_position_all_position", &[__ws_arg_109]).await;
         }  else {
             isHistory = true;
             if (market.is_some()) {
@@ -14463,7 +14463,7 @@ if _try_result.is_err() {
             }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_110 = self.extend(Value::Map(request), &[&paramsPaginate]);
-            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_110]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_position_history_position", &[__ws_arg_110]).await;
         }
         //
         // privateMixGetV2MixPositionAllPosition
@@ -14641,7 +14641,7 @@ if _try_result.is_err() {
             }
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_111 = self.extend(&request, &[&paramsProductType]);
-            response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_111]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_history_fund_rate", &[__ws_arg_111]).await;
             //
             //     {
             //         "code": "00000",
@@ -14671,7 +14671,7 @@ if _try_result.is_err() {
             }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_112 = self.extend(Value::Map(request), &[&paramsProductType]);
-            response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_112]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_history_fund_rate", &[__ws_arg_112]).await;
             //
             //     {
             //         "code": "00000",
@@ -14759,17 +14759,17 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(paramsProductType.clone(), Some("fetchFundingRate"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (uta == Some(true)) {
             let __ws_arg_113 = self.extend(&request, &[&paramsProductType]);
-            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_113]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_current_fund_rate", &[__ws_arg_113]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let mut method: Option<String> = None;
             { let __destr_tmp = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("fetchFundingRate".into()), Value::Str("method".into()), &[Value::Str("publicMixGetV2MixMarketCurrentFundRate".into())]); method = __destr_tmp.0.as_str().map(str::to_owned); paramsProductType = Value::Dict(__destr_tmp.1); }
             if (method.as_deref() == Some("publicMixGetV2MixMarketCurrentFundRate")) {
                 let __ws_arg_114 = self.extend(&request, &[&paramsProductType]);
-                response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_114]).await.into_opt_dict();
+                response = self.call_method_o("public_mix_get_v2_mix_market_current_fund_rate", &[__ws_arg_114]).await;
             }  else if (method.as_deref() == Some("publicMixGetV2MixMarketFundingTime")) {
                 let __ws_arg_115 = self.extend(Value::Map(request), &[paramsProductType]);
-                response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_115]).await.into_opt_dict();
+                response = self.call_method_o("public_mix_get_v2_mix_market_funding_time", &[__ws_arg_115]).await;
             }
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
@@ -14830,10 +14830,10 @@ if _try_result.is_err() {
             request.insert("category".into(), Value::from(productType.as_deref()));
             if (methodOption.as_deref() == Some("publicMixGetV2MixMarketTickers")) {
                 let __ws_arg_116 = self.extend(&request, &[&paramsMethod]);
-                response = self.public_uta_get_v3_market_tickers(&[__ws_arg_116]).await.into_opt_dict();
+                response = self.call_method_o("public_uta_get_v3_market_tickers", &[__ws_arg_116]).await;
             }  else if (methodOption.as_deref() == Some("publicMixGetV2MixMarketCurrentFundRate")) {
                 let __ws_arg_117 = self.extend(&request, &[&paramsMethod]);
-                response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_117]).await.into_opt_dict();
+                response = self.call_method_o("public_uta_get_v3_market_current_fund_rate", &[__ws_arg_117]).await;
             }
         }  else if (methodOption.as_deref() == Some("publicMixGetV2MixMarketTickers")) {
             request.insert("productType".into(), Value::from(productType.as_deref()));
@@ -14870,7 +14870,7 @@ if _try_result.is_err() {
             //     ]
             // }
             let __ws_arg_118 = self.extend(&request, &[&paramsMethod]);
-            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_118]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_tickers", &[__ws_arg_118]).await;
         }  else if (methodOption.as_deref() == Some("publicMixGetV2MixMarketCurrentFundRate")) {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             //
@@ -14891,7 +14891,7 @@ if _try_result.is_err() {
             //     }
             //
             let __ws_arg_119 = self.extend(Value::Map(request), &[&paramsMethod]);
-            response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_119]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_current_fund_rate", &[__ws_arg_119]).await;
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
@@ -15006,14 +15006,14 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut requestUntil).insert("coin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
             std::sync::Arc::make_mut(&mut requestUntil).insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_120 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_120]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_account_financial_records", &[__ws_arg_120]).await;
         }  else {
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.as_deref()));
             std::sync::Arc::make_mut(&mut requestUntil).insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
             std::sync::Arc::make_mut(&mut requestUntil).insert("businessType".into(), Value::Str("contract_settle_fee".into()));
             std::sync::Arc::make_mut(&mut requestUntil).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_121 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_121]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_account_bill", &[__ws_arg_121]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut bills: Option<crate::value::List> = self.safe_list2_or_o(&data, Value::Str("bills".into()), Value::Str("list".into()), Value::from(vec![]));
@@ -15122,7 +15122,7 @@ if _try_result.is_err() {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsProductType, Value::Str("holdSide".into()), &[]);
         let __ws_arg_122 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_122]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_mix_post_v2_mix_account_set_margin", &[__ws_arg_122]).await;
         //
         //     {
         //         "code": "00000",
@@ -15244,7 +15244,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_124 = self.extend(Value::Map(request), &[&paramsProductType]);
-        let mut response: crate::value::Dict = self.private_mix_get_v2_mix_account_account(&[__ws_arg_124]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_mix_get_v2_mix_account_account", &[__ws_arg_124]).await;
         //
         //     {
         //         "code": "00000",
@@ -15399,7 +15399,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_127 = self.extend(Value::Map(request), &[&paramsProductType]);
-        let mut response: crate::value::Dict = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_127]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_mix_post_v2_mix_account_set_margin_mode", &[__ws_arg_127]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -15508,11 +15508,11 @@ if _try_result.is_err() {
         if (uta) {
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_130 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_130]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_open_interest", &[__ws_arg_130]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_131 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.public_mix_get_v2_mix_market_open_interest(&[__ws_arg_131]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_open_interest", &[__ws_arg_131]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &data, Some(&market));
@@ -15574,7 +15574,7 @@ if _try_result.is_err() {
         }
         { let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsMarketType, &[]); request = __until0; paramsMarketType = __until1; }
         let __ws_arg_132 = self.extend(request, &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.private_spot_get_v2_spot_account_transfer_records(&[__ws_arg_132]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_spot_get_v2_spot_account_transfer_records", &[__ws_arg_132]).await;
         //
         //     {
         //         "code": "00000",
@@ -15660,10 +15660,10 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (uta) {
             let __ws_arg_133 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_uta_post_v3_account_transfer(&[__ws_arg_133]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_post_v3_account_transfer", &[__ws_arg_133]).await;
         }  else {
             let __ws_arg_134 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_spot_post_v2_spot_wallet_transfer(&[__ws_arg_134]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_post_v2_spot_wallet_transfer", &[__ws_arg_134]).await;
         }
         //
         //     {
@@ -15720,7 +15720,7 @@ if _try_result.is_err() {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.public_spot_get_v2_spot_public_coins(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_spot_get_v2_spot_public_coins", &[params]).await;
         //
         //     {
         //         "code": "00000",
@@ -15789,7 +15789,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_135 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_margin_post_v2_margin_crossed_account_borrow(&[__ws_arg_135]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_margin_post_v2_margin_crossed_account_borrow", &[__ws_arg_135]).await;
         //
         //     {
         //         "code": "00000",
@@ -15845,7 +15845,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_136 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_margin_post_v2_margin_isolated_account_borrow(&[__ws_arg_136]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_margin_post_v2_margin_isolated_account_borrow", &[__ws_arg_136]).await;
         //
         //     {
         //         "code": "00000",
@@ -15902,7 +15902,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_137 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_margin_post_v2_margin_isolated_account_repay(&[__ws_arg_137]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_margin_post_v2_margin_isolated_account_repay", &[__ws_arg_137]).await;
         //
         //     {
         //         "code": "00000",
@@ -15956,7 +15956,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_138 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_margin_post_v2_margin_crossed_account_repay(&[__ws_arg_138]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_margin_post_v2_margin_crossed_account_repay", &[__ws_arg_138]).await;
         //
         //     {
         //         "code": "00000",
@@ -16109,10 +16109,10 @@ if _try_result.is_err() {
             }
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_139 = self.extend(&requestUntil, &[&paramsMarginMode]);
-            response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_139]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_isolated_liquidation_history", &[__ws_arg_139]).await;
         }  else if (marginMode.as_deref() == Some("cross")) {
             let __ws_arg_140 = self.extend(requestUntil, &[&paramsMarginMode]);
-            response = self.private_margin_get_v2_margin_crossed_liquidation_history(&[__ws_arg_140]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_crossed_liquidation_history", &[__ws_arg_140]).await;
         }
         //
         // isolated
@@ -16204,7 +16204,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_141 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_margin_get_v2_margin_isolated_interest_rate_and_limit(&[__ws_arg_141]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_margin_get_v2_margin_isolated_interest_rate_and_limit", &[__ws_arg_141]).await;
         //
         //     {
         //         "code": "00000",
@@ -16354,7 +16354,7 @@ if _try_result.is_err() {
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uta) {
             let __ws_arg_142 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_142]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_margin_loans", &[__ws_arg_142]).await;
             //
             //     {
             //         "code": "00000",
@@ -16370,7 +16370,7 @@ if _try_result.is_err() {
             result = self.safe_dict_k_t(&response, "data");
         }  else {
             let __ws_arg_143 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_143]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_crossed_interest_rate_and_limit", &[__ws_arg_143]).await;
             //
             //     {
             //         "code": "00000",
@@ -16401,7 +16401,7 @@ if _try_result.is_err() {
             result = self.safe_dict_t(&data, Value::Int(0));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), Value::from(timestamp));
+        std::sync::Arc::make_mut(&mut result).insert("timestamp".to_string(), Value::from(timestamp));
         return self.parse_borrow_rate(Value::Dict(result), Some(&currency));
         Value::Null
         }).await?))
@@ -16476,10 +16476,10 @@ if _try_result.is_err() {
             }
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_144 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_144]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_isolated_interest_history", &[__ws_arg_144]).await;
         }  else if (marginMode.as_deref() == Some("cross")) {
             let __ws_arg_145 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_margin_get_v2_margin_crossed_interest_history(&[__ws_arg_145]).await.into_opt_dict();
+            response = self.call_method_o("private_margin_get_v2_margin_crossed_interest_history", &[__ws_arg_145]).await;
         }
         //
         // isolated
@@ -16586,14 +16586,14 @@ if _try_result.is_err() {
             }
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_146 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_146]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_post_v3_trade_close_positions", &[__ws_arg_146]).await;
         }  else {
             if (side != Value::Null) {
                 request.insert("holdSide".into(), side);
             }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_147 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_147]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_post_v2_mix_order_close_positions", &[__ws_arg_147]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut order: crate::value::List = self.safe_list2_t(&data, Value::Str("successList".into()), Value::Str("list".into()));
@@ -16640,11 +16640,11 @@ if _try_result.is_err() {
         if (uta) {
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_148 = self.extend(&request, &[&paramsUTA]);
-            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_148]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_post_v3_trade_close_positions", &[__ws_arg_148]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_149 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_149]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_post_v2_mix_order_close_positions", &[__ws_arg_149]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orderInfo: crate::value::List = self.safe_list2_t(&data, Value::Str("successList".into()), Value::Str("list".into()));
@@ -16688,7 +16688,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_150 = self.extend(Value::Map(request), &[&paramsProductType]);
-        let mut response: crate::value::Dict = self.private_mix_get_v2_mix_account_account(&[__ws_arg_150]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_mix_get_v2_mix_account_account", &[__ws_arg_150]).await;
         //
         //     {
         //         "code": "00000",
@@ -16786,10 +16786,10 @@ if _try_result.is_err() {
         if (uta) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_151 = self.extend(&requestUntil, &[&paramsUTA]);
-            response = self.private_uta_get_v3_position_history_position(&[__ws_arg_151]).await.into_opt_dict();
+            response = self.call_method_o("private_uta_get_v3_position_history_position", &[__ws_arg_151]).await;
         }  else {
             let __ws_arg_152 = self.extend(requestUntil, &[&paramsUTA]);
-            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_152]).await.into_opt_dict();
+            response = self.call_method_o("private_mix_get_v2_mix_position_history_position", &[__ws_arg_152]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut responseList: crate::value::List = self.safe_list_k_t(&data, "list");
@@ -16834,7 +16834,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_153 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_convert_get_v2_convert_quoted_price(&[__ws_arg_153]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_convert_get_v2_convert_quoted_price", &[__ws_arg_153]).await;
         //
         //     {
         //         "code": "00000",
@@ -16912,7 +16912,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_154 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_convert_post_v2_convert_trade(&[__ws_arg_154]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_convert_post_v2_convert_trade", &[__ws_arg_154]).await;
         //
         //     {
         //         "code": "00000",
@@ -16983,7 +16983,7 @@ if _try_result.is_err() {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
         let __ws_arg_155 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_convert_get_v2_convert_convert_record(&[__ws_arg_155]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_convert_get_v2_convert_convert_record", &[__ws_arg_155]).await;
         //
         //     {
         //         "code": "00000",
@@ -17035,7 +17035,7 @@ if _try_result.is_err() {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_convert_get_v2_convert_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_convert_get_v2_convert_currencies", &[params]).await;
         //
         //     {
         //         "code": "00000",
@@ -17150,11 +17150,11 @@ if _try_result.is_err() {
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (uta) {
             let __ws_arg_156 = self.extend(&request, &[&paramsUTA]);
-            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_156]).await.into_opt_dict();
+            response = self.call_method_o("public_uta_get_v3_market_current_fund_rate", &[__ws_arg_156]).await;
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_157 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_157]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_funding_time", &[__ws_arg_157]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
@@ -17205,10 +17205,10 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap || (market).future {
             let __ws_arg_158 = self.extend(&request, &[&params]);
-            response = self.public_mix_get_v2_mix_market_account_long_short(&[__ws_arg_158]).await.into_opt_dict();
+            response = self.call_method_o("public_mix_get_v2_mix_market_account_long_short", &[__ws_arg_158]).await;
         }  else {
             let __ws_arg_159 = self.extend(Value::Map(request), &[params]);
-            response = self.public_margin_get_v2_margin_market_long_short_ratio(&[__ws_arg_159]).await.into_opt_dict();
+            response = self.call_method_o("public_margin_get_v2_margin_market_long_short_ratio", &[__ws_arg_159]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_long_short_ratio_history(Value::Arr(data), &[(market).raw.clone()]);

@@ -892,7 +892,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
                         requestParams.insert("order_tag".into(), brokerId);
                     }
                 }
-                requestParams = self.keysort(Value::Map(requestParams.clone()), &[]).as_map().cloned().unwrap_or_default();
+                requestParams = self.keysort(Value::Map(std::mem::take(&mut requestParams)), &[]).as_map().cloned().unwrap_or_default();
             }
             let mut auth: String = "".to_string();
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
@@ -2246,7 +2246,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v1_public_get_public_system_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_system_info", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -2297,7 +2297,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v1_public_get_public_system_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_system_info", &[params]).await;
         return self.safe_integer_k(&response, "timestamp", &[]);
         Value::Null
         }).await?))
@@ -2322,7 +2322,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v1_public_get_public_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_info", &[params]).await;
         //
         //   {
         //     "success": true,
@@ -2388,7 +2388,7 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenPromise: crate::value::Dict = self.v1_public_get_public_token(&[params.clone()]).await.into_dict();
+        let mut tokenPromise: crate::value::Dict = self.call_method_t("v1_public_get_public_token", &[params.clone()]).await;
         //
         // {
         //     "success": true,
@@ -2411,7 +2411,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut chainPromise: crate::value::Dict = self.v1_public_get_public_chain_info(&[params]).await.into_dict();
+        let mut chainPromise: crate::value::Dict = self.call_method_t("v1_public_get_public_chain_info", &[params]).await;
         let tokenResponsechainResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenPromise), Value::Dict(chainPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut tokenResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut chainResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2499,7 +2499,7 @@ impl Woofipro {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_market_trades(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_market_trades", &[__ws_arg_0]).await;
         //
         // {
         //     "success": true,
@@ -2591,7 +2591,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_funding_rate_symbol(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_funding_rate_symbol", &[__ws_arg_1]).await;
         //
         // {
         //     "success": true,
@@ -2637,7 +2637,7 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_funding_rates(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_funding_rates", &[params]).await;
         //
         // {
         //     "success": true,
@@ -2693,7 +2693,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_futures_symbol(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_futures_symbol", &[__ws_arg_2]).await;
         //
         // {
         //     "success": true,
@@ -2750,7 +2750,7 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_futures(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_futures", &[params]).await;
         //
         // {
         //     "success": true,
@@ -2832,7 +2832,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_futures_symbol(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_futures_symbol", &[__ws_arg_3]).await;
         //
         // {
         //     "success": true,
@@ -2881,7 +2881,7 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_futures(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_futures", &[params]).await;
         //
         // {
         //     "success": true,
@@ -2976,7 +2976,7 @@ impl Woofipro {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_4 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.v1_public_get_public_funding_rate_history(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_public_funding_rate_history", &[__ws_arg_4]).await;
         //
         // {
         //     "success": true,
@@ -3079,7 +3079,7 @@ impl Woofipro {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_get_funding_fee_history(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_funding_fee_history", &[__ws_arg_5]).await;
         //
         // {
         //     "success": true,
@@ -3131,7 +3131,7 @@ impl Woofipro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_get_client_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_client_info", &[params]).await;
         //
         // {
         //     "success": true,
@@ -3224,7 +3224,7 @@ impl Woofipro {
             request.insert("max_level".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_get_orderbook_symbol(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_orderbook_symbol", &[__ws_arg_6]).await;
         //
         // {
         //     "success": true,
@@ -3290,7 +3290,7 @@ impl Woofipro {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_get_kline(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_kline", &[__ws_arg_7]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         //
         // {
@@ -3536,9 +3536,9 @@ impl Woofipro {
         let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss.is_some()) || (takeProfit.is_some()) || (paramsChildOrders.is_some());
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
-            response = self.v1_private_post_algo_order(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_post_algo_order", &[Value::from(&request)]).await;
         }  else {
-            response = self.v1_private_post_order(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_post_order", &[Value::Dict(request)]).await;
         }
         let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3580,7 +3580,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1185: bool = true;
             while { if !__for_first_1185 { i += 1; } __for_first_1185 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
@@ -3605,7 +3605,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_batch_order(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_batch_order", &[__ws_arg_8]).await;
         //
         //     {
         //         "success": true,
@@ -3692,7 +3692,7 @@ impl Woofipro {
         self.check_required_argument(Value::Str("editOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         if isConditional {
             let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
-            response = self.v1_private_put_algo_order(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_put_algo_order", &[__ws_arg_9]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("side".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
@@ -3717,7 +3717,7 @@ impl Woofipro {
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.v1_private_put_order(&[__ws_arg_10]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_put_order", &[__ws_arg_10]).await;
         }
         //
         // {
@@ -3791,22 +3791,22 @@ impl Woofipro {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let mut paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
                 let __ws_arg_11 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_delete_algo_client_order", &[__ws_arg_11]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
                 let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_delete_algo_order(&[__ws_arg_12]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_delete_algo_order", &[__ws_arg_12]).await;
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let mut paramsOmitted3: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
                 let __ws_arg_13 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.v1_private_delete_client_order(&[__ws_arg_13]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_delete_client_order", &[__ws_arg_13]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
                 let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_delete_order(&[__ws_arg_14]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_delete_order", &[__ws_arg_14]).await;
             }
         }
         //
@@ -3886,11 +3886,11 @@ impl Woofipro {
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into())));
             let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
-            response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_delete_client_batch_order", &[__ws_arg_17]).await;
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_delete_batch_order", &[__ws_arg_18]).await;
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3999,21 +3999,21 @@ impl Woofipro {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_get_algo_client_order_client_order_id(&[__ws_arg_21]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_get_algo_client_order_client_order_id", &[__ws_arg_21]).await;
             }  else {
                 request.insert("oid".into(), id.clone());
                 let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_get_algo_order_oid(&[__ws_arg_22]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_get_algo_order_oid", &[__ws_arg_22]).await;
             }
         }  else {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_23]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_get_client_order_client_order_id", &[__ws_arg_23]).await;
             }  else {
                 request.insert("oid".into(), id);
                 let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_get_order_oid(&[__ws_arg_24]).await.into_opt_dict();
+                response = self.call_method_o("v1_private_get_order_oid", &[__ws_arg_24]).await;
             }
         }
         //
@@ -4123,10 +4123,10 @@ impl Woofipro {
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
             let __ws_arg_25 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.v1_private_get_algo_orders(&[__ws_arg_25]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_get_algo_orders", &[__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.v1_private_get_orders(&[__ws_arg_26]).await.into_opt_dict();
+            response = self.call_method_o("v1_private_get_orders", &[__ws_arg_26]).await;
         }
         //
         //     {
@@ -4294,7 +4294,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.v1_private_get_order_oid_trades(&[__ws_arg_27]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_order_oid_trades", &[__ws_arg_27]).await;
         //
         // {
         //     "success": true,
@@ -4379,7 +4379,7 @@ impl Woofipro {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.v1_private_get_trades(&[__ws_arg_28]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_trades", &[__ws_arg_28]).await;
         //
         // {
         //     "success": true,
@@ -4435,7 +4435,7 @@ impl Woofipro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_get_client_holding(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_client_holding", &[params]).await;
         //
         // {
         //     "success": true,
@@ -4486,7 +4486,7 @@ impl Woofipro {
             request.insert("type".into(), transactionType.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_get_asset_history(&[__ws_arg_29]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_asset_history", &[__ws_arg_29]).await;
         //
         // {
         //     "success": true,
@@ -4692,7 +4692,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v1_private_get_withdraw_nonce(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_withdraw_nonce", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -4842,7 +4842,7 @@ impl Woofipro {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("chainId".into()), &[]);
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_private_post_withdraw_request(&[__ws_arg_33]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_withdraw_request", &[__ws_arg_33]).await;
         //
         //     {
         //         "success": true,
@@ -4883,7 +4883,7 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.v1_private_get_client_margin_modes(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_client_margin_modes", &[params]).await;
         //
         // {
         //     "success": true,
@@ -5012,7 +5012,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_post_position_margin(&[__ws_arg_35]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_position_margin", &[__ws_arg_35]).await;
         //
         // {
         //     "success": true,
@@ -5106,7 +5106,7 @@ impl Woofipro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: crate::value::Dict = self.v1_private_get_client_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_client_info", &[params]).await;
         //
         // {
         //     "success": true,
@@ -5210,7 +5210,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_private_get_position_symbol(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_position_symbol", &[__ws_arg_37]).await;
         //
         // {
         //     "success": true,
@@ -5266,7 +5266,7 @@ impl Woofipro {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v1_private_get_positions(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_positions", &[params]).await;
         //
         // {
         //     "success": true,

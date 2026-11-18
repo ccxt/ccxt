@@ -1849,9 +1849,9 @@ impl Lbank {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
-            response = self.contract_public_get_cfd_open_api_v1_pub_get_time(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_cfd_open_api_v1_pub_get_time", &[Value::from(&paramsMarketType)]).await;
         }  else {
-            response = self.spot_public_get_timestamp(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_timestamp", &[Value::Dict(paramsMarketType)]).await;
         }
         return self.safe_integer_k(&response, "data", &[]);
         Value::Null
@@ -1875,7 +1875,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_withdraw_configs", &[params]).await;
         //
         //    {
         //        "msg": "Success",
@@ -1951,7 +1951,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_public_get_accuracy(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_accuracy", &[params]).await;
         //
         //     {
         //         "result": "true",
@@ -2065,7 +2065,7 @@ impl Lbank {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_public_get_cfd_open_api_v1_pub_instrument(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_cfd_open_api_v1_pub_instrument", &[__ws_arg_0]).await;
         //
         //     {
         //         "data": [
@@ -2217,7 +2217,7 @@ impl Lbank {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_public_get_ticker24hr(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_ticker24hr", &[__ws_arg_1]).await;
         //
         //     {
         //         "result": "true",
@@ -2289,11 +2289,11 @@ impl Lbank {
         if (type_var.as_deref() == Some("swap")) {
             request.insert("productGroup".into(), Value::Str("SwapU".into()));
             let __ws_arg_2 = self.extend(&request, &[&paramsMarketType]);
-            response = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_cfd_open_api_v1_pub_market_data", &[__ws_arg_2]).await;
         }  else {
             request.insert("symbol".into(), Value::Str("all".into()));
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.spot_public_get_ticker24hr(&[__ws_arg_3]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_ticker24hr", &[__ws_arg_3]).await;
         }
         //
         // spot
@@ -2386,11 +2386,11 @@ impl Lbank {
         if (type_var.as_deref() == Some("swap")) {
             request.insert("depth".into(), Value::from(limitResolved));
             let __ws_arg_4 = self.extend(&request, &[&paramsMarketType]);
-            response = self.contract_public_get_cfd_open_api_v1_pub_market_order(&[__ws_arg_4]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_cfd_open_api_v1_pub_market_order", &[__ws_arg_4]).await;
         }  else {
             request.insert("size".into(), Value::from(limitResolved));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.spot_public_get_depth(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_depth", &[__ws_arg_5]).await;
         }
         //
         // spot
@@ -2500,10 +2500,10 @@ impl Lbank {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPublicGetSupplementTrades")) {
             let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
-            response = self.spot_public_get_supplement_trades(&[__ws_arg_6]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_supplement_trades", &[__ws_arg_6]).await;
         }  else {
             let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_public_get_trades(&[__ws_arg_7]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_trades", &[__ws_arg_7]).await;
         }
         //
         //      {
@@ -2579,7 +2579,7 @@ impl Lbank {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_public_get_kline(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_kline", &[__ws_arg_8]).await;
         let mut ohlcvs: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]);
         Value::Null
@@ -2649,7 +2649,7 @@ impl Lbank {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_cfd_open_api_v1_pub_market_data", &[__ws_arg_9]).await;
         // {
         //     "data": [
         //         {
@@ -2709,11 +2709,11 @@ impl Lbank {
         let mut method: Option<String> = (match params.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(defaultMethod) }).as_str().map(str::to_owned);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostSupplementUserInfoAccount")) {
-            response = self.spot_private_post_supplement_user_info_account(&[]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_supplement_user_info_account", &[]).await;
         }  else if (method.as_deref() == Some("spotPrivatePostUserInfo")) {
-            response = self.spot_private_post_user_info(&[]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_user_info", &[]).await;
         }  else {
-            response = self.spot_private_post_supplement_user_info(&[]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_supplement_user_info", &[]).await;
         }
         //
         //    {
@@ -2841,7 +2841,7 @@ impl Lbank {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_customer_trade_fee(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_customer_trade_fee", &[__ws_arg_11]).await;
         let mut fees: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2997,10 +2997,10 @@ impl Lbank {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostCreateOrder")) {
             let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-            response = self.spot_private_post_create_order(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_create_order", &[__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_private_post_supplement_create_order(&[__ws_arg_13]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_supplement_create_order", &[__ws_arg_13]).await;
         }
         //
         //      {
@@ -3097,7 +3097,7 @@ impl Lbank {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_orders_info(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_orders_info", &[__ws_arg_14]).await;
         //
         //      {
         //          "result":true,
@@ -3145,7 +3145,7 @@ impl Lbank {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_orders_info(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_orders_info", &[__ws_arg_15]).await;
         //
         //      {
         //          "result":true,
@@ -3226,7 +3226,7 @@ impl Lbank {
             request.insert("end_date".into(), self.ymd(Value::from((if let Some(__l) = sinceValue { Some(__l + 86400000) } else { None })), &[Value::Str("-".into())])); // will cover 2 days
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_transaction_history(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_transaction_history", &[__ws_arg_16]).await;
         //
         //      {
         //          "result":true,
@@ -3295,7 +3295,7 @@ impl Lbank {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_orders_info_history(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_orders_info_history", &[__ws_arg_17]).await;
         //
         //      {
         //          "result":true,
@@ -3370,7 +3370,7 @@ impl Lbank {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_orders_info_no_deal(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_orders_info_no_deal", &[__ws_arg_18]).await;
         //
         //      {
         //          "result":true,
@@ -3446,7 +3446,7 @@ impl Lbank {
             request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_cancel_order(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_cancel_order", &[__ws_arg_19]).await;
         //
         //   {
         //      "result":true,
@@ -3499,7 +3499,7 @@ impl Lbank {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_cancel_order_by_symbol(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_cancel_order_by_symbol", &[__ws_arg_20]).await;
         //
         //      {
         //          "result":"true",
@@ -3587,12 +3587,12 @@ impl Lbank {
             m
         });
         let mut network: Option<String> = self.get_network_code_for_currency(Some(code), params.clone());
-        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(&params, Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (network.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         if (network.is_some()) {
             request.insert("netWork".into(), network.map(Value::from).unwrap_or(Value::Null)); // ... yes, really lol
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_get_deposit_address(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_get_deposit_address", &[__ws_arg_21]).await;
         //
         //      {
         //          "result":true,
@@ -3643,12 +3643,12 @@ impl Lbank {
             network = self.safe_string_opt(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]);
         }
         network = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[Value::from(network.as_deref())]);
-        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(&params, Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (network.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         if (network.is_some()) {
             request.insert("networkName".into(), network.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_get_deposit_address(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_get_deposit_address", &[__ws_arg_22]).await;
         //
         //      {
         //          "result":true,
@@ -3736,7 +3736,7 @@ impl Lbank {
             request.insert("networkName".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_withdraw(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_withdraw", &[__ws_arg_23]).await;
         //
         //      {
         //          "result":true,
@@ -3828,7 +3828,7 @@ impl Lbank {
             request.insert("startTime".into(), since.clone());
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_deposit_history(&[__ws_arg_24]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_deposit_history", &[__ws_arg_24]).await;
         //
         //      {
         //          "result":true,
@@ -3899,7 +3899,7 @@ impl Lbank {
             request.insert("startTime".into(), since.clone());
         }
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_withdraws(&[__ws_arg_25]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_withdraws", &[__ws_arg_25]).await;
         //
         //      {
         //          "result":true,
@@ -3978,7 +3978,7 @@ impl Lbank {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_user_info(&[]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_user_info", &[]).await;
         //
         //    {
         //        "result": "true",
@@ -4089,7 +4089,7 @@ impl Lbank {
             request.insert("assetCode".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[__ws_arg_27]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_withdraw_configs", &[__ws_arg_27]).await;
         //
         //    {
         //        "result": "true",
@@ -4209,7 +4209,7 @@ impl Lbank {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.spot_private_post_supplement_user_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_user_info", &[params]).await;
         //
         //    {
         //        "result": "true",
@@ -4262,7 +4262,7 @@ impl Lbank {
             m
         });
         let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[__ws_arg_29]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_withdraw_configs", &[__ws_arg_29]).await;
         //
         //    {
         //        "result": "true",

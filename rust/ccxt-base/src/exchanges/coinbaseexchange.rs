@@ -1971,7 +1971,7 @@ impl Coinbaseexchange {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_products_id_book(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_products_id_book", &[__ws_arg_5]).await;
         //
         //     {
         //         "sequence":1924393896,
@@ -2024,7 +2024,7 @@ impl Coinbaseexchange {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_products_spark_lines(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_products_spark_lines", &[__ws_arg_6]).await;
         //
         //     {
         //         YYY-USD: [
@@ -2101,10 +2101,10 @@ impl Coinbaseexchange {
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("publicGetProductsIdStats")) {
             let __ws_arg_7 = self.extend(&request, &[&params]);
-            response = self.public_get_products_id_stats(&[__ws_arg_7]).await.into_opt_dict();
+            response = self.call_method_o("public_get_products_id_stats", &[__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_products_id_ticker(&[__ws_arg_8]).await.into_opt_dict();
+            response = self.call_method_o("public_get_products_id_ticker", &[__ws_arg_8]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
@@ -2238,7 +2238,7 @@ impl Coinbaseexchange {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_fees", &[params]).await;
         //
         //    {
         //        "maker_fee_rate": "0.0050",
@@ -2373,7 +2373,7 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_time", &[params]).await;
         return self.safe_timestamp_k(&response, "epoch", &[]);
         Value::Null
         }).await?))
@@ -2428,12 +2428,12 @@ impl Coinbaseexchange {
         if (clientOrderId.is_none()) {
             request.insert("id".into(), id);
             let __ws_arg_12 = self.extend(&request, &[&params]);
-            response = self.private_get_orders_id(&[__ws_arg_12]).await.into_opt_dict();
+            response = self.call_method_o("private_get_orders_id", &[__ws_arg_12]).await;
         }  else {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_oid"], &[]);
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await.into_opt_dict();
+            response = self.call_method_o("private_get_orders_client_client_oid", &[__ws_arg_13]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
@@ -2693,7 +2693,7 @@ impl Coinbaseexchange {
             }
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsCost]);
-        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_18]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2853,17 +2853,17 @@ impl Coinbaseexchange {
         let mut response: Option<crate::value::Dict> = None;
         if (paramsWithdrawTag.contains_key("payment_method_id")) {
             let __ws_arg_22 = self.extend(&request, &[&paramsWithdrawTag]);
-            response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await.into_opt_dict();
+            response = self.call_method_o("private_post_withdrawals_payment_method", &[__ws_arg_22]).await;
         }  else if (paramsWithdrawTag.contains_key("coinbase_account_id")) {
             let __ws_arg_23 = self.extend(&request, &[&paramsWithdrawTag]);
-            response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await.into_opt_dict();
+            response = self.call_method_o("private_post_withdrawals_coinbase_account", &[__ws_arg_23]).await;
         }  else {
             request.insert("crypto_address".into(), address);
             if (tagWithdrawTag.is_some()) {
                 request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-            response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await.into_opt_dict();
+            response = self.call_method_o("private_post_withdrawals_crypto", &[__ws_arg_24]).await;
         }
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " withdraw() error: ").into()), json_stringify(&response))));
@@ -3229,7 +3229,7 @@ impl Coinbaseexchange {
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_coinbase_accounts_id_addresses(&[__ws_arg_30]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_coinbase_accounts_id_addresses", &[__ws_arg_30]).await;
         let mut address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(&response, "destination_tag", &[]);
         return Value::Map({

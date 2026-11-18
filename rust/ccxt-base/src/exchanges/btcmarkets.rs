@@ -1281,7 +1281,7 @@ impl Btcmarkets {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_time", &[params]).await;
         return Value::from(self.parse8601(self.safe_string_k(&response, "timestamp", &[])));
         Value::Null
         }).await?))
@@ -1423,7 +1423,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_markets_market_id_orderbook(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_markets_market_id_orderbook", &[__ws_arg_4]).await;
         //
         //     {
         //         "marketId":"BTC-AUD",
@@ -1479,7 +1479,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_markets_market_id_ticker(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_markets_market_id_ticker", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1500,7 +1500,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_markets_market_id_ticker(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_markets_market_id_ticker", &[__ws_arg_6]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
 
     Value::Null
@@ -1635,7 +1635,7 @@ impl Btcmarkets {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]);
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_8]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1672,7 +1672,7 @@ impl Btcmarkets {
             let mut __for_first_476: bool = true;
             while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push(Value::from(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[]))));
+            numericIds.push(Value::from(self.parse_to_int(self.safe_string(&ids, Value::Int(i), &[]))));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1681,7 +1681,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_batchorders_ids(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_batchorders_ids", &[__ws_arg_9]).await;
         //
         //    {
         //       "cancelOrders": [
@@ -1739,7 +1739,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_orders_id(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_id", &[__ws_arg_10]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -1839,7 +1839,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_id(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_id", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2054,7 +2054,7 @@ impl Btcmarkets {
             request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, "?dt=").into()), tagWithdrawTag.as_deref().unwrap_or("null")).into()));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdrawals", &[__ws_arg_15]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))

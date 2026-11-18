@@ -1179,10 +1179,10 @@ impl Zebpay {
             m
         }).into_dict();
         if isSpot {
-            response = self.public_spot_get_v2_system_status(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_system_status", &[Value::from(&paramsMarketType)]).await;
             data = response.clone().unwrap_or_default();
         }  else {
-            response = self.public_swap_get_v1_system_status(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_system_status", &[Value::Dict(paramsMarketType)]).await;
             data = self.safe_dict_k_t(&response, "data");
         }
         //
@@ -1239,10 +1239,10 @@ impl Zebpay {
             m
         }).into_dict();
         if isSpot {
-            response = self.public_spot_get_v2_system_time(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_system_time", &[Value::from(&paramsMarketType)]).await;
             data = response.clone().unwrap_or_default();
         }  else {
-            response = self.public_swap_get_v1_system_time(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_system_time", &[Value::Dict(paramsMarketType)]).await;
             data = self.safe_dict_k_t(&response, "data");
         }
         //
@@ -1325,7 +1325,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_spot_get_v2_ex_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_spot_get_v2_ex_currencies", &[params]).await;
         //
         //     {
         //             "data": [
@@ -1399,7 +1399,7 @@ impl Zebpay {
         });
         if (market).spot {
             let __ws_arg_0 = self.extend(&request, &[&params]);
-            response = self.private_spot_get_v2_ex_tradefee(&[__ws_arg_0]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_ex_tradefee", &[__ws_arg_0]).await;
             //
             // {
             //     "statusDescription": "Success",
@@ -1418,7 +1418,7 @@ impl Zebpay {
 }));
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            response = self.public_swap_get_v1_exchange_tradefee(&[__ws_arg_1]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_exchange_tradefee", &[__ws_arg_1]).await;
             //
             // {
             //     "statusDescription": "OK",
@@ -1468,9 +1468,9 @@ impl Zebpay {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("spot")) {
-            response = self.public_spot_get_v2_ex_tradefees(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_ex_tradefees", &[Value::from(&paramsMarketType)]).await;
         }  else {
-            response = self.public_swap_get_v1_exchange_tradefees(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_exchange_tradefees", &[Value::Dict(paramsMarketType)]).await;
         }
         //
         // {
@@ -1557,10 +1557,10 @@ impl Zebpay {
             //       }
             // }
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            response = self.public_spot_get_v2_market_orderbook(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_market_orderbook", &[__ws_arg_2]).await;
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            response = self.public_swap_get_v1_market_order_book(&[__ws_arg_3]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_market_order_book", &[__ws_arg_3]).await;
         }
         let mut bookData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&bookData, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
@@ -1603,10 +1603,10 @@ impl Zebpay {
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             let __ws_arg_4 = self.extend(&request, &[&params]);
-            response = self.public_spot_get_v2_market_ticker(&[__ws_arg_4]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_market_ticker", &[__ws_arg_4]).await;
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-            response = self.public_swap_get_v1_market_ticker24_hr(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_market_ticker24_hr", &[__ws_arg_5]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market));
@@ -1644,7 +1644,7 @@ impl Zebpay {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.public_spot_get_v2_market_all_tickers(&[Value::Dict(paramsMarketType)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_spot_get_v2_market_all_tickers", &[Value::Dict(paramsMarketType)]).await;
         //
         //     [
         //        {
@@ -1728,7 +1728,7 @@ impl Zebpay {
             }
             let mut paramsSpot: crate::value::Dict = self.omit_t(&paramsOmitted, Value::Str("priceType".into()), &[]);
             let __ws_arg_6 = self.extend(&request, &[&paramsSpot]);
-            response = self.public_spot_get_v2_market_klines(&[__ws_arg_6]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_market_klines", &[__ws_arg_6]).await;
         }  else {
             request.insert("timeframe".into(), timeframe.clone());
             if (limit != Value::Null) {
@@ -1744,7 +1744,7 @@ impl Zebpay {
                 request.insert("until".into(), Value::from(until));
             }
             let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_swap_post_v1_market_klines(&[__ws_arg_7]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_post_v1_market_klines", &[__ws_arg_7]).await;
         }
         //
         //             [
@@ -1823,10 +1823,10 @@ impl Zebpay {
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             let __ws_arg_8 = self.extend(&request, &[&params]);
-            response = self.public_spot_get_v2_market_trades(&[__ws_arg_8]).await.into_opt_dict();
+            response = self.call_method_o("public_spot_get_v2_market_trades", &[__ws_arg_8]).await;
         }  else {
             let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-            response = self.public_swap_get_v1_market_agg_trade(&[__ws_arg_9]).await.into_opt_dict();
+            response = self.call_method_o("public_swap_get_v1_market_agg_trade", &[__ws_arg_9]).await;
         }
         //
         //     [
@@ -1884,7 +1884,7 @@ impl Zebpay {
         if (type_var.as_deref() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchMyTrades() does not support spot markets")));
         }  else {
-            response = self.private_swap_get_v1_trade_history(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("private_swap_get_v1_trade_history", &[Value::Dict(paramsMarketType)]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut items: crate::value::List = self.safe_list_k_t(&data, "items");
@@ -1934,7 +1934,7 @@ impl Zebpay {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: crate::value::Dict = self.private_spot_get_v2_ex_order_fills(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_spot_get_v2_ex_order_fills", &[__ws_arg_10]).await;
         //
         //         {
         //             "orderId": "456789",
@@ -1988,9 +1988,9 @@ impl Zebpay {
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
         let mut response: Option<crate::value::Dict> = None;
         if isSpot {
-            response = self.private_spot_get_v2_account_balance(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_account_balance", &[Value::from(&paramsMarketType)]).await;
         }  else {
-            response = self.private_swap_get_v1_wallet_balance(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("private_swap_get_v1_wallet_balance", &[Value::Dict(paramsMarketType)]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
@@ -2048,7 +2048,7 @@ impl Zebpay {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            response = self.private_spot_post_v2_ex_orders(&[self.spot_order_body(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), amount.clone(), &mut request, &[price.clone(), Value::from(&query)])]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_post_v2_ex_orders", &[self.spot_order_body(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), amount.clone(), &mut request, &[price.clone(), Value::from(&query)])]).await;
         }  else {
             let mut marginAsset: String = self.safe_string_k(&query, "marginAsset", &[Value::Str("INR".into())]).as_str().unwrap_or("INR").to_string();
             let mut formType: String = self.safe_string_upper_k(&query, "formType", &[Value::Str("ORDER_FORM".into())]).as_str().unwrap_or("ORDER_FORM").to_string();
@@ -2065,7 +2065,7 @@ impl Zebpay {
                     request.insert("stopLossPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
                 let __ws_arg_11 = self.extend(&request, &[&query]);
-                response = self.private_swap_post_v1_trade_order_add_tpsl(&[__ws_arg_11]).await.into_opt_dict();
+                response = self.call_method_o("private_swap_post_v1_trade_order_add_tpsl", &[__ws_arg_11]).await;
             }  else {
                 request.insert("type".into(), Value::from(upperCaseType));
                 if (type_var.as_str() == Some("limit")) {
@@ -2075,7 +2075,7 @@ impl Zebpay {
                     request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol, price))));
                 }
                 let __ws_arg_12 = self.extend(Value::Map(request), &[&query]);
-                response = self.private_swap_post_v1_trade_order(&[__ws_arg_12]).await.into_opt_dict();
+                response = self.call_method_o("private_swap_post_v1_trade_order", &[__ws_arg_12]).await;
             }
         }
         //
@@ -2159,7 +2159,7 @@ impl Zebpay {
         if (market).spot {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_13 = self.extend(&request, &[&params]);
-            response = self.private_spot_delete_v2_ex_order(&[__ws_arg_13]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_delete_v2_ex_order", &[__ws_arg_13]).await;
         }  else {
             let mut clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
             if (clientOrderId.is_none()) {
@@ -2168,7 +2168,7 @@ impl Zebpay {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-            response = self.private_swap_delete_v1_trade_order(&[__ws_arg_14]).await.into_opt_dict();
+            response = self.call_method_o("private_swap_delete_v1_trade_order", &[__ws_arg_14]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2208,7 +2208,7 @@ impl Zebpay {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_spot_delete_v2_ex_orders_cancel_all(&[Value::Dict(paramsMarketType)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_spot_delete_v2_ex_orders_cancel_all", &[Value::Dict(paramsMarketType)]).await;
         //
         //    {
         //        "data": {
@@ -2266,7 +2266,7 @@ impl Zebpay {
                 request.insert("pageSize".into(), limit.clone());
             }
             let __ws_arg_15 = self.extend(&request, &[&params]);
-            response = self.private_spot_get_v2_ex_orders(&[__ws_arg_15]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_ex_orders", &[__ws_arg_15]).await;
             let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             orders = self.safe_list_k_t(&responseData, "items");
         }  else {
@@ -2277,7 +2277,7 @@ impl Zebpay {
                 request.insert("limit".into(), limit.clone());
             }
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-            response = self.private_swap_get_v1_trade_order_open_orders(&[__ws_arg_16]).await.into_opt_dict();
+            response = self.call_method_o("private_swap_get_v1_trade_order_open_orders", &[__ws_arg_16]).await;
             let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             orders = self.safe_list_k_t(&responseData, "data");
         }
@@ -2323,11 +2323,11 @@ impl Zebpay {
         if (market).spot {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_17 = self.extend(&request, &[&params]);
-            response = self.private_spot_get_v2_ex_order(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("private_spot_get_v2_ex_order", &[__ws_arg_17]).await;
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-            response = self.private_swap_get_v1_trade_order(&[__ws_arg_18]).await.into_opt_dict();
+            response = self.call_method_o("private_swap_get_v1_trade_order", &[__ws_arg_18]).await;
         }
         //
         //     {
@@ -2394,7 +2394,7 @@ impl Zebpay {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_swap_post_v1_trade_position_close(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_post_v1_trade_position_close", &[__ws_arg_19]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
         Value::Null
@@ -2424,7 +2424,7 @@ impl Zebpay {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_swap_get_v1_trade_user_leverages(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_get_v1_trade_user_leverages", &[params]).await;
         //
         //     {
         //         "leveragePreferences": [
@@ -2473,7 +2473,7 @@ impl Zebpay {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_swap_get_v1_trade_user_leverage(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_get_v1_trade_user_leverage", &[__ws_arg_20]).await;
         //
         //     {
         //         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
@@ -2524,7 +2524,7 @@ impl Zebpay {
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_swap_post_v1_trade_update_user_leverage(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_post_v1_trade_update_user_leverage", &[__ws_arg_21]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -2558,10 +2558,10 @@ impl Zebpay {
             m
         });
         if (symbols != Value::Null) {
-            request.insert("symbols".into(), self.market_ids(&[symbols.clone()]));
+            request.insert("symbols".into(), self.market_ids(&[symbols.clone()]).map_or(Value::Null, Value::Arr));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_swap_get_v1_trade_positions(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_get_v1_trade_positions", &[__ws_arg_22]).await;
         //
         //    {
         //        "data": [
@@ -2617,7 +2617,7 @@ impl Zebpay {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_swap_post_v1_trade_add_margin(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_post_v1_trade_add_margin", &[__ws_arg_23]).await;
         //
         //    {
         //        "code": "200000",
@@ -2683,7 +2683,7 @@ impl Zebpay {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_swap_post_v1_trade_reduce_margin(&[__ws_arg_25]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_swap_post_v1_trade_reduce_margin", &[__ws_arg_25]).await;
         //
         //    {
         //        "code": "200000",
@@ -2713,7 +2713,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_spot_get_v2_ex_exchange_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_spot_get_v2_ex_exchange_info", &[params]).await;
         //
         //    {
         //        "data": {
@@ -2812,7 +2812,7 @@ impl Zebpay {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_swap_get_v1_market_markets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_swap_get_v1_market_markets", &[params]).await;
         //
         //    {
         //        "data": {

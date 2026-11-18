@@ -1032,13 +1032,13 @@ impl crate::exchange::DerivedExchange for Whitebit {
             let mut secret: crate::value::Bytes = self.encode(&self.secret);
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api").into()), "/").into()), version.as_deref().unwrap_or("null")).into()), pathWithParams);
             let nonceWindowrequestParamsVariable = self.handle_option_bool_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]);
-            let mut nonceWindow: Value = nonceWindowrequestParamsVariable.0.map_or(Value::Null, Value::Bool);
+            let mut nonceWindow: Option<bool> = nonceWindowrequestParamsVariable.0;
             let mut requestParams: crate::value::Dict = nonceWindowrequestParamsVariable.1;
             let __ws_arg_43 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("request".to_string(), Value::from(request));
         m.insert("nonce".to_string(), Value::from(nonce));
-        m.insert("nonceWindow".to_string(), nonceWindow);
+        m.insert("nonceWindow".to_string(), nonceWindow.map_or(Value::Null, Value::Bool));
     m
 }), &[&requestParams]);
             privateBody = self.json(__ws_arg_43).as_str().map(str::to_owned);
@@ -2472,7 +2472,7 @@ impl Whitebit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v4_public_get_fee(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_public_get_fee", &[params]).await;
         //
         //      {
         //          "1INCH":{
@@ -2558,7 +2558,7 @@ impl Whitebit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v4_public_get_fee(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_public_get_fee", &[params]).await;
         return self.parse_deposit_withdraw_fees(&response, &[codes]);
         Value::Null
         }).await?))
@@ -2614,7 +2614,7 @@ impl Whitebit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]).into_opt_list();
+        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]);
         let mut currencyIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2721,7 +2721,7 @@ impl Whitebit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.v4_public_get_assets(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_public_get_assets", &[params]).await;
         //
         //      {
         //          "1INCH": {
@@ -3133,7 +3133,7 @@ impl Whitebit {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v1_public_get_ticker(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_ticker", &[__ws_arg_0]).await;
         //
         //      {
         //         "success":true,
@@ -3231,7 +3231,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if checkExecuted {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                let mut response: crate::value::Dict = self.v4_private_post_trade_account_order_history(&[__ws_arg_2]).await.into_dict();
+                let mut response: crate::value::Dict = self.call_method_t("v4_private_post_trade_account_order_history", &[__ws_arg_2]).await;
                 // Search for order in executed orders response (object format)
                 let mut marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
@@ -3442,7 +3442,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), limit); // default = 100, maximum = 100
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_public_get_orderbook_market(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_public_get_orderbook_market", &[__ws_arg_3]).await;
         //
         //      {
         //          "timestamp": 1594391413,
@@ -3673,7 +3673,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), Value::from(cappedLimit));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v1_public_get_kline(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v1_public_get_kline", &[__ws_arg_6]).await;
         //
         //     {
         //         "success":true,
@@ -3748,7 +3748,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.v4_public_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_public_get_time", &[params]).await;
         return self.safe_integer_product_k(&response, "time", Value::Int(1000), &[]);
         Value::Null
         }).await?))
@@ -3921,15 +3921,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // stop limit order
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 let __ws_arg_8 = self.extend(&request, &[&orderParams]);
-                response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await.into_opt_dict();
+                response = self.call_method_o("v4_private_post_order_stop_limit", &[__ws_arg_8]).await;
             }  else {
                 // stop market order
                 if useCollateralEndpoint {
                     let __ws_arg_9 = self.extend(&request, &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_trigger_market(&[__ws_arg_9]).await.into_opt_dict();
+                    response = self.call_method_o("v4_private_post_order_collateral_trigger_market", &[__ws_arg_9]).await;
                 }  else {
                     let __ws_arg_10 = self.extend(&request, &[&orderParams]);
-                    response = self.v4_private_post_order_stop_market(&[__ws_arg_10]).await.into_opt_dict();
+                    response = self.call_method_o("v4_private_post_order_stop_market", &[__ws_arg_10]).await;
                 }
             }
         }  else {
@@ -3938,23 +3938,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
                 if useCollateralEndpoint {
                     let __ws_arg_11 = self.extend(&request, &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await.into_opt_dict();
+                    response = self.call_method_o("v4_private_post_order_collateral_limit", &[__ws_arg_11]).await;
                 }  else {
                     let __ws_arg_12 = self.extend(&request, &[&orderParams]);
-                    response = self.v4_private_post_order_new(&[__ws_arg_12]).await.into_opt_dict();
+                    response = self.call_method_o("v4_private_post_order_new", &[__ws_arg_12]).await;
                 }
             }  else {
                 // market order
                 if useCollateralEndpoint {
                     let __ws_arg_13 = self.extend(&request, &[&orderParams]);
-                    response = self.v4_private_post_order_collateral_market(&[__ws_arg_13]).await.into_opt_dict();
+                    response = self.call_method_o("v4_private_post_order_collateral_market", &[__ws_arg_13]).await;
                 }  else {
                     if (cost.is_some()) {
                         let __ws_arg_14 = self.extend(&request, &[&orderParams]);
-                        response = self.v4_private_post_order_market(&[__ws_arg_14]).await.into_opt_dict();
+                        response = self.call_method_o("v4_private_post_order_market", &[__ws_arg_14]).await;
                     }  else {
                         let __ws_arg_15 = self.extend(Value::Map(request), &[&orderParams]);
-                        response = self.v4_private_post_order_stock_market(&[__ws_arg_15]).await.into_opt_dict();
+                        response = self.call_method_o("v4_private_post_order_stock_market", &[__ws_arg_15]).await;
                     }
                 }
             }
@@ -4044,7 +4044,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"], &[]);
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v4_private_post_order_modify(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_order_modify", &[__ws_arg_16]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -4086,7 +4086,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_order_cancel(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_order_cancel", &[__ws_arg_17]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -4238,7 +4238,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("timeout".into(), Value::Str("null".into()));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.v4_private_post_order_kill_switch(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_order_kill_switch", &[__ws_arg_19]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -4272,15 +4272,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.v4_private_post_collateral_account_balance(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            response = self.call_method_o("v4_private_post_collateral_account_balance", &[Value::from(&paramsMarketType)]).await;
         }  else {
             let mut defaultAccount: Option<String> = self.safe_string_k_opt(self.options.get("fetchBalance").cloned().unwrap_or(Value::Null), "account", &[]);
             let mut account: Option<String> = self.safe_string2_opt(Value::from(&paramsMarketType), Value::Str("account".into()), Value::Str("type".into()), &[defaultAccount.map(Value::from).unwrap_or(Value::Null)]);
             let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, &["account", "type"], &[]);
             if (account.as_deref() == Some("main")) || (account.as_deref() == Some("funding")) {
-                response = self.v4_private_post_main_account_balance(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
+                response = self.call_method_o("v4_private_post_main_account_balance", &[Value::from(&paramsOmitted)]).await;
             }  else {
-                response = self.v4_private_post_trade_account_balance(&[Value::Dict(paramsOmitted)]).await.into_opt_dict();
+                response = self.call_method_o("v4_private_post_trade_account_balance", &[Value::Dict(paramsOmitted)]).await;
             }
         }
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
@@ -4379,7 +4379,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 50 max 100
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_trade_account_order_history(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_trade_account_order_history", &[__ws_arg_21]).await;
         //
         //     {
         //         "BTC_USDT": [
@@ -4497,7 +4497,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_trade_account_order(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_trade_account_order", &[__ws_arg_22]).await;
         //
         //     {
         //         "records": [
@@ -4571,7 +4571,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request.insert("transactionMethod".into(), Value::Str("2".into()));
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_history", &[__ws_arg_23]).await;
         return self.parse_transactions(self.safe_list_k(&response, "records", &[Value::from(vec![])]), currency.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -4624,7 +4624,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         request.insert("limit".into(), Value::from(limitResolved));
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_24]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_history", &[__ws_arg_24]).await;
         //
         //     {
         //         "records": [
@@ -4705,10 +4705,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")));
             }
             let __ws_arg_25 = self.extend(&request, &[&params]);
-            response = self.v4_private_post_main_account_fiat_deposit_url(&[__ws_arg_25]).await.into_opt_dict();
+            response = self.call_method_o("v4_private_post_main_account_fiat_deposit_url", &[__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-            response = self.v4_private_post_main_account_address(&[__ws_arg_26]).await.into_opt_dict();
+            response = self.call_method_o("v4_private_post_main_account_address", &[__ws_arg_26]).await;
         }
         //
         // fiat
@@ -4786,7 +4786,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_create_new_address(&[__ws_arg_27]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_create_new_address", &[__ws_arg_27]).await;
         //
         //     {
         //         "account": {
@@ -4834,7 +4834,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut accounts: Vec<Value> = Vec::new();
-        let mut response: crate::value::Dict = self.v4_private_post_sub_account_list(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_sub_account_list", &[params]).await;
         //
         //     {
         //         "offset": 0,
@@ -5021,7 +5021,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("provider".into(), provider.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_withdraw(&[__ws_arg_30]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_withdraw", &[__ws_arg_30]).await;
         let __ws_arg_31 = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         return self.extend(__ws_arg_31, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5089,7 +5089,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("ticker".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_32]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_history", &[__ws_arg_32]).await;
         //
         //     {
         //         "limit": 100,
@@ -5177,7 +5177,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_33]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_history", &[__ws_arg_33]).await;
         //
         //     {
         //         "limit": 100,
@@ -5348,7 +5348,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.v4_public_get_futures(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_public_get_futures", &[params]).await;
         //
         //    [
         //        {
@@ -5447,7 +5447,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.v4_private_post_collateral_account_funding_history(&[__ws_arg_35]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_collateral_account_funding_history", &[__ws_arg_35]).await;
         //
         //     {
         //         "records": [
@@ -5568,7 +5568,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), limit.clone()); // default 1000
         }
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_36]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_main_account_history", &[__ws_arg_36]).await;
         //
         //    {
         //        "limit": 100,
@@ -5655,7 +5655,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_convert_estimate(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_convert_estimate", &[__ws_arg_37]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &response, Some(&fromCurrency), Some(&toCurrency));
         Value::Null
         }).await?))
@@ -5698,7 +5698,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.v4_private_post_convert_confirm(&[__ws_arg_38]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_convert_confirm", &[__ws_arg_38]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &response, Some(&fromCurrency), Some(&toCurrency));
         Value::Null
         }).await?))
@@ -5753,7 +5753,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_39 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.v4_private_post_convert_history(&[__ws_arg_39]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("v4_private_post_convert_history", &[__ws_arg_39]).await;
         //
         //     {
         //         "records": [

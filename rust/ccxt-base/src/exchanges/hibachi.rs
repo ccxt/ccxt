@@ -1130,7 +1130,7 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_market_exchange_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_exchange_info", &[params]).await;
         // {
         //     "displayName": "ETH/USDT Perps",
         //     "id": 1,
@@ -1270,7 +1270,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_account_info(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_account_info", &[__ws_arg_0]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1312,7 +1312,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_data_trades(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_data_trades", &[__ws_arg_1]).await;
         //
         // {
         //     "trades": [
@@ -1454,7 +1454,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_order(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_order", &[__ws_arg_3]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
         Value::Null
         }).await?))
@@ -1487,7 +1487,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_account_info(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_account_info", &[__ws_arg_4]).await;
         //    {
         //        "tradeMakerFeeRate": "0.00000000",
         //        "tradeTakerFeeRate": "0.00020000"
@@ -1669,7 +1669,7 @@ impl Hibachi {
         let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(Value::from(nonce), symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).as_map().cloned().unwrap_or_default();
         request.insert("accountId".into(), self.get_account_id());
-        let mut response: crate::value::Dict = self.private_post_trade_order(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_order", &[Value::Map(request)]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&response, "orderId", &[]));
@@ -1710,7 +1710,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_738: bool = true;
             while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
@@ -1729,7 +1729,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_orders(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_orders", &[__ws_arg_5]).await;
         //
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
@@ -1865,7 +1865,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_740: bool = true;
             while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&rawOrder, "id", &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -1885,7 +1885,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_orders", &[__ws_arg_6]).await;
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
@@ -1951,7 +1951,7 @@ impl Hibachi {
         let mut request: indexmap::IndexMap<String, Value> = self.cancel_order_request(id.as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
         request.insert("accountId".into(), self.get_account_id());
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_trade_order(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_trade_order", &[__ws_arg_7]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1990,7 +1990,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_742: bool = true;
             while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (ids.len() as i64) } {
-            let mut orderRequest: crate::value::Dict = self.cancel_order_request((self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()).into_dict();
+            let mut orderRequest: crate::value::Dict = self.cancel_order_request((self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()).into_dict();
             std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("cancel".into()));
             orders.push(Value::Dict(orderRequest));
         }
@@ -2002,7 +2002,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_orders(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_orders", &[__ws_arg_8]).await;
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
@@ -2067,7 +2067,7 @@ impl Hibachi {
             request.insert("contractId".into(), self.safe_integer_k(&market, "numericId", &[]));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_trade_orders(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_trade_orders", &[__ws_arg_9]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -2133,7 +2133,7 @@ impl Hibachi {
 }));
         let mut withdrawAddress: String = address.as_str().unwrap_or_default().to_string().chars().skip(address.as_str().unwrap_or_default().to_string().chars().count().saturating_sub(40)).collect::<String>();
         // Get the withdraw fees
-        let mut exchangeInfo: crate::value::Dict = self.public_get_market_exchange_info(&[params.clone()]).await.into_dict();
+        let mut exchangeInfo: crate::value::Dict = self.call_method_t("public_get_market_exchange_info", &[params.clone()]).await;
         // {
         //      "feeConfig": {
         //          "depositFees": "0.004518",
@@ -2247,7 +2247,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_data_orderbook(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_data_orderbook", &[__ws_arg_11]).await;
         let mut formattedResponse: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2296,7 +2296,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.private_get_trade_account_trades(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_account_trades", &[__ws_arg_12]).await;
         //
         // {
         //     "trades": [
@@ -2417,7 +2417,7 @@ impl Hibachi {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_get_trade_orders_history(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_orders_history", &[__ws_arg_14]).await;
         //
         //     {
         //         "hasMore": false,
@@ -2565,7 +2565,7 @@ impl Hibachi {
             request.insert("toMs".into(), Value::from(until));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.public_get_market_data_klines(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_data_klines", &[__ws_arg_15]).await;
         //
         // [
         //     {
@@ -2615,7 +2615,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_account_info(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_account_info", &[__ws_arg_16]).await;
         //
         // {
         //     "assets": [
@@ -2845,7 +2845,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_capital_deposit_info(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_capital_deposit_info", &[__ws_arg_18]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
@@ -2891,7 +2891,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.private_get_capital_history(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_capital_history", &[__ws_arg_19]).await;
         // {
         //     "transactions": [
         //         {
@@ -3078,7 +3078,7 @@ impl Hibachi {
             request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.private_get_trade_account_settlements_history(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_account_settlements_history", &[__ws_arg_20]).await;
         //
         //     {
         //         "settlements": [
@@ -3120,7 +3120,7 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_exchange_utc_timestamp(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_exchange_utc_timestamp", &[params]).await;
         return self.safe_integer_k(&response, "timestampMs", &[]);
         Value::Null
         }).await?))
@@ -3156,7 +3156,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_data_open_interest(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_data_open_interest", &[__ws_arg_21]).await;
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
@@ -3205,7 +3205,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_data_prices(&[__ws_arg_22]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_data_prices", &[__ws_arg_22]).await;
         //
         // {
         //     "askPrice": "3514.650296",
@@ -3283,7 +3283,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_data_funding_rates(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_data_funding_rates", &[__ws_arg_23]).await;
         //
         // {
         //     "data": [

@@ -3017,7 +3017,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
-            sum = exchange.sum(&[sum.clone(), resultsLength.clone()]);
+            sum = exchange.sum(&[std::mem::take(&mut sum), resultsLength.clone()]);
         }
         }
         return sum;
@@ -3118,7 +3118,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 continue;
             }
             let mut numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
-            sum = exchange.sum(&[sum.clone(), numberOfTests.clone()]);
+            sum = exchange.sum(&[std::mem::take(&mut sum), numberOfTests.clone()]);
             if (type_var.as_str() == Some("request")) {
                 promises.push(self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }  else if (type_var.as_str() == Some("ws")) {

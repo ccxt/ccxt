@@ -2215,7 +2215,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_v1_public_get_ping(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_public_get_ping", &[params]).await;
         //
         // empty means working status.
         //
@@ -2258,7 +2258,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_v1_public_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_public_get_time", &[params]).await;
         return self.safe_integer_k(&response, "serverTime", &[]);
         Value::Null
         }).await?))
@@ -2281,7 +2281,7 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_v1_public_get_exchange_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_public_get_exchange_info", &[params]).await;
         //
         //     {
         //         "timezone":"CTT",
@@ -2497,20 +2497,20 @@ impl Bitrue {
         let mut result: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             if (subType.is_some()) && (subType.as_deref() == Some("inverse")) {
-                response = self.dapi_v2_private_get_account(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+                response = self.call_method_o("dapi_v2_private_get_account", &[Value::from(&paramsSubType)]).await;
                 result = self.safe_dict_k_or_o(&response, "data", Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
             }  else {
-                response = self.fapi_v2_private_get_account(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+                response = self.call_method_o("fapi_v2_private_get_account", &[Value::from(&paramsSubType)]).await;
                 result = self.safe_dict_k_or_o(&response, "data", Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
             }
         }  else {
-            response = self.spot_v1_private_get_account(&[Value::Dict(paramsSubType)]).await.into_opt_dict();
+            response = self.call_method_o("spot_v1_private_get_account", &[Value::Dict(paramsSubType)]).await;
             result = response;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &result);
@@ -2748,7 +2748,7 @@ impl Bitrue {
             if (until.is_some()) {
                 request.insert("fromIdx".into(), Value::from(until));
             }
-            let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_public_get_market_kline(&[__ws_arg_8]).await;
             data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
@@ -3181,10 +3181,10 @@ impl Bitrue {
             let mut paramsSwap: crate::value::Dict = self.omit_t(&paramsNoCost, &["leverage", "reduceOnly", "reduce_only", "timeInForce"], &[]);
             if ((market).linear == Some(true)) {
                 let __ws_arg_15 = self.extend(&request, &[&paramsSwap]);
-                response = self.fapi_v2_private_post_order(&[__ws_arg_15]).await.into_opt_dict();
+                response = self.call_method_o("fapi_v2_private_post_order", &[__ws_arg_15]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_16 = self.extend(&request, &[&paramsSwap]);
-                response = self.dapi_v2_private_post_order(&[__ws_arg_16]).await.into_opt_dict();
+                response = self.call_method_o("dapi_v2_private_post_order", &[__ws_arg_16]).await;
             }
             data = self.safe_dict_k_t(&response, "data");
         }  else if (market).spot {
@@ -3205,7 +3205,7 @@ impl Bitrue {
             }
             let mut paramsSpot: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit_t(&paramsNoClientOrderId, &["triggerPrice", "stopPrice"], &[]) } else { paramsNoClientOrderId });
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSpot]);
-            response = self.spot_v1_private_post_order(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("spot_v1_private_post_order", &[__ws_arg_17]).await;
             data = response.unwrap_or_default();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder only support spot & swap markets")));
@@ -3269,17 +3269,17 @@ impl Bitrue {
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
                 let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
-                response = self.fapi_v2_private_get_order(&[__ws_arg_18]).await.into_opt_dict();
+                response = self.call_method_o("fapi_v2_private_get_order", &[__ws_arg_18]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
-                response = self.dapi_v2_private_get_order(&[__ws_arg_19]).await.into_opt_dict();
+                response = self.call_method_o("dapi_v2_private_get_order", &[__ws_arg_19]).await;
             }
             data = self.safe_dict_k_t(&response, "data");
         }  else if (market).spot {
             request.insert("orderId".into(), id.clone()); // spot market id is mandatory
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_v1_private_get_order(&[__ws_arg_20]).await.into_opt_dict();
+            response = self.call_method_o("spot_v1_private_get_order", &[__ws_arg_20]).await;
             data = response.unwrap_or_default();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrder only support spot & swap markets")));
@@ -3457,16 +3457,16 @@ impl Bitrue {
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
                 let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
-                response = self.fapi_v2_private_post_cancel(&[__ws_arg_25]).await.into_opt_dict();
+                response = self.call_method_o("fapi_v2_private_post_cancel", &[__ws_arg_25]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
-                response = self.dapi_v2_private_post_cancel(&[__ws_arg_26]).await.into_opt_dict();
+                response = self.call_method_o("dapi_v2_private_post_cancel", &[__ws_arg_26]).await;
             }
             data = self.safe_dict_k_t(&response, "data");
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_v1_private_delete_order(&[__ws_arg_27]).await.into_opt_dict();
+            response = self.call_method_o("spot_v1_private_delete_order", &[__ws_arg_27]).await;
             data = response.unwrap_or_default();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelOrder only support spot & swap markets")));
@@ -3512,10 +3512,10 @@ impl Bitrue {
             });
             if ((market).linear == Some(true)) {
                 let __ws_arg_28 = self.extend(&request, &[&params]);
-                response = self.fapi_v2_private_post_all_open_orders(&[__ws_arg_28]).await.into_opt_dict();
+                response = self.call_method_o("fapi_v2_private_post_all_open_orders", &[__ws_arg_28]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-                response = self.dapi_v2_private_post_all_open_orders(&[__ws_arg_29]).await.into_opt_dict();
+                response = self.call_method_o("dapi_v2_private_post_all_open_orders", &[__ws_arg_29]).await;
             }
             data = self.safe_list_k_t(&response, "data");
         }  else {
@@ -3639,7 +3639,7 @@ impl Bitrue {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_v1_private_get_deposit_history(&[__ws_arg_33]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_private_get_deposit_history", &[__ws_arg_33]).await;
         //
         //     {
         //         "code":200,
@@ -3726,7 +3726,7 @@ impl Bitrue {
             request.insert("limit".into(), limit);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_v1_private_get_withdraw_history(&[__ws_arg_34]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_private_get_withdraw_history", &[__ws_arg_34]).await;
         //
         //    {
         //        "code": 200,
@@ -3829,7 +3829,7 @@ impl Bitrue {
             request.insert("tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.spot_v1_private_post_withdraw_commit(&[__ws_arg_35]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_private_post_withdraw_commit", &[__ws_arg_35]).await;
         //
         //     {
         //         "code": 200,
@@ -3875,7 +3875,7 @@ impl Bitrue {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.spot_v1_public_get_exchange_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_v1_public_get_exchange_info", &[params]).await;
         let mut coins: Option<crate::value::List> = self.safe_list_k_o(&response, "coins");
         return self.parse_deposit_withdraw_fees(&coins, &[codes, Value::Str("coin".into())]);
         Value::Null
@@ -3936,9 +3936,9 @@ impl Bitrue {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.fapi_v2_private_get_futures_transfer_history(&[__ws_arg_36]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_v2_private_get_futures_transfer_history", &[__ws_arg_36]).await;
         //
         //     {
         //         'code': '0',
@@ -4000,7 +4000,7 @@ impl Bitrue {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.fapi_v2_private_post_futures_transfer(&[__ws_arg_37]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("fapi_v2_private_post_futures_transfer", &[__ws_arg_37]).await;
         //
         //     {
         //         'code': '0',
@@ -4112,10 +4112,10 @@ impl Bitrue {
         });
         if ((market).linear == Some(true)) {
             let __ws_arg_40 = self.extend(&request, &[&params]);
-            response = self.fapi_v2_private_post_position_margin(&[__ws_arg_40]).await.into_opt_dict();
+            response = self.call_method_o("fapi_v2_private_post_position_margin", &[__ws_arg_40]).await;
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-            response = self.dapi_v2_private_post_position_margin(&[__ws_arg_41]).await.into_opt_dict();
+            response = self.call_method_o("dapi_v2_private_post_position_margin", &[__ws_arg_41]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market));
         Value::Null

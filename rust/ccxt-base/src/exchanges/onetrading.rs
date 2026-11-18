@@ -1292,7 +1292,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_time", &[params]).await;
         return self.safe_integer_k(&response, "epoch_millis", &[]);
         Value::Null
         }).await?))
@@ -1488,7 +1488,7 @@ impl Onetrading {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_account_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_fees", &[params]).await;
         //
         // {
         //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
@@ -1623,7 +1623,7 @@ impl Onetrading {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_market_ticker_instrument_code(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_market_ticker_instrument_code", &[__ws_arg_0]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1730,7 +1730,7 @@ impl Onetrading {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_order_book_instrument_code(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_order_book_instrument_code", &[__ws_arg_1]).await;
         //
         // level 1
         //
@@ -1849,7 +1849,7 @@ impl Onetrading {
             request.insert("to".into(), self.iso8601(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((limitResolved * duration)))) } else { None }))));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_candlesticks_instrument_code(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_candlesticks_instrument_code", &[__ws_arg_2]).await;
         //
         //     [
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
@@ -1886,7 +1886,7 @@ impl Onetrading {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_account_balances(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_balances", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1995,7 +1995,7 @@ impl Onetrading {
         let mut timeInForce: String = self.safe_string2(params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[Value::Str("GOOD_TILL_CANCELLED".into())]).as_str().unwrap_or("GOOD_TILL_CANCELLED").to_string();
         request.insert("time_in_force".into(), Value::from(timeInForce));
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_post_account_orders(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_account_orders", &[__ws_arg_3]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -2043,10 +2043,10 @@ impl Onetrading {
         let mut response: Option<crate::value::Dict> = None;
         if (method == "privateDeleteAccountOrdersOrderId") {
             let __ws_arg_4 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_delete_account_orders_order_id(&[__ws_arg_4]).await.into_opt_dict();
+            response = self.call_method_o("private_delete_account_orders_order_id", &[__ws_arg_4]).await;
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_account_orders_client_client_id(&[__ws_arg_5]).await.into_opt_dict();
+            response = self.call_method_o("private_delete_account_orders_client_client_id", &[__ws_arg_5]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
@@ -2173,7 +2173,7 @@ impl Onetrading {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_account_orders_order_id(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_orders_order_id", &[__ws_arg_8]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2220,7 +2220,7 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         if (until.is_some()) {
             request.insert("to".into(), self.iso8601(until));
         }
@@ -2228,7 +2228,7 @@ impl Onetrading {
             request.insert("max_page_size".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_orders(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_orders", &[__ws_arg_9]).await;
         //
         //     {
         //         "order_history": [
@@ -2388,7 +2388,7 @@ impl Onetrading {
             request.insert("max_page_size".into(), limit.clone());
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_account_orders_order_id_trades(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_orders_order_id_trades", &[__ws_arg_11]).await;
         //
         //     {
         //         "trade_history": [
@@ -2470,7 +2470,7 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         if (until.is_some()) {
             request.insert("to".into(), self.iso8601(until));
         }
@@ -2478,7 +2478,7 @@ impl Onetrading {
             request.insert("max_page_size".into(), limit.clone());
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_trades(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_trades", &[__ws_arg_12]).await;
         //
         //     {
         //         "trade_history": [

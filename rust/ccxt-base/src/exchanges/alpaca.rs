@@ -1624,7 +1624,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.trader_private_get_v2_clock(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trader_private_get_v2_clock", &[params]).await;
         //
         //     {
         //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
@@ -1724,7 +1724,7 @@ impl Alpaca {
                 request.insert("limit".into(), limit.clone());
             }
             let __ws_arg_1 = self.extend(&request, &[&paramsOmitted]);
-            let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_trades(&[__ws_arg_1]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("market_public_get_v1beta3_crypto_loc_trades", &[__ws_arg_1]).await;
             //
             //    {
             //        "next_page_token": null,
@@ -1745,7 +1745,7 @@ impl Alpaca {
             symbolTrades = self.safe_list_or_o(&trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![]));
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("market_public_get_v1beta3_crypto_loc_latest_trades", &[__ws_arg_2]).await;
             //
             //    {
             //       "trades": {
@@ -1810,7 +1810,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_orderbooks(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("market_public_get_v1beta3_crypto_loc_latest_orderbooks", &[__ws_arg_3]).await;
         //
         //   {
         //       "orderbooks":{
@@ -1989,7 +1989,7 @@ impl Alpaca {
             }
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestBars") {
             let __ws_arg_6 = self.extend(Value::Map(request), &[query]);
-            let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_bars(&[__ws_arg_6]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("market_public_get_v1beta3_crypto_loc_latest_bars", &[__ws_arg_6]).await;
             //
             //    {
             //        "bars": {
@@ -2079,7 +2079,7 @@ impl Alpaca {
         let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(Value::Arr(self.symbols.clone()), &[]) } else { symbols });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsSorted]);
         let mut loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
-        let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+        let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), Value::Str(ids.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
@@ -2088,7 +2088,7 @@ impl Alpaca {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("loc".into()), &[]);
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_snapshots(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("market_public_get_v1beta3_crypto_loc_snapshots", &[__ws_arg_7]).await;
         //
         //     {
         //         "snapshots": {
@@ -2377,7 +2377,7 @@ impl Alpaca {
         }  else {
             request.insert("qty".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
-        let mut paramsCost: crate::value::Dict = (if (cost.is_some()) { self.omit(&params, Value::Str("cost".into()), &[]) } else { params }).into_dict();
+        let mut paramsCost: crate::value::Dict = self.omit_t(&params, if (cost.is_some()) { Value::Str("cost".into()) } else { Value::Null }, &[]);
         let defaultTIFparamsTimeInForceVariable = self.handle_option_string_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]);
         let mut defaultTIF: Option<String> = defaultTIFparamsTimeInForceVariable.0.as_str().map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.1;
@@ -2386,7 +2386,7 @@ impl Alpaca {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);
-        let mut order: crate::value::Dict = self.trader_private_post_v2_orders(&[__ws_arg_11]).await.into_dict();
+        let mut order: crate::value::Dict = self.call_method_t("trader_private_post_v2_orders", &[__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
         Value::Null
         }).await?))
@@ -2420,7 +2420,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.trader_private_delete_v2_orders_order_id(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trader_private_delete_v2_orders_order_id", &[__ws_arg_12]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -2494,7 +2494,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut order: crate::value::Dict = self.trader_private_get_v2_orders_order_id(&[__ws_arg_13]).await.into_dict();
+        let mut order: crate::value::Dict = self.call_method_t("trader_private_get_v2_orders_order_id", &[__ws_arg_13]).await;
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
@@ -2545,7 +2545,7 @@ impl Alpaca {
         if (until.is_some()) {
             request.insert("until".into(), self.iso8601(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         if (since != Value::Null) {
             request.insert("after".into(), self.iso8601(since.clone()));
             let mut direction: Option<String> = self.safe_string_k_opt(&paramsOmitted, "direction", &[]);
@@ -2690,7 +2690,7 @@ impl Alpaca {
         if (triggerPrice.is_some()) {
             request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut paramsTrigger: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&params, Value::Str("triggerPrice".into()), &[]) } else { params }).into_dict();
+        let mut paramsTrigger: crate::value::Dict = self.omit_t(&params, if (triggerPrice.is_some()) { Value::Str("triggerPrice".into()) } else { Value::Null }, &[]);
         if (price != Value::Null) {
             request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
@@ -2703,7 +2703,7 @@ impl Alpaca {
         }
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, &["clientOrderId"], &[])]);
-        let mut response: crate::value::Dict = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trader_private_patch_v2_orders_order_id", &[__ws_arg_17]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
         Value::Null
         }).await?))
@@ -2790,7 +2790,7 @@ impl Alpaca {
         if (until.is_some()) {
             request.insert("until".into(), self.iso8601(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
         if (since != Value::Null) {
             request.insert("after".into(), self.iso8601(since.clone()));
         }
@@ -2838,7 +2838,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.trader_private_get_v2_wallets(&[__ws_arg_19]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trader_private_get_v2_wallets", &[__ws_arg_19]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2889,7 +2889,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.trader_private_post_v2_wallets_transfers(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trader_private_post_v2_wallets_transfers", &[__ws_arg_20]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -3146,7 +3146,7 @@ impl Alpaca {
         }
         // the two calls stay sequential deliberately — the static request harness records one request per case,
         // and concurrent calls make the recorded url nondeterministic per language
-        let mut account: crate::value::Dict = self.trader_private_get_v2_account(&[params]).await.into_dict();
+        let mut account: crate::value::Dict = self.call_method_t("trader_private_get_v2_account", &[params]).await;
         let mut positions: crate::value::List = self.trader_private_get_v2_positions(&[]).await.into_list();
         //
         //     {

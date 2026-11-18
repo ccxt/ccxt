@@ -1507,7 +1507,7 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_trade_api_ccxt_pairs(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_ccxt_pairs", &[params]).await;
         //
         //     {
         //         "ok": true,
@@ -1620,7 +1620,7 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_trade_api_currencies(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_currencies", &[params]).await;
         //
         //     {
         //         "ok": true,
@@ -1782,7 +1782,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.history_get_api_tw_history_pair_name_resolution(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("history_get_api_tw_history_pair_name_resolution", &[__ws_arg_0]).await;
         //
         //     {
         //         "ok": true,
@@ -1850,7 +1850,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trade_api_cmc_orderbook_pair(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_cmc_orderbook_pair", &[__ws_arg_1]).await;
         //
         //     {
         //         "timestamp": 1701166703284,
@@ -1928,7 +1928,7 @@ impl Bitteam {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_orders_of_user(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_orders_of_user", &[__ws_arg_2]).await;
         //
         //     {
         //         "ok": true,
@@ -2053,7 +2053,7 @@ impl Bitteam {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_order_id(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_order_id", &[__ws_arg_3]).await;
         //
         //     {
         //         "ok": true,
@@ -2259,7 +2259,7 @@ impl Bitteam {
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_api_ccxt_ordercreate(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_api_ccxt_ordercreate", &[__ws_arg_7]).await;
         //
         //     {
         //         "ok": true,
@@ -2320,7 +2320,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_api_ccxt_cancelorder(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_api_ccxt_cancelorder", &[__ws_arg_8]).await;
         //
         //     {
         //         "ok": true,
@@ -2370,7 +2370,7 @@ impl Bitteam {
             request.insert("pairId".into(), Value::Str("0".into())); // '0' for all markets
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_trade_api_ccxt_cancel_all_order(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_api_ccxt_cancel_all_order", &[__ws_arg_9]).await;
         //
         //     {
         //         "ok": true,
@@ -2528,7 +2528,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trade_api_pair_name(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_pair_name", &[__ws_arg_10]).await;
         //
         //     {
         //         "ok": true,
@@ -2800,7 +2800,7 @@ impl Bitteam {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_trades_of_user(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_trades_of_user", &[__ws_arg_12]).await;
         //
         //     {
         //         "ok": true,
@@ -2963,7 +2963,7 @@ impl Bitteam {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -3010,7 +3010,7 @@ impl Bitteam {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trade_api_transactions_of_user(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_transactions_of_user", &[__ws_arg_13]).await;
         //
         //     {
         //         "ok": true,

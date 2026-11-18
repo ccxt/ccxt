@@ -1374,7 +1374,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_info_time(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_time", &[params]).await;
         return self.safe_integer_k(&response, "time", &[]);
         Value::Null
         }).await?))
@@ -1398,7 +1398,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_info_exchange(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_exchange", &[params]).await;
         //
         //     {
         //         "name": "Polymarket",
@@ -1777,7 +1777,7 @@ impl Polymarket {
             request.insert("depth".into(), limit);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_info_book(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_book", &[__ws_arg_0]).await;
         //
         //     {
         //         "instrument_id": 1,
@@ -1837,7 +1837,7 @@ impl Polymarket {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_get_info_trades(&[__ws_arg_1]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_trades", &[__ws_arg_1]).await;
         //
         //     {
         //         "data": [
@@ -1920,7 +1920,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from((if let Some(__l) = end { Some(__l - ((((requestedLimit - 1)) * duration))) } else { None })));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_get_info_klines(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_klines", &[__ws_arg_2]).await;
         //
         //     {
         //         "data": [
@@ -2053,7 +2053,7 @@ impl Polymarket {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_get_info_funding(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_funding", &[__ws_arg_3]).await;
         //
         //     {
         //         "data": [
@@ -2172,7 +2172,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut response: crate::value::Dict = self.public_get_info_fees(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_info_fees", &[params]).await;
         //
         //     {
         //         "fee_schedule": [
@@ -2503,7 +2503,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut canceled: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return canceled.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -2561,7 +2561,7 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_1112: bool = true;
                 while { if !__for_first_1112 { i += 1; } __for_first_1112 = false; i < (ids.len() as i64) } {
-                if let Value::Arr(__a) = &mut numericIds { std::sync::Arc::make_mut(__a).push(Value::from(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[])))); };
+                if let Value::Arr(__a) = &mut numericIds { std::sync::Arc::make_mut(__a).push(Value::from(self.parse_to_int(self.safe_string(&ids, Value::Int(i), &[])))); };
             }
             }
             signable = Value::from(vec![Value::Str("cancelOrders".into()), numericIds.clone()]);
@@ -2645,7 +2645,7 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: crate::value::Dict = self.trade_delete_trade_orders_all(&[Value::Dict(signed)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trade_delete_trade_orders_all", &[Value::Dict(signed)]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -2686,7 +2686,7 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: crate::value::Dict = self.trade_patch_trade_auto_cancel(&[Value::Dict(signed)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trade_patch_trade_auto_cancel", &[Value::Dict(signed)]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -2827,7 +2827,7 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut response: crate::value::Dict = self.private_get_account_portfolio(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_portfolio", &[params]).await;
         //
         //     {
         //         "positions": [],
@@ -2886,7 +2886,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.private_get_account_portfolio(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_portfolio", &[params]).await;
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut rows: crate::value::List = self.safe_list_k_t(&response, "positions");
         let mut positions: Vec<Value> = Vec::new();
@@ -3133,7 +3133,7 @@ impl Polymarket {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_fills(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_fills", &[__ws_arg_9]).await;
         //
         //     {
         //         "data": [
@@ -3213,7 +3213,7 @@ impl Polymarket {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_funding(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_funding", &[__ws_arg_10]).await;
         //
         //     {
         //         "data": [
@@ -3311,7 +3311,7 @@ impl Polymarket {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_deposits(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_deposits", &[__ws_arg_11]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
@@ -3363,7 +3363,7 @@ impl Polymarket {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_account_withdrawals(&[__ws_arg_12]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_account_withdrawals", &[__ws_arg_12]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
@@ -3495,7 +3495,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.trade_post_account_withdraw(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trade_post_account_withdraw", &[__ws_arg_13]).await;
         //
         //     { "status": "ok", "withdraw_id": 123 }
         //
@@ -3636,7 +3636,7 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: crate::value::Dict = self.trade_patch_trade_leverage(&[Value::Dict(signed)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trade_patch_trade_leverage", &[Value::Dict(signed)]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -3724,7 +3724,7 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: crate::value::Dict = self.trade_patch_trade_margin(&[Value::Dict(signed)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trade_patch_trade_margin", &[Value::Dict(signed)]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -3909,7 +3909,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.trade_post_account_proxy(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("trade_post_account_proxy", &[__ws_arg_16]).await;
         //
         //     { "secret": "..." }
         //

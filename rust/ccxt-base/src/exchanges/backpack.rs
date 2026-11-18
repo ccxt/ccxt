@@ -2543,7 +2543,6 @@ impl Backpack {
  * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
  */
     pub async fn fetch_stock_indicative_quote(&mut self, symbol: &str, side: &str, amount: f64, optional_args: &[Value]) -> Value {
-        let mut amount: Value = amount.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2558,14 +2557,14 @@ impl Backpack {
         if (side != "buy") && (side != "sell") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchStockIndicativeQuote() requires buy or sell")));
         }
-        if (amount == Value::Null) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(amount.clone())), &Value::Str("0".into())).as_bool() == Some(true)) {
+        if (false) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(Value::from(amount))), &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchStockIndicativeQuote() requires a positive base share quantity")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("side".to_string(), self.encode_order_side(Some(side)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("quantity".to_string(), Value::from(self.number_to_string(amount)));
+                m.insert("quantity".to_string(), Value::from(self.number_to_string(Value::from(amount))));
             m
         });
         let mut requestMethod: String = "publicGetApiV1StockIndicativeQuote".to_string();
@@ -3110,7 +3109,7 @@ impl Backpack {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.stock_data_request("fetchTicker", params, Some(&market)).into_dict();
-        let mut response: crate::value::Dict = self.public_get_api_v1_ticker(&[Value::Dict(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_api_v1_ticker", &[Value::Dict(request)]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -3174,7 +3173,7 @@ impl Backpack {
             request.insert("limit".into(), Value::from(requestLimit));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[self.omit(&query, Value::Str("source".into()), &[])]);
-        let mut response: crate::value::Dict = self.public_get_api_v1_depth(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_api_v1_depth", &[__ws_arg_5]).await;
         let mut microseconds: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         if (microseconds.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOrderBook() missing microseconds")));
@@ -3637,7 +3636,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_api_v1_status(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_api_v1_status", &[params]).await;
         //
         //     {
         //         "message":null,
@@ -3710,7 +3709,7 @@ impl Backpack {
         let mut selection: crate::value::List = self.handle_stock_params("fetchBalance", params, None).into_list();
         let mut stock: bool = self.safe_bool_opt(&selection, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut query: crate::value::Dict = self.safe_dict_t(&selection, Value::Int(1));
-        let mut response: crate::value::Dict = self.private_get_api_v1_capital(&[Value::Dict(query)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_api_v1_capital", &[Value::Dict(query)]).await;
         if stock {
             let mut securities: Value = self.safe_list_k(&self.options, "securities", &[]);
             if (securities == Value::Null) {
@@ -3902,7 +3901,7 @@ impl Backpack {
         }
         request.insert("blockchain".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_post_wapi_v1_capital_withdrawals(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_wapi_v1_capital_withdrawals", &[__ws_arg_17]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -3962,7 +3961,7 @@ impl Backpack {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.private_get_wapi_v1_capital_deposit_address(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_wapi_v1_capital_deposit_address", &[__ws_arg_18]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -4040,7 +4039,7 @@ impl Backpack {
             return rfqOrder.map_or(Value::Null, Value::Dict);
         }
         let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(orderParams)]).into_dict();
-        let mut response: crate::value::Dict = self.private_post_api_v1_order(&[Value::Dict(orderRequest)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_api_v1_order", &[Value::Dict(orderRequest)]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -4162,7 +4161,7 @@ impl Backpack {
         }
         let mut query: crate::value::Dict = self.omit_t(&paramsResolved, Value::Str("clientOrderId".into()), &[]);
         let __ws_arg_20 = self.extend(query, &[Value::Map(request)]);
-        let mut response: crate::value::Dict = self.private_post_api_v1_rfq(&[__ws_arg_20]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_api_v1_rfq", &[__ws_arg_20]).await;
         let mut order: Value = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), Value::from(type_var)); }
         return order;
@@ -4201,7 +4200,7 @@ impl Backpack {
             m
         });
         let __ws_arg_21 = self.extend(query, &[Value::Map(request)]);
-        let mut response: crate::value::Dict = self.private_post_api_v1_rfq_accept(&[__ws_arg_21]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_api_v1_rfq_accept", &[__ws_arg_21]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
 
     Value::Null
@@ -4239,7 +4238,7 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_258: bool = true;
             while { if !__for_first_258 { i += 1; } __for_first_258 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
@@ -4521,7 +4520,7 @@ impl Backpack {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_get_api_v1_order(&[__ws_arg_25]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_api_v1_order", &[__ws_arg_25]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -4648,7 +4647,7 @@ impl Backpack {
                 rfqRequest.insert("clientId".into(), Value::from(clientOrderId));
             }
             let __ws_arg_29 = self.extend(self.omit(&query, Value::Str("clientOrderId".into()), &[]), &[Value::Map(rfqRequest)]);
-            let mut rfqResponse: crate::value::Dict = self.private_post_api_v1_rfq_cancel(&[__ws_arg_29]).await.into_dict();
+            let mut rfqResponse: crate::value::Dict = self.call_method_t("private_post_api_v1_rfq_cancel", &[__ws_arg_29]).await;
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rfqResponse, Some(&market));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4658,7 +4657,7 @@ impl Backpack {
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_delete_api_v1_order(&[__ws_arg_30]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_api_v1_order", &[__ws_arg_30]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))

@@ -682,14 +682,13 @@ impl Hyperliquid {
  * @returns {object} a dict of the parsed key/value pairs
  */
     pub fn parse_outcome_description(&self, description: &str) -> Value {
-        let mut description: Value = description.into();
-        if (description == Value::Null) || (description.as_str() == Some("")) {
+        if (false) || (description == "") {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 });
         }
-        let mut parts: Vec<Value> = Value::Array(if let Some(__s) = description.as_str() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+        let mut parts: Vec<Value> = Value::Array(if let Some(__s) = Some(description) { __s.split("|").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -926,7 +925,7 @@ impl Hyperliquid {
                 m.insert("type".to_string(), Value::Str("outcomeMeta".into()));
             m
         }), &[params]);
-        let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_info", &[__ws_arg_0]).await;
         let mut outcomesList: crate::value::List = self.safe_list_k_t(&response, "outcomes");
         let mut questionsList: crate::value::List = self.safe_list_k_t(&response, "questions");
         let mut outcomesToQuestions: indexmap::IndexMap<String, Value> = ({
@@ -1509,7 +1508,7 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_post_info", &[__ws_arg_3]).await;
         //
         //     {
         //         "coin": "#10",
@@ -1901,20 +1900,19 @@ impl Hyperliquid {
 }
 
     pub fn resolve_outcome_input(&self, outcomeInput: &str) -> Value {
-        let mut outcomeInput: Value = outcomeInput.into();
-        if (outcomeInput == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " resolveOutcomeInput() requires an outcome symbol or id")));
         }
         if (self.exchange.outcomes.clone() == Value::Null) || (self.exchange.outcomes_by_id.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " outcomes not loaded")));
         }
-        let mut sideHint: Option<String> = self.parse_outcome_input_side_hint(outcomeInput.as_str().unwrap_or_default());
-        let mut candidates: Vec<Value> = vec![outcomeInput.clone()];
-        if (outcomeInput.as_str().unwrap_or("").starts_with("+")) {
-            candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()));
+        let mut sideHint: Option<String> = self.parse_outcome_input_side_hint(outcomeInput);
+        let mut candidates: Vec<Value> = vec![Value::from(outcomeInput)];
+        if (Some(outcomeInput).unwrap_or("").starts_with("+")) {
+            candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), Some(outcomeInput).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()));
         }
         let mut digitChars: String = "0123456789".to_string();
-        let mut inputChars: Vec<Value> = self.string_to_chars_array(outcomeInput.clone()).as_array().cloned().unwrap_or_default();
+        let mut inputChars: Vec<Value> = self.string_to_chars_array(Value::from(outcomeInput)).as_array().cloned().unwrap_or_default();
         let mut inputCharsLength: i64 = inputChars.len() as i64;
         let mut isNumericInput: bool = inputCharsLength > 0;
         {
@@ -1928,8 +1926,8 @@ impl Hyperliquid {
         }
         }
         if isNumericInput {
-            candidates.push(Value::Str(format!("{}{}", "#", outcomeInput).into())); // encoding id without #
-            let mut numeric: Option<i64> = self.parse_to_int(outcomeInput.clone());
+            candidates.push(Value::Str(format!("{}{}", "#", Value::from(outcomeInput)).into())); // encoding id without #
+            let mut numeric: Option<i64> = self.parse_to_int(Value::from(outcomeInput));
             candidates.push(self.outcome_coin((self.outcome_encoding(Value::from(numeric).as_f64().unwrap_or_default(), Value::Int(0))).as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null)); // raw outcome id -> YES encoding
             candidates.push(self.outcome_coin((self.outcome_encoding(Value::from(numeric).as_f64().unwrap_or_default(), Value::Int(1))).as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null)); // raw outcome id -> NO encoding
         }
@@ -1952,8 +1950,8 @@ impl Hyperliquid {
             }
         }
         }
-        if ((self.markets != Value::Null) && (matches!((&self.markets, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id != Value::Null) && (matches!((&self.markets_by_id, &outcomeInput), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            let mut market: crate::types::Market = self.safe_market(outcomeInput.clone(), None, &[]);
+        if ((self.markets != Value::Null) && (matches!((&self.markets, &Value::from(outcomeInput)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((self.markets_by_id != Value::Null) && (matches!((&self.markets_by_id, &Value::from(outcomeInput)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
+            let mut market: crate::types::Market = self.safe_market(Value::from(outcomeInput), None, &[]);
             let mut sideHintOrDefault: Option<String> = Some("YES".to_string());
             if (sideHint.is_some()) {
                 sideHintOrDefault = sideHint;
@@ -1963,7 +1961,7 @@ impl Hyperliquid {
                 return Value::Dict(found);
             }
         }
-        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " cannot resolve outcome from input: ").into()), outcomeInput).into()), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " cannot resolve outcome from input: ").into()), Value::from(outcomeInput)).into()), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")));
 
     Value::Null
 }
@@ -2102,7 +2100,7 @@ impl Hyperliquid {
         if (vaultAddress.is_some()) {
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_exchange", &[Value::Map(request)]).await;
         //
         //     {
         //         "status": "ok",
@@ -2175,7 +2173,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut first: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return first.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -2267,7 +2265,7 @@ impl Hyperliquid {
         if (vaultAddress.is_some()) {
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_exchange", &[Value::Map(request)]).await;
         let mut innerResponse: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&innerResponse, "data");
         let mut statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
@@ -3012,16 +3010,15 @@ impl Hyperliquid {
 }
 
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value) -> Value {
-        let mut vaultAddress: Value = vaultAddress.into();
         let mut dataBinary: crate::value::Bytes = crate::value::Bytes(self.packb(action, &[]).into_list());
         let mut dataHex: String = self.binary_to_base16(&dataBinary, &[]);
         let mut data: String = dataHex;
         data.push_str(&format!("{}{}", Value::Str("00000".into()), self.int_to_base16(nonce, &[])));
-        if (vaultAddress == Value::Null) {
+        if (vaultAddress.is_none()) {
             data.push_str("00");
         }  else {
             data.push_str("01");
-            data.push_str(&vaultAddress.to_string());
+            data.push_str(&Value::from(vaultAddress).to_string());
         }
         return Value::from(self.hash_binary(self.base16_to_binary(Value::from(data), &[]), Value::Str("keccak".into())));
 

@@ -1830,7 +1830,7 @@ impl Bigone {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_ticker(&[__ws_arg_0]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_asset_pair_name_ticker", &[__ws_arg_0]).await;
             //
             //     {
             //         "code":0,
@@ -1898,11 +1898,11 @@ impl Bigone {
         let mut data: Value = Value::Null;
         if isSpot {
             if (symbolsNormalized.is_some()) {
-                let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+                let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
                 request.insert("pair_names".into(), Value::Str(ids.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             }
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            let mut response: crate::value::Dict = self.public_get_asset_pairs_tickers(&[__ws_arg_1]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_tickers", &[__ws_arg_1]).await;
             //
             //    {
             //        "code": 0,
@@ -1959,7 +1959,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_ping(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ping", &[params]).await;
         //
         //     {
         //         "data": {
@@ -2011,7 +2011,7 @@ impl Bigone {
                 m
             }).into_dict();
             let __ws_arg_2 = self.extend(request, &[&params]);
-            response = self.contract_public_get_depth_symbol_snapshot(&[__ws_arg_2]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_depth_symbol_snapshot", &[__ws_arg_2]).await;
             return self.parse_contract_order_book(&response, (Value::from((market).symbol.clone())).as_str().unwrap_or_default(), limit.as_i64());
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2023,7 +2023,7 @@ impl Bigone {
                 request.insert("limit".into(), limit); // default 50, max 200
             }
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_asset_pairs_asset_pair_name_depth(&[__ws_arg_3]).await.into_opt_dict();
+            response = self.call_method_o("public_get_asset_pairs_asset_pair_name_depth", &[__ws_arg_3]).await;
             //
             //     {
             //         "code":0,
@@ -2123,7 +2123,7 @@ impl Bigone {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_trades(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_asset_pair_name_trades", &[__ws_arg_4]).await;
         //
         //     {
         //         "code": 0,
@@ -2216,7 +2216,7 @@ impl Bigone {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_candles(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_asset_pair_name_candles", &[__ws_arg_5]).await;
         //
         //     {
         //         "code": 0,
@@ -2273,9 +2273,9 @@ impl Bigone {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("type".into()), &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("funding")) || (type_var.as_deref() == Some("fund")) {
-            response = self.private_get_fund_accounts(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
+            response = self.call_method_o("private_get_fund_accounts", &[Value::from(&paramsOmitted)]).await;
         }  else {
-            response = self.private_get_accounts(&[Value::Dict(paramsOmitted)]).await.into_opt_dict();
+            response = self.call_method_o("private_get_accounts", &[Value::Dict(paramsOmitted)]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
@@ -2440,7 +2440,7 @@ impl Bigone {
         }
         query = self.omit_t(&query, &["stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"], &[]);
         let __ws_arg_6 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_6]).await;
         //
         //    {
         //        "id": 10,
@@ -2492,7 +2492,7 @@ impl Bigone {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_orders_id_cancel(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_id_cancel", &[__ws_arg_7]).await;
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -2541,7 +2541,7 @@ impl Bigone {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_orders_cancel(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_cancel", &[__ws_arg_8]).await;
         //
         //     {
         //         "code":0,
@@ -2622,7 +2622,7 @@ impl Bigone {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders_id(&[__ws_arg_9]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders_id", &[__ws_arg_9]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None);
         Value::Null
@@ -2669,7 +2669,7 @@ impl Bigone {
             request.insert("limit".into(), limit.clone()); // default 20, max 200
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_orders(&[__ws_arg_10]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders", &[__ws_arg_10]).await;
         //
         //    {
         //        "code":0,
@@ -2736,7 +2736,7 @@ impl Bigone {
             request.insert("limit".into(), limit.clone()); // default 20, max 200
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_trades(&[__ws_arg_11]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_trades", &[__ws_arg_11]).await;
         //
         //     {
         //         "code": 0,
@@ -2893,7 +2893,7 @@ impl Bigone {
         let mut networkCode: Option<String> = networkCodeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.private_get_assets_asset_symbol_address(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_assets_asset_symbol_address", &[__ws_arg_14]).await;
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -2989,7 +2989,7 @@ impl Bigone {
             request.insert("limit".into(), limit.clone()); // default 50
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deposits(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deposits", &[__ws_arg_15]).await;
         //
         //     {
         //         "code": 0,
@@ -3057,7 +3057,7 @@ impl Bigone {
             request.insert("limit".into(), limit.clone()); // default 50
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_withdrawals(&[__ws_arg_16]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_withdrawals", &[__ws_arg_16]).await;
         //
         //     {
         //         "code": 0,
@@ -3129,7 +3129,7 @@ impl Bigone {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_post_transfer(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_transfer", &[__ws_arg_17]).await;
         //
         //     {
         //         "code": 0,
@@ -3211,7 +3211,7 @@ impl Bigone {
         }
         // requires write permission on the wallet
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_withdrawals", &[__ws_arg_18]).await;
         //
         //     {
         //         "code":0,

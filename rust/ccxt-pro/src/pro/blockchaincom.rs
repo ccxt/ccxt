@@ -85,7 +85,7 @@ impl Blockchaincom {
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -219,7 +219,7 @@ impl Blockchaincom {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -465,7 +465,7 @@ impl Blockchaincom {
         }  else if (event.as_deref() == Some("snapshot")) {
             ticker = self.parse_ticker(message.clone(), Some(&market));
         }  else if (event.as_deref() == Some("updated")) {
-            let mut lastTicker: Value = self.safe_dict(self.tickers.clone(), Value::from(symbol.as_str()), &[]);
+            let mut lastTicker: Value = self.safe_dict(&self.tickers, Value::from(symbol.as_str()), &[]);
             ticker = self.parse_ws_updated_ticker(message, &[lastTicker, crate::Value::from(&market)]);
         }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol);
@@ -1046,7 +1046,7 @@ impl Blockchaincom {
         }  else if (channel.as_deref() == Some("auth")) {
             self.handle_authentication_message(client.clone(), message.clone());
         }  else if (channel.as_deref() == Some("balances")) {
-            self.handle_balance(client.clone(), message.clone());
+            self.handle_balance(&client, message.clone());
         }  else if (channel.as_deref() == Some("trading")) {
             self.handle_orders(&client, message.clone());
         }  else {

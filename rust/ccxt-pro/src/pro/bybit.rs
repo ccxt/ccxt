@@ -132,7 +132,7 @@ impl Bybit {
             "get_private_type" => self.get_private_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "get_url_by_market_type" => { crate::exchange_stubs::enqueue_spawn("get_url_by_market_type", args.to_vec()); crate::Value::Null },
             "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -755,7 +755,7 @@ impl Bybit {
         let mut paramsValue: crate::value::Dict = self.clean_params(params).into_dict();
         let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchTickers");
         let mut topic: String = self.safe_string_k(&options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
-        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsValue.clone())]).into_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsValue.clone())]).unwrap_or_default();
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -778,7 +778,7 @@ impl Bybit {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &symbolsValue, &[]);
+        return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsValue, &[]);
         Value::Null
         }).await?))
     }
@@ -812,7 +812,7 @@ impl Bybit {
         let mut topic: String = self.safe_string_k(&options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subMessageHashes: Vec<Value> = Vec::new();
-        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsValue.clone())]).into_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsValue.clone())]).unwrap_or_default();
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -994,7 +994,7 @@ impl Bybit {
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(type_var)]);
             symbol = self.safe_string_k_opt(&market, "symbol", &[]);
             // update the info in place
-            let mut ticker: crate::value::Dict = self.safe_dict_t(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut ticker: crate::value::Dict = self.safe_dict_t(&self.tickers, symbol.clone().map(Value::from).unwrap_or(Value::Null));
             let mut rawTicker: crate::value::Dict = self.safe_dict_k_t(&ticker, "info");
             let mut merged: crate::value::Dict = self.extend_t(rawTicker, &[&data]);
             parsed = self.parse_ticker(Value::Dict(merged), None);
@@ -1037,7 +1037,7 @@ impl Bybit {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut url: Option<String> = self.get_url_by_market_type((symbolsValue.get(0).cloned().unwrap_or(Value::Null)).as_str(), &[Value::Bool(false), Value::Str("watchBidsAsks".into()), params.clone()]).await.as_str().map(str::to_owned);
         let mut paramsValue: crate::value::Dict = self.clean_params(params).into_dict();
-        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsValue.clone())]).into_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsValue.clone())]).unwrap_or_default();
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1053,7 +1053,7 @@ impl Bybit {
         if self.newUpdates.as_bool() == Some(true) {
             return ticker;
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsValue, &[]);
+        return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsValue, &[]);
         Value::Null
         }).await?))
     }
@@ -1374,7 +1374,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1474,7 +1474,7 @@ impl Bybit {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
         let mut channel: String = "orderbook.".to_string();
         let mut limitParam: Option<i64> = self.safe_integer_k(&params, "limit", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = (if (limitParam.is_some()) { self.omit(&params, Value::Str("limit".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (limitParam.is_some()) { Value::Str("limit".into()) } else { Value::Null }, &[]);
         let mut defaultLimit: i64 = 500;
         if (limitParam.is_none()) {
             let mut firstMarket: crate::types::Market = (match self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1525,7 +1525,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), params).await);
+        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(vec![symbol.to_string()], params).await);
         Value::Null
         }).await?))
     }
@@ -1653,7 +1653,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1786,7 +1786,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), params).await);
+        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], params).await);
         Value::Null
         }).await?))
     }
@@ -2944,7 +2944,7 @@ impl Bybit {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -3134,7 +3134,7 @@ impl Bybit {
         }
         }
         if (account.is_some()) {
-            if (self.safe_dict(self.balance.clone(), account.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
+            if (self.safe_dict(&self.balance, account.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(account.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3205,7 +3205,7 @@ impl Bybit {
         // is the consistent total, the spot rows fall back to the wallet balance
         account.insert("total".into(), self.safe_string2(balance, Value::Str("equity".into()), Value::Str("walletBalance".into()), &[]));
         if (accountType != Value::Null) {
-            if (self.safe_dict(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
+            if (self.safe_dict(&self.balance, accountType.clone(), &[]) == Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

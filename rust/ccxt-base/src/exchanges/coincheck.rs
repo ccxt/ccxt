@@ -950,7 +950,7 @@ impl Coincheck {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.public_get_exchange_status(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_exchange_status", &[params]).await;
         //
         //     {
         //         "exchange_status": [
@@ -1018,7 +1018,7 @@ impl Coincheck {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_accounts_balance(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_accounts_balance", &[params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1056,7 +1056,7 @@ impl Coincheck {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: crate::value::Dict = self.private_get_exchange_orders_opens(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_exchange_orders_opens", &[params]).await;
         let mut rawOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
         let mut parsedOrders: Vec<Value> = self.parse_orders(&rawOrders, market.as_ref(), &[since, limit]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
@@ -1109,7 +1109,7 @@ impl Coincheck {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_order_books(&[__ws_arg_0]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_order_books", &[__ws_arg_0]).await;
         return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
@@ -1149,7 +1149,7 @@ impl Coincheck {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: crate::value::Dict = self.public_get_ticker(&[__ws_arg_1]).await.into_dict();
+        let mut ticker: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -1192,7 +1192,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_exchange_orders_transactions_pagination(&[__ws_arg_2]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_exchange_orders_transactions_pagination", &[__ws_arg_2]).await;
         //
         //      {
         //          "success": true,
@@ -1258,7 +1258,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_trades(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[__ws_arg_3]).await;
         //
         //      {
         //          "id": "206849494",
@@ -1296,7 +1296,7 @@ impl Coincheck {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.private_get_accounts(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_accounts", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -1403,7 +1403,7 @@ impl Coincheck {
             request.insert("amount".into(), amount);
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("cost".into()), &[])]);
-        let mut response: crate::value::Dict = self.private_post_exchange_orders(&[__ws_arg_4]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_post_exchange_orders", &[__ws_arg_4]).await;
         let mut id: Option<String> = self.safe_string_k_opt(&response, "id", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1443,7 +1443,7 @@ impl Coincheck {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_exchange_orders_id(&[__ws_arg_5]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_exchange_orders_id", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
@@ -1489,7 +1489,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_deposit_money(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_deposit_money", &[__ws_arg_6]).await;
         // {
         //   "success": true,
         //   "deposits": [
@@ -1562,7 +1562,7 @@ impl Coincheck {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_withdraws(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_withdraws", &[__ws_arg_7]).await;
         //  {
         //   "success": true,
         //   "pagination": {

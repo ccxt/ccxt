@@ -3568,10 +3568,10 @@ impl Mexc {
         let mut query: crate::value::Dict = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            response = self.spot_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
+            response = self.call_method_o("spot_public_get_time", &[Value::from(&query)]).await;
             return self.safe_integer_k(&response, "serverTime", &[]);
         }  else if (marketType.as_deref() == Some("swap")) {
-            response = self.contract_public_get_ping(&[Value::Dict(query)]).await.into_opt_dict();
+            response = self.call_method_o("contract_public_get_ping", &[Value::Dict(query)]).await;
             return self.safe_integer_k(&response, "data", &[]);
         }
         return Value::Null;
@@ -3660,7 +3660,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.spot_public_get_exchange_info(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_public_get_exchange_info", &[params]).await;
         //
         //     {
         //         "timezone": "CST",
@@ -3816,7 +3816,7 @@ impl Mexc {
 }));
         let mut currentRl: Value = self.rateLimit.clone();
         self.set_property(Value::Str("rateLimit".into()), &[Value::Int(10)]); // see comment: https://github.com/ccxt/ccxt/pull/23698
-        let mut response: crate::value::Dict = self.contract_public_get_detail(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_detail", &[params]).await;
         self.set_property(Value::Str("rateLimit".into()), &[currentRl]);
         //
         //     {
@@ -3990,7 +3990,7 @@ impl Mexc {
         }
         if (market).spot {
             let __ws_arg_0 = self.extend(&request, &[&params]);
-            let mut response: crate::value::Dict = self.spot_public_get_depth(&[__ws_arg_0]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("spot_public_get_depth", &[__ws_arg_0]).await;
             //
             //     {
             //         "lastUpdateId": "744267132",
@@ -4010,7 +4010,7 @@ impl Mexc {
             return Value::Map(spotOrderbook);
         }  else if (market).swap {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            let mut response: crate::value::Dict = self.contract_public_get_depth_symbol(&[__ws_arg_1]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_public_get_depth_symbol", &[__ws_arg_1]).await;
             //
             //     {
             //         "success":true,
@@ -4127,7 +4127,7 @@ impl Mexc {
             }
         }  else if (market).swap {
             let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-            let mut response: crate::value::Dict = self.contract_public_get_deals_symbol(&[__ws_arg_5]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_public_get_deals_symbol", &[__ws_arg_5]).await;
             //
             //     {
             //         "success": true,
@@ -4273,13 +4273,13 @@ impl Mexc {
             let mut swapResponse: Option<crate::value::Dict> = None;
             if (priceType.as_deref() == Some("default")) {
                 let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
-                swapResponse = self.contract_public_get_kline_symbol(&[__ws_arg_7]).await.into_opt_dict();
+                swapResponse = self.call_method_o("contract_public_get_kline_symbol", &[__ws_arg_7]).await;
             }  else if (priceType.as_deref() == Some("index")) {
                 let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
-                swapResponse = self.contract_public_get_kline_index_price_symbol(&[__ws_arg_8]).await.into_opt_dict();
+                swapResponse = self.call_method_o("contract_public_get_kline_index_price_symbol", &[__ws_arg_8]).await;
             }  else if (priceType.as_deref() == Some("mark")) {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                swapResponse = self.contract_public_get_kline_fair_price_symbol(&[__ws_arg_9]).await.into_opt_dict();
+                swapResponse = self.call_method_o("contract_public_get_kline_fair_price_symbol", &[__ws_arg_9]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOHLCV() not support this price type, [default, index, mark]")));
             }
@@ -4354,7 +4354,7 @@ impl Mexc {
             tickers = self.spot_public_get_ticker24hr(&[__ws_arg_10]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
-            let mut response: crate::value::Dict = self.contract_public_get_ticker(&[__ws_arg_11]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_public_get_ticker", &[__ws_arg_11]).await;
             //
             //     {
             //         "success":true,
@@ -4393,7 +4393,7 @@ impl Mexc {
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket {
-            tickers = Value::from(vec![tickers.clone()]);
+            tickers = Value::from(vec![tickers]);
         }
         return self.parse_tickers(tickers, &[symbols]);
         Value::Null
@@ -4439,7 +4439,7 @@ impl Mexc {
             ticker = self.spot_public_get_ticker24hr(&[__ws_arg_12]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
-            let mut response: crate::value::Dict = self.contract_public_get_ticker(&[__ws_arg_13]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_public_get_ticker", &[__ws_arg_13]).await;
             //
             //     {
             //         "success":true,
@@ -4517,7 +4517,7 @@ impl Mexc {
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket {
-            tickers = Value::from(vec![tickers.clone()]);
+            tickers = Value::from(vec![tickers]);
         }
         return self.parse_tickers(tickers, &[symbols]);
         Value::Null
@@ -4702,7 +4702,7 @@ impl Mexc {
         if (price != Value::Null) {
             request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price)));
         }
-        let mut paramsWithoutCost: crate::value::Dict = (if (type_var == Some("market")) { self.omit(&params, Value::Str("cost".into()), &[]) } else { params }).into_dict();
+        let mut paramsWithoutCost: crate::value::Dict = self.omit_t(&params, if (type_var == Some("market")) { Value::Str("cost".into()) } else { Value::Null }, &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&paramsWithoutCost, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             request.insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4764,9 +4764,9 @@ impl Mexc {
         let mut request: crate::value::Dict = self.create_spot_order_request(market, Some(type_var), Some(side), amount.clone(), &[price.clone(), marginMode, Value::Dict(paramsOmitted)]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if test {
-            response = self.spot_private_post_order_test(&[Value::from(&request)]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_order_test", &[Value::from(&request)]).await;
         }  else {
-            response = self.spot_private_post_order(&[Value::Dict(request)]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_post_order", &[Value::Dict(request)]).await;
         }
         //
         // spot
@@ -4938,10 +4938,10 @@ impl Mexc {
             }
             request.insert("orderType".into(), self.safe_integer_k(&paramsOmitted, "orderType", &[Value::from(planOrderType)]));
             let __ws_arg_16 = self.extend(&request, &[&paramsTriggerDirection]);
-            response = self.contract_private_post_planorder_place(&[__ws_arg_16]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_post_planorder_place", &[__ws_arg_16]).await;
         }  else {
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_post_order_create(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_post_order_create", &[__ws_arg_17]).await;
         }
         //
         // Swap
@@ -4999,7 +4999,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_953: bool = true;
             while { if !__for_first_953 { i += 1; } __for_first_953 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(market).spot {
@@ -5081,7 +5081,7 @@ impl Mexc {
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
-            let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, Value::Str("clientOrderId".into()), &[]) } else { params.clone() }).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (clientOrderId.is_some()) { Value::Str("clientOrderId".into()) } else { Value::Null }, &[]);
             let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -5098,7 +5098,7 @@ impl Mexc {
         }  else if (market).swap {
             request.insert("order_id".into(), id);
             let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-            let mut response: crate::value::Dict = self.contract_private_get_order_get_order_id(&[__ws_arg_20]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_get_order_get_order_id", &[__ws_arg_20]).await;
             //
             //     {
             //         "success": true,
@@ -5245,7 +5245,7 @@ impl Mexc {
             let mut ordersOfTrigger: Value = Value::from(vec![]);
             if (method.as_deref() == Some("contractPrivateGetOrderListHistoryOrders")) {
                 let __ws_arg_23 = self.extend(&request, &[&query]);
-                let mut response: crate::value::Dict = self.contract_private_get_order_list_history_orders(&[__ws_arg_23]).await.into_dict();
+                let mut response: crate::value::Dict = self.call_method_t("contract_private_get_order_list_history_orders", &[__ws_arg_23]).await;
                 //
                 //     {
                 //         "success": true,
@@ -5284,7 +5284,7 @@ impl Mexc {
             }  else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 let __ws_arg_24 = self.extend(Value::Map(request), &[&query]);
-                let mut response: crate::value::Dict = self.contract_private_get_planorder_list_orders(&[__ws_arg_24]).await.into_dict();
+                let mut response: crate::value::Dict = self.call_method_t("contract_private_get_planorder_list_orders", &[__ws_arg_24]).await;
                 //
                 //     {
                 //         "success": true,
@@ -5345,7 +5345,7 @@ impl Mexc {
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.join(",").into()));
             let __ws_arg_25 = self.extend(Value::Map(request), &[&query]);
-            let mut response: crate::value::Dict = self.contract_private_get_order_batch_query(&[__ws_arg_25]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_get_order_batch_query", &[__ws_arg_25]).await;
             //
             //     {
             //         "success": true,
@@ -5458,11 +5458,11 @@ impl Mexc {
             if (trigger == Some(true)) {
                 request.insert("states".into(), Value::Int(1)); // untriggered
                 let __ws_arg_28 = self.extend(&request, &[&swapParams]);
-                let mut triggerResponse: crate::value::Dict = self.contract_private_get_planorder_list_orders(&[__ws_arg_28]).await.into_dict();
+                let mut triggerResponse: crate::value::Dict = self.call_method_t("contract_private_get_planorder_list_orders", &[__ws_arg_28]).await;
                 data = self.safe_list_k_t(&triggerResponse, "data");
             }  else {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[&swapParams]);
-                let mut swapResponse: crate::value::Dict = self.contract_private_get_order_list_open_orders(&[__ws_arg_29]).await.into_dict();
+                let mut swapResponse: crate::value::Dict = self.call_method_t("contract_private_get_order_list_open_orders", &[__ws_arg_29]).await;
                 data = self.safe_list_k_t(&swapResponse, "data");
             }
             return self.parse_orders(&data, market.as_ref(), &[since, limit, Value::Dict(swapParams)]);
@@ -5641,7 +5641,7 @@ impl Mexc {
             }
             let mut response: Option<crate::value::Dict> = None;
             if (method.as_deref() == Some("contractPrivatePostOrderCancel")) {
-                response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await.into_opt_dict(); // the request cannot be changed or extended. This is the only way to send.
+                response = self.call_method_o("contract_private_post_order_cancel", &[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else if (method.as_deref() == Some("contractPrivatePostPlanorderCancel")) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument for trigger orders")));
@@ -5652,7 +5652,7 @@ impl Mexc {
                         m.insert("orderId".to_string(), id.clone());
                     m
                 });
-                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![Value::Map(cancelRequest)])]).await.into_opt_dict(); // the request cannot be changed or extended. This is the only way to send.
+                response = self.call_method_o("contract_private_post_planorder_cancel", &[Value::from(vec![Value::Map(cancelRequest)])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelOrder() not support this method")));
             }
@@ -5721,7 +5721,7 @@ impl Mexc {
         if (marketType.as_deref() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " cancelOrders() is not supported for ").into()), marketType.map(Value::from).unwrap_or(Value::Null))));
         }  else {
-            let mut response: crate::value::Dict = self.contract_private_post_order_cancel(&[ids]).await.into_dict(); // the request cannot be changed or extended. The only way to send.
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_post_order_cancel", &[ids]).await; // the request cannot be changed or extended. The only way to send.
             //
             //     {
             //         "success": true,
@@ -5802,10 +5802,10 @@ impl Mexc {
             }).into_dict();
             if (method.as_deref() == Some("contractPrivatePostOrderCancelAll")) {
                 let __ws_arg_34 = self.extend(&request, &[&paramsMarketType]);
-                swapResponse = self.contract_private_post_order_cancel_all(&[__ws_arg_34]).await.into_dict();
+                swapResponse = self.call_method_t("contract_private_post_order_cancel_all", &[__ws_arg_34]).await;
             }  else if (method.as_deref() == Some("contractPrivatePostPlanorderCancelAll")) {
                 let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsMarketType]);
-                swapResponse = self.contract_private_post_planorder_cancel_all(&[__ws_arg_35]).await.into_dict();
+                swapResponse = self.call_method_t("contract_private_post_planorder_cancel_all", &[__ws_arg_35]).await;
             }
             //
             //     {
@@ -5904,7 +5904,7 @@ impl Mexc {
         if (type_var == Some("spot")) {
             return self.spot_private_get_account(&[params.clone()]).await;
         }  else if (type_var == Some("swap")) {
-            let mut response: crate::value::Dict = self.contract_private_get_account_assets(&[params]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_get_account_assets", &[params]).await;
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("balances".to_string(), self.safe_list_k(&response, "data", &[Value::from(vec![])]));
@@ -6000,7 +6000,7 @@ impl Mexc {
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.spot_private_get_trade_fee(&[__ws_arg_36]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_get_trade_fee", &[__ws_arg_36]).await;
         //
         //  {
         //      "data":{
@@ -6219,7 +6219,7 @@ impl Mexc {
             if (symbol.is_none()) {
                 let mut symbols: Option<crate::value::List> = self.safe_list_k_o(&paramsOmitted2, "symbols");
                 if (symbols.is_some()) {
-                    let mut symbolIds: Option<crate::value::List> = self.market_ids(&[symbols.map_or(Value::Null, Value::Arr)]).into_opt_list();
+                    let mut symbolIds: Option<crate::value::List> = self.market_ids(&[symbols.map_or(Value::Null, Value::Arr)]);
                     parsedSymbols = Some(symbolIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(","));
                 }
             }  else {
@@ -6231,13 +6231,13 @@ impl Mexc {
             request.insert("symbols".into(), parsedSymbols.map(Value::from).unwrap_or(Value::Null));
             let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsOmitted2, &["symbol", "symbols"], &[]);
             let __ws_arg_37 = self.extend(&request, &[&paramsOmitted]);
-            response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_get_margin_isolated_account", &[__ws_arg_37]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_38 = self.extend(&request, &[&paramsOmitted2]);
-            response = self.spot_private_get_account(&[__ws_arg_38]).await.into_opt_dict();
+            response = self.call_method_o("spot_private_get_account", &[__ws_arg_38]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.contract_private_get_account_assets(&[__ws_arg_39]).await.into_opt_dict();
+            response = self.call_method_o("contract_private_get_account_assets", &[__ws_arg_39]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchBalance() not support this method")));
         }
@@ -6314,7 +6314,7 @@ impl Mexc {
                 request.insert("page_size".into(), limit.clone());
             }
             let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            let mut response: crate::value::Dict = self.contract_private_get_order_list_order_deals(&[__ws_arg_41]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_get_order_list_order_deals", &[__ws_arg_41]).await;
             //
             //     {
             //         "success": true,
@@ -6398,7 +6398,7 @@ impl Mexc {
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_43 = self.extend(Value::Map(request), &[&query]);
-            let mut response: crate::value::Dict = self.contract_private_get_order_deal_details_order_id(&[__ws_arg_43]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_get_order_deal_details_order_id", &[__ws_arg_43]).await;
             //
             //     {
             //         "success": true,
@@ -6430,7 +6430,6 @@ impl Mexc {
     }
 
     pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, addOrReduce: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6604,7 +6603,7 @@ impl Mexc {
             request.insert("page_size".into(), limit);
         }
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_private_get_position_funding_records(&[__ws_arg_46]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_get_position_funding_records", &[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -6720,7 +6719,7 @@ impl Mexc {
             m
         });
         let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_public_get_funding_rate_symbol(&[__ws_arg_47]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_funding_rate_symbol", &[__ws_arg_47]).await;
         //
         //     {
         //         "success": true,
@@ -6782,7 +6781,7 @@ impl Mexc {
             request.insert("page_size".into(), limit.clone());
         }
         let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_public_get_funding_rate_history(&[__ws_arg_48]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_funding_rate_history", &[__ws_arg_48]).await;
         //
         //    {
         //        "success": true,
@@ -6859,7 +6858,7 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true), Value::Bool(true)]);
-        let mut response: crate::value::Dict = self.contract_public_get_detail(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_public_get_detail", &[params]).await;
         //
         //     {
         //         "success":true,
@@ -7042,7 +7041,7 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
         let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_capital_deposit_address(&[__ws_arg_50]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_capital_deposit_address", &[__ws_arg_50]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -7148,7 +7147,7 @@ impl Mexc {
             }
             request.insert("limit".into(), limit.clone());
         }
-        let mut paramsOmitted: crate::value::Dict = (if (rawNetwork.is_some()) { self.omit(&params, Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (rawNetwork.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await.into_list();
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
@@ -7264,7 +7263,7 @@ impl Mexc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.contract_private_post_position_close_all(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_post_position_close_all", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -7337,7 +7336,7 @@ impl Mexc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.contract_private_get_position_open_positions(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_get_position_open_positions", &[params]).await;
         //
         //     {
         //         "success": true,
@@ -7410,7 +7409,7 @@ impl Mexc {
                 m
             });
             let __ws_arg_54 = self.extend(Value::Map(request), &[&query]);
-            let mut response: crate::value::Dict = self.spot_private_get_asset_internal_transfer_record(&[__ws_arg_54]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("spot_private_get_asset_internal_transfer_record", &[__ws_arg_54]).await;
             //
             //     {
             //         "code": "200",
@@ -7510,7 +7509,7 @@ impl Mexc {
                 request.insert("size".into(), limit.clone());
             }
             let __ws_arg_55 = self.extend(&request, &[&paramsToAccountType]);
-            let mut response: crate::value::Dict = self.spot_private_get_capital_transfer(&[__ws_arg_55]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("spot_private_get_capital_transfer", &[__ws_arg_55]).await;
             //
             //
             // {
@@ -7535,7 +7534,7 @@ impl Mexc {
                 request.insert("page_size".into(), limit.clone());
             }
             let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsToAccountType]);
-            let mut response: crate::value::Dict = self.contract_private_get_account_transfer_record(&[__ws_arg_56]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("contract_private_get_account_transfer_record", &[__ws_arg_56]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             resultList = self.safe_value_k(&data, "resultList", &[]);
         }
@@ -7614,7 +7613,7 @@ impl Mexc {
             paramsOmitted = self.omit_t(params, Value::Str("symbol".into()), &[]);
         }
         let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_capital_transfer", &[__ws_arg_57]).await;
         //
         //     {
         //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -7706,7 +7705,7 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")));
             }
             let __ws_arg_58 = self.extend(Value::Map(requestForInternal), &[&paramsInternal]);
-            let mut responseForInternal: crate::value::Dict = self.spot_private_post_capital_transfer_internal(&[__ws_arg_58]).await.into_dict();
+            let mut responseForInternal: crate::value::Dict = self.call_method_t("spot_private_post_capital_transfer_internal", &[__ws_arg_58]).await;
             return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &responseForInternal, Some(&currency));
         }
         let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
@@ -7728,7 +7727,7 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit_t(&paramsWithdrawTag, &["network", "netWork"], &[]) } else { paramsWithdrawTag });
         let __ws_arg_59 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("spot_private_post_capital_withdraw", &[__ws_arg_59]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -7756,7 +7755,7 @@ impl Mexc {
             m
         });
         let __ws_arg_60 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_private_post_position_change_position_mode(&[__ws_arg_60]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_post_position_change_position_mode", &[__ws_arg_60]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -7782,7 +7781,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.contract_private_get_position_position_mode(&[params]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_get_position_position_mode", &[params]).await;
         //
         //     {
         //         "success":true,
@@ -7970,7 +7969,7 @@ impl Mexc {
             m
         });
         let __ws_arg_61 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.contract_private_get_position_leverage(&[__ws_arg_61]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_get_position_leverage", &[__ws_arg_61]).await;
         //
         //     {
         //         "success": true,
@@ -8081,7 +8080,7 @@ impl Mexc {
             request.insert("page_size".into(), limit.clone());
         }
         let __ws_arg_62 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.contract_private_get_position_list_history_positions(&[__ws_arg_62]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_get_position_list_history_positions", &[__ws_arg_62]).await;
         //
         //    {
         //        success: true,
@@ -8183,7 +8182,7 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("direction".into()), &[]);
         let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.contract_private_post_position_change_leverage(&[__ws_arg_63]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("contract_private_post_position_change_leverage", &[__ws_arg_63]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &response, Some(&market));
         Value::Null
         }).await?))

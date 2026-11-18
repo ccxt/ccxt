@@ -1693,7 +1693,7 @@ impl Onetrading {
             }
             marketIds = object_keys(&marketsById);
         }  else {
-            marketIds = self.market_ids(&[symbols]);
+            marketIds = self.market_ids(&[symbols]).map_or(Value::Null, Value::Arr);
         }
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);

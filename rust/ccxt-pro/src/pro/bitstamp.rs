@@ -1380,7 +1380,7 @@ impl Bitstamp {
             }
             let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: crate::value::Dict = self.parent.private_post_websockets_token(&[params]).await.into_dict();
+                let mut response: crate::value::Dict = self.parent.call_method_t("private_post_websockets_token", &[params]).await;
                 //
                 // {
                 //     "valid_sec":60,

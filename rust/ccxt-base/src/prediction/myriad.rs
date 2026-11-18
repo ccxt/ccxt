@@ -1052,7 +1052,7 @@ impl Myriad {
         let mut result: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
-            result = self.myriad_public_get_questions_id(&[__ws_arg_3]).await.into_opt_dict();
+            result = self.call_method_o("myriad_public_get_questions_id", &[__ws_arg_3]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             if (e.names("RateLimitExceeded")) || (e.is_instance_of("AuthenticationError")) {
@@ -1065,7 +1065,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             let __ws_arg_4 = self.extend(Value::Map(keywordRequest), &[params]);
-            let mut response: crate::value::Dict = self.myriad_public_get_questions(&[__ws_arg_4]).await.into_dict();
+            let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_questions", &[__ws_arg_4]).await;
             let mut questions: crate::value::List = self.safe_list_k_t(&response, "data");
             let mut questionsLength: i64 = questions.len() as i64;
             let mut idLower: String = id.to_string().to_lowercase();
@@ -1250,7 +1250,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[&rest]);
-        let mut response: crate::value::Dict = self.myriad_public_get_users_address_portfolio(&[__ws_arg_7]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_users_address_portfolio", &[__ws_arg_7]).await;
         //
         //     {
         //         "data": [
@@ -1361,7 +1361,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut rest: crate::value::Dict = self.omit_t(params, &["slippage"], &[]);
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: crate::value::Dict = self.myriad_public_post_markets_quote(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_post_markets_quote", &[__ws_arg_8]).await;
         let __ws_arg_9 = self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("action".to_string(), Value::from(sideStr));
@@ -1573,7 +1573,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("time_in_force".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: crate::value::Dict = self.myriad_public_post_orders(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_post_orders", &[Value::Map(request)]).await;
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1747,7 +1747,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1353: bool = true;
             while { if !__for_first_1353 { i += 1; } __for_first_1353 = false; i < ordersLength } {
-            let mut o: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
+            let mut o: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut outcome: Option<String> = self.safe_string_k_opt(&o, "outcome", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&o, "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&o, "side", &[]);
@@ -1823,8 +1823,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
     pub async fn create_amm_order(&mut self, outcome: &str, type_var: Option<&str>, side: &str, mut amount: Value, price: Option<f64>, optional_args: &[Value]) -> Value {
-        let mut type_var: Value = type_var.into();
-        let mut price: Value = price.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2300,7 +2298,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["trader", "address", "status"], &[]);
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.myriad_public_get_users_address_events(&[__ws_arg_13]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_users_address_events", &[__ws_arg_13]).await;
         //
         //     {
         //         "data": [
@@ -2430,7 +2428,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.myriad_public_delete_orders_hash(&[__ws_arg_15]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_delete_orders_hash", &[__ws_arg_15]).await;
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -2504,7 +2502,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("network_id".to_string(), Value::from(self.parse_to_int(networkId.map(Value::from).unwrap_or(Value::Null))));
             m
         });
-        let mut response: crate::value::Dict = self.myriad_public_post_orders_cancel_all(&[Value::Map(request)]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_post_orders_cancel_all", &[Value::Map(request)]).await;
         return Value::from(vec![self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -2643,7 +2641,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("hash".to_string(), id);
             m
         }), &[params]);
-        let mut response: crate::value::Dict = self.myriad_public_get_orders_hash(&[__ws_arg_17]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_orders_hash", &[__ws_arg_17]).await;
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -2733,7 +2731,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return self.fetch_amm_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsOmitted)]).await;
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.myriad_public_get_orders(&[__ws_arg_18]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_orders", &[__ws_arg_18]).await;
         //
         //     {
         //         "data": [
@@ -3379,7 +3377,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_23]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_markets_id", &[__ws_arg_23]).await;
         return self.parse_prediction_ticker(&response, outcomeObj.as_ref());
         Value::Null
         }).await?))
@@ -3414,7 +3412,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_24]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_markets_id", &[__ws_arg_24]).await;
         //
         //     {
         //         "fees": {
@@ -3621,7 +3619,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             let __ws_arg_25 = self.extend(Value::Map(obRequest), &[&params]);
-            let mut obResponse: crate::value::Dict = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_25]).await.into_dict();
+            let mut obResponse: crate::value::Dict = self.call_method_t("myriad_public_get_markets_id_orderbook", &[__ws_arg_25]).await;
             return self.safe_prediction_order_book(self.parse_wei_order_book(&obResponse, (self.safe_outcome_symbol(outcome.clone(), &[crate::Value::from(outcomeObj.as_ref())])).as_str()), &[crate::Value::from(outcomeObj.as_ref())]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3631,7 +3629,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_26]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_markets_id", &[__ws_arg_26]).await;
         //
         //     {
         //         "id": "756",
@@ -3843,7 +3841,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("network_id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[params]);
-        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_27]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("myriad_public_get_markets_id", &[__ws_arg_27]).await;
         //
         //     {
         //         "id": "164",

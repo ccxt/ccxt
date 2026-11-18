@@ -1429,7 +1429,7 @@ impl Bit2me {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.public_get_v2_trading_order_book(&[__ws_arg_3]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v2_trading_order_book", &[__ws_arg_3]).await;
         //
         //     {
         //         "bids": [ [ 69058.9, 0.19431333 ], [ 69058.8, 0.0001448 ] ],
@@ -1885,7 +1885,7 @@ impl Bit2me {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_delete_v1_trading_order_id(&[__ws_arg_6]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_v1_trading_order_id", &[__ws_arg_6]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
         Value::Null
         }).await?))
@@ -1943,7 +1943,7 @@ impl Bit2me {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.private_get_v1_trading_order_id(&[__ws_arg_8]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v1_trading_order_id", &[__ws_arg_8]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
         Value::Null
         }).await?))
@@ -2226,7 +2226,7 @@ impl Bit2me {
             request.insert("endTime".into(), self.iso8601(end));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.private_get_v1_trading_trade(&[__ws_arg_14]).await.into_dict();
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v1_trading_trade", &[__ws_arg_14]).await;
         //
         //     {
         //         "data": [
@@ -2343,10 +2343,10 @@ impl Bit2me {
         let mut response: Option<crate::value::Dict> = None;
         if (fromId.as_deref() == Some("wallet")) && (toId.as_deref() == Some("trading")) {
             let __ws_arg_16 = self.extend(&request, &[&params]);
-            response = self.private_post_v1_trading_wallet_deposit(&[__ws_arg_16]).await.into_opt_dict();
+            response = self.call_method_o("private_post_v1_trading_wallet_deposit", &[__ws_arg_16]).await;
         }  else if (fromId.as_deref() == Some("trading")) && (toId.as_deref() == Some("wallet")) {
             let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_v1_trading_wallet_withdraw(&[__ws_arg_17]).await.into_opt_dict();
+            response = self.call_method_o("private_post_v1_trading_wallet_withdraw", &[__ws_arg_17]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports transfers between the funding account (bit2me wallet) and the spot account (trading wallet)")));
         }
