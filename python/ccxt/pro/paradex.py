@@ -1015,7 +1015,8 @@ class paradex(ccxt.async_support.paradex):
         subMessageHashes = []
         for i in range(0, symbolsLength):
             symbol = (symbolsNormalized)[i]
-            marketId = self.market(symbol)['id']
+            market = self.market(symbol)
+            marketId = market['id']
             marketIds.append(marketId)
             subscribeHashes.append(channel + '.' + marketId)
             subMessageHashes.append(channel + '.' + symbol)
@@ -1077,7 +1078,8 @@ class paradex(ccxt.async_support.paradex):
         channel = 'markets_summary'
         pendingHashes = [channel, channel + ':scoped']
         for i in range(0, len(symbols)):
-            pendingHashes.append(channel + '.' + self.market(symbols[i])['id'])
+            market = self.market(symbols[i])
+            pendingHashes.append(channel + '.' + market['id'])
         await self.wait_for_pending_unsubscribe(url, pendingHashes)
         client = self.client(url)
         if channel in client.subscriptions:
@@ -1091,7 +1093,8 @@ class paradex(ccxt.async_support.paradex):
         missingHashes = []
         # messageHashes[i] is the hash the summaries of symbols[i] resolve
         for i in range(0, len(symbols)):
-            marketId = self.market(symbols[i])['id']
+            market = self.market(symbols[i])
+            marketId = market['id']
             subscribeHash = channel + '.' + marketId
             subscribeHashes.append(subscribeHash)
             if not (subscribeHash in client.subscriptions):

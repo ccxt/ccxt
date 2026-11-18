@@ -690,7 +690,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         hasSymbolParam = ('symbol' in params)
         hasSymbolsParam = ('symbols' in params)
         limit = self.safe_integer(params, 'limit')

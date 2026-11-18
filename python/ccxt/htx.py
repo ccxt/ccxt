@@ -1533,7 +1533,8 @@ class htx(Exchange, ImplicitAPI):
         }
 
     def cost_to_precision(self, symbol: Str, cost: object) -> str:
-        return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['cost'], self.precisionMode)
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
         """

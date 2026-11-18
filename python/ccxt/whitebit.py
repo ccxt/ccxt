@@ -926,7 +926,10 @@ class whitebit(Exchange, ImplicitAPI):
                 depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
-                depositWithdrawFees[code]['info'][entry] = feeInfo
+                feeEntry = self.safe_dict(depositWithdrawFees, code, {})
+                feeEntryInfo = self.safe_dict(feeEntry, 'info', {})
+                feeEntryInfo[entry] = feeInfo
+                feeEntry['info'] = feeEntryInfo
                 networkId = self.safe_string(splitEntry, 1)
                 withdraw = self.safe_dict(feeInfo, 'withdraw')
                 deposit = self.safe_dict(feeInfo, 'deposit')
@@ -944,13 +947,16 @@ class whitebit(Exchange, ImplicitAPI):
                     networkLength = len(networkId)
                     networkCode = self.network_id_to_code(networkId[1:networkLength - 1], code)
                     if networkCode is not None:
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        feeEntryNetworks = self.safe_dict(feeEntry, 'networks', {})
+                        feeEntryNetworks[networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         }
+                        feeEntry['networks'] = feeEntryNetworks
                 else:
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult
-                    depositWithdrawFees[code]['deposit'] = depositResult
+                    feeEntry['withdraw'] = withdrawResult
+                    feeEntry['deposit'] = depositResult
+                depositWithdrawFees[code] = feeEntry
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]

@@ -8063,8 +8063,12 @@ class okx(Exchange, ImplicitAPI):
                 depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                feeEntry = self.safe_dict(depositWithdrawFees, code, {})
                 if currencyId is not None:
-                    depositWithdrawFees[code]['info'][currencyId] = feeInfo
+                    feeEntryInfo = self.safe_dict(feeEntry, 'info', {})
+                    feeEntryInfo[currencyId] = feeInfo
+                    feeEntry['info'] = feeEntryInfo
+                depositWithdrawFees[code] = feeEntry
                 chain = self.safe_string(feeInfo, 'chain')
                 if chain is None:
                     continue
@@ -8081,10 +8085,13 @@ class okx(Exchange, ImplicitAPI):
                 }
                 networkCode = self.network_id_to_code(networkId, code)
                 if networkCode is not None:
-                    depositWithdrawFees[code]['networks'][networkCode] = {
+                    feeEntryNetworks = self.safe_dict(feeEntry, 'networks', {})
+                    feeEntryNetworks[networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
                     }
+                    feeEntry['networks'] = feeEntryNetworks
+                    depositWithdrawFees[code] = feeEntry
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]

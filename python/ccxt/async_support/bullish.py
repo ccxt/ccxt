@@ -2380,7 +2380,8 @@ class bullish(Exchange, ImplicitAPI):
         response = None
         code = self.safe_string(params, 'code')
         if code is not None:
-            request['symbol'] = self.currency(code)['id']
+            currency = self.currency(code)
+            request['symbol'] = currency['id']
             response = await self.privateGetV1AccountsAssetSymbol(self.extend(request, params))
             return self.parse_balance_for_single_currency(response, code)
         else:

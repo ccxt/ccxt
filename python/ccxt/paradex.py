@@ -1123,7 +1123,8 @@ class paradex(Exchange, ImplicitAPI):
         if symbolsNormalized is not None:
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                target = self.market(symbolsNormalized[0])['id']
+                market = self.market(symbolsNormalized[0])
+                target = market['id']
         request = {
             'market': target,
         }

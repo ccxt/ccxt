@@ -7153,7 +7153,7 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market = None) -> list[dict]:
+    def parse_settlements(self, settlements: list[dict], market: Market = None) -> list[dict]:
         #
         # fetchSettlementHistory
         #

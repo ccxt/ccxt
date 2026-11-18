@@ -3034,7 +3034,7 @@ class nado(Exchange, ImplicitAPI):
             return marketId[0:-5]
         return marketId
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         # the gateway weighs a query by its 'type' param, the archive by the query key of the
         # body, and every archive weight grows with the number of rows requested
         if ('byType' in config) and ('type' in params):

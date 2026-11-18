@@ -1765,7 +1765,7 @@ class bybit(ccxt.async_support.bybit):
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
         }
-        topics = self.safe_list(topicsByMarket, self.get_private_type(url))
+        topics = self.safe_list(topicsByMarket, self.get_private_type(url), [])
         orders = await self.watch_topics(url, [messageHash], topics, params)
         limitResolved = limit
         if self.newUpdates:
@@ -2221,7 +2221,7 @@ class bybit(ccxt.async_support.bybit):
             if code is not None:
                 self.balance[code] = account
 
-    async def watch_topics(self, url: str, messageHashes: list[str], topics: object, params: dict = {}):
+    async def watch_topics(self, url: str, messageHashes: list[str], topics: list[object], params: dict = {}):
         client = self.client(url)
         newTopics = []
         topicsLength = len(topics)

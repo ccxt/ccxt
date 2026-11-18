@@ -3925,15 +3925,17 @@ class BaseExchange(object):
                         self.features[marketType][subType] = self.features_mapper(initialFeatures, marketType, subType)
 
     def features_mapper(self, initialFeatures: dict, marketType: Str, subType: Str = None):
-        featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
-        # if exchange does not have that market-type (eg. future>inverse)
-        if featuresObj is None:
-            return None
+        featuresObj = self.safe_dict(initialFeatures, marketType)
+        if subType is not None:
+            featuresObj = self.safe_dict(featuresObj, subType)
         extendsStr = self.safe_string(featuresObj, 'extends')
         if extendsStr is not None:
             featuresObj = self.omit(featuresObj, 'extends')
             extendObj = self.features_mapper(initialFeatures, extendsStr)
             featuresObj = self.deep_extend(extendObj, featuresObj)
+        # if exchange does not have that market-type (eg. future>inverse)
+        if featuresObj is None:
+            return None
         #
         # ### corrections ###
         #
@@ -3992,7 +3994,7 @@ class BaseExchange(object):
         # if marketType (e.g. 'option') does not exist in features
         if not (marketType in self.features):
             return defaultValue  # unsupported marketType, check "exchange.features" for details
-        methodsContainer = self.features[marketType]
+        methodsContainer = self.safe_dict(self.features, marketType)
         # if marketType dict undefined
         if methodsContainer is None:
             return defaultValue
@@ -4002,13 +4004,15 @@ class BaseExchange(object):
         else:
             if not (subType in methodsContainer):
                 return defaultValue  # unsupported subType, check "exchange.features" for details
-            methodsContainer = methodsContainer[subType]
+            methodsContainer = self.safe_dict(methodsContainer, subType)
             # if subType dict undefined
             if methodsContainer is None:
                 return defaultValue
         # if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if methodName is None:
-            return defaultValue if (defaultValue is not None) else methodsContainer
+            if defaultValue is not None:
+                return defaultValue
+            return methodsContainer
         if not (methodName in methodsContainer):
             return defaultValue  # unsupported method, check "exchange.features" for details');
         methodDict = methodsContainer[methodName]
@@ -4016,7 +4020,9 @@ class BaseExchange(object):
             return defaultValue
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
-            return defaultValue if (defaultValue is not None) else methodDict
+            if defaultValue is not None:
+                return defaultValue
+            return methodDict
         splited = paramName.split('.')  # can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         parentKey = splited[0]
         subKey = self.safe_string(splited, 1)
@@ -5098,19 +5104,20 @@ class BaseExchange(object):
         result[close] = []
         result[volume] = []
         for i in range(0, len(ohlcvs)):
-            ts = ohlcvs[i][0] if ms else self.parse_to_int(ohlcvs[i][0] / 1000)
+            ohlcv = ohlcvs[i]
+            ts = ohlcv[0] if ms else self.parse_to_int(ohlcvs[i][0] / 1000)
             resultTimestamp = result[timestamp]
             resultTimestamp.append(ts)
             resultOpen = result[open]
-            resultOpen.append(ohlcvs[i][1])
+            resultOpen.append(ohlcv[1])
             resultHigh = result[high]
-            resultHigh.append(ohlcvs[i][2])
+            resultHigh.append(ohlcv[2])
             resultLow = result[low]
-            resultLow.append(ohlcvs[i][3])
+            resultLow.append(ohlcv[3])
             resultClose = result[close]
-            resultClose.append(ohlcvs[i][4])
+            resultClose.append(ohlcv[4])
             resultVolume = result[volume]
-            resultVolume.append(ohlcvs[i][5])
+            resultVolume.append(ohlcv[5])
         return result
 
     def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
