@@ -5247,7 +5247,9 @@ class NewTranspiler {
         region = this.csharpReplaceUnmasked (region, CSHARP_IDENTITY_LIST_CAST, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !names.has (match[1])) ? undefined : match[1] + match[2]);
         // toArray returns every IList<object> (ws caches are List<object>) as the same reference and null as null:
         // on a name this method declares only IList<object> the call is an identity of the same static type
-        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !((lists.get (match[1]) === 'IList<object>') || ((lists.get (match[1]) === 'List<object>') && this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists)))) ? undefined : match[1]);
+        // a `return` widens too when the method itself is declared to return object / IList<object>
+        const widensReturn = /^\s*(?:public|protected|private|internal)\b[^(]*?\b(?:object|IList<object>|Task<object>|Task<IList<object>>)\s+[A-Za-z_]\w*\s*\(/.test (region);
+        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !((lists.get (match[1]) === 'IList<object>') || ((lists.get (match[1]) === 'List<object>') && (this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists) || (widensReturn && /\breturn\s+$/.test (region.substring (Math.max (0, at - 20), at))))))) ? undefined : match[1]);
     }
 
     // a slot that takes List<object> exactly as it takes IList<object>: an IList<object> declaration or
