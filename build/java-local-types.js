@@ -26513,7 +26513,16 @@ export function installJavaNonNullMapPuts (transpiler) {
         }
         const receiver = node.left.expression;
         const key = javaFreshMapUnwrap (node.left.argumentExpression);
-        if (!ts.isIdentifier (receiver) || key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key))) {
+        if (key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key))) {
+            return printed;
+        }
+        // a base field declared Map<String, Object>: the helper's Map branch is put for a non-null value
+        if (javaBaseMapField (printer, receiver)) {
+            const field = `this.${receiver.name.text}`;
+            const head = `Helpers.addElementToObject(${field}, `;
+            return printed.startsWith (head) && printed.endsWith (')') && javaNonNullPutValue (printer, node.right) ? `${field}.put(${printed.slice (head.length)}` : printed;
+        }
+        if (!ts.isIdentifier (receiver)) {
             return printed;
         }
         const recv = printer.printNode (receiver, 0);
@@ -26521,12 +26530,14 @@ export function installJavaNonNullMapPuts (transpiler) {
         if (!/^\w+$/.test (recv) || !printed.startsWith (head) || !printed.endsWith (')') || !printer.javaDeclaredMapReceiver (receiver)) {
             return printed;
         }
-        let proven = false;
-        try {
-            proven = j3NonNull (printer, node.right, new Map (), 0);
-        } catch (e) {
-            proven = false;
-        }
-        return proven ? `${recv}.put(${printed.slice (head.length)}` : printed;
+        return javaNonNullPutValue (printer, node.right) ? `${recv}.put(${printed.slice (head.length)}` : printed;
     };
+}
+
+function javaNonNullPutValue (printer, value) {
+    try {
+        return j3NonNull (printer, value, new Map (), 0);
+    } catch (e) {
+        return false;
+    }
 }
