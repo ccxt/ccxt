@@ -24055,8 +24055,9 @@ function r90j2ElementMapLocal (printer, declaration) {
         return undefined;
     }
     const init = unwrapParens (declaration.initializer);
+    const row = r90j2LiteralRow (printer, declaration);
     if (init === undefined || !ts.isElementAccessExpression (init) || ts.isStringLiteralLike (init.argumentExpression)
-        || ts.isNumericLiteral (init.argumentExpression) || typeof printer.isJavaMapStructureType !== 'function') {
+        || (ts.isNumericLiteral (init.argumentExpression) && !row) || typeof printer.isJavaMapStructureType !== 'function') {
         return undefined;
     }
     let mapType = false;
@@ -24092,7 +24093,14 @@ function r90j2ElementMapLocal (printer, declaration) {
     while (current !== undefined && current !== next && current !== block) {
         current = current.parent;
     }
-    return current === next ? { type: JAVA_MAP_TYPE, cast: JAVA_MAP_LOCAL_CAST } : undefined;
+    return current === next ? { type: JAVA_MAP_TYPE, cast: JAVA_MAP_LOCAL_CAST, row } : undefined;
+}
+
+// `const x: Dict = m[0]` the shared annotated-row proof admits: the element may be null, so its reads keep a null guard
+function r90j2LiteralRow (printer, declaration) {
+    const init = unwrapParens (declaration.initializer);
+    return init !== undefined && ts.isElementAccessExpression (init) && ts.isNumericLiteral (init.argumentExpression)
+        && printer.annotatedMapRowSource?.(declaration) !== undefined;
 }
 
 export function installJavaR90j2ElementMapLocals (transpiler) {
@@ -24131,9 +24139,29 @@ export function installJavaR90j2ElementMapLocals (transpiler) {
             return printed;
         }
         typed.set (declaration, info.type);
+        if (info.row) {
+            rows.add (declaration);
+        }
         return r87j6Head (printer, declaration, identation, info.type) + `${info.cast} (${body})${tail}`;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    const rows = new WeakSet ();
+    const upstreamElement = printer.printElementAccessExpression.bind (printer);
+    printer.printElementAccessExpression = function (node, identation) {
+        const receiver = node?.expression;
+        let declaration;
+        try {
+            declaration = receiver !== undefined && ts.isIdentifier (receiver) && ts.isStringLiteralLike (node.argumentExpression)
+                ? printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve () : undefined;
+        } catch (e) {
+            declaration = undefined;
+        }
+        if (declaration === undefined || !rows.has (declaration)) {
+            return upstreamElement (node, identation);
+        }
+        const name = printer.printNode (receiver, 0);
+        return `(${name} == null ? null : ${name}.get(${printer.printNode (node.argumentExpression, 0)}))`;
+    };
 }
 
 // ===== 90j6 R1. untyped safeList* readers used only by `.length` / `.join (sep)` / nullish tests =====
