@@ -612,35 +612,33 @@ public class ArrayCacheBySymbolBySide : ArrayCache
 {
     public void remove(string symbol)
     {
-        lock (this.lockObject)
+        if (!this.hashmap.ContainsKey(symbol))
         {
-            if (!this.hashmap.ContainsKey(symbol))
-            {
-                return;
-            }
-            var retained = 0;
-            for (var i = 0; i < this.Count; i++)
-            {
-                var item = this[i];
-                if (Exchange.SafeString(item, "symbol") != symbol)
-                {
-                    this[retained++] = item;
-                }
-            }
-            while (this.Count > retained)
-            {
-                this.RemoveAt(this.Count - 1);
-            }
-            this.hashmap.Remove(symbol);
-            if (this.seenUpdatesAll.TryGetValue(symbol, out var seen))
-            {
-                this.allNewUpdates -= seen.Count;
-            }
-            this.seenUpdatesAll.Remove(symbol);
-            this.seenUpdatesBySymbol.Remove(symbol);
-            this.clearUpdatesBySymbol.Remove(symbol);
-            this.newUpdatesBySymbol[symbol] = 0;
+            return;
         }
+        var retained = 0;
+        for (var i = 0; i < this.Count; i++)
+        {
+            var item = this[i];
+            if (Exchange.SafeString(item, "symbol") != symbol)
+            {
+                this[retained++] = item;
+            }
+        }
+        while (this.Count > retained)
+        {
+            this.RemoveAt(this.Count - 1);
+        }
+        this.hashmap.Remove(symbol);
+        if (this.seenUpdatesAll.TryGetValue(symbol, out var seen))
+        {
+            this.allNewUpdates -= seen.Count;
+        }
+        this.seenUpdatesAll.Remove(symbol);
+        this.seenUpdatesBySymbol.Remove(symbol);
+        this.newUpdatesBySymbol[symbol] = 0;
+        this.publishItems();
+        this.publishCounts();
     }
 
     // NOTE: no eviction here on purpose - the TS ArrayCacheBySymbolBySide takes no

@@ -785,8 +785,13 @@ func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) *int64 {
 
 // Remove drops one symbol without consuming other symbols' polling scopes.
 func (c *ArrayCacheBySymbolBySide) Remove(symbol string) {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	c.submit(func() {
+		c.removeSymbolOwned(symbol)
+	})
+}
+
+// removeSymbolOwned is Remove's body, on the cache owner goroutine.
+func (c *ArrayCacheBySymbolBySide) removeSymbolOwned(symbol string) {
 	if _, exists := c.Hashmap[symbol]; !exists {
 		return
 	}
