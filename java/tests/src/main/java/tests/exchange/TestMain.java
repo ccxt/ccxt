@@ -3264,7 +3264,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended(), this.testBit2me()));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended(), this.testBit2me()));
             (Helpers.promiseAll(promises)).join();
             String successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
             dump(("[INFO]" + successMessage));
@@ -4553,22 +4553,33 @@ public class TestMain extends BaseTest
 
     }
 
-    // async testHyperliquid () {
-    //     const exchange = this.initOfflineExchange ('hyperliquid');
-    //     const id = '1';
-    //     let request: NullableDict = undefined;
-    //     try {
-    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-    //     } catch (e) {
-    //         request = jsonParse (exchange.last_request_body);
-    //     }
-    //     const brokerId = (request['action']['brokerCode']).toString ();
-    //     Assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-    //     if (!isSync ()) {
-    //         await close (exchange);
-    //     }
-    //     return true;
-    // }
+    public CompletableFuture<Object> testHyperliquid()
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            BaseExchange exchange = this.initOfflineExchange("hyperliquid", false);
+            ((Map<String, Object>)exchange.options).put("approvedBuilderFee", true);
+            String id = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".toLowerCase();
+            Object request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"SOL/USDC:USDC", "limit", "buy", 1, 100, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            String brokerId = String.valueOf((Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)request).get("action"), "builder"), "b")));
+            Assert(java.util.Objects.equals(brokerId, id), ((("hyperliquid - brokerId: " + brokerId) + " does not start with id: ") + id));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
+            return true;
+        });
+
+    }
+
     public CompletableFuture<Object> testCoinbaseinternational()
     {
 

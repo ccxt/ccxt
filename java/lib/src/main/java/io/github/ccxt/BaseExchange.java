@@ -5600,7 +5600,7 @@ public Map<String, Object> describe()
         {
             MarketInterface market = this.parseMarket(Helpers.GetValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (!java.util.Objects.equals(market, null))
+            if (!java.util.Objects.equals(market, null) && !java.util.Objects.equals(this.safeString(market, "id"), null))
             {
                 ((List<Object>)result).add(market);
             }
