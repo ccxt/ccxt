@@ -2431,7 +2431,10 @@ export default class binance extends binanceRest {
         let firstMarket: Market = undefined;
         const symbolsDefined = (symbolsNormalized !== undefined);
         if (symbolsNormalized !== undefined) {
-            firstMarket = this.market (symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                firstMarket = this.market (symbolsNormalized[0]);
+            }
         }
         const userDefaultType = this.safeString (this.options, 'defaultType');
         let defaultMarket: Str = undefined;

@@ -2683,7 +2683,10 @@ export default class hitbtc extends Exchange {
         let market: Market = undefined;
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market (symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market (symbolsNormalized[0]);
+            }
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMarginMode', market, params);
         let response: Dict;
@@ -2908,9 +2911,12 @@ export default class hitbtc extends Exchange {
         const request: Dict = {};
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market (symbolsNormalized[0]);
-            const queryMarketIds = this.marketIds (symbolsNormalized);
-            request['symbols'] = queryMarketIds.join (',');
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market (symbolsNormalized[0]);
+                const queryMarketIds = this.marketIds (symbolsNormalized);
+                request['symbols'] = queryMarketIds.join (',');
+            }
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
         if (type !== 'swap') {

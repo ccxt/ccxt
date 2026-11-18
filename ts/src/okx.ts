@@ -8199,7 +8199,10 @@ export default class okx extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
         let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market (symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market (symbolsNormalized[0]);
+            }
         }
         let marketType: Str = undefined;
         let paramsSubType: Dict = {};
