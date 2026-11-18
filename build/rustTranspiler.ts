@@ -4633,8 +4633,14 @@ function typeHandleOptionTuples(content: string): string {
     }
     out += content.slice(last);
     // a boxed bool slot local never written again reads its truth as `x.as_bool() == Some(true)` (is_true on Bool / Null)
-    out = out.replace(/\n( *)let mut (\w+): Value = (\w+)\.0\.map_or\(Value::Null, Value::Bool\);([\s\S]*?)(?=\n {4}(?:pub )?(?:async )?fn |\n\}\n|$)/g, (whole, _i, x, _t, rest) =>
-        new RegExp(`(?<![\\w.])${x}\\s*=(?!=)|&mut ${x}\\b`).test(rest) ? whole : whole.replace(new RegExp(`\\bis_true\\(&${x}\\)`, 'g'), `(${x}.as_bool() == Some(true))`));
+    for (const d of [...out.matchAll(/\n *let mut (\w+): Value = [^\n]*?\.0\.map_or\(Value::Null, Value::Bool\);/g)]) {
+        if (!/handle_option_bool_and_params2?\(|^\n *let mut \w+: Value = \w+\.0/.test(d[0])) continue;
+        const from = out.indexOf(d[0]) + d[0].length;
+        const f = out.slice(from).search(/\n {4}(?:pub )?(?:async )?fn |\n\}\n/);
+        const rest = out.slice(from, f < 0 ? out.length : from + f);
+        if (new RegExp(`(?<![\\w.])${d[1]}\\s*=(?!=)|&mut ${d[1]}\\b`).test(rest)) continue;
+        out = out.slice(0, from) + rest.replace(new RegExp(`\\bis_true\\(&${d[1]}\\)`, 'g'), `(${d[1]}.as_bool() == Some(true))`) + out.slice(from + rest.length);
+    }
     // the base bodies: the return type, each `return [ v, p ]`, and the unreachable `Value::Null` tail
     return out.replace(/(\n {4}fn handle_option_(bool_|string_|integer_)?and_params2?\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/g,
         (_m, sig, fam, open, body) => `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::Dict\((\w+)\)|(\w+))\]\);/g,
