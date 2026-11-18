@@ -1564,7 +1564,8 @@ class htx extends Exchange {
     }
 
     public function cost_to_precision(?string $symbol, mixed $cost): string {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
+        $market = $this->market($symbol);
+        return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['cost'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): PromiseInterface {

@@ -2468,7 +2468,7 @@ class bullish extends Exchange {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-         * @param {string} [$params->code] unified currency $code, default is null
+         * @param {string} [$params->code] unified $currency $code, default is null
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         array( $this->load_markets(), $this->handle_token() );
@@ -2479,7 +2479,8 @@ class bullish extends Exchange {
         $response = null;
         $code = $this->safe_string($params, 'code');
         if ($code !== null) {
-            $request['symbol'] = $this->currency($code)['id'];
+            $currency = $this->currency($code);
+            $request['symbol'] = $currency['id'];
             $response = $this->privateGetV1AccountsAssetSymbol($this->extend($request, $params));
             return $this->parse_balance_for_single_currency($response, $code);
         } else {

@@ -4476,16 +4476,19 @@ class BaseExchange {
     }
 
     public function features_mapper(array $initialFeatures, ?string $marketType, ?string $subType = null) {
-        $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
-        // if exchange does not have that market-type (eg. future>inverse)
-        if ($featuresObj === null) {
-            return null;
+        $featuresObj = $this->safe_dict($initialFeatures, $marketType);
+        if ($subType !== null) {
+            $featuresObj = $this->safe_dict($featuresObj, $subType);
         }
         $extendsStr = $this->safe_string($featuresObj, 'extends');
         if ($extendsStr !== null) {
             $featuresObj = $this->omit($featuresObj, 'extends');
             $extendObj = $this->features_mapper($initialFeatures, $extendsStr);
             $featuresObj = $this->deep_extend($extendObj, $featuresObj);
+        }
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ($featuresObj === null) {
+            return null;
         }
         //
         // ### corrections ###
@@ -4557,7 +4560,7 @@ class BaseExchange {
         if (!(is_array($this->features) && array_key_exists($marketType ?? '', $this->features))) {
             return $defaultValue; // unsupported marketType, check "exchange.features" for details
         }
-        $methodsContainer = $this->features[$marketType];
+        $methodsContainer = $this->safe_dict($this->features, $marketType);
         // if marketType dict undefined
         if ($methodsContainer === null) {
             return $defaultValue;
@@ -4570,7 +4573,7 @@ class BaseExchange {
             if (!(is_array($methodsContainer) && array_key_exists($subType ?? '', $methodsContainer))) {
                 return $defaultValue; // unsupported subType, check "exchange.features" for details
             }
-            $methodsContainer = $methodsContainer[$subType];
+            $methodsContainer = $this->safe_dict($methodsContainer, $subType);
             // if subType dict undefined
             if ($methodsContainer === null) {
                 return $defaultValue;
@@ -4578,7 +4581,10 @@ class BaseExchange {
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if ($methodName === null) {
-            return ($defaultValue !== null) ? $defaultValue : $methodsContainer;
+            if ($defaultValue !== null) {
+                return $defaultValue;
+            }
+            return $methodsContainer;
         }
         if (!(is_array($methodsContainer) && array_key_exists($methodName ?? '', $methodsContainer))) {
             return $defaultValue; // unsupported method, check "exchange.features" for details');
@@ -4589,7 +4595,10 @@ class BaseExchange {
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if ($paramName === null) {
-            return ($defaultValue !== null) ? $defaultValue : $methodDict;
+            if ($defaultValue !== null) {
+                return $defaultValue;
+            }
+            return $methodDict;
         }
         $splited = explode('.', $paramName); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         $parentKey = $splited[0];
@@ -5874,19 +5883,20 @@ class BaseExchange {
         $result[$close] = array();
         $result[$volume] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $ts = $ms ? $ohlcvs[$i][0] : $this->parse_to_int($ohlcvs[$i][0] / 1000);
+            $ohlcv = $ohlcvs[$i];
+            $ts = $ms ? $ohlcv[0] : $this->parse_to_int($ohlcvs[$i][0] / 1000);
             $resultTimestamp = $result[$timestamp];
             $resultTimestamp[] = $ts;
             $resultOpen = $result[$open];
-            $resultOpen[] = $ohlcvs[$i][1];
+            $resultOpen[] = $ohlcv[1];
             $resultHigh = $result[$high];
-            $resultHigh[] = $ohlcvs[$i][2];
+            $resultHigh[] = $ohlcv[2];
             $resultLow = $result[$low];
-            $resultLow[] = $ohlcvs[$i][3];
+            $resultLow[] = $ohlcv[3];
             $resultClose = $result[$close];
-            $resultClose[] = $ohlcvs[$i][4];
+            $resultClose[] = $ohlcv[4];
             $resultVolume = $result[$volume];
-            $resultVolume[] = $ohlcvs[$i][5];
+            $resultVolume[] = $ohlcv[5];
         }
         return $result;
     }

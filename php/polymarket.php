@@ -2789,7 +2789,7 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, $config = array()) {
         if ($path === 'account/orders') {
             return (is_array($params) && array_key_exists('order_id' ?? '', $params)) ? 1 : 10;
         }

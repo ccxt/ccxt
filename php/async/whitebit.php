@@ -957,7 +957,10 @@ class whitebit extends Exchange {
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                 }
-                $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
+                $feeEntry = $this->safe_dict($depositWithdrawFees, $code, array());
+                $feeEntryInfo = $this->safe_dict($feeEntry, 'info', array());
+                $feeEntryInfo[$entry] = $feeInfo;
+                $feeEntry['info'] = $feeEntryInfo;
                 $networkId = $this->safe_string($splitEntry, 1);
                 $withdraw = $this->safe_dict($feeInfo, 'withdraw');
                 $deposit = $this->safe_dict($feeInfo, 'deposit');
@@ -975,15 +978,18 @@ class whitebit extends Exchange {
                     $networkLength = count($networkId);
                     $networkCode = $this->network_id_to_code(mb_substr($networkId, 1, $networkLength - 1 - 1), $code);
                     if ($networkCode !== null) {
-                        $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        $feeEntryNetworks = $this->safe_dict($feeEntry, 'networks', array());
+                        $feeEntryNetworks[$networkCode] = array(
                             'withdraw' => $withdrawResult,
                             'deposit' => $depositResult,
                         );
+                        $feeEntry['networks'] = $feeEntryNetworks;
                     }
                 } else {
-                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
-                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                    $feeEntry['withdraw'] = $withdrawResult;
+                    $feeEntry['deposit'] = $depositResult;
                 }
+                $depositWithdrawFees[$code] = $feeEntry;
             }
         }
         $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();

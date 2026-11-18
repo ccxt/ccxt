@@ -1121,7 +1121,7 @@ class paradex extends Exchange {
          *
          * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
-         * @param {string[]} [$symbols] unified market $symbols
+         * @param {string[]} [$symbols] unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
@@ -1136,7 +1136,8 @@ class paradex extends Exchange {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $target = $this->market($symbolsNormalized[0])['id'];
+                $market = $this->market($symbolsNormalized[0]);
+                $target = $market['id'];
             }
         }
         $request = array(

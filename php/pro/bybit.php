@@ -2027,7 +2027,7 @@ class bybit extends \ccxt\async\bybit {
             'unified' => array( 'order' ),
             'usdc' => array( 'user.openapi.perp.order' ),
         );
-        $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url));
+        $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url), array());
         $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -2526,11 +2526,11 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function watch_topics(string $url, array $messageHashes, mixed $topics, $params = array()) {
+    public function watch_topics(string $url, array $messageHashes, array $topics, $params = array()) {
         return Async\async(self::do_watch_topics(...))($url, $messageHashes, $topics, $params);
     }
 
-    private function do_watch_topics(string $url, array $messageHashes, mixed $topics, $params = array()) {
+    private function do_watch_topics(string $url, array $messageHashes, array $topics, $params = array()) {
         $client = $this->client($url);
         $newTopics = array();
         $topicsLength = count($topics);

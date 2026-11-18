@@ -8546,9 +8546,13 @@ class okx extends Exchange {
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                 }
+                $feeEntry = $this->safe_dict($depositWithdrawFees, $code, array());
                 if ($currencyId !== null) {
-                    $depositWithdrawFees[$code]['info'][$currencyId] = $feeInfo;
+                    $feeEntryInfo = $this->safe_dict($feeEntry, 'info', array());
+                    $feeEntryInfo[$currencyId] = $feeInfo;
+                    $feeEntry['info'] = $feeEntryInfo;
                 }
+                $depositWithdrawFees[$code] = $feeEntry;
                 $chain = $this->safe_string($feeInfo, 'chain');
                 if ($chain === null) {
                     continue;
@@ -8566,10 +8570,13 @@ class okx extends Exchange {
                 );
                 $networkCode = $this->network_id_to_code($networkId, $code);
                 if ($networkCode !== null) {
-                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                    $feeEntryNetworks = $this->safe_dict($feeEntry, 'networks', array());
+                    $feeEntryNetworks[$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,
                     );
+                    $feeEntry['networks'] = $feeEntryNetworks;
+                    $depositWithdrawFees[$code] = $feeEntry;
                 }
             }
         }
