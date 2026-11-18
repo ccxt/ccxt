@@ -5247,7 +5247,21 @@ class NewTranspiler {
         region = this.csharpReplaceUnmasked (region, CSHARP_IDENTITY_LIST_CAST, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !names.has (match[1])) ? undefined : match[1] + match[2]);
         // toArray returns every IList<object> (ws caches are List<object>) as the same reference and null as null:
         // on a name this method declares only IList<object> the call is an identity of the same static type
-        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || (lists.get (match[1]) !== 'IList<object>')) ? undefined : match[1]);
+        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !((lists.get (match[1]) === 'IList<object>') || ((lists.get (match[1]) === 'List<object>') && this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists)))) ? undefined : match[1]);
+    }
+
+    // a slot that takes List<object> exactly as it takes IList<object>: an IList<object> declaration or
+    // assignment to such a local, or the first argument of a single-signature base method with an
+    // IList<object>/object parameter there (no overload can pick a different body)
+    csharpListWideningSlot (before: string, lists: Map<string, string>): boolean {
+        if (/\bIList<object>\s+\w+\s*=\s*$/.test (before)) {
+            return true;
+        }
+        const assigned = /(?:^|[;{}]\s*|\n\s*)([A-Za-z_]\w*)\s*=\s*$/.exec (before);
+        if (assigned) {
+            return lists.get (assigned[1]) === 'IList<object>';
+        }
+        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\([A-Za-z_]\w*,\s*$/.test (before);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
