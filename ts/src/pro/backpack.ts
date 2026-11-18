@@ -1175,7 +1175,8 @@ export default class backpack extends backpackRest {
         const deltaNonce = this.safeInteger (data, 'u');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = this.parseToInt (storedOrderBook.cache.length);
+            const cacheSize = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt (cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.push (data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
