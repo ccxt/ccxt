@@ -1451,6 +1451,7 @@ const CORE_DICT_ARGS: Record<string, number[]> = {
     'createTransferSettlementData': [ 1 ],
     'createWithdrawalSettlementData': [ 2 ],
     'getDedicatedNetworkId': [ 0 ],
+    'getSupportedMapping': [ 1 ],
     'parseAccountPosition': [ 0 ],
     'parseAccountPositions': [ 0 ],
     'parseBorrowRate': [ 1 ],
