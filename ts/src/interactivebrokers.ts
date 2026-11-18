@@ -1473,7 +1473,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': cryptoSymbol,
                 'secType': 'CRYPTO',
             };
-            promises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', {}));
+            promises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
             //
             //     [
             //         {
@@ -1521,6 +1521,9 @@ export default class interactivebrokers extends Exchange {
         const result: string[] = [];
         // the scans are run one by one, the scanner rejects concurrent requests
         for (let i = 0; i < scanTypes.length; i++) {
+            if (i !== 0) {
+                await this.sleep (1000); // wait for 1 second before running the next scan
+            }
             const request: Dict = {
                 'instrument': 'FUT.US',
                 'location': 'FUT.COINDERIV',
@@ -1658,7 +1661,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': cfdExchanges[i],
                 'assetClass': 'CFD',
             };
-            promises.push (this.marketsEndpointCall (request, 'webapiGetV1ApiTrsrvAllConids', {}));
+            promises.push (this.marketsEndpointCall (request, 'webapiGetV1ApiTrsrvAllConids', []));
             //
             //     [ { "ticker": "AAPL", "conid": 120549942, "exchange": null } ]
             //
