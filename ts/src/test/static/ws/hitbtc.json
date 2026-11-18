@@ -871,7 +871,6 @@
         "unWatchTrades": [
             {
                 "description": "trades unsubscribe resolves on hitbtc's answer to the request id, which lists the symbols still subscribed on the channel; options.lastNonce makes the request id deterministic; frame shape from a live unsubscribe",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT"
                 ],
@@ -906,7 +905,6 @@
         "unWatchOHLCV": [
             {
                 "description": "1h candles unsubscribe on the candles/H1 channel, resolved by the answer to the request id; options.lastNonce makes the request id deterministic; frame shape from a live unsubscribe",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT",
                     "1h"

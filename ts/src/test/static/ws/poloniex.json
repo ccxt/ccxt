@@ -1240,7 +1240,6 @@
         "unWatchTrades": [
             {
                 "description": "spot trades unsubscribe acknowledged for the symbol; frame shape from a live public channel unsubscribe",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT"
                 ],
@@ -1271,7 +1270,6 @@
         "unWatchTradesForSymbols": [
             {
                 "description": "spot trades unsubscribe for two symbols in one request - poloniex sends a single acknowledgement listing both symbols, not necessarily in request order (seen live)",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     [
                         "BTC/USDT",
@@ -1307,7 +1305,6 @@
         "unWatchOHLCV": [
             {
                 "description": "spot ohlcv 1h unsubscribe, the channel carries poloniex's timeframe name (candles_hour_1)",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT",
                     "1h"
