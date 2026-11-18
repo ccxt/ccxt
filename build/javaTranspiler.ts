@@ -3647,6 +3647,9 @@ class NewTranspiler {
         for (const pass of nativePasses) {
             javaSource = pass(javaSource)
         }
+        if (ws) {
+            javaSource = nativeJavaWsHandlerDispatch(javaSource)
+        }
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -9376,4 +9379,97 @@ function javaR93j8LocalsSelfTest (): string[] {
         fs.rmSync(probe, { force: true });
     }
     return problems;
+}
+
+// ws handler dispatch: `Helpers.callDynamically(this, m, new Object[] {args})` where every write of `m` is null, a
+// handler-name literal or a read of a local name table becomes a `switch` of direct calls (table retyped String).
+// Each name has one declaration in the class (reflection picks it too); missing args are padded like padArgs.
+function nativeJavaWsHandlerDispatch (content: string): string {
+    const esc = (s: string) => s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sigs = new Map<string, string[][]> ();
+    const splitTop = (text: string) => {
+        const out: string[] = [];
+        let depth = 0, cur = '';
+        for (const c of text) {
+            depth += c === '<' || c === '(' ? 1 : c === '>' || c === ')' ? -1 : 0;
+            if (c === ',' && depth === 0) { out.push (cur.trim ()); cur = ''; } else { cur += c; }
+        }
+        return cur.trim () ? [ ...out, cur.trim () ] : out;
+    };
+    for (const m of content.matchAll (/^ {4}public [\w.<>, ]+? (\w+)\(([^)]*)\)\s*$/gm)) {
+        sigs.set (m[1], [ ...(sigs.get (m[1]) ?? []), splitTop (m[2]).map ((p) => p.replace (/\s+\w+$/, '')) ]);
+    }
+    const norm = (t: string) => t.replace (/java\.util\./g, '').replace (/\s+/g, ' ');
+    const edits: { from: number, to: number, text: string }[] = [];
+    const callRe = /^([ \t]+)Helpers\.callDynamically\(this, (\w+), new Object\[\] \{([\w, ]*)\}\);$/gm;
+    let call;
+    while ((call = callRe.exec (content)) !== null) {
+        const [ whole, indent, v, argText ] = call;
+        // scope: the block declaring the dispatch local (a method can hold two `method` locals)
+        const declAt = content.lastIndexOf (`Object ${v} = `, call.index);
+        let start = declAt, depth = 0;
+        for (; start > 0 && depth >= 0; start--) depth += content[start - 1] === '}' ? 1 : content[start - 1] === '{' ? -1 : 0;
+        let end = start + 1;
+        for (depth = 1; end < content.length && depth > 0; end++) depth += content[end] === '{' ? 1 : content[end] === '}' ? -1 : 0;
+        if (declAt < 0 || content.lastIndexOf ('\n    public ', call.index) > declAt || end <= call.index) continue;
+        const body = content.slice (start, end);
+        const method = content.slice (content.lastIndexOf ('\n    public ', call.index), call.index);
+        const args = argText.split (',').map ((a) => a.trim ()).filter ((a) => a !== '');
+        const decl = body.match (new RegExp (`\\n\\s*Object ${v} = ([^;\\n]+);`, 'g')) ?? [];
+        const writes = [ ...body.matchAll (new RegExp (`(?<![\\w.])${v} = ([^;\\n]+);`, 'g')) ].map ((w) => w[1].trim ());
+        if (decl.length !== 1) continue;
+        // every use of the dispatch local: its writes, null tests, this call
+        const uses = (body.match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
+        const nullTests = (body.match (new RegExp (`java\\.util\\.Objects\\.equals\\(${v}, null\\)`, 'g')) ?? []).length;
+        const calls = (body.match (new RegExp (`Helpers\\.callDynamically\\(this, ${v}, `, 'g')) ?? []).length;
+        if (calls !== 1 || uses !== writes.length + nullTests + 1) continue;
+        const tables = new Set<string> (), names = new Set<string> (), reads: [ string, string ][] = [];
+        let ok = true;
+        for (const w of writes) {
+            let r;
+            if (w === 'null') continue;
+            if ((r = /^"(\w+)"$/.exec (w))) { names.add (r[1]); continue; }
+            r = /^(?:\(\(\(java\.util\.Objects\.equals\((\w+), null\)\)\)\) \? null : )?this\.safeValue\((\w+), (\w+|"\w+")\)$/.exec (w);
+            if (r && (r[1] === undefined || r[1] === r[3])) { tables.add (r[2]); reads.push ([ w, `${r[2]}.get(${r[3]})` ]); continue; }
+            r = /^\((\w+) == null \|\| (\w+) == null \? null : \1\.get\(\2\)\)$/.exec (w) ?? /^(\w+)\.get\((\w+|"\w+")\)$/.exec (w);
+            if (r) { tables.add (r[1]); continue; }
+            ok = false;
+        }
+        if (!ok) continue;
+        const keyOk = (k: string) => /^"\w+"$/.test (k) || new RegExp (`(?:\\n\\s*|\\()String ${k}(?: =|,|\\))`).test (method);
+        if (!reads.every (([ , g ]) => keyOk (g.slice (g.indexOf ('(') + 1, -1)))) continue;
+        if (!writes.every ((w) => !/\.get\((\w+)\)/.test (w) || keyOk (/\.get\((\w+)\)/.exec (w)[1]))) continue;
+        const retypes: [ string, string ][] = [];
+        for (const t of tables) {
+            const lit = new RegExp (`\\n(\\s*)(?:java\\.util\\.)?Map<String, Object> ${t} = new (?:java\\.util\\.)?HashMap<String, Object>\\(\\) \\{\\{\\n((?:\\s*put\\( "[^"\\n]*", "\\w+"\\);\\n)+)\\s*\\}\\};`).exec (body);
+            const tUses = (body.match (new RegExp (`(?<![\\w."])${t}(?![\\w"])`, 'g')) ?? []).length;
+            const tReads = (body.match (new RegExp (`(?:this\\.safeValue\\(${t}, |${t}\\.(?:get|containsKey)\\(|\\(${t} == null)`, 'g')) ?? []).length;
+            if (!lit || tUses !== 1 + tReads) { ok = false; break; }
+            for (const n of lit[2].matchAll (/"(\w+)"\);/g)) names.add (n[1]);
+            retypes.push ([ lit[0], lit[0].replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
+        }
+        if (!ok || names.size === 0) continue;
+        const argType = (a: string) => new RegExp (`(?:\\n\\s*|\\(|, )([\\w.]+(?:<[\\w.<>, ?]*>)?) ${a}(?: =|,|\\)|;)`).exec (method)?.[1];
+        const arms: string[] = [];
+        for (const n of [ ...names ].sort ()) {
+            const s = sigs.get (n);
+            if (s === undefined || s.length !== 1 || s[0].length < args.length || s[0].some ((p) => p.includes ('...'))) { ok = false; break; }
+            const params = s[0];
+            const typed = args.every ((a, i) => params[i] === 'Object' || (argType (a) !== undefined && norm (argType (a)) === norm (params[i])));
+            if (!typed) { ok = false; break; }
+            const pad = params.slice (args.length).map ((p) => (/^(java\.util\.)?Map\b/.test (p) ? 'new java.util.HashMap<String, Object>()' : 'null'));
+            arms.push (`${indent}    case "${n}" -> this.${n}(${[ ...args, ...pad ].join (', ')});`);
+        }
+        if (!ok) continue;
+        const miss = `"Method not found: " + ${v} + " with ${args.length} args on " + this.getClass().getName()`;
+        const sw = [ `${indent}switch (${v})`, `${indent}{`, ...arms, `${indent}    case null, default -> throw new RuntimeException(${miss});`, `${indent}}` ].join ('\n');
+        let newBody = body.slice (0, call.index - start) + sw + body.slice (call.index - start + whole.length);
+        newBody = newBody.replace (new RegExp (`(\\n\\s*)Object ${v} = `), `$1String ${v} = `);
+        for (const [ w, g ] of reads) newBody = newBody.split (`${v} = ${w};`).join (`${v} = ${g};`);
+        for (const [ a, b ] of retypes) newBody = newBody.replace (a, b);
+        edits.push ({ from: start, to: end, text: newBody });
+    }
+    let out = content;
+    for (const e of edits.sort ((a, b) => b.from - a.from)) out = out.slice (0, e.from) + e.text + out.slice (e.to);
+    return out;
 }
