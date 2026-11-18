@@ -1632,7 +1632,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:onetrading': { 'parseTradingOrderStatus': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
     'pro:paradex': { 'handleUnsubscribeReply': [ 1 ] },
     'pro:pacifica': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
-    'pro:phemex': { 'handleBalance': [ 0 ] },
+    'pro:phemex': { 'handleBalance': [ 2 ] },
     'pro:poloniex': { 'parseStatus': [ 0 ], 'subscribe': [ 0, 1 ] },
     'pro:toobit': { 'parseWsTicker': [ 1 ], 'setBalanceCache': [ 1 ], 'setPositionsCache': [ 1 ] },
     'pro:upbit': { 'parseWsOrderStatus': [ 0 ], 'watchPublicMultiple': [ 1 ] },
