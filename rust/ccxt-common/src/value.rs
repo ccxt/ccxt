@@ -926,6 +926,8 @@ impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(
 impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }
 /// A dict local moved into a `Value` parameter: the map itself, no copy.
 impl From<Dict> for Value { fn from(m: Dict) -> Self { Value::Dict(m) } }
+/// A `(request, params)` map pair boxed as the two-element list its `Value` callers index.
+impl From<(Dict, Dict)> for Value { fn from(p: (Dict, Dict)) -> Self { Value::Arr(Arc::new(vec![Value::Dict(p.0), Value::Dict(p.1)])) } }
 impl From<&Option<List>> for Value { fn from(a: &Option<List>) -> Self { match a { Some(l) => Value::Arr(Arc::clone(l)), None => Value::Null } } }
 /// An optional dict local lent to an `impl Into<Value>` parameter: the shared map for `Some`, `Value::Null` for `None`.
 impl From<&Option<Dict>> for Value { fn from(m: &Option<Dict>) -> Self { match m { Some(d) => Value::Dict(Arc::clone(d)), None => Value::Null } } }

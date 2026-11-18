@@ -261,3 +261,22 @@ mod nonce_override_from_lifted_sign_tests {
         assert!(n >= before_ms, "binanceusdm reached the base nonce (seconds): {n} < {before_ms}");
     }
 }
+
+#[cfg(all(test, feature = "engine", feature = "binance"))]
+mod until_pair_dispatch_tests {
+    #[allow(unused_imports)]
+    use crate::exchange::{CallDynamicChecked, ExchangeRuntime};
+    #[allow(unused_imports)]
+    use crate::exchange_generated::ExchangeBase;
+    use crate::Value;
+
+    // the by-name arm boxes the native `(Dict, Dict)` pair back into the two-map list
+    #[tokio::test]
+    async fn handle_until_option_by_name_returns_the_two_maps() {
+        let mut b = crate::exchanges::binance::Binance::new(None);
+        let request = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT" }));
+        let params = Value::from_json(&serde_json::json!({ "until": 5, "x": 1 }));
+        let out = b.call_dynamic("handle_until_option", vec![Value::Str("endTime".into()), request, params]).await;
+        assert_eq!(out, Value::from_json(&serde_json::json!([{ "symbol": "BTCUSDT", "endTime": 5 }, { "x": 1 }])));
+    }
+}
