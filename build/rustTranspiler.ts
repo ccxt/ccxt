@@ -4776,6 +4776,47 @@ function rustOptionTupleRead(fam: string, v: string, i: string, rest: string): s
     if (typed === undefined && as !== null && as[1] !== undefined) return `${v}.0.${as[1]}()${rest.slice(as[0].length)}`;
     return `${box(`${v}.0`)}${rest.replace(/^\.cloned\(\)\.unwrap_or\(Value::Null\)/, '').replace(/^\.and_then\(Value::(as_\w+)\)/, '.$1()')}`;
 }
+function rustFnRest(s: string, from: number): string {
+    const f = s.slice(from).search(/\n {0,4}(?:pub )?(?:async )?fn |\n\}\n/);
+    return s.slice(from, f < 0 ? s.length : from + f);
+}
+// a re-boxed tuple local read only through slot gets keeps the tuple; a re-boxed bool slot local never written stays Option<bool>
+function typeOptionTupleLocals(src: string): string {
+    let out = src;
+    const tup = /\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.handle_option_(bool_|string_|integer_)?and_params2?\()/g;
+    for (let m: RegExpExecArray | null; (m = tup.exec(out)) !== null;) {
+        const callEnd = rustCloseParen(out, m.index + m[0].length);
+        const tail = /^;\s*Value::from\(vec!\[[^\n]*?\]\) \};/.exec(out.slice(callEnd, callEnd + 200));
+        if (callEnd < 0 || tail === null) continue;
+        const n = m[2], fam = m[4] ?? '', from = callEnd + tail[0].length;
+        const rest = rustFnRest(out, from);
+        const rd = new RegExp(`\\b${n}\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| __arr\\.get\\(([01])\\)\\)((?:\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)|\\.and_then\\(Value::as_\\w+\\))(?:\\.(?:into_dict|as_\\w+)\\(\\))?(?:\\.map\\(str::to_owned\\))?)`, 'g');
+        const reads: string[] = [];
+        const body = rest.replace(rd, (_r, i, r) => { reads.push(i); return rustOptionTupleRead(fam, n, i, r); });
+        const moved = reads.filter((i) => i === '1' || RUST_OPTION_TUPLE_SLOT0[fam][1] === undefined);
+        const firstMove = body.search(new RegExp(`\\b${n}\\.[01]\\b`));
+        if (reads.length === 0 || new Set(moved).size !== moved.length || new RegExp(`\\b${n}\\b`).test(body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), ''))
+            || (moved.length > 0 && /\b(?:for|while|loop)\b/.test(body.slice(0, firstMove)))) continue;
+        const head = `\n${m[1]}let ${n} = ${out.slice(m.index + m[0].length - m[3].length, callEnd)};`;
+        out = out.slice(0, m.index) + head + body + out.slice(from + rest.length);
+        tup.lastIndex = m.index + head.length;
+    }
+    const bool = /\n *let mut (\w+): Value = ([^\n]*?\.0)\.map_or\(Value::Null, Value::Bool\);/g;
+    for (let m: RegExpExecArray | null; (m = bool.exec(out)) !== null;) {
+        if (!/handle_option_bool_and_params2?\(|^\w+\.0$/.test(m[2])) continue;
+        const n = m[1], from = m.index + m[0].length;
+        const rest = rustFnRest(out, from);
+        if (new RegExp(`(?<![\\w.])${n}\\s*=(?!=)|&mut ${n}\\b|\\|[^|\\n]*\\b${n}\\b[^|\\n]*\\||\\blet (?:mut )?${n}\\b`).test(rest)) continue;
+        const box = `${n}.map_or(Value::Null, Value::Bool)`;
+        const body = rest.replace(new RegExp(`(?:\\b\\w+::)*\\bis_true\\(&\\(?${n}(?:\\.clone\\(\\))?\\)?\\)`, 'g'), `(${n} == Some(true))`)
+            .replace(new RegExp(`(?<![\\w."])${n}\\.as_bool\\(\\)`, 'g'), n)
+            .replace(new RegExp(`(?<![\\w."])${n}(?:\\.clone\\(\\))?(?![\\w"]| == Some\\()`, 'g'), box);
+        const decl = m[0].replace(`: Value = ${m[2]}.map_or(Value::Null, Value::Bool);`, `: Option<bool> = ${m[2]};`);
+        out = out.slice(0, m.index) + decl + body + out.slice(from + rest.length);
+        bool.lastIndex = m.index + decl.length;
+    }
+    return out;
+}
 function typeHandleOptionTuples(content: string): string {
     if (!content.includes('handle_option_')) return content;
     const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
@@ -4835,6 +4876,7 @@ function typeHandleOptionTuples(content: string): string {
         RUST_OPTION_TUPLE_FNS.lastIndex = last;
     }
     out += content.slice(last);
+    out = typeOptionTupleLocals(out);
     // a boxed bool slot local never written again reads its truth as `x.as_bool() == Some(true)` (is_true on Bool / Null)
     for (const d of [...out.matchAll(/\n *let mut (\w+): Value = [^\n]*?\.0\.map_or\(Value::Null, Value::Bool\);/g)]) {
         if (!/handle_option_bool_and_params2?\(|^\n *let mut \w+: Value = \w+\.0/.test(d[0])) continue;
