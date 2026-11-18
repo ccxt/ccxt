@@ -17110,7 +17110,7 @@ function goTypedIsEqualSelfTest (ok: SelfTestOk): void {
 // ===== `var x any` map locals retyped to map[string]any =====
 // Every write is a fresh non-nil map (literal, Extend/DeepExtend, OmitDict of x, HandleUntilOption(_, x, _)[0])
 // and no read observes the box, so the typed-container pass can print plain `x[k] = v` for its writes.
-function goTypedAddElemMapWrite (rhs: string, n: string): string | undefined {
+function goTypedAddElemMapWrite (rhs: string, n: string, nilOk = false): string | undefined {
     const r = rhs.trim ();
     if (/^(?:map\[string\]any\{|this\.(?:Extend|DeepExtend)\()/.test (r) || (r === 'this.Account()')) {
         return r;
@@ -17120,7 +17120,8 @@ function goTypedAddElemMapWrite (rhs: string, n: string): string | undefined {
     if ((sd !== null) && (goMapWriteGroupEnd (r, sd[0].length - 1) === r.length)) {
         const args = goMapWriteTopLevelParts (r.substring (sd[0].length, r.length - 1), ',').map ((a) => a.trim ());
         const last = args[args.length - 1];
-        if ((args.length === (sd[1] === '2' ? 4 : 3)) && ((last === 'map[string]any{}') || (last === 'this.Account()') || (last === n))) {
+        const arity = (sd[1] === '2') ? 4 : 3;
+        if (((args.length === arity) && ((last === 'map[string]any{}') || (last === 'this.Account()') || (last === n))) || (nilOk && (args.length === arity - 1))) {
             return 'this.SafeDict' + (sd[1] ?? '') + 'Map(' + r.substring (sd[0].length);
         }
     }
@@ -17134,8 +17135,16 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
     for (const name of names) {
         const n = goAccessEscape (name);
         const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        // a top-level `if x == nil { panic/return }` dominates every later use: writes above it may be nil-capable
+        let guard = -1;
+        for (let k = start + 1; (k + 2 < end) && (guard < 0); k++) {
+            if ((masked[k] === '\tif ' + n + ' == nil {') && /^\t\t(?:panic\(|return\b)/.test (masked[k + 1]) && (masked[k + 2] === '\t}')) {
+                guard = k;
+            }
+        }
+        const vetoText = (guard < 0) ? maskedFunc : masked.slice (start, end + 1).map ((l, i) => ((i + start) === guard) ? '' : l).join ('\n');
         if ((n !== name) || (decl === undefined) || (decl.type !== 'any') || (decl.index === undefined)
-            || new RegExp ('\\b' + n + '\\s*\\.\\s*\\(|&\\s*' + n + '\\b|\\b' + n + '\\s*[!=]=|[!=]=\\s*' + n + '\\b|IsEqual\\(' + n + ', nil\\)|\\b' + n + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (maskedFunc)) {
+            || new RegExp ('\\b' + n + '\\s*\\.\\s*\\(|&\\s*' + n + '\\b|\\b' + n + '\\s*[!=]=|[!=]=\\s*' + n + '\\b|IsEqual\\(' + n + ', nil\\)|\\b' + n + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (vetoText)) {
             continue;
         }
         const declRx = new RegExp ('^(\\s*var ' + n + ' )any( = )(.*)$');
@@ -17146,14 +17155,17 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
         for (let k = start + 1; (k < end) && safe; k++) {
             const d = declRx.exec (masked[k]);
             const w = writeRx.exec (masked[k]);
-            if (d) {
+            const preGuard = (guard >= 0) && (k < guard);
+            if (preGuard && !d && !w && new RegExp ('\\b' + n + '\\b').test (masked[k])) {
+                safe = false; // only writes may precede the guard
+            } else if (d) {
                 const rhs = lines[k].substring (d[1].length + 3 + d[2].length);
-                const out = goTypedAddElemMapWrite (rhs, n);
+                const out = (preGuard && (rhs.trim () === 'nil')) ? 'nil' : goTypedAddElemMapWrite (rhs, n, preGuard);
                 safe = (out !== undefined) && (out !== 'this.OmitDict(' + rhs.trim ().substring (('this.Omit(').length)) && (lines[k].indexOf ('//') < 0);
                 edits.push ([ k, d[1] + 'map[string]any' + d[2] + (out ?? '') ]);
             } else if (w) {
                 const rhs = lines[k].substring (w[1].length);
-                const out = (goMapWriteGroupEnd (masked[k].substring (w[1].length), w[2].indexOf ('(') < 0 ? 0 : w[2].indexOf ('(')) >= 0) ? goTypedAddElemMapWrite (rhs, n) : undefined;
+                const out = (goMapWriteGroupEnd (masked[k].substring (w[1].length), w[2].indexOf ('(') < 0 ? 0 : w[2].indexOf ('(')) >= 0) ? goTypedAddElemMapWrite (rhs, n, preGuard) : undefined;
                 safe = (out !== undefined) && (lines[k].indexOf ('//') < 0);
                 if (safe) {
                     edits.push ([ k, w[1] + out ]);
@@ -17183,6 +17195,11 @@ function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
     ok (r.includes ('var account map[string]any = this.Account()') && r.includes ('account = this.SafeDict2Map(p, code, "x", account)'), 'Account seed and self-default write: ' + r);
     r = f ('\tvar a any = this.SafeDict(p, code)\n\tvar b any = this.SafeDict(p, code, other)\n\tAddElementToObject(a, "x", 1)\n\tAddElementToObject(b, "x", 1)\n');
     ok (r.includes ('var a any = ') && r.includes ('var b any = '), 'nil-capable SafeDict keeps the box: ' + r);
+    r = f ('\tvar a any = nil\n\tif p != nil {\n\t\ta = this.SafeDict(p, code)\n\t} else {\n\t\ta = this.Account()\n\t}\n\tif a == nil {\n\t\tpanic(p)\n\t}\n\tAddElementToObject(a, "x", 1)\n\treturn a\n');
+    ok (r.includes ('var a map[string]any = nil') && r.includes ('a = this.SafeDictMap(p, code)'), 'nil seed under a panic guard is typed: ' + r);
+    r = f ('\tvar a any = nil\n\ta = this.SafeDict(p, code)\n\tthis.Use(a)\n\tif a == nil {\n\t\tpanic(p)\n\t}\n\tAddElementToObject(a, "x", 1)\n');
+    r += f ('\tvar b any = nil\n\tif p != nil {\n\t\tb = this.SafeDict(p, code)\n\t\tif b == nil {\n\t\t\treturn nil\n\t\t}\n\t}\n\tAddElementToObject(b, "x", 1)\n');
+    ok (r.includes ('var a any = nil') && r.includes ('var b any = nil'), 'read before the guard or nested guard keeps the box: ' + r);
 }
 
 function goTypedAddElemRetypeMapLocals (content: string): string {
