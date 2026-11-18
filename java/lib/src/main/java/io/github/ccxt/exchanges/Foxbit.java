@@ -1936,7 +1936,7 @@ public class Foxbit extends FoxbitApi
             //     "destination_address": "0x1234567890123456789012345678",
             //     "destination_tag": "123456"
             // }
-            return this.parseTransaction(response, (Object) null, (Object) null, (Object) null);
+            return this.parseTransaction(response, (Map<String, Object>) null);
         }).thenApply(Transaction::new);
 
     }
@@ -2260,7 +2260,7 @@ public class Foxbit extends FoxbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object currency, Object since, Object limit)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         Map<String, Object> cryptoDetails = this.safeDict(transaction, "details_crypto", null);
         String address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
@@ -2313,10 +2313,6 @@ public class Foxbit extends FoxbitApi
             h2kMap0.put("internal", null);
             return h2kMap0;
         }
-    }
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
-    {
-        return this.parseTransaction(transaction, (Object) (currency), (Object) null, (Object) null);
     }
 
     public String parseLedgerEntryType(String type)

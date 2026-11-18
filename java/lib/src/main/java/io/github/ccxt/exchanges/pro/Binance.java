@@ -241,7 +241,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
+        Helpers.addElementToObject(options, url, newValue);
+        this.options.put("requestId", options);
         return newValue;
     }
 
@@ -265,7 +266,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             stream = this.numberToString(normalizedIndex);
             if (!java.util.Objects.equals(subscriptionHash, null))
             {
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("streamBySubscriptionsHash")), subscriptionHash, stream);
+                streamBySubscriptionsHash.put(subscriptionHash, stream);
+                this.options.put("streamBySubscriptionsHash", streamBySubscriptionsHash);
             }
             Map<String, Object> subscriptionsByStreams = this.safeDict(this.options, "numSubscriptionsByStream", null);
             if (java.util.Objects.equals(subscriptionsByStreams, null))
@@ -1997,7 +1999,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             ((Map<String, Object>)paramsStock).put("callerMethodName", "watchOHLCV");
             Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsStock)).join();
-            return Helpers.GetValue((result == null || symbolValue == null ? null : result.get(symbolValue)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> bySymbol = (Map<String, Object>) ((result == null || symbolValue == null ? null : result.get(symbolValue)));
+            return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2893,7 +2896,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean symbolsDefined = (!java.util.Objects.equals(symbolsNormalized, null));
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                Integer normalizedLength = symbolsNormalized.size();
+                if ((normalizedLength != null && normalizedLength > 0))
+                {
+                    firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                }
             }
             String userDefaultType = this.safeString(this.options, "defaultType");
             String defaultMarket = null;

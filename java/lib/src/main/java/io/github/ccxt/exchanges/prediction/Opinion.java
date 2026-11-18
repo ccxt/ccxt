@@ -2197,7 +2197,7 @@ public class Opinion extends OpinionApi
             PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
             orderbook.reset(snapshot);
-            Helpers.addElementToObject(this.orderbooks, ((String)sym), orderbook);
+            this.orderbooks.put(sym, orderbook);
             return null;
         });
 

@@ -450,8 +450,8 @@ public class Hollaex extends HollaexApi
                 Map<String, Object> market = this.safeDict(pairs, key, null);
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
-                Object baseCode = this.commonCurrencyCode(baseId.toUpperCase());
-                Object quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
+                String baseCode = this.commonCurrencyCode(baseId.toUpperCase());
+                String quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
                 HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("id", this.safeString(market, "name"));
                 j39v1.put("symbol", ((baseCode + "/") + quoteCode));

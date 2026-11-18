@@ -3084,7 +3084,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
+    public Map<String, Object> parseTransactionRow(Object transaction, Map<String, Object> currency)
     {
         //
         // withdraw
@@ -3435,7 +3435,13 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)response).size(); i++)
+            {
+                ((List<Object>)result).add(this.parseTransactionRow(this.safeList(response, i, new ArrayList<Object>(Arrays.asList())), currency));
+            }
+            List<Object> sorted = this.sortBy(result, "timestamp");
+            return this.filterByCurrencySinceLimit(sorted, this.safeString(currency, "code"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3540,7 +3546,7 @@ public class Bitfinex extends BitfinexApi
             {
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), text, text);
             }
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransactionRow(response, currency);
         }).thenApply(Transaction::new);
 
     }

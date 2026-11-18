@@ -3150,7 +3150,11 @@ public class Hitbtc extends HitbtcApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                Integer normalizedLength = symbolsNormalized.size();
+                if ((normalizedLength != null && normalizedLength > 0))
+                {
+                    market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                }
             }
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMarginMode", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
@@ -3386,9 +3390,13 @@ public class Hitbtc extends HitbtcApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-                List<String> queryMarketIds = this.marketIds(symbolsNormalized);
-                request.put("symbols", String.join(",", (List<String>)queryMarketIds));
+                Integer normalizedLength = symbolsNormalized.size();
+                if ((normalizedLength != null && normalizedLength > 0))
+                {
+                    market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    List<String> queryMarketIds = this.marketIds(symbolsNormalized);
+                    request.put("symbols", String.join(",", (List<String>)queryMarketIds));
+                }
             }
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingRates", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();

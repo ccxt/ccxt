@@ -2012,7 +2012,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long deltaEnd = (Long) this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (java.util.Objects.equals(nonce, null))
             {
-                Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
+                Long cacheLength = this.parseToInt(((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size());
                 List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
                 Object subscription = null;
                 for (var i = 0; i < subscriptions.size(); i++)
@@ -2025,8 +2025,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     }
                 }
                 Long limit = this.safeInteger(subscription, "limit");
-                Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
-                if (Helpers.isEqual(cacheLength, snapshotDelay))
+                Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 5));
+                if (java.util.Objects.equals(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }
@@ -2086,14 +2086,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long deltaEnd = this.safeInteger(data, "C");
             if (java.util.Objects.equals(nonce, null))
             {
-                Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
+                Long cacheLength = this.parseToInt(((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size());
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");
-                Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
+                Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 5));
                 Map<String, Object> utaParams = new HashMap<String, Object>() {{
                     put( "uta", true );
                 }};
-                if (Helpers.isEqual(cacheLength, snapshotDelay))
+                if (java.util.Objects.equals(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, utaParams); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }

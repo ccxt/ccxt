@@ -1176,7 +1176,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             String symbolResolved = this.symbol(symbol);
             Map<String, Object> ohlcvs = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolResolved, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsResolved)).join();
-            return Helpers.GetValue((ohlcvs == null || symbolResolved == null ? null : ohlcvs.get(symbolResolved)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> bySymbol = (Map<String, Object>) ((ohlcvs == null || symbolResolved == null ? null : ohlcvs.get(symbolResolved)));
+            return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1813,27 +1814,39 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             String channelId = this.safeString(parts, 0);
             String userChannel = this.safeString(parts, 1);
-            Map<String, Object> userHandlers = new HashMap<String, Object>() {{
+            Map<String, String> userHandlers = new HashMap<String, String>() {{
                 put( "portfolio", "handleBalance");
                 put( "trades", "handleMyTrades");
                 put( "orders", "handleOrders");
                 put( "changes", "handlePositions");
             }};
-            Map<String, Object> handlers = new HashMap<String, Object>() {{
+            Map<String, String> handlers = new HashMap<String, String>() {{
                 put( "ticker", "handleTicker");
                 put( "incremental_ticker", "handleTicker");
                 put( "quote", "handleBidAsk");
                 put( "book", "handleOrderBook");
                 put( "trades", "handleTrades");
                 put( "chart", "handleOHLCV");
-                put( "user", Coinbaseinternational.this.safeValue(userHandlers, userChannel) );
+                put( "user", userHandlers.get(userChannel) );
             }};
-            Object handler = this.safeValue(handlers, channelId);
+            String handler = handlers.get(channelId);
             if (java.util.Objects.equals(handler, null))
             {
                 throw new NotSupported(((this.id + " no handler found for websocket channel ") + channel)) ;
             }
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            switch (handler)
+            {
+                case "handleBalance" -> this.handleBalance(client, message);
+                case "handleBidAsk" -> this.handleBidAsk(client, message);
+                case "handleMyTrades" -> this.handleMyTrades(client, message);
+                case "handleOHLCV" -> this.handleOHLCV(client, message);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleOrders" -> this.handleOrders(client, message);
+                case "handlePositions" -> this.handlePositions(client, message);
+                case "handleTicker" -> this.handleTicker(client, message);
+                case "handleTrades" -> this.handleTrades(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + handler + " with 2 args on " + this.getClass().getName());
+            }
             return;
         }
         String requestId = this.safeString(message, "id");

@@ -98,7 +98,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
+        options.put(url, newValue);
+        this.options.put("requestId", options);
         return newValue;
     }
 

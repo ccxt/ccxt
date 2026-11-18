@@ -365,7 +365,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         String timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
-        this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (!java.util.Objects.equals(symbol, null))
         {

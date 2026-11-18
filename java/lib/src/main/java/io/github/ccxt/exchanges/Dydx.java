@@ -1457,9 +1457,9 @@ public class Dydx extends DydxApi
         return this.hash(message, keccak(), "hex");
     }
 
-    public Map<String, Object> signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(String hash, Object privateKey)
     {
-        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         String r = this.safeString(signature, "r", "");
         String s = this.safeString(signature, "s", "");
         return new HashMap<String, Object>() {{
@@ -1471,7 +1471,7 @@ public class Dydx extends DydxApi
 
     public Map<String, Object> signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
+        return this.signHash((String) (this.hashMessage(message)), Helpers.slice(privateKey, -64, null));
     }
 
     public Map<String, Object> signOnboardingAction()
@@ -1504,7 +1504,7 @@ public class Dydx extends DydxApi
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
         var signDoc = ((List<Object>) encodedTxsignDocVariable).get(1);
-        Map<String, Object> signature = this.signHash(encodedTx, privateKey);
+        Map<String, Object> signature = this.signHash((String) (encodedTx), privateKey);
         String signatureR = this.safeString(signature, "r", "");
         String signatureS = this.safeString(signature, "s", "");
         return this.encodeDydxTxRaw((Map<String, Object>) (signDoc), (signatureR + signatureS));

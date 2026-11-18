@@ -512,7 +512,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             String symbolValue = this.symbol(symbol);
             parameters.put("callerMethodName", "watchOHLCV");
             Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
-            return Helpers.GetValue((result == null || symbolValue == null ? null : result.get(symbolValue)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> bySymbol = (Map<String, Object>) ((result == null || symbolValue == null ? null : result.get(symbolValue)));
+            return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }

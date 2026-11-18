@@ -2865,7 +2865,7 @@ public class Sxbet extends SxbetApi
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
                 {
                     io.github.ccxt.ws.WsOrderBook emptyBook = this.orderBook(new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(this.orderbooks, sym, emptyBook);
+                    this.orderbooks.put(sym, emptyBook);
                 }
             }
             Long requestId = this.requestId((String) (url));
@@ -2931,7 +2931,7 @@ public class Sxbet extends SxbetApi
             if (java.util.Objects.equals(orderbook, null))
             {
                 orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(this.orderbooks, sym, orderbook);
+                this.orderbooks.put(sym, orderbook);
             }
             Map<String, Object> bookSnapshot = new HashMap<String, Object>() {{
                 put( "bids", Sxbet.this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList())) );

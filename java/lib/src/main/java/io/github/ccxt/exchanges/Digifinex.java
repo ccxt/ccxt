@@ -4560,7 +4560,10 @@ public class Digifinex extends DigifinexApi
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
+                    if (java.util.Objects.equals(symbolsLength, 1))
+                    {
+                        symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
+                    }
                 } else
                 {
                     symbol = symbolsNormalized;

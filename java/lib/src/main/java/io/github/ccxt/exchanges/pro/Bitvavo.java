@@ -568,7 +568,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String timeframe = this.findTimeframe(interval, (Object) null);
         String messageHash = ((((name + "@") + this.safeString(message, "market", "")) + "_") + interval);
         List<Object> candles = this.safeList(message, "candle", new ArrayList<Object>(Arrays.asList()));
-        this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
         {

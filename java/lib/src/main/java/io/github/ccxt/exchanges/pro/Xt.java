@@ -725,7 +725,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 name = ((("depth@" + marketId) + ",") + levels);
             }
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), paramsOmitted, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), paramsOmitted, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -1490,9 +1490,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Long nonce = this.safeInteger(orderbook, "nonce");
             if (java.util.Objects.equals(nonce, null))
             {
-                Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
-                Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-                if (Helpers.isEqual(cacheLength, snapshotDelay))
+                Long cacheLength = this.parseToInt(((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size());
+                Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 25));
+                if (java.util.Objects.equals(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }

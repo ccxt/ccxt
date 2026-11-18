@@ -1443,7 +1443,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
+        options.put(url, newValue);
+        this.options.put("requestId", options);
         return newValue;
     }
 

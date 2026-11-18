@@ -91,7 +91,7 @@ public interface TypedSurface {
     CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> params);
     CompletableFuture<LongShortRatio> fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params);
     CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
-    CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Object since, Object limit, Map<String, Object> params);
+    CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params);
     CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> params);
     CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> params);
@@ -400,7 +400,7 @@ public interface TypedSurface {
 
     default CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistoryAsync(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) { return this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 
-    default CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistoryAsync(String symbol, String type, Double since, Double limit, Map<String, Object> params) { return this.fetchMarginAdjustmentHistory(symbol, type, since, limit, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistoryAsync(String symbol, String type, Long since, Long limit, Map<String, Object> params) { return this.fetchMarginAdjustmentHistory(symbol, type, since, limit, (params != null ? params : new HashMap<String, Object>())); }
 
     default List<OpenInterest> fetchOpenInterestHistory(String symbol) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, "1h", (Long) null, (Long) null, new HashMap<String, Object>())); }
     default List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe) { return Helpers.joinUnwrapped(this.fetchOpenInterestHistory(symbol, timeframe, (Long) null, (Long) null, new HashMap<String, Object>())); }

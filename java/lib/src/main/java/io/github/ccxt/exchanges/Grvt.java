@@ -2200,7 +2200,9 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < ((List<?>)transfers).size(); i++)
         {
             Object transfer = (transfers == null || i < 0 || i >= ((List<?>)transfers).size() ? null : ((List<?>)transfers).get(i));
-            if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
+            String fromAccount = this.safeString(transfer, "fromAccount", "");
+            String toAccount = this.safeString(transfer, "toAccount", "");
+            if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(fromAccount, "0") && java.util.Objects.equals(toAccount, "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(fromAccount, "0") || !java.util.Objects.equals(toAccount, "0"))))
             {
                 String metadata = this.safeString(this.safeDict(transfer, "info", new HashMap<String, Object>() {{}}), "transfer_metadata");
                 Object parsedMetadata = this.parseJson(metadata);

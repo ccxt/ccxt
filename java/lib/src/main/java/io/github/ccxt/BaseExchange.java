@@ -5868,7 +5868,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Object since, Object limit, Map<String, Object> parameters)
+    public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMarginAdjustmentHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
@@ -6243,11 +6243,6 @@ public Map<String, Object> describe()
         {
             return defaultValue;  // unsupported method, check "exchange.features" for details');
         }
-        Object methodDict = (methodsContainer == null || methodName == null ? null : methodsContainer.get(methodName));
-        if (java.util.Objects.equals(methodDict, null))
-        {
-            return defaultValue;
-        }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (java.util.Objects.equals(paramName, null))
         {
@@ -6255,12 +6250,17 @@ public Map<String, Object> describe()
             {
                 return defaultValue;
             }
-            return methodDict;
+            return (methodsContainer == null || methodName == null ? null : methodsContainer.get(methodName));
+        }
+        Map<String, Object> methodDict = this.safeDict(methodsContainer, methodName, null);
+        if (java.util.Objects.equals(methodDict, null))
+        {
+            return defaultValue;
         }
         List<Object> splited = new ArrayList<Object>(Arrays.asList(((String)paramName).split(java.util.regex.Pattern.quote(".")))); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = (splited == null || 0 >= splited.size() ? null : splited.get(0));
         String subKey = this.safeString(splited, 1);
-        if (!(((Map<?, ?>)methodDict).containsKey(parentKey)))
+        if (!(methodDict.containsKey(parentKey)))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
@@ -6268,20 +6268,20 @@ public Map<String, Object> describe()
         if (java.util.Objects.equals(dictionary, null))
         {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return Helpers.GetValue(methodDict, parentKey);
+            return (methodDict == null || parentKey == null ? null : methodDict.get(parentKey));
         } else
         {
             // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
             if (java.util.Objects.equals(subKey, null))
             {
-                return Helpers.GetValue(methodDict, parentKey);
+                return (methodDict == null || parentKey == null ? null : methodDict.get(parentKey));
             }
             // throw an exception for unsupported subKey
-            if (!((switch ((Object)(Helpers.GetValue(methodDict, parentKey))) { case List<?> j39v6 -> ((Object)(subKey)) != null && j39v6.contains(subKey); case Map<?, ?> j39v5 -> ((Object)(subKey)) instanceof String && j39v5.containsKey(subKey); case null, default -> false; })))
+            if (!((switch ((Object)((methodDict == null || parentKey == null ? null : methodDict.get(parentKey)))) { case List<?> j39v6 -> ((Object)(subKey)) != null && j39v6.contains(subKey); case Map<?, ?> j39v5 -> ((Object)(subKey)) instanceof String && j39v5.containsKey(subKey); case null, default -> false; })))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
-            return Helpers.GetValue(Helpers.GetValue(methodDict, parentKey), subKey);
+            return this.safeValue(dictionary, subKey);
         }
     }
 
@@ -6376,13 +6376,13 @@ public Map<String, Object> describe()
                 Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", (Object) null);
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
-                    Helpers.addElementToObject(currency, "deposit", deposit);
+                    currency.put("deposit", deposit);
                 }
                 Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", (Object) null);
                 Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", (Object) null);
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
-                    Helpers.addElementToObject(currency, "withdraw", withdraw);
+                    currency.put("withdraw", withdraw);
                 }
                 // find lowest fee (which is more desired)
                 String fee = this.safeString(network, "fee");
@@ -6788,7 +6788,7 @@ public Map<String, Object> describe()
                 debtBalance.put(code, this.parseNumber(debt));
                 entry.put("debt", (debtBalance == null || code == null ? null : debtBalance.get(code)));
             }
-            Helpers.addElementToObject(balance, code, this.extend((balances == null || code == null ? null : balances.get(code)), entry));
+            ((Map<String, Object>)balance).put(code, this.extend((balances == null || code == null ? null : balances.get(code)), entry));
         }
         ((Map<String, Object>)balance).put("free", freeBalance);
         ((Map<String, Object>)balance).put("used", usedBalance);
@@ -7967,16 +7967,12 @@ public Map<String, Object> describe()
             {
                 throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
             }
-            return (List<String>) symbols;
+            return null;
         }
         Integer symbolsLength = ((List<?>)symbols).size();
-        if (java.util.Objects.equals(symbolsLength, 0))
+        if ((java.util.Objects.equals(symbolsLength, 0)) && !java.util.Objects.requireNonNullElse(allowEmpty, true))
         {
-            if (!java.util.Objects.requireNonNullElse(allowEmpty, true))
-            {
-                throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
-            }
-            return (List<String>) symbols;
+            throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
         }
         List<String> result = new ArrayList<String>(Arrays.asList());
         String marketType = null;
@@ -8387,7 +8383,7 @@ public Map<String, Object> describe()
         if (java.util.Objects.equals(contractSize, null) && !java.util.Objects.equals(market, null))
         {
             contractSize = this.safeNumber(market, "contractSize", (Object) null);
-            Helpers.addElementToObject(position, "contractSize", contractSize);
+            position.put("contractSize", contractSize);
         }
         Boolean isInverse = (!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals(this.safeBool(market, "inverse", false));
         String side = this.safeString(position, "side");
@@ -8417,7 +8413,7 @@ public Map<String, Object> describe()
         }
         if (java.util.Objects.equals(marginString, null))
         {
-            Helpers.addElementToObject(position, "positionMargin", null); // keep the unified key present across all exchanges
+            position.put("positionMargin", null); // keep the unified key present across all exchanges
         }
         if ((java.util.Objects.equals(collateralString, null)) && (!java.util.Objects.equals(marginString, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)))
         {
@@ -9418,7 +9414,7 @@ public Map<String, Object> describe()
         {
             return (Map<String, Object>) (Helpers.GetValue(this.currencies_by_id, currencyId));
         }
-        Object code = currencyId;
+        String code = currencyId;
         if (!java.util.Objects.equals(currencyId, null))
         {
             code = this.commonCurrencyCode(((String)currencyId).toUpperCase());
@@ -10309,11 +10305,11 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object commonCurrencyCode(Object code)
+    public String commonCurrencyCode(Object code)
     {
         if (!this.substituteCommonCurrencyCodes)
         {
-            return code;
+            return (String) code;
         }
         return this.safeString(this.commonCurrencies, code, code);
     }
@@ -11405,8 +11401,8 @@ public Map<String, Object> describe()
         Integer numNetworks = networkKeys.size();
         if (java.util.Objects.equals(numNetworks, 1))
         {
-            Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "withdraw"));
-            Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "deposit"));
+            fee.put("withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "withdraw"));
+            fee.put("deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "deposit"));
             return fee;
         }
         String currencyCode = this.safeString(currency, "code");
@@ -11415,8 +11411,8 @@ public Map<String, Object> describe()
             Object network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
             if (java.util.Objects.equals(network, currencyCode))
             {
-                Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "withdraw"));
-                Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "deposit"));
+                fee.put("withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "withdraw"));
+                fee.put("deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "deposit"));
             }
         }
         return fee;

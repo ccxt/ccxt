@@ -1508,14 +1508,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> subscription = this.safeDict(client.subscriptions, channelId, new HashMap<String, Object>() {{}});
         String channel = this.safeString(subscription, "channel");
         String name = this.safeString(message, 1);
-        Map<String, Object> publicMethods = new HashMap<String, Object>() {{
+        Map<String, String> publicMethods = new HashMap<String, String>() {{
             put( "book", "handleOrderBook");
             put( "cs", "handleChecksum");
             put( "candles", "handleOHLCV");
             put( "ticker", "handleTicker");
             put( "trades", "handleTrades");
         }};
-        Map<String, Object> privateMethods = new HashMap<String, Object>() {{
+        Map<String, String> privateMethods = new HashMap<String, String>() {{
             put( "os", "handleOrders");
             put( "ou", "handleOrders");
             put( "on", "handleOrders");
@@ -1524,17 +1524,28 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "ws", "handleBalance");
             put( "tu", "handleMyTrade");
         }};
-        Object method = null;
+        String method = null;
         if (java.util.Objects.equals(channelId, "0"))
         {
-            method = this.safeValue(privateMethods, name);
+            method = privateMethods.get(name);
         } else
         {
-            method = this.safeValue2(publicMethods, name, channel);
+            method = (publicMethods.get(name) != null ? publicMethods.get(name) : publicMethods.get(channel));
         }
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, message, subscription);
+                case "handleChecksum" -> this.handleChecksum(client, message, subscription);
+                case "handleMyTrade" -> this.handleMyTrade(client, message, subscription);
+                case "handleOHLCV" -> this.handleOHLCV(client, message, subscription);
+                case "handleOrderBook" -> this.handleOrderBook(client, message, subscription);
+                case "handleOrders" -> this.handleOrders(client, message, subscription);
+                case "handleTicker" -> this.handleTicker(client, message, subscription);
+                case "handleTrades" -> this.handleTrades(client, message, subscription);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 3 args on " + this.getClass().getName());
+            }
         }
     }
 

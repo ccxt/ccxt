@@ -4146,12 +4146,16 @@ public class Bybit extends BybitApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Map<String, Object> symbolMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-                market = symbolMarket;
-                Integer symbolsLength = symbolsNormalized.size();
-                if (java.util.Objects.equals(symbolsLength, 1))
+                Integer normalizedLength = symbolsNormalized.size();
+                if ((normalizedLength != null && normalizedLength > 0))
                 {
-                    request.put("symbol", symbolMarket.get("id"));
+                    Map<String, Object> symbolMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    market = symbolMarket;
+                    Integer symbolsLength = symbolsNormalized.size();
+                    if (java.util.Objects.equals(symbolsLength, 1))
+                    {
+                        request.put("symbol", symbolMarket.get("id"));
+                    }
                 }
             }
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchFundingRates", market, parameters, (String) null);

@@ -3071,9 +3071,9 @@ public class Polymarket extends PolymarketApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, Object privateKey)
     {
-        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         String r = (String) signature.get("r");
         String sVal = (String) signature.get("s");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
@@ -3082,7 +3082,7 @@ public class Polymarket extends PolymarketApi
 
     public String signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), privateKey);
+        return this.signHash((String) (this.hashMessage(message)), privateKey);
     }
 
     /**
