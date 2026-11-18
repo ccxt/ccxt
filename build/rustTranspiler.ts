@@ -8795,11 +8795,7 @@ export class RustTranspilerBuilder {
     /// as a trait default reachable by every Core (used across the base +
     /// derived exchanges).
     fn is_dictionary(&self, value: crate::Value) -> crate::Value {
-        crate::Value::Bool(
-            !crate::runtime::is_equal(&value, &crate::Value::Null)
-            && crate::runtime::is_object(&value)
-            && !crate::runtime::is_array(&value)
-        )
+        crate::Value::Bool(value.is_map())
     }
 
 `;

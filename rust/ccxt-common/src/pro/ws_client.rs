@@ -1485,10 +1485,7 @@ mod tests {
 
         // Field snapshots the transpiled code reads off the client handle.
         let subs = client.subscriptions_value();
-        assert!(crate::runtime::is_true(&crate::get_value(
-            &subs,
-            &Value::Str("ticker:BTC/USDT".into())
-        )));
+        assert!(crate::get_value(&subs, &Value::Str("ticker:BTC/USDT".into())).is_truthy());
 
         drop_client(&url);
     }

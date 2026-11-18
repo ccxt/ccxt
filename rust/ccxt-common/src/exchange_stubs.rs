@@ -1187,14 +1187,13 @@ impl Exchange {
 
     pub fn add_fetch_cache(&self, data: Value) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
-        if crate::runtime::is_less_than_or_equal(&me.fetchHistoryCacheSize, &Value::Int(0)) {
+        // the size is only ever an Int / Float and the cache a list (constructor + apply_config)
+        let size = me.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN);
+        if size <= 0.0 {
             return;
         }
-        while crate::runtime::is_greater_than_or_equal(
-            &crate::runtime::get_array_length(&me.fetchHistoryCache),
-            &me.fetchHistoryCacheSize,
-        ) {
-            crate::runtime::remove(&mut me.fetchHistoryCache, &Value::Int(0));
+        while (me.fetchHistoryCache.len() as f64) >= size {
+            if let Value::Arr(a) = &mut me.fetchHistoryCache { Arc::make_mut(a).remove(0); }
         }
         crate::runtime::append_to_array(&mut me.fetchHistoryCache, data);
     }
