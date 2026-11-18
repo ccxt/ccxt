@@ -6702,6 +6702,9 @@ function goTernaryAnyArmType (arm: string, fn: string): string | undefined {
         if (/^SafeString(?:Lower|Upper)?(?:2|N|LowerN|UpperN)?$/.test (call[1])) { return '*string'; }
         if (/^SafeInteger(?:2|N)?$/.test (call[1])) { return '*int64'; }
     }
+    // Omit of a map[string]any operand always yields a fresh map: the arm is printed as OmitDict
+    const omit = /^(?:this|exchange)\.Omit\((\w+), [^()]*\)$/.exec (arm);
+    if (omit && (goTernaryAnyArmType (omit[1], fn) === 'map[string]any')) { return 'omitdict'; }
     if (!/^\w+$/.test (arm)) { return undefined; }
     const decls = fn.match (new RegExp ('\\bvar ' + arm + ' ([^\\s=]+)(?: =|\\n)', 'g')) ?? [];
     if (decls.length === 1) {
@@ -6728,6 +6731,10 @@ function goTernaryAnyTyped (content: string): string {
         if ((ta === undefined) || (tb === undefined)) { return m; }
         let t: string | undefined = undefined;
         if ((ta === tb) && (ta !== 'nil') && (ta !== 'intlit')) { t = ta; } else if ((ta === 'intlit') && (tb === 'int64')) { a = 'int64(' + a + ')'; t = tb; } else if ((tb === 'intlit') && (ta === 'int64')) { b = 'int64(' + b + ')'; t = ta; }
+        const od = (v: string) => v.replace (/^(this|exchange)\.Omit\(/, '$1.OmitDict(');
+        if (ta === 'omitdict') { a = od (a); }
+        if (tb === 'omitdict') { b = od (b); }
+        if (((ta === 'omitdict') || (tb === 'omitdict')) && [ ta, tb ].every ((x) => (x === 'omitdict') || (x === 'map[string]any'))) { t = 'map[string]any'; }
         if (t === undefined) { return m; }
         // the box is read only as a plain operand: no compare, assertion, address, index or later write
         const rest = fn.split (m).join ('');
@@ -6746,9 +6753,10 @@ function goTernaryAnyTypedCheck (): string[] {
     const problems: string[] = [];
     const ok = f (iife ('o', 'map[string]any{}', 'r') + '\treturn this.ParseOrder(o)\n');
     if (!ok.includes ('\tvar o map[string]any\n\tif r == nil {\n\t\to = map[string]any{}\n\t} else {\n\t\to = r\n\t}\n')) { problems.push ('ternary any typed: ' + ok); }
+    if (!f (iife ('o', 'this.Omit(r, []any{\"a\"})', 'r') + '\treturn this.M(o)\n').includes ('var o map[string]any\n\tif r == nil {\n\t\to = this.OmitDict(r, []any{\"a\"})\n')) { problems.push ('ternary any typed: OmitDict'); }
     if (!f (iife ('s', 'this.SafeString(r, \"a\")', 'this.SafeStringUpper(r, \"b\")') + '\treturn this.M(s)\n').includes ('var s *string\n')) { problems.push ('ternary any typed: *string'); }
     for (const keep of [ iife ('o', 'map[string]any{}', 'p') + '\treturn o\n', iife ('o', 'e', 'nil') + '\treturn map[string]any{\"e\": o}\n',
-        iife ('o', 'map[string]any{}', 'r') + '\tif o == nil {\n\t}\n\treturn nil\n', iife ('o', '1', 'e') + '\treturn o\n', iife ('o', 'e', 'e') + '\to = nil\n\treturn nil\n' ]) {
+        iife ('o', 'map[string]any{}', 'r') + '\tif o == nil {\n\t}\n\treturn nil\n', iife ('o', '1', 'e') + '\treturn o\n', iife ('o', 'e', 'e') + '\to = nil\n\treturn nil\n', iife ('o', 'this.Omit(p, \"a\")', 'r') + '\treturn this.M(o)\n' ]) {
         if (f (keep) !== head + 'func (this *K) F(r map[string]any, e *int64, p any) any {\n' + keep + '}\n') { problems.push ('ternary any typed kept: ' + f (keep)); }
     }
     return problems;
