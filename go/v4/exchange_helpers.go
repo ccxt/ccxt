@@ -3240,6 +3240,12 @@ func (r AsyncResult[T]) Typed() T {
 	return r.Value
 }
 
+// MapPair is the async result of a (value, params) pair method: V the value, P the params.
+type MapPair[T any] struct {
+	V T
+	P map[string]any
+}
+
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
 // delivered, Value its typed view (zero on shape mismatch), Err the failure.
 type EndpointResult[T any] struct {
