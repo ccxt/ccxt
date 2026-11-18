@@ -221,8 +221,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
-            Helpers.addElementToObject(ticker, "timestamp", timestamp);
-            Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
+            ((Map<String, Object>)ticker).put("timestamp", timestamp);
+            ((Map<String, Object>)ticker).put("datetime", this.iso8601(timestamp));
         } else if (!java.util.Objects.equals(rawTicker, null))
         {
             ticker = this.parseTicker(rawTicker, market);
@@ -1612,7 +1612,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Long sendTime = this.safeInteger(message, "sendTime");
             if (!java.util.Objects.equals(sendTime, null))
             {
-                Helpers.addElementToObject(parsed, "lastTradeTimestamp", sendTime);
+                ((Map<String, Object>)parsed).put("lastTradeTimestamp", sendTime);
             }
         } else if (!java.util.Objects.equals(data, null))
         {

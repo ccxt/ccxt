@@ -10981,7 +10981,7 @@ public class Bybit extends BybitApi
             last.put("info", new HashMap<String, Object>() {{
         put( "nextPageCursor", cursorValue );
     }});
-            Helpers.addElementToObject(result, lastIndex, last);
+            result.set((int) (long) (lastIndex), last);
             return this.toArray(result);
         });
 

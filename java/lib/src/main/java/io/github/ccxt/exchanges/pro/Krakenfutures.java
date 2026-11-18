@@ -963,7 +963,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                 }
                 ((List<Object>)previousOrder.get("trades")).add(trade);
-                Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
+                previousOrder.put("lastTradeTimestamp", trade.get("timestamp"));
                 String totalCost = "0";
                 String totalAmount = "0";
                 List<Object> trades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -975,16 +975,16 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 if (Precise.stringGt(totalAmount, "0"))
                 {
-                    Helpers.addElementToObject(previousOrder, "average", Precise.stringDiv(totalCost, totalAmount));
+                    previousOrder.put("average", Precise.stringDiv(totalCost, totalAmount));
                 }
-                Helpers.addElementToObject(previousOrder, "cost", totalCost);
+                previousOrder.put("cost", totalCost);
                 String filledString = this.numberToString(trade.get("amount"));
                 String stringOrderFilled = this.safeString(previousOrder, "filled", "0");
                 String totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
-                Helpers.addElementToObject(previousOrder, "filled", totalFilled);
+                previousOrder.put("filled", totalFilled);
                 String prevAmountString = this.safeString(previousOrder, "amount");
                 String remaining = Precise.stringSub(prevAmountString, totalFilled);
-                Helpers.addElementToObject(previousOrder, "remaining", remaining);
+                previousOrder.put("remaining", remaining);
                 if (java.util.Objects.equals(previousOrder.get("fee"), null))
                 {
                     previousOrder.put("fee", new HashMap<String, Object>() {{

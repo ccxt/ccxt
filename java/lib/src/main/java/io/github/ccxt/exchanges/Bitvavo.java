@@ -3217,7 +3217,7 @@ public class Bitvavo extends BitvavoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noMarket")) && !((switch ((Object)(parameters)) { case List<?> j39v3 -> j39v3.contains("market"); case Map<?, ?> j39v2 -> j39v2.containsKey("market"); case null, default -> false; })))
+        if ((config.containsKey("noMarket")) && !(((Map<?, ?>)parameters).containsKey("market")))
         {
             return config.get("noMarket");
         }

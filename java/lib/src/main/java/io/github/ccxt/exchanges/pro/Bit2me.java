@@ -139,8 +139,8 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + market.get("symbol"));
-            Object orderbook = (this.subscribePublic("order-book", (String) (symbol), messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic("order-book", (String) (symbol), messageHash, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -600,7 +600,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             request.put("clientOrderId", clientOrderId);
             // the response carries no request id, it is matched by the client order id, and an error only by the symbol
             Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(pending, clientOrderId, market.get("id"));
+            pending.put(clientOrderId, market.get("id"));
             this.options.put("pendingWsOrders", pending);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("added-order:" + clientOrderId);

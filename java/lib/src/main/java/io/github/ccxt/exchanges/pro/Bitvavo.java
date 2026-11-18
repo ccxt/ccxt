@@ -960,7 +960,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Boolean watchingOrderBookSnapshot = (Boolean) this.safeBool(subscription, flagKey, (Object) null);
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
-                Helpers.addElementToObject(subscription, flagKey, true);
+                ((Map<String, Object>)subscription).put(flagKey, true);
                 client.subscriptions.put(messageHash, subscription);
                 Map<String, Object> options = this.safeDict(this.options, "watchOrderBookSnapshot", new HashMap<String, Object>() {{}});
                 Long delay = this.safeInteger(options, "delay", this.rateLimit);
@@ -1070,7 +1070,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedLimit, limit)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-            Helpers.addElementToObject(limits, symbol, limit);
+            limits.put(symbol, limit);
             this.options.put("orderBookLimits", limits);
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
@@ -2129,18 +2129,22 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         Map<String, Object> subscriptions = this.safeDict(message, "subscriptions", new HashMap<String, Object>() {{}});
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
         List<String> names = new ArrayList<String>(subscriptions.keySet());
         for (var i = 0; i < names.size(); i++)
         {
             String name = (names == null || i < 0 || i >= names.size() ? null : names.get(i));
-            Object method = this.safeValue(methods, name);
+            String method = methods.get(name);
             if (!java.util.Objects.equals(method, null))
             {
                 Object subscription = this.safeValue(subscriptions, name);
-                Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+                switch (method)
+                {
+                    case "handleOrderBookSubscriptions" -> this.handleOrderBookSubscriptions(client, message, subscription);
+                    case null, default -> throw new RuntimeException("Method not found: " + method + " with 3 args on " + this.getClass().getName());
+                }
             }
         }
         return message;

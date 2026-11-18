@@ -301,7 +301,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "timestamp", timestamp );
         }}), market);
         ticker.put("symbol", market.get("symbol"));
-        Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
+        this.tickers.put((String)market.get("symbol"), ticker);
         client.resolve(ticker, topic);
         return message;
     }
@@ -370,7 +370,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}), market);
-            Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
+            this.tickers.put((String)market.get("symbol"), ticker);
             ((List<Object>)result).add(ticker);
         }
         client.resolve(result, topic);
@@ -1578,7 +1578,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "ping", "handlePing");
             put( "pong", "handlePong");
             put( "subscribe", "handleSubscribe");
@@ -1595,19 +1595,51 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             put( "bbos", "handleBidAsk");
         }};
         String eventVar = this.safeString(message, "event");
-        Object method = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleAuth" -> this.handleAuth(client, message);
+                case "handleBalance" -> this.handleBalance(client, message);
+                case "handleBidAsk" -> this.handleBidAsk(client, message);
+                case "handleOHLCV" -> this.handleOHLCV(client, message);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleOrderUpdate" -> this.handleOrderUpdate(client, message);
+                case "handlePing" -> this.handlePing(client, message);
+                case "handlePong" -> this.handlePong(client, message);
+                case "handlePositions" -> this.handlePositions(client, message);
+                case "handleSubscribe" -> this.handleSubscribe(client, message);
+                case "handleTicker" -> this.handleTicker(client, message);
+                case "handleTickers" -> this.handleTickers(client, message);
+                case "handleTrade" -> this.handleTrade(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
             return;
         }
         String topic = this.safeString(message, "topic");
         if (!java.util.Objects.equals(topic, null))
         {
-            method = this.safeValue(methods, topic);
+            method = methods.get(topic);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                switch (method)
+                {
+                    case "handleAuth" -> this.handleAuth(client, message);
+                    case "handleBalance" -> this.handleBalance(client, message);
+                    case "handleBidAsk" -> this.handleBidAsk(client, message);
+                    case "handleOHLCV" -> this.handleOHLCV(client, message);
+                    case "handleOrderBook" -> this.handleOrderBook(client, message);
+                    case "handleOrderUpdate" -> this.handleOrderUpdate(client, message);
+                    case "handlePing" -> this.handlePing(client, message);
+                    case "handlePong" -> this.handlePong(client, message);
+                    case "handlePositions" -> this.handlePositions(client, message);
+                    case "handleSubscribe" -> this.handleSubscribe(client, message);
+                    case "handleTicker" -> this.handleTicker(client, message);
+                    case "handleTickers" -> this.handleTickers(client, message);
+                    case "handleTrade" -> this.handleTrade(client, message);
+                    case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+                }
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
@@ -1619,10 +1651,26 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 {
                     return;
                 }
-                method = this.safeValue(methods, name);
+                method = methods.get(name);
                 if (!java.util.Objects.equals(method, null))
                 {
-                    Helpers.callDynamically(this, method, new Object[] {client, message});
+                    switch (method)
+                    {
+                        case "handleAuth" -> this.handleAuth(client, message);
+                        case "handleBalance" -> this.handleBalance(client, message);
+                        case "handleBidAsk" -> this.handleBidAsk(client, message);
+                        case "handleOHLCV" -> this.handleOHLCV(client, message);
+                        case "handleOrderBook" -> this.handleOrderBook(client, message);
+                        case "handleOrderUpdate" -> this.handleOrderUpdate(client, message);
+                        case "handlePing" -> this.handlePing(client, message);
+                        case "handlePong" -> this.handlePong(client, message);
+                        case "handlePositions" -> this.handlePositions(client, message);
+                        case "handleSubscribe" -> this.handleSubscribe(client, message);
+                        case "handleTicker" -> this.handleTicker(client, message);
+                        case "handleTickers" -> this.handleTickers(client, message);
+                        case "handleTrade" -> this.handleTrade(client, message);
+                        case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+                    }
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
@@ -1630,10 +1678,26 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {
                     String splitNameFirst = this.safeString(splitName, 0);
-                    method = (((java.util.Objects.equals(splitNameFirst, null)))) ? null : this.safeValue(methods, splitNameFirst);
+                    method = methods.get(splitNameFirst);
                     if (!java.util.Objects.equals(method, null))
                     {
-                        Helpers.callDynamically(this, method, new Object[] {client, message});
+                        switch (method)
+                        {
+                            case "handleAuth" -> this.handleAuth(client, message);
+                            case "handleBalance" -> this.handleBalance(client, message);
+                            case "handleBidAsk" -> this.handleBidAsk(client, message);
+                            case "handleOHLCV" -> this.handleOHLCV(client, message);
+                            case "handleOrderBook" -> this.handleOrderBook(client, message);
+                            case "handleOrderUpdate" -> this.handleOrderUpdate(client, message);
+                            case "handlePing" -> this.handlePing(client, message);
+                            case "handlePong" -> this.handlePong(client, message);
+                            case "handlePositions" -> this.handlePositions(client, message);
+                            case "handleSubscribe" -> this.handleSubscribe(client, message);
+                            case "handleTicker" -> this.handleTicker(client, message);
+                            case "handleTickers" -> this.handleTickers(client, message);
+                            case "handleTrade" -> this.handleTrade(client, message);
+                            case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+                        }
                     }
                 }
             }

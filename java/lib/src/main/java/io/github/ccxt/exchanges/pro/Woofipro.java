@@ -293,7 +293,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         data.put("date", timestamp);
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         ticker.put("symbol", market.get("symbol"));
-        Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
+        this.tickers.put((String)market.get("symbol"), ticker);
         client.resolve(ticker, topic);
         return message;
     }
@@ -362,7 +362,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
-            Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
+            this.tickers.put((String)market.get("symbol"), ticker);
             ((List<Object>)result).add(ticker);
         }
         client.resolve(result, topic);

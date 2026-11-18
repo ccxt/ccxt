@@ -1255,10 +1255,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 account = this.account();
             }
             // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
-            Helpers.addElementToObject(account, "total", this.safeString(entry, "new_balance"));
+            account.put("total", this.safeString(entry, "new_balance"));
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
-            Helpers.addElementToObject(account, "free", null);
-            Helpers.addElementToObject(account, "used", null);
+            account.put("free", null);
+            account.put("used", null);
             subBalance.put(code, account);
             updated = true;
         }

@@ -13945,7 +13945,7 @@ public class Kucoin extends KucoinApi
                 headersBase.put("Content-Type", "application/json");
             }
         }
-        Object headersResult = headersBase;
+        Map<String, Object> headersResult = headersBase;
         Boolean isFuturePrivate = (java.util.Objects.equals(apiName, "futuresPrivate"));
         Boolean isPrivate = (java.util.Objects.equals(apiName, "private"));
         Boolean isBroker = (java.util.Objects.equals(apiName, "broker"));

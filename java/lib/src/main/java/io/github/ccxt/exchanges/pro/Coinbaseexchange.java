@@ -665,11 +665,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         if (!java.util.Objects.equals(makerFeeRate, null))
         {
             isMaker = true;
-            parsed.put("takerOrMaker", "maker");
+            ((Map<String, Object>)parsed).put("takerOrMaker", "maker");
             feeRate = makerFeeRate;
         } else
         {
-            parsed.put("takerOrMaker", "taker");
+            ((Map<String, Object>)parsed).put("takerOrMaker", "taker");
             feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
@@ -698,7 +698,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         mapLiteral1.put("rate", this.parseNumber(feeRate));
         mapLiteral1.put("cost", this.parseNumber(feeCost));
         mapLiteral1.put("currency", feeCurrency);
-        parsed.put("fee", mapLiteral1);
+        ((Map<String, Object>)parsed).put("fee", mapLiteral1);
         return (Trade) parsed;
     }
 
@@ -838,7 +838,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         List<Object> previousTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)previousTrades).add(trade);
                         previousOrder.put("trades", previousTrades);
-                        Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
+                        previousOrder.put("lastTradeTimestamp", trade.get("timestamp"));
                         String totalCost = "0";
                         String totalAmount = "0";
                         for (var i = 0; i < previousTrades.size(); i++)
@@ -888,7 +888,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                             if (!java.util.Objects.equals((order == null || key == null ? null : order.get(key)), null))
                             {
-                                Helpers.addElementToObject(previousOrder, key, (order == null || key == null ? null : order.get(key)));
+                                previousOrder.put(key, (order == null || key == null ? null : order.get(key)));
                             }
                         }
                         // update the newUpdates count

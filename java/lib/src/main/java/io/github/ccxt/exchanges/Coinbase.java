@@ -820,7 +820,7 @@ public class Coinbase extends CoinbaseApi
             {
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                 mapLiteral1.put("next_starting_after", cursor);
-                Helpers.addElementToObject(accounts, lastIndex, this.extend(this.safeDict(accounts, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral1));
+                accounts.set((int) (long) (lastIndex), this.extend(this.safeDict(accounts, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral1));
             }
             return this.parseAccounts(data, paramsPaginate);
         });
@@ -885,7 +885,7 @@ public class Coinbase extends CoinbaseApi
                 Long lastIndex = (((long) accountsLength) - 1L);
                 HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                 mapLiteral2.put("cursor", cursor);
-                Helpers.addElementToObject(accounts, lastIndex, this.extend(this.safeDict(accounts, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral2));
+                accounts.set((int) (long) (lastIndex), this.extend(this.safeDict(accounts, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral2));
             }
             return this.parseAccounts(accounts, paramsPaginate);
         });
@@ -3176,7 +3176,7 @@ public class Coinbase extends CoinbaseApi
                     Map<String, Object> lastInfo = this.safeDict(last, "info", new HashMap<String, Object>() {{}});
                     lastInfo.put("next_starting_after", cursor);
                     last.put("info", lastInfo);
-                    Helpers.addElementToObject(ledger, lastIndex, last);
+                    ledger.set((int) (long) (lastIndex), last);
                 }
             }
             return this.toArray(ledger);

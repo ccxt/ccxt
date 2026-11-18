@@ -435,7 +435,7 @@ public class Binance extends BinanceApi
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -443,9 +443,9 @@ public class Binance extends BinanceApi
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
             if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+                this.requireEventQuery(parameters);
             }
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(parameters);
             // binance has no tag taxonomy — resolve requested tags through the semantic search too
             List<Object> tags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer tagsLength = tags.size();
@@ -459,7 +459,7 @@ public class Binance extends BinanceApi
                 ((List<Object>)allQueries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
             }
             Integer allQueriesLength = allQueries.size();
-            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             // keys dropped before the client-side pass; a server-side sort also drops its own keys
             List<Object> postOmitKeys = new ArrayList<Object>(Arrays.asList("tags", "l1Category", "l2Category"));
             Long userLimit = this.safeInteger(paramsOmitted, "limit");
@@ -468,7 +468,7 @@ public class Binance extends BinanceApi
             {
                 fetchCap = userLimit;
             }
-            Object rest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category")));
+            Map<String, Object> rest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category")));
             String eventId = this.safeString(paramsOmitted, "eventId");
             String l1Category = this.safeString(paramsOmitted, "l1Category");
             String l2Category = this.safeString(paramsOmitted, "l2Category");
@@ -479,10 +479,10 @@ public class Binance extends BinanceApi
             List<Object> rawTopics = new ArrayList<Object>(Arrays.asList());
             if ((allQueriesLength != null && allQueriesLength > 0))
             {
-                rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+                rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, rest)).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Map<String, Object> detail = (this.fetchRawTopicDetail((String) (eventId), ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+                Map<String, Object> detail = (this.fetchRawTopicDetail((String) (eventId), rest)).join();
                 rawTopics = new ArrayList<Object>(Arrays.asList(detail));
             } else
             {
@@ -542,8 +542,8 @@ public class Binance extends BinanceApi
             // scoping already happened server-side: the tag filter needs an event-level tags field
             // binance topics lack, and the query filter would drop semantic-search matches whose
             // title uses different words than the query
-            Object postParams = this.omit(paramsOmitted, postOmitKeys);
-            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> postParams = this.omit(paramsOmitted, postOmitKeys);
+            return this.applyEventFetchParams(result, postParams, new ArrayList<Object>(Arrays.asList()));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }

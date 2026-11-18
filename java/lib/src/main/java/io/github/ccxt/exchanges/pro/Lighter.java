@@ -1346,8 +1346,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             balance.put("USDC", account);
         }
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(balance, "timestamp", timestamp);
-        Helpers.addElementToObject(balance, "datetime", this.iso8601(timestamp));
+        balance.put("timestamp", timestamp);
+        balance.put("datetime", this.iso8601(timestamp));
         this.balance.put(type, this.safeBalance(balance));
         String messageHash = this.getMessageHash("balances", (String) null, type);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);

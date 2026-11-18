@@ -539,7 +539,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         wsInnerOptions.put("headers", headers);
         // instantiate client
         this.client(url);
-        Helpers.addElementToObject(wsInnerOptions, "headers", originalHeaders);
+        wsInnerOptions.put("headers", originalHeaders);
     }
 
     /**

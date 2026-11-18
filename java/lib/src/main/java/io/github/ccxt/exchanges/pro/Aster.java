@@ -2274,7 +2274,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             } else
                             {
                                 order.put("fees", new ArrayList<Object>(Arrays.asList(fee, tradeFee)));
-                                Helpers.addElementToObject(order, "fee", null);
+                                order.put("fee", null);
                             }
                         } else
                         {

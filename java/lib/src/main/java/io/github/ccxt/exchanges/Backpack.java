@@ -1306,7 +1306,7 @@ public class Backpack extends BackpackApi
             request.put("side", this.encodeOrderSide((String) (side)));
             request.put("quantity", this.numberToString(amount));
             String requestMethod = "publicGetApiV1StockIndicativeQuote";
-            return ((CompletableFuture<Object>)Helpers.callDynamically(this, requestMethod, new Object[] { this.extend(query, request) })).join();
+            return (this.publicGetApiV1StockIndicativeQuote(this.extend(query, request))).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
     }

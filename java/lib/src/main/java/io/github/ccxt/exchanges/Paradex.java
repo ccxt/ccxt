@@ -1503,7 +1503,8 @@ public class Paradex extends ParadexApi
                 Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    target = ((String)((Map<String, Object>)this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)))).get("id"));
+                    Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+                    target = ((String)market.get("id"));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -3000,7 +3001,7 @@ public class Paradex extends ParadexApi
             {
                 Map<String, Object> first = (Map<String, Object>) (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
                 first.put("next", paginationCursor);
-                Helpers.addElementToObject(orders, 0, first);
+                orders.set(0, first);
             }
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

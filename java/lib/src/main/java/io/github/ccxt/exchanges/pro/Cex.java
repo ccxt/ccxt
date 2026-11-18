@@ -902,15 +902,15 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             order = this.parseWsOrderUpdate(data, market);
         }
-        Helpers.addElementToObject(order, "remaining", remains);
+        ((Map<String, Object>)order).put("remaining", remains);
         Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
         if (Boolean.TRUE.equals(canceled))
         {
-            Helpers.addElementToObject(order, "status", "canceled");
+            ((Map<String, Object>)order).put("status", "canceled");
         }
         if (Boolean.TRUE.equals(isTransaction))
         {
-            Helpers.addElementToObject(order, "status", "closed");
+            ((Map<String, Object>)order).put("status", "closed");
         }
         Double fee = this.safeNumber(data, "fee", (Object) null);
         if (!java.util.Objects.equals(fee, null))
@@ -919,11 +919,11 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             mapLiteral4.put("cost", fee);
             mapLiteral4.put("currency", quote);
             mapLiteral4.put("rate", null);
-            Helpers.addElementToObject(order, "fee", mapLiteral4);
+            ((Map<String, Object>)order).put("fee", mapLiteral4);
         }
         Long timestamp = this.safeInteger(data, "time");
-        Helpers.addElementToObject(order, "timestamp", timestamp);
-        Helpers.addElementToObject(order, "datetime", this.iso8601(timestamp));
+        ((Map<String, Object>)order).put("timestamp", timestamp);
+        ((Map<String, Object>)order).put("datetime", this.iso8601(timestamp));
         order = this.safeOrder((Map<String, Object>) (order), (Map<String, Object>) null);
         storedOrders.append(order);
         String messageHash = ("orders:" + symbol);

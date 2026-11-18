@@ -2494,7 +2494,8 @@ public class Htx extends HtxApi
 
     public String costToPrecision(Object symbol, Object cost)
     {
-        return this.decimalToPrecision(cost, TRUNCATE, ((Map<String, Object>)((Map<String, Object>)this.market(symbol)).get("precision")).get("cost"), this.precisionMode);
+        Map<String, Object> market = this.market(symbol);
+        return this.decimalToPrecision(cost, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("cost"), this.precisionMode);
     }
 
     /**
@@ -5160,11 +5161,11 @@ public class Htx extends HtxApi
         }
         if (java.util.Objects.equals(this.safeString(balance, "type"), "trade"))
         {
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
+            account.put("free", this.safeString(balance, "balance"));
         }
         if (java.util.Objects.equals(this.safeString(balance, "type"), "frozen"))
         {
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "balance"));
+            account.put("used", this.safeString(balance, "balance"));
         }
         return account;
     }
@@ -8944,7 +8945,7 @@ public class Htx extends HtxApi
                 for (var i = 0; i < result.size(); i++)
                 {
                     Map<String, Object> entry = (Map<String, Object>) (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                    Helpers.addElementToObject(entry, "current_page", cursor);
+                    entry.put("current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
                     Long timestamp = this.safeInteger(entry, "funding_time");

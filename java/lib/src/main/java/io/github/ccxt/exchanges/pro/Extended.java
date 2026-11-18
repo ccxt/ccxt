@@ -881,7 +881,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             return;
         }
-        Helpers.addElementToObject(subscription, "nonce", nonce);
+        subscription.put("nonce", nonce);
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
@@ -1005,7 +1005,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             return;
         }
-        Helpers.addElementToObject(subscription, "nonce", nonce);
+        ((Map<String, Object>)subscription).put("nonce", nonce);
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {

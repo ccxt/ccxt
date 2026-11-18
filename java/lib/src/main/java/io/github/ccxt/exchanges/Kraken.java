@@ -1633,7 +1633,7 @@ public class Kraken extends KrakenApi
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = (result == null || key == null ? null : result.get(key));
-                Helpers.addElementToObject(value, "id", key);
+                ((Map<String, Object>)value).put("id", key);
                 ((List<Object>)items).add(value);
             }
             return this.parseLedger(items, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -1874,7 +1874,7 @@ public class Kraken extends KrakenApi
             Object lastTrade = (trades == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= trades.size() ? null : trades.get(((int) (((long) length) - 1L))));
             String lastTradeId = this.safeString(result, "last");
             ((List<Object>)lastTrade).add(lastTradeId);
-            Helpers.addElementToObject(trades, (((long) length) - 1L), lastTrade);
+            trades.set((int) (long) ((((long) length) - 1L)), lastTrade);
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3830,7 +3830,7 @@ public class Kraken extends KrakenApi
         {
             Object last = (data == null || ((int) (((long) dataLength) - 1L)) < 0 || ((int) (((long) dataLength) - 1L)) >= data.size() ? null : data.get(((int) (((long) dataLength) - 1L))));
             ((Map<String, Object>)last).put("next_cursor", cursor);
-            data.set((int) (((long) dataLength) - 1L), last);
+            data.set((int) (long) ((((long) dataLength) - 1L)), last);
         }
         return data;
     }

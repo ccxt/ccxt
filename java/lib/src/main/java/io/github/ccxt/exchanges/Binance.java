@@ -16560,18 +16560,18 @@ public class Binance extends BinanceApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v24 -> j39v24.contains("coin"); case Map<?, ?> j39v23 -> j39v23.containsKey("coin"); case null, default -> false; })))
+        if ((config.containsKey("noCoin")) && !(((Map<?, ?>)parameters).containsKey("coin")))
         {
             return config.get("noCoin");
-        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v22 -> j39v22.contains("symbol"); case Map<?, ?> j39v21 -> j39v21.containsKey("symbol"); case null, default -> false; })))
+        } else if ((config.containsKey("noSymbol")) && !(((Map<?, ?>)parameters).containsKey("symbol")))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v20 -> j39v20.contains("poolId"); case Map<?, ?> j39v19 -> j39v19.containsKey("poolId"); case null, default -> false; })))
+        } else if ((config.containsKey("noPoolId")) && !(((Map<?, ?>)parameters).containsKey("poolId")))
         {
             return config.get("noPoolId");
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v18 -> j39v18.contains("limit"); case Map<?, ?> j39v17 -> j39v17.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && (((Map<?, ?>)parameters).containsKey("limit")))
         {
-            Object limit = Helpers.GetValue(parameters, "limit");
+            Object limit = ((Map<String, Object>)parameters).get("limit");
             // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
             List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < byLimit.size(); i++)
@@ -16652,7 +16652,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
-            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v25 = new HashMap<String, Object>(); j39v25.put("code", code); yield j39v25; } }));
+            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v17 = new HashMap<String, Object>(); j39v17.put("code", code); yield j39v17; } }));
         });
 
     }

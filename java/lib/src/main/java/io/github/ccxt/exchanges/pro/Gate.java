@@ -2187,7 +2187,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 if (java.util.Objects.equals(status, null))
                 {
                     String left = this.safeString(info, "left");
-                    Helpers.addElementToObject(parsed, "status", ((Precise.stringEquals(left, "0"))) ? "closed" : "canceled");
+                    parsed.put("status", ((Precise.stringEquals(left, "0"))) ? "closed" : "canceled");
                 }
             }
             stored.append(parsed);
@@ -2553,7 +2553,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "balance", "handleBalanceSubscription");
             put( "spot.order_book_update", "handleOrderBookSubscription");
             put( "futures.order_book_update", "handleOrderBookSubscription");
@@ -2568,8 +2568,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             String subscriptionHash = this.safeString(client.subscriptions, id);
             Object subscription = this.safeValue(client.subscriptions, subscriptionHash);
-            Object method = (methods == null || channel == null ? null : methods.get(channel));
-            Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+            String method = (methods == null || channel == null ? null : methods.get(channel));
+            switch (method)
+            {
+                case "handleBalanceSubscription" -> this.handleBalanceSubscription(client, message, subscription);
+                case "handleOrderBookSubscription" -> this.handleOrderBookSubscription(client, message, subscription);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 3 args on " + this.getClass().getName());
+            }
         }
         if (client.subscriptions.containsKey(id))
         {

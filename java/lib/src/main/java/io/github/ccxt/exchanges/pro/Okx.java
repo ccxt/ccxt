@@ -2393,7 +2393,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
-                Helpers.addElementToObject(shortPosition, "side", "short");
+                ((Map<String, Object>)shortPosition).put("side", "short");
                 cache.append(shortPosition);
                 ((List<Object>)newPositions).add(shortPosition);
             }

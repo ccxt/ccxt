@@ -342,8 +342,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String symbol = this.safeString(ticker, "symbol", "");
             String messageHash = ("ticker:" + symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
-            Helpers.addElementToObject(ticker, "timestamp", timestamp);
-            Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
+            ((Map<String, Object>)ticker).put("timestamp", timestamp);
+            ((Map<String, Object>)ticker).put("datetime", this.iso8601(timestamp));
             this.tickers.put(symbol, ticker);
             client.resolve(ticker, messageHash);
         }

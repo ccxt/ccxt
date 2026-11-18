@@ -407,7 +407,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchEvents() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
@@ -442,15 +442,15 @@ public Map<String, Object> describe()
             String handle = this.safeString(eventVar, "event");
             if (!java.util.Objects.equals(id, null))
             {
-                Helpers.addElementToObject(this.events, id, eventVar);
+                this.events.put(id, eventVar);
             }
             if (!java.util.Objects.equals(handle, null))
             {
-                Helpers.addElementToObject(this.events, handle, eventVar);
+                this.events.put(handle, eventVar);
             }
             if (!java.util.Objects.equals(slug, null))
             {
-                Helpers.addElementToObject(this.events_by_slug, slug, eventVar);
+                this.events_by_slug.put(slug, eventVar);
             }
         }
         return this.events;
@@ -789,8 +789,8 @@ public Map<String, Object> describe()
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
-            Helpers.addElementToObject(oc, "outcomeId", ocId);
-            Helpers.addElementToObject(oc, "market", this.safeString2(oc, "market", "marketSymbol"));
+            ((Map<String, Object>)oc).put("outcomeId", ocId);
+            ((Map<String, Object>)oc).put("market", PredictionExchange.this.safeString2(oc, "market", "marketSymbol"));
             if (!java.util.Objects.equals(ocSymbol, null))
             {
                 // shortenSlug is lossy, so two different markets can produce the same handle.
@@ -812,15 +812,15 @@ public Map<String, Object> describe()
                         ocSymbol = ((ocSymbol + "_") + suffix.toUpperCase());
                     }
                 }
-                Helpers.addElementToObject(oc, "outcome", ocSymbol);
-                Helpers.addElementToObject(this.outcomes, ocSymbol, oc);
+                ((Map<String, Object>)oc).put("outcome", ocSymbol);
+                this.outcomes.put(ocSymbol, oc);
             } else
             {
-                Helpers.addElementToObject(oc, "outcome", ocSymbol);
+                ((Map<String, Object>)oc).put("outcome", ocSymbol);
             }
             if (!java.util.Objects.equals(ocId, null))
             {
-                Helpers.addElementToObject(this.outcomes_by_id, ocId, oc);
+                this.outcomes_by_id.put(ocId, oc);
             }
         }
     }
@@ -1039,7 +1039,7 @@ public Map<String, Object> describe()
             List<String> chars = this.stringToCharsArray(word);
             for (var ci = 0; ci < chars.size(); ci++)
             {
-                if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= chars.size() ? null : chars.get(ci))) >= 0)
+                if ((letters == null || chars == null || ci < 0 || ci >= chars.size() || chars.get(ci) == null ? -1 : letters.indexOf(chars.get(ci))) >= 0)
                 {
                     wordHasLetters = true;
                     break;

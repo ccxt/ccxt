@@ -1700,7 +1700,7 @@ public class Mudrex extends MudrexApi
                     {
                         rebate = this.safeString(rebateAmounts, j);
                         // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                        Helpers.addElementToObject(rebateKeys, j, "");
+                        rebateKeys.set((int) (long) (j), "");
                         break;
                     }
                 }

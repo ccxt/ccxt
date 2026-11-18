@@ -868,7 +868,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }
         Long nonce = this.safeInteger(data, "lastUpdateId");
-        Helpers.addElementToObject(snapshot, "nonce", nonce);
+        ((Map<String, Object>)snapshot).put("nonce", nonce);
         orderbook.reset(snapshot);
         String messageHash = this.getMessageHash("orderbook", symbol, (String) null);
         client.resolve(orderbook, messageHash);

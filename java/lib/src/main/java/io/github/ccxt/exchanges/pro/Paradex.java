@@ -886,7 +886,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (java.util.Objects.equals(liquidations, null))
             {
                 liquidations = new ArrayCache(((Number)this.safeInteger(this.options, "liquidationsLimit", 1000)).intValue());
-                Helpers.addElementToObject(caches, symbol, liquidations);
+                caches.put(symbol, liquidations);
                 this.options.put("liquidationsBySymbol", caches);
             }
             ((io.github.ccxt.ws.ArrayCache) liquidations).append(liquidation);
@@ -1402,7 +1402,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Object symbol = (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i));
-                String marketId = ((String)((Map<String, Object>)this.market(symbol)).get("id"));
+                Map<String, Object> market = this.market(symbol);
+                String marketId = ((String)market.get("id"));
                 marketIds.add(marketId);
                 subscribeHashes.add(((channel + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(((channel + ".") + symbol));
@@ -1484,7 +1485,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<String> pendingHashes = new ArrayList<String>(Arrays.asList(channel, (channel + ":scoped")));
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                pendingHashes.add(((channel + ".") + ((Map<String, Object>)this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))).get("id")));
+                Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                pendingHashes.add(((channel + ".") + market.get("id")));
             }
             (this.waitForPendingUnsubscribe(url, pendingHashes)).join();
             Client client = this.client(url);
@@ -1502,7 +1504,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // messageHashes[i] is the hash the summaries of symbols[i] resolve
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                String marketId = ((String)((Map<String, Object>)this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))).get("id"));
+                Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                String marketId = ((String)market.get("id"));
                 String subscribeHash = ((channel + ".") + marketId);
                 subscribeHashes.add(subscribeHash);
                 if (!(client.subscriptions.containsKey(subscribeHash)))

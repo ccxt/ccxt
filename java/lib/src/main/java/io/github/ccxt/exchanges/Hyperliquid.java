@@ -6223,9 +6223,9 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("byType")) && ((switch ((Object)(parameters)) { case List<?> j39v11 -> j39v11.contains("type"); case Map<?, ?> j39v10 -> j39v10.containsKey("type"); case null, default -> false; })))
+        if ((config.containsKey("byType")) && (((Map<?, ?>)parameters).containsKey("type")))
         {
-            Object type = Helpers.GetValue(parameters, "type");
+            Object type = ((Map<String, Object>)parameters).get("type");
             Map<String, Object> byType = this.safeDict(config, "byType", new HashMap<String, Object>() {{}});
             if ((type != null && byType.containsKey(type)))
             {

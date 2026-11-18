@@ -1218,7 +1218,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             put("positions", "handlePositions");
             put("funding-rate", "handleFundingRate");
         }};
-        Object method = null;
+        String method = null;
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "subscribe"))
         {
@@ -1245,7 +1245,18 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, message);
+                case "handleFundingRate" -> this.handleFundingRate(client, message);
+                case "handleOHLCV" -> this.handleOHLCV(client, message);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleOrders" -> this.handleOrders(client, message);
+                case "handlePositions" -> this.handlePositions(client, message);
+                case "handleTicker" -> this.handleTicker(client, message);
+                case "handleTrades" -> this.handleTrades(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 

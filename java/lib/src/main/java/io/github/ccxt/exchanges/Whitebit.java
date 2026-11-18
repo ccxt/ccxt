@@ -1284,7 +1284,10 @@ public class Whitebit extends WhitebitApi
                 {
                     depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
-                Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info"), entry, feeInfo);
+                Map<String, Object> feeEntry = this.safeDict(depositWithdrawFees, code, new HashMap<String, Object>() {{}});
+                Map<String, Object> feeEntryInfo = this.safeDict(feeEntry, "info", new HashMap<String, Object>() {{}});
+                feeEntryInfo.put(entry, feeInfo);
+                feeEntry.put("info", feeEntryInfo);
                 String networkId = this.safeString(splitEntry, 1);
                 Map<String, Object> withdraw = this.safeDict(feeInfo, "withdraw", null);
                 Map<String, Object> deposit = this.safeDict(feeInfo, "deposit", null);
@@ -1302,16 +1305,19 @@ public class Whitebit extends WhitebitApi
                     String networkCode = this.networkIdToCode(java.util.Objects.toString(Helpers.slice(networkId, 1, (((long) networkLength) - 1L)), null), code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
+                        Map<String, Object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new HashMap<String, Object>() {{}});
+                        feeEntryNetworks.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
+                        feeEntry.put("networks", feeEntryNetworks);
                     }
                 } else
                 {
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "withdraw", withdrawResult);
-                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "deposit", depositResult);
+                    feeEntry.put("withdraw", withdrawResult);
+                    feeEntry.put("deposit", depositResult);
                 }
+                depositWithdrawFees.put(code, feeEntry);
             }
         }
         List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
@@ -2866,7 +2872,7 @@ public class Whitebit extends WhitebitApi
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             List<String> requestType = new ArrayList<String>(Arrays.asList());
-            Object requestParams = paramsMarketType;
+            Map<String, Object> requestParams = paramsMarketType;
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 Pair<Boolean, Map<String, Object>> isMarginparamsIsMarginVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "cancelAllOrders", "isMargin", false);

@@ -1591,11 +1591,11 @@ public class Bittrade extends BittradeApi
             Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, this.account());
             if (java.util.Objects.equals(this.safeString(balance, "type"), "trade"))
             {
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
+                account.put("free", this.safeString(balance, "balance"));
             }
             if (java.util.Objects.equals(this.safeString(balance, "type"), "frozen"))
             {
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "balance"));
+                account.put("used", this.safeString(balance, "balance"));
             }
             if (!java.util.Objects.equals(code, null))
             {
@@ -2040,7 +2040,7 @@ public class Bittrade extends BittradeApi
                 request.put("client-order-id", clientOrderId);
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client-order-id")));
-            Object paramsOrder = paramsOmitted;
+            Map<String, Object> paramsOrder = paramsOmitted;
             if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy")))
             {
                 String quoteAmount = null;

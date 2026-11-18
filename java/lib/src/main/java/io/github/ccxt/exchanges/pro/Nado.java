@@ -255,7 +255,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!(((Map<?, ?>)this.orderbooks).containsKey(market.get("symbol"))))
             {
                 OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.orderbooks, market.get("symbol"), this.orderBook(snapshot, limit));
+                this.orderbooks.put((String)market.get("symbol"), this.orderBook(snapshot, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("book_depth", market, messageHash, parameters)).join();
             return orderbook.limit();
@@ -317,7 +317,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 if (!(((Map<?, ?>)this.orderbooks).containsKey(market.get("symbol"))))
                 {
                     OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
-                    Helpers.addElementToObject(this.orderbooks, market.get("symbol"), this.orderBook(snapshot, limit));
+                    this.orderbooks.put((String)market.get("symbol"), this.orderBook(snapshot, limit));
                 }
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple("book_depth", markets, messageHashes, parameters, (Object) null)).join();

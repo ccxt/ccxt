@@ -2240,7 +2240,7 @@ public class Grvt extends GrvtApi
             Boolean isInternal = this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding")));
             Object fromSubAccount = fromAccount;
             Object toSubAccount = toAccount;
-            Object paramsFundingAccountId = parameters;
+            Map<String, Object> paramsFundingAccountId = parameters;
             if (Boolean.TRUE.equals(isInternal))
             {
                 Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "tradingAccountId", (String) null);

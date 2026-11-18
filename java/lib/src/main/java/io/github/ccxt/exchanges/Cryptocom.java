@@ -2143,7 +2143,7 @@ public class Cryptocom extends CryptocomApi
             request.put("type", uppercaseType);
         }
         Boolean isMarketBuy = (java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(uppercaseType, "MARKET")) || (java.util.Objects.equals(uppercaseType, "STOP_LOSS")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT")));
-        Object paramsMarketBuy = parameters;
+        Map<String, Object> paramsMarketBuy = parameters;
         if (Boolean.TRUE.equals(isMarketBuy))
         {
             // use createmarketBuy logic here
@@ -2177,7 +2177,7 @@ public class Cryptocom extends CryptocomApi
         {
             request.put("quantity", this.amountToPrecision(symbol, amount));
         }
-        Object paramsOmitted = this.omit(paramsMarketBuy, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = this.omit(paramsMarketBuy, new ArrayList<Object>(Arrays.asList("postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return this.extend(request, paramsOmitted);
     }
 

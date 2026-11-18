@@ -3691,9 +3691,9 @@ public class Nado extends NadoApi
     {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
-        if ((config.containsKey("byType")) && ((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("type"); case Map<?, ?> j39v5 -> j39v5.containsKey("type"); case null, default -> false; })))
+        if ((config.containsKey("byType")) && (((Map<?, ?>)parameters).containsKey("type")))
         {
-            Object queryType = Helpers.GetValue(parameters, "type");
+            Object queryType = ((Map<String, Object>)parameters).get("type");
             Object byType = config.get("byType");
             if ((queryType != null && ((Map<?, ?>)byType).containsKey(queryType)))
             {
@@ -3707,7 +3707,7 @@ public class Nado extends NadoApi
             for (var i = 0; i < queryNames.size(); i++)
             {
                 String queryName = (queryNames == null || i < 0 || i >= queryNames.size() ? null : queryNames.get(i));
-                if ((switch ((Object)(parameters)) { case List<?> j39v4 -> ((Object)(queryName)) != null && j39v4.contains(queryName); case Map<?, ?> j39v3 -> ((Object)(queryName)) instanceof String && j39v3.containsKey(queryName); case null, default -> false; }))
+                if (((Map<?, ?>)parameters).containsKey(queryName))
                 {
                     List<Object> weights = this.safeList(byQuery, queryName, new ArrayList<Object>(Arrays.asList()));
                     Long baseWeight = this.safeInteger(weights, 0, 2);

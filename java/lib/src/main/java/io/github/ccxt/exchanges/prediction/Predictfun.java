@@ -384,7 +384,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.marketVariant] predictfun enum value ('SPORTS_MATCH', 'CRYPTO_UP_DOWN' etc.)
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -392,11 +392,11 @@ public class Predictfun extends PredictfunApi
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
             if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+                this.requireEventQuery(parameters);
             }
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(parameters);
             Integer queriesLength = queries.size();
-            Object paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Map<String, Object> paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             // keys dropped before the client-side pass; the categories listing also drops its limit
             List<Object> postOmitKeys = new ArrayList<Object>(Arrays.asList("tags"));
             Long userLimit = this.safeInteger(paramsValue, "limit");
@@ -406,7 +406,7 @@ public class Predictfun extends PredictfunApi
                 fetchCap = userLimit;
             }
             String slug = this.safeString2(paramsValue, "slug", "eventId");
-            Object rest = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "eventId", "slug", "tags", "marketVariant")));
+            Map<String, Object> rest = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "eventId", "slug", "tags", "marketVariant")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 this.markets = this.createSafeDictionary();
@@ -424,7 +424,7 @@ public class Predictfun extends PredictfunApi
                 // a query/queries scope is answered by the dedicated search endpoint — the categories
                 // listing has no text filter, so paging it and matching client-side would both miss
                 // the venue's semantic matches and cost one request per page
-                rawTopics = (this.fetchRawTopicsByQueries(queries, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+                rawTopics = (this.fetchRawTopicsByQueries(queries, paramsValue)).join();
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -434,7 +434,7 @@ public class Predictfun extends PredictfunApi
                     request.put("tagIds", String.join(",", tags));
                 }
                 ((List<Object>)postOmitKeys).add("limit");
-                Object paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
+                Map<String, Object> paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
                 Map<String, Object> extendedRequest = this.extend(request, paramsCategories);
                 Map<String, Object> rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
                 //
@@ -646,7 +646,7 @@ public class Predictfun extends PredictfunApi
             // scoping already happened server-side: the tag filter needs an event-level tags field
             // predictfun topics lack, and the query filter would drop semantic-search matches whose
             // title uses different words than the query
-            Object postParams = this.omit(paramsValue, postOmitKeys);
+            Map<String, Object> postParams = this.omit(paramsValue, postOmitKeys);
             // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
             // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
             String rawStatus = this.safeString(paramsValue, "status");
@@ -661,7 +661,7 @@ public class Predictfun extends PredictfunApi
                     put( "status", "closed" );
                 }});
             }
-            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), queries);
+            return this.applyEventFetchParams(result, postParams, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -1904,7 +1904,7 @@ public class Predictfun extends PredictfunApi
         // change with it - and the venue serves the testnet without an api key
         this.options.put("sandboxMode", enable);
         this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
-        Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Boolean.TRUE.equals(enable));
+        this.requiredCredentials.put("apiKey", !Boolean.TRUE.equals(enable));
         if (!java.util.Objects.equals(wasSandbox, enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside

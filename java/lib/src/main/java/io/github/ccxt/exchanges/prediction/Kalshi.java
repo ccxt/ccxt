@@ -478,7 +478,7 @@ public class Kalshi extends KalshiApi
                             // direct push on eventEntry['markets'] loses the element in go
                             Object entryMarkets = Helpers.GetValue(eventEntry, "markets");
                             ((List<Object>)entryMarkets).add(m);
-                            Helpers.addElementToObject(eventEntry, "markets", entryMarkets);
+                            ((Map<String, Object>)eventEntry).put("markets", entryMarkets);
                         }
                     }
                 }
@@ -1335,7 +1335,7 @@ public class Kalshi extends KalshiApi
                     Object grouped = (outcomesByTicker == null || marketTicker == null ? null : outcomesByTicker.get(marketTicker));
                     for (var j = 0; j < (switch ((Object)(grouped)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); j++)
                     {
-                        Map<String, Object> ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (Helpers.GetValue(grouped, j))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                        Map<String, Object> ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (Helpers.GetValue(grouped, j))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                         String symbolKey = this.safeString(ticker, "outcome");
                         if (!java.util.Objects.equals(symbolKey, null))
                         {
@@ -2698,18 +2698,18 @@ public class Kalshi extends KalshiApi
      * @param {int} [params.limit] max number of events to return
      * @returns {object[]} an array of event structures
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(parameters);
             if (java.util.Objects.equals(queries, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
             }
             Integer queriesLength = queries.size();
-            Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Long userLimit = this.safeInteger(paramsOmitted, "limit");
             // bound how many events are actually FETCHED (not just returned) so a broad scope like
             // category='Crypto' (hundreds of series) doesn't page every one of them
@@ -2734,7 +2734,7 @@ public class Kalshi extends KalshiApi
                 status = "settled";
             }
             // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-            Object rest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker")));
+            Map<String, Object> rest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker")));
             if (java.util.Objects.equals(this.markets, null))
             {
                 this.markets = this.createSafeDictionary();
@@ -2744,22 +2744,22 @@ public class Kalshi extends KalshiApi
             if ((queriesLength != null && queriesLength > 0))
             {
                 // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-                rawEvents = (this.fetchEventsByQuery(queries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+                rawEvents = (this.fetchEventsByQuery(queries, fetchCap, rest)).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
                 // kalshi's event id (and slug) is the event_ticker — fetch it directly
-                Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (eventId), ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+                Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (eventId), rest)).join();
                 rawEvents = new ArrayList<Object>(Arrays.asList(fullEvent));
             } else
             {
                 // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-                List<Object> seriesTickers = (this.resolveEventSeriesTickers(((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+                List<Object> seriesTickers = (this.resolveEventSeriesTickers(paramsOmitted)).join();
                 Integer seriesTickersLength = seriesTickers.size();
                 if (java.util.Objects.equals(seriesTickersLength, 0))
                 {
-                    this.requireEventQuery(((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+                    this.requireEventQuery(paramsOmitted);
                 }
-                rawEvents = (this.fetchSeriesEvents(seriesTickers, status, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
+                rawEvents = (this.fetchSeriesEvents(seriesTickers, status, fetchCap, rest)).join();
             }
             Integer rawEventsLength = rawEvents.size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2780,8 +2780,8 @@ public class Kalshi extends KalshiApi
             // scoping already happened server-side, so strip the resolved scopes before the client-side
             // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
             // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-            Object postParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("tags", "category", "series_ticker")));
-            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> postParams = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("tags", "category", "series_ticker")));
+            return this.applyEventFetchParams(result, postParams, new ArrayList<Object>(Arrays.asList()));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }

@@ -260,7 +260,7 @@ public class Hyperliquid extends HyperliquidApi
             if ((((Integer) colonIndex) > -1))
             {
                 String key = (part == null ? null : part.substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? part.length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), part.length())));
-                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v5 -> (Object) (hx4J40v5 + 1L); case Integer hx4J40v5 -> (Object) (hx4J40v5.longValue() + 1L); case Double hx4J40v5 -> (Object) (hx4J40v5 + ((double) 1L)); case String hx4J40v5 -> (Object) (hx4J40v5 + "1"); default -> (Object) null; })), null);
+                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })), null);
                 result.put(key, value);
             }
         }
@@ -535,11 +535,11 @@ public class Hyperliquid extends HyperliquidApi
                     String outcomeId_ = this.safeString2(outcome, "outcomeId", "id");
                     if (!java.util.Objects.equals(outcomeSymbol, null))
                     {
-                        Helpers.addElementToObject(this.outcomes, outcomeSymbol, outcome);
+                        this.outcomes.put(outcomeSymbol, outcome);
                     }
                     if (!java.util.Objects.equals(outcomeId_, null))
                     {
-                        Helpers.addElementToObject(this.outcomes_by_id, outcomeId_, outcome);
+                        this.outcomes_by_id.put(outcomeId_, outcome);
                     }
                 }
             }
@@ -829,7 +829,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             Object mids = this.safeDict(allMids, "mids", allMids);
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            Map<String, Object> outcomesMap = (Map<String, Object>) ((((!java.util.Objects.equals(this.outcomes, null)))) ? this.outcomes : new HashMap<String, Object>() {{}});
+            Map<String, Object> outcomesMap = (((!java.util.Objects.equals(this.outcomes, null)))) ? this.outcomes : new HashMap<String, Object>() {{}};
             List<String> outcomeHandles = new ArrayList<String>(outcomesMap.keySet());
             for (var i = 0; i < outcomeHandles.size(); i++)
             {
@@ -1347,7 +1347,7 @@ public class Hyperliquid extends HyperliquidApi
         Object colonIndex = ((String)outcomeInput).indexOf(":");
         if ((((Integer) colonIndex) > -1) && (((Integer) colonIndex) < (((long) ((String)outcomeInput).length()) - 1L)))
         {
-            String side = ((String)Helpers.slice(outcomeInput, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 1L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 1L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 1L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "1"); default -> (Object) null; })), null)).toUpperCase();
+            String side = ((String)Helpers.slice(outcomeInput, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; })), null)).toUpperCase();
             if (java.util.Objects.equals(side, "YES") || java.util.Objects.equals(side, "NO"))
             {
                 return side;
@@ -1387,7 +1387,7 @@ public class Hyperliquid extends HyperliquidApi
         Boolean isNumericInput = (inputCharsLength != null && inputCharsLength > 0);
         for (var di = 0; di < inputChars.size(); di++)
         {
-            if (Helpers.getIndexOf(digitChars, (inputChars == null || di < 0 || di >= inputChars.size() ? null : inputChars.get(di))) < 0)
+            if ((digitChars == null || inputChars == null || di < 0 || di >= inputChars.size() || inputChars.get(di) == null ? -1 : digitChars.indexOf(inputChars.get(di))) < 0)
             {
                 isNumericInput = false;
                 break;
@@ -2263,13 +2263,13 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+            this.requireEventQuery(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
             // markets. use the cached load so the handles advertised here always match the
             // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2369,7 +2369,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
             // so getEvent() resolves these events by any of the three keys
-            return this.applyEventFetchParams(events, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), queries);
+            return this.applyEventFetchParams(events, parameters, queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -2780,9 +2780,9 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("byType")) && ((switch ((Object)(parameters)) { case List<?> j39v5 -> j39v5.contains("type"); case Map<?, ?> j39v4 -> j39v4.containsKey("type"); case null, default -> false; })))
+        if ((config.containsKey("byType")) && (((Map<?, ?>)parameters).containsKey("type")))
         {
-            Object type = Helpers.GetValue(parameters, "type");
+            Object type = ((Map<String, Object>)parameters).get("type");
             Object byType = config.get("byType");
             if ((type != null && ((Map<?, ?>)byType).containsKey(type)))
             {

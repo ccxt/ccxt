@@ -1275,7 +1275,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
+            if ((topic == null || keys == null || i < 0 || i >= keys.size() || keys.get(i) == null ? -1 : topic.indexOf(keys.get(i))) >= 0)
             {
                 String method = methods.get(key);
                 switch (method) {

@@ -3839,10 +3839,10 @@ public class Bitrue extends BitrueApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("symbol"); case Map<?, ?> j39v3 -> j39v3.containsKey("symbol"); case null, default -> false; })))
+        if ((config.containsKey("noSymbol")) && !(((Map<?, ?>)parameters).containsKey("symbol")))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && (((Map<?, ?>)parameters).containsKey("limit")))
         {
             Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

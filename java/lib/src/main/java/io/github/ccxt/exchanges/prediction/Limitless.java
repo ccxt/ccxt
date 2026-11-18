@@ -477,7 +477,7 @@ public class Limitless extends LimitlessApi
                     // direct push on eventGroup['markets'] loses the element in go
                     Object groupMarkets = Helpers.GetValue(eventGroup, "markets");
                     ((List<Object>)groupMarkets).add(m);
-                    Helpers.addElementToObject(eventGroup, "markets", groupMarkets);
+                    ((Map<String, Object>)eventGroup).put("markets", groupMarkets);
                 }
             }
             Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
@@ -1449,7 +1449,7 @@ public class Limitless extends LimitlessApi
                 List<Object> grouped = this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < grouped.size(); j++)
                 {
-                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
                     {
@@ -3461,19 +3461,19 @@ public class Limitless extends LimitlessApi
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            this.requireEventQuery(parameters);
+            List<Object> queries = this.parseSearchQueries(parameters);
             if (java.util.Objects.equals(queries, null))
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
             }
             Integer queriesLength = queries.size();
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status")));
+            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status")));
             String eventId = this.safeString2(parameters, "eventId", "slug");
             // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
             // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
@@ -3522,7 +3522,7 @@ public class Limitless extends LimitlessApi
                 // tags scope: resolve the tags to limitless categories and page only those
                 // categories' listings server-side — never the whole active listing
                 List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-                List<Object> listRaw = (this.fetchRawMarketsByTags(requestedTags, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
+                List<Object> listRaw = (this.fetchRawMarketsByTags(requestedTags, parameters)).join();
                 Integer listRawLength = listRaw.size();
                 for (var i = 0; (listRawLength != null && i < listRawLength); i++)
                 {
@@ -3574,7 +3574,7 @@ public class Limitless extends LimitlessApi
                     // direct push on eventGroup['markets'] loses the element in go
                     Object groupMarkets = Helpers.GetValue(eventGroup, "markets");
                     ((List<Object>)groupMarkets).add(m);
-                    Helpers.addElementToObject(eventGroup, "markets", groupMarkets);
+                    ((Map<String, Object>)eventGroup).put("markets", groupMarkets);
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());

@@ -1095,7 +1095,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             if (Boolean.TRUE.equals(isStockOrUta))
             {
-                ((Map<String, Object>)paramsCursor).put("uta", true);
+                paramsCursor.put("uta", true);
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(isStockOrUta, messageHashes, topics, paramsCursor)).join();
             if (Boolean.TRUE.equals(incrementalFeed))

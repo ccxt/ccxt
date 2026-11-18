@@ -378,8 +378,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
-                Object parameters = this.safeDict(subscription, "params", null);
-                Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
+                Map<String, Object> parameters = this.safeDict(subscription, "params", null);
+                Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, parameters)).join();
                 if (java.util.Objects.equals(this.safeDict(this.orderbooks, symbol, null), null))
                 {
                     // if the orderbook is dropped before the snapshot is received
@@ -573,7 +573,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         data.put("date", timestamp);
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         ticker.put("symbol", market.get("symbol"));
-        Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
+        this.tickers.put((String)market.get("symbol"), ticker);
         client.resolve(ticker, topic);
         return message;
     }
@@ -681,7 +681,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
-            Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
+            this.tickers.put((String)market.get("symbol"), ticker);
             ((List<Object>)result).add(ticker);
         }
         client.resolve(result, topic);

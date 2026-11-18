@@ -8510,8 +8510,8 @@ public class Okx extends OkxApi
                         String clientOrderId = this.safeString(entry, "clOrdId");
                         if (java.util.Objects.equals(clientOrderId, null))
                         {
-                            Helpers.addElementToObject(entry, "clOrdId", (brokerId + this.uuid16()));
-                            Helpers.addElementToObject(entry, "tag", brokerId);
+                            ((Map<String, Object>)entry).put("clOrdId", (brokerId + this.uuid16()));
+                            ((Map<String, Object>)entry).put("tag", brokerId);
                             Helpers.addElementToObject(parameters, i, entry);
                         }
                     }
@@ -10386,10 +10386,14 @@ public class Okx extends OkxApi
                 {
                     depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
+                Map<String, Object> feeEntry = this.safeDict(depositWithdrawFees, code, new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(currencyId, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info"), currencyId, feeInfo);
+                    Map<String, Object> feeEntryInfo = this.safeDict(feeEntry, "info", new HashMap<String, Object>() {{}});
+                    feeEntryInfo.put(currencyId, feeInfo);
+                    feeEntry.put("info", feeEntryInfo);
                 }
+                depositWithdrawFees.put(code, feeEntry);
                 String chain = this.safeString(feeInfo, "chain");
                 if (java.util.Objects.equals(chain, null))
                 {
@@ -10408,10 +10412,13 @@ public class Okx extends OkxApi
                 String networkCode = this.networkIdToCode(networkId, code);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
+                    Map<String, Object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new HashMap<String, Object>() {{}});
+                    feeEntryNetworks.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
+                    feeEntry.put("networks", feeEntryNetworks);
+                    depositWithdrawFees.put(code, feeEntry);
                 }
             }
         }

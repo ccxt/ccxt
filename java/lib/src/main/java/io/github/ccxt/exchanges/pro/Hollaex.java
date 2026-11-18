@@ -542,7 +542,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             String second = this.safeString(parts, 1);
             String freeOrTotal = (((java.util.Objects.equals(second, "available")))) ? "free" : "total";
-            Helpers.addElementToObject(account, freeOrTotal, this.safeString(data, key));
+            ((Map<String, Object>)account).put(freeOrTotal, this.safeString(data, key));
             if (!java.util.Objects.equals(code, null))
             {
                 this.balance.put(code, account);

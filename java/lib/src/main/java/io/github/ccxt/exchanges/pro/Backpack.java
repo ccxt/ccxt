@@ -847,8 +847,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
+            Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
+            Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, query)).join();
             return Helpers.GetValue((result == null || symbol == null ? null : result.get(symbol)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -871,8 +871,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+            Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), query)).join();
         });
 
     }
@@ -1059,8 +1059,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
-            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+            Map<String, Object> query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
+            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, query)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1081,8 +1081,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            Map<String, Object> query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), query)).join();
         });
 
     }
@@ -1301,8 +1301,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
-            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+            Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
+            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, query)).join();
         }).thenApply(OrderBook::new);
 
     }
@@ -1366,8 +1366,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
+            Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), query)).join();
         });
 
     }
@@ -1833,7 +1833,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         parsed.put("timestamp", timestamp);
-        Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
+        parsed.put("datetime", this.iso8601(timestamp));
         parsed.put("info", assets);
         this.balance = parsed;
         client.resolve(parsed, "balance");

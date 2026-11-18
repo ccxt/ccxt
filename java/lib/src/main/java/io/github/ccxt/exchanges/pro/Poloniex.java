@@ -328,7 +328,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             request.put("side", ((String)side).toUpperCase());
             request.put("type", ((String)type).toUpperCase());
             Boolean isMarketBuy = (java.util.Objects.equals(uppercaseType, "MARKET")) && (java.util.Objects.equals(uppercaseSide, "BUY"));
-            Object paramsOmitted = parameters;
+            Map<String, Object> paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isMarketBuy))
             {
                 String quoteAmount = null;
@@ -1259,7 +1259,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)previousOrder.get("trades")).add(trade);
-                    Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
+                    previousOrder.put("lastTradeTimestamp", trade.get("timestamp"));
                     String totalCost = "0";
                     String totalAmount = "0";
                     List<Object> previousOrderTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
@@ -1282,7 +1282,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         String tradeAmount = this.numberToString(trade.get("amount"));
                         String previousOrderFilled = this.numberToString(previousOrder.get("filled"));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
-                        Helpers.addElementToObject(previousOrder, "filled", previousOrderFilled);
+                        previousOrder.put("filled", previousOrderFilled);
                         String previousOrderAmountRaw = this.safeString(previousOrder, "amount");
                         if (!java.util.Objects.equals(previousOrderAmountRaw, null))
                         {
@@ -1306,7 +1306,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     }
                     String rawState = this.safeString(order, "state");
                     String state = this.parseStatus((String) (rawState));
-                    Helpers.addElementToObject(previousOrder, "status", state);
+                    previousOrder.put("status", state);
                     // update the newUpdates count
                     orders.append(previousOrder);
                 }

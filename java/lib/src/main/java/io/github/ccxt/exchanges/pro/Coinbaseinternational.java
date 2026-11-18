@@ -691,7 +691,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
-                Helpers.addElementToObject(shortPosition, "side", "short");
+                ((Map<String, Object>)shortPosition).put("side", "short");
                 ((io.github.ccxt.ws.ArrayCache) this.positions).append(shortPosition);
             }
             ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
@@ -1554,8 +1554,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 Map<String, Object> market = this.market(this.safeString(symbols, i, ""));
                 channels.add((("book." + this.safeString(market, "id", "")) + descriptor));
             }
-            Object orderbook = (this.subscribe(channels, channels, isPrivate, paramsChannel)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(channels, channels, isPrivate, paramsChannel)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

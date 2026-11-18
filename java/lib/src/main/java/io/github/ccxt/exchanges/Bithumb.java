@@ -1332,7 +1332,7 @@ public class Bithumb extends BithumbApi
                         }
                         String symbol = ((base + "/") + quote);
                         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-                        Helpers.addElementToObject(ticker, "date", timestamp);
+                        ((Map<String, Object>)ticker).put("date", timestamp);
                         result.put(symbol, this.parseTicker(ticker, market));
                     }
                 }
@@ -1987,7 +1987,7 @@ public class Bithumb extends BithumbApi
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         Boolean isPostOnly = Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
-        Object paramsOrder = paramsPostOnly;
+        Map<String, Object> paramsOrder = paramsPostOnly;
         if (Boolean.TRUE.equals(isPostOnly))
         {
             paramsOrder = this.omit(paramsPostOnly, "postOnly");
@@ -2042,7 +2042,7 @@ public class Bithumb extends BithumbApi
         {
             request.put("client_order_id", clientOrderId);
         }
-        Object paramsRequest = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOrder, "clientOrderId") : paramsOrder;
+        Map<String, Object> paramsRequest = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOrder, "clientOrderId") : paramsOrder;
         return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 

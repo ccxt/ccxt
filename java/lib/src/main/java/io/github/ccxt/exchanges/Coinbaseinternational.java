@@ -1235,7 +1235,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchFundingRateHistory", parameters);
-            Object paramsPaginate = paramsResolved;
+            Map<String, Object> paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
                 Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
@@ -1277,7 +1277,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 request.put("end_timestamp", until);
             }
-            Object paramsOmitted = paramsPaginate;
+            Map<String, Object> paramsOmitted = paramsPaginate;
             if ((!java.util.Objects.equals(until, null)) || this.isNativeDeribitCredentials())
             {
                 paramsOmitted = this.omit(paramsPaginate, "until");
@@ -3297,7 +3297,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
-            Object paramsPaginate = paramsResolved;
+            Map<String, Object> paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
                 Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
@@ -3385,7 +3385,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
-            Object paramsPaginate = paramsResolved;
+            Map<String, Object> paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
                 Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
@@ -3415,7 +3415,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("count", limit);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
-            Object paramsOmitted = paramsPaginate;
+            Map<String, Object> paramsOmitted = paramsPaginate;
             if (this.isNativeDeribitCredentials())
             {
                 paramsOmitted = this.omit(paramsPaginate, "until");
