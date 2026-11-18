@@ -3130,7 +3130,7 @@ class cryptocom extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //                 {
         //                     "v": "-0.000001884",
@@ -3186,7 +3186,7 @@ class cryptocom extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 1000);
         }
         $market = $this->market($symbol);
         if (!$this->safe_bool($market, 'swap', false)) {

@@ -29,12 +29,12 @@ public class TestLoadMarkets extends BaseTest {
         Object symbolsLength = ((List<?>)exchange.symbols).size();
         Assert(!java.util.Objects.equals(exchange.markets, null), ".markets is undefined");
         List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
-        Object marketKeysLength = ((List<?>)marketKeys).size();
+        Object marketKeysLength = marketKeys.size();
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(java.util.Objects.equals(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
         List<Object> marketValues = Helpers.objectValues(markets);
-        for (var i = 0; i < ((List<?>)marketValues).size(); i++)
+        for (var i = 0; i < marketValues.size(); i++)
         {
             TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i))));
         }
@@ -42,7 +42,7 @@ public class TestLoadMarkets extends BaseTest {
         List<String> marketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option", "index"));
         List<Object> collectedTypes = new ArrayList<Object>(Arrays.asList());
         List<Object> allMarkets = Helpers.objectValues(exchange.markets);
-        for (var i = 0; i < ((List<?>)allMarkets).size(); i++)
+        for (var i = 0; i < allMarkets.size(); i++)
         {
             Object market = (allMarkets == null || i < 0 || i >= allMarkets.size() ? null : allMarkets.get(i));
             if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
@@ -50,7 +50,7 @@ public class TestLoadMarkets extends BaseTest {
                 ((List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));
             }
         }
-        for (var i = 0; i < ((List<?>)marketTypes).size(); i++)
+        for (var i = 0; i < marketTypes.size(); i++)
         {
             Object mType = Helpers.GetValue(marketTypes, i);
             if (!java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), null) && !java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), false))

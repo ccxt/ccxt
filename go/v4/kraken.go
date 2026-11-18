@@ -665,6 +665,7 @@ func (this *Kraken) Describe() map[string]any {
 				":IInsufficient funds":      InsufficientFunds,
 				":Cancel pending":           CancelPending,
 				":Rate limit exceeded":      RateLimitExceeded,
+				"trading restricted for":    RestrictedLocation,
 			},
 		},
 	})
@@ -1491,11 +1492,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122219 []any = r1.Value
-		if retRes122219 == nil {
+		var retRes122319 []any = r1.Value
+		if retRes122319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122319)}
 		}
 		return nil
 	}
@@ -2235,7 +2236,7 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
 	}
-	var orderRequest any = this.OrderRequest("createOrder", SafeStringPtr(symbol), SafeStringPtr(typeVar), request, amount, price, params)
+	var orderRequest any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
 	var flags string = *this.SafeString(GetValue(orderRequest, 0), "oflags", "")
 	var isUsingCost bool = (strings.Index(flags, "viqc") > -1)
 
@@ -2361,7 +2362,7 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 func (this *Kraken) FindMarketByAltnameOrId(id any) any {
 	var marketsByAltname map[string]any = SafeMapTyped(this.Options, "marketsByAltname")
 	if InOp(marketsByAltname, id) {
-		return GetValue(marketsByAltname, id)
+		return this.SafeDict(marketsByAltname, id)
 	} else {
 		return this.SafeMarket(id)
 	}
@@ -2381,7 +2382,7 @@ func (this *Kraken) ResolveMarketByAltnameOrId(marketId any, optionalArgs ...any
 }
 func (this *Kraken) GetDelistedMarketById(id any) any {
 	if IsEqual(id, nil) {
-		return id
+		return nil
 	}
 	var market any = this.SafeDict(this.Options["delistedMarketsById"], id)
 	if market != nil {
@@ -2548,12 +2549,12 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	var orderOmitted any = this.Omit(order, "usingCost")
 	var description map[string]any = SafeMapTyped(orderOmitted, "descr")
 	var orderDescriptionObj map[string]any = SafeMapTyped(orderOmitted, "descr") // can be null
-	var orderDescription *string = func() *string {
-		if orderDescriptionObj != nil {
-			return this.SafeString(orderDescriptionObj, "order")
-		}
-		return this.SafeString(orderOmitted, "descr")
-	}()
+	var orderDescription *string
+	if orderDescriptionObj != nil {
+		orderDescription = this.SafeString(orderDescriptionObj, "order")
+	} else {
+		orderDescription = this.SafeString(orderOmitted, "descr")
+	}
 	var side *string = nil
 	var descriptionType any = nil
 	var marketId any = nil
@@ -2562,7 +2563,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	var cost *string = nil
 	var triggerPrice *string = nil
 	if orderDescription != nil {
-		var parts []string = Split(orderDescription, " ")
+		var parts []string = strings.Split(*orderDescription, " ")
 		side = this.SafeString(parts, 0)
 		if !(isUsingCost != nil && *isUsingCost) {
 			amount = this.SafeString(parts, 1)
@@ -2818,12 +2819,12 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 		if isLimitOrder || (trailingLimitAmount != nil) || (trailingLimitPercent != nil) {
 			request["ordertype"] = "trailing-stop-limit"
 			if trailingLimitPercent != nil {
-				var trailingLimitPercentString any = func() any {
-					if strings.HasSuffix(*trailingLimitPercent, "%") {
-						return (offset + *trailingLimitPercent)
-					}
-					return (offset + *trailingLimitPercent + "%")
-				}()
+				var trailingLimitPercentString string
+				if strings.HasSuffix(*trailingLimitPercent, "%") {
+					trailingLimitPercentString = (offset + *trailingLimitPercent)
+				} else {
+					trailingLimitPercentString = (offset + *trailingLimitPercent + "%")
+				}
 				request["price"] = trailingPercentString
 				request["price2"] = trailingLimitPercentString
 			} else if trailingLimitAmount != nil {
@@ -2944,11 +2945,11 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request = this.OmitDict(request, "txid")
 	}
 	var isMarket bool = (IsEqual(typeVar, "market"))
-	var postOnly any = nil
+	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
-	postOnly = postOnlyparamsOmittedVariable[0]
+	postOnly = postOnlyparamsOmittedVariable[0].(bool)
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
-	if postOnly == true {
+	if postOnly {
 		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if amount != nil {
@@ -3036,10 +3037,10 @@ func (this *Kraken) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		"trades": true,
 		"txid":   id,
 	}
-	var query any = params
+	var query map[string]any = params
 	if clientOrderId != nil {
 		request["userref"] = clientOrderId
-		query = this.Omit(params, []any{"userref", "clientOrderId"})
+		query = this.OmitDict(params, []any{"userref", "clientOrderId"})
 	}
 
 	r1 := <-this.PrivatePostQueryOrders(this.Extend(request, query))
@@ -3390,12 +3391,12 @@ func (this *Kraken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
  * @param {int} [params.userref] the orders user reference id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kraken) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3474,12 +3475,12 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kraken) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kraken) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Kraken) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3968,13 +3969,11 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		status = SafeStringPtr("pending")
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
-	var feeCost any
-	if derefPtr := this.SafeNumber(transaction, "fee"); derefPtr != nil {
-		feeCost = *derefPtr
-	}
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost == nil {
 		if typeVar != nil && *typeVar == "deposit" {
-			feeCost = 0
+			feeCostValue := float64(0)
+			feeCost = &feeCostValue
 		}
 	}
 	return TransactionFromMap(map[string]any{
@@ -4189,11 +4188,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321919 []any = r1.Value
-		if retRes321919 == nil {
+		var retRes322019 []any = r1.Value
+		if retRes322019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes321919)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322019)}
 		}
 		return nil
 	}

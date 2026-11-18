@@ -335,7 +335,7 @@ export default class independentreserve extends Exchange {
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limitsPromise = this.publicGetGetOrderMinimumVolumes (params);
         const responses: List = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
-        const limits = this.safeValue (responses, 2);
+        const limits = this.safeDict (responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -345,8 +345,8 @@ export default class independentreserve extends Exchange {
         //     }
         //
         const result: List = [];
-        const baseCurrencyIds: List = this.toArray (this.safeValue (responses, 0));
-        const quoteCurrencyIds: List = this.toArray (this.safeValue (responses, 1));
+        const baseCurrencyIds: List = this.toArray (this.safeList (responses, 0));
+        const quoteCurrencyIds: List = this.toArray (this.safeList (responses, 1));
         for (let i = 0; i < baseCurrencyIds.length; i++) {
             const baseId = this.safeString (baseCurrencyIds, i, '');
             const base = this.safeCurrencyCode (baseId);
@@ -890,7 +890,7 @@ export default class independentreserve extends Exchange {
         //     ]
         //
         const fees: Dict = {};
-        const rows: List = this.toArray (response);
+        const rows: Dict[] = this.toArray (response);
         for (let i = 0; i < rows.length; i++) {
             const fee = rows[i];
             const currencyId = this.safeString (fee, 'CurrencyCode');

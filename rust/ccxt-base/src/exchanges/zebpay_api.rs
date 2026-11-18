@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::zebpay::ZebpayCore;
+use super::zebpay::Zebpay;
 use crate::exchange::ExchangeRuntime;
 
-impl ZebpayCore {
+impl Zebpay {
     /// Auto-generated wrapper for the `publicSpotGetV2SystemTime` implicit endpoint.
     pub async fn public_spot_get_v2_system_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_spot_get_v2_system_time".into()), optional_args).await

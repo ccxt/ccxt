@@ -546,10 +546,10 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	//        "serverTime": "2018-07-19T11:32:39.433Z"
 	//    }
 	//
-	var instruments []any = SafeListTyped(response, "instruments")
+	var instruments []map[string]any = this.SafeListMapsTyped(response, "instruments")
 	var result []any = []any{}
 	for i := 0; i < len(instruments); i++ {
-		var market any = instruments[i]
+		var market map[string]any = instruments[i]
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
 		var typeVar string
@@ -1180,12 +1180,12 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "price")
-	var windowLimit any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 2000) {
-			return 2000
-		}
-		return limit
-	}()
+	var windowLimit int64
+	if (limit == nil) || (limit != nil && *limit > 2000) {
+		windowLimit = 2000
+	} else {
+		windowLimit = *limit
+	}
 	var windowSize int64 = this.ParseToInt(windowLimit)
 	var limitResolved any = nil
 	if (since != nil) || (limit != nil) {
@@ -1195,7 +1195,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var fromTimestamp int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = fromTimestamp
-		var toTimestamp int64 = this.ParseToInt(this.Sum(fromTimestamp, (windowSize*duration)-1))
+		var toTimestamp int64 = this.ParseToInt(fromTimestamp + (windowSize * duration) - 1)
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = func() int64 {
 			if toTimestamp < currentTimestamp {
@@ -1497,27 +1497,19 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var order *string = this.SafeString(trade, "order_id")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var side *string = this.SafeString(trade, "side")
-	var rawType any = nil
+	var rawType *string = nil
 	var priorEdit map[string]any = SafeMapTyped(trade, "orderPriorEdit")
 	var priorExecution map[string]any = SafeMapTyped(trade, "orderPriorExecution")
 	if priorExecution != nil {
 		order = this.SafeString(priorExecution, "orderId")
 		marketId = this.SafeString(priorExecution, "symbol")
 		side = this.SafeString(priorExecution, "side")
-		if derefPtr := this.SafeString(priorExecution, "type"); derefPtr != nil {
-			rawType = *derefPtr
-		} else {
-			rawType = nil
-		}
+		rawType = this.SafeString(priorExecution, "type")
 	} else if priorEdit != nil {
 		order = this.SafeString(priorEdit, "orderId")
 		marketId = this.SafeString(priorEdit, "symbol")
 		side = this.SafeString(priorEdit, "type")
-		if derefPtr := this.SafeString(priorEdit, "type"); derefPtr != nil {
-			rawType = *derefPtr
-		} else {
-			rawType = nil
-		}
+		rawType = this.SafeString(priorEdit, "type")
 	}
 	var typeVar *string = this.ParseOrderType(rawType) // undefined stays undefined
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
@@ -1706,7 +1698,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 
 	r1 := <-this.PrivatePostSendorder(orderRequest)
 	if r1.Err != nil {
@@ -1931,12 +1923,12 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[Order], id string, 
  * @param {object} [params] Exchange specific params
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Krakenfutures) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1984,12 +1976,12 @@ func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[Order], id any, o
  * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Krakenfutures) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2014,7 +2006,7 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[[]Order], ids an
 			})
 		}
 	} else {
-		for i := 0; i < GetArrayLength(ids); i++ {
+		for i := 0; i < len(ids); i++ {
 			orders = append(orders, map[string]any{
 				"order":    "cancel",
 				"order_id": this.SafeString(ids, i),
@@ -2956,7 +2948,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var details any = nil
 	var isPrior bool = false
 	var fixed bool = false
-	var statusId any = nil
+	var statusId *string = nil
 	var price any = nil
 	var trades []any = []any{}
 	if orderEventsLength > 0 {
@@ -2967,7 +2959,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 				executions = append(executions, item)
 			}
 			// Final order (after placement / editing / execution / canceling)
-			var orderTrigger any = this.SafeValue(item, "orderTrigger")
+			var orderTrigger map[string]any = SafeMapTyped(item, "orderTrigger")
 			if IsEqual(details, nil) {
 				details = this.SafeValue2(item, "new", "order", orderTrigger)
 				if !IsEqual(details, nil) {
@@ -2993,21 +2985,13 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 			}
 		}
 		trades = this.ParseTrades(executions)
-		if derefPtr := this.SafeString(order, "status"); derefPtr != nil {
-			statusId = *derefPtr
-		} else {
-			statusId = nil
-		}
+		statusId = this.SafeString(order, "status")
 	}
 	if IsEqual(details, nil) {
 		details = order
 	}
 	if statusId == nil {
-		if derefPtr := this.SafeString(details, "status"); derefPtr != nil {
-			statusId = *derefPtr
-		} else {
-			statusId = nil
-		}
+		statusId = this.SafeString(details, "status")
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,
 	// but will be fixed below
@@ -4437,7 +4421,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 		return tiers
 	}
 	for i := 0; i < len(marginLevels); i++ {
-		var tier any = DerefScalar(marginLevels[i])
+		var tier any = marginLevels[i]
 		var initialMargin *string = this.SafeString(tier, "initialMargin")
 		var minNotional *float64 = this.SafeNumber2(tier, "numNonContractUnits", "contracts")
 		tiers = append(tiers, map[string]any{
@@ -4445,7 +4429,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 			"symbol":                this.SafeSymbol(marketId, marketResolved),
 			"currency":              marketResolved["quote"],
 			"minNotional":           minNotional,
-			"maxNotional":           this.SafeNumber2(this.SafeValue(marginLevels, this.Sum(i, 1)), "numNonContractUnits", "contracts"),
+			"maxNotional":           this.SafeNumber2(this.SafeDict(marginLevels, this.Sum(i, 1)), "numNonContractUnits", "contracts"),
 			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMargin"),
 			"maxLeverage":           this.ParseNumber(Precise.StringDiv("1", initialMargin)),
 			"info":                  tier,

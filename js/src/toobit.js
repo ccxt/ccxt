@@ -1269,6 +1269,11 @@ export default class toobit extends Exchange {
                 request['to'] = this.sum(since, duration * limit * 1000);
             }
         }
+        else if ((since !== undefined) && (limit !== undefined)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2723,9 +2728,8 @@ export default class toobit extends Exchange {
         // }
         //
         const result = {};
-        const entry = response;
-        const marketResolved = this.safeMarket(this.safeString(entry, 'symbol'), market);
-        const fee = this.parseTradingFee(entry, marketResolved);
+        const marketResolved = this.safeMarket(this.safeString(response, 'symbol'), market);
+        const fee = this.parseTradingFee(response, marketResolved);
         result[marketResolved['symbol']] = fee;
         return result;
     }

@@ -1274,7 +1274,7 @@ class backpack(Exchange, ImplicitAPI):
                 request['symbol'] = self.safe_string(market, 'id')
         return request
 
-    def filter_stock_structures(self, entries: list) -> list:
+    def filter_stock_structures(self, entries: list[dict]) -> list:
         """
  @ignore
         filters parsed account structures by securities metadata, never by RFQ execution alone
@@ -1596,7 +1596,7 @@ class backpack(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0, {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "fundingRate": "0.0001",

@@ -272,8 +272,11 @@ class extended extends Exchange {
                 ),
             ),
             'fees' => array(
-                'taker' => $this->parse_number('0.002'),
-                'maker' => $this->parse_number('0.002'),
+                'taker' => $this->parse_number('0.00025'),
+                'maker' => $this->parse_number('0'),
+                'rwa' => array(
+                    'taker' => $this->parse_number('0.0001'),
+                ),
             ),
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -398,6 +401,7 @@ class extended extends Exchange {
          * retrieves $data on all markets for extended
          *
          * @see https://api.docs.extended.exchange/#get-markets
+         * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -574,6 +578,8 @@ class extended extends Exchange {
         $minAmount = $this->safe_number($tradingConfig, 'minOrderSize');
         $maxCost = $this->safe_number($tradingConfig, 'maxLimitOrderValue');
         $created = $this->safe_integer($market, 'createdAt');
+        $category = $this->safe_string_lower($market, 'category');
+        $takerFees = ($category === 'rwa') ? $this->safe_dict($this->fees, 'rwa', array()) : $this->fees;
         $settleId = null;
         $settle = null;
         $symbol = $base . '/' . $quote;
@@ -615,7 +621,7 @@ class extended extends Exchange {
             'contract' => !$isSpot,
             'linear' => $linear,
             'inverse' => $inverse,
-            'taker' => $this->safe_number($this->fees, 'taker'),
+            'taker' => $this->safe_number($takerFees, 'taker'),
             'maker' => $this->safe_number($this->fees, 'maker'),
             'contractSize' => $contractSize,
             'expiry' => null,

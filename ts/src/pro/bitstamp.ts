@@ -873,11 +873,13 @@ export default class bitstamp extends bitstampRest {
         if ((topic === 'orders') && (this.orders !== undefined)) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             const freshOrdersCache = new ArrayCacheBySymbolById (limit);
-            this.orders = this.pruneCachedBySymbols (freshOrdersCache, this.orders, symbols);
+            this.pruneCachedBySymbols (freshOrdersCache, this.orders, symbols);
+            this.orders = freshOrdersCache;
         } else if ((topic === 'myTrades') && (this.myTrades !== undefined)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const freshTradesCache = new ArrayCacheBySymbolById (limit);
-            this.myTrades = this.pruneCachedBySymbols (freshTradesCache, this.myTrades, symbols);
+            this.pruneCachedBySymbols (freshTradesCache, this.myTrades, symbols);
+            this.myTrades = freshTradesCache;
         } else {
             this.cleanCache (subscription);
         }
@@ -894,7 +896,7 @@ export default class bitstamp extends bitstampRest {
      * @returns {object} the new cache holding the remaining entries
      */
     pruneCachedBySymbols (newCache: ArrayCacheBySymbolById, cache: ArrayCache, symbols: string[]): ArrayCache {
-        const entries = this.toArray (cache);
+        const entries: Dict[] = this.toArray (cache);
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
             const entrySymbol = this.safeString (entry, 'symbol');

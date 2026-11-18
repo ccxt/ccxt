@@ -1376,7 +1376,7 @@
                 "description": "Fetch open order",
                 "method": "fetchOpenOrder",
                 "input": [
-                    1001441400627435,
+                    "1001441400627435",
                     "ETH/USDT"
                 ],
                 "httpResponse": {
@@ -1504,7 +1504,7 @@
                 "description": "Fetch closed order",
                 "method": "fetchClosedOrder",
                 "input": [
-                    1001441398400348,
+                    "1001441398400348",
                     "ETH/USDT"
                 ],
                 "httpResponse": {

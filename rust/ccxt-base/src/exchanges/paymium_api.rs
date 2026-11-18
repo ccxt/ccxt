@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::paymium::PaymiumCore;
+use super::paymium::Paymium;
 use crate::exchange::ExchangeRuntime;
 
-impl PaymiumCore {
+impl Paymium {
     /// Auto-generated wrapper for the `publicGetCountries` implicit endpoint.
     pub async fn public_get_countries(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_countries".into()), optional_args).await

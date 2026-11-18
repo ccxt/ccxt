@@ -79,7 +79,7 @@ class nado(ccxt.async_support.nado):
             },
         })
 
-    def request_id(self) -> Int:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
@@ -923,7 +923,7 @@ class nado(ccxt.async_support.nado):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
-    async def watch_execute_request(self, requestIdString: str, request: dict):
+    async def watch_execute_request(self, requestIdString: str, request: dict) -> dict:
         # the v2 gateway dispatches requests concurrently, so responses arrive
         # in completion order, not send order — every execute carries a unique
         # request id and its response is correlated by the echoed id
@@ -931,7 +931,7 @@ class nado(ccxt.async_support.nado):
         messageHash = 'execute:' + requestIdString
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_public(self, streamType: Str, market: object, messageHash: str, params: dict = {}):
+    async def watch_public(self, streamType: Str, market: Market | None, messageHash: str, params: dict = {}):
         url = self.safe_string(self.urls['api']['ws'], 'subscriptions')
         stream = {
             'type': streamType,

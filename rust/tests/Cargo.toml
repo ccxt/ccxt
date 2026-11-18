@@ -32,6 +32,6 @@ ccxt-pro = { path = "../ccxt-pro" }
 # `all` default enables when ccxt_tests is built on its own (`-p ccxt_tests`).
 ccxt-prediction = { path = "../ccxt-prediction" }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 futures = "0.3"
 indexmap = "2"

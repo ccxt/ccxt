@@ -81,12 +81,14 @@ export default class paradex extends paradexRest {
         });
     }
     getWsUrl() {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         if (!this.safeBool(this.options, 'sbe', true)) {
             return url;
         }
-        const schemaVersion = this.safeString(this.options, 'sbeSchemaVersion', '3');
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
+        else {
+            const schemaVersion = this.safeString(this.options, 'sbeSchemaVersion', '3');
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
+        }
     }
     getOrderBookChannel(marketId, deltas = false) {
         if (deltas) {
@@ -2193,7 +2195,7 @@ export default class paradex extends paradexRest {
             }
             const entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             const numInGroup = this.parseToInt(this.sbeReadUint(frameHex, position + 2, 2));
-            position = this.parseToInt(position + 4);
+            position = position + 4;
             if ((entryLength < 16) || (this.parseToInt(this.sum(position, numInGroup * entryLength)) > frameEnd)) {
                 return undefined;
             }

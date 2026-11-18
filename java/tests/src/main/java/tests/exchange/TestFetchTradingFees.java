@@ -25,7 +25,7 @@ public class TestFetchTradingFees extends BaseTest {
         Object fees = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFees", new Object[]{new HashMap<String, Object>() {{}}})).join();
         List<String> symbols = new ArrayList<String>(((Map<String, Object>)fees).keySet());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, symbols);
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, Helpers.GetValue(fees, symbol));

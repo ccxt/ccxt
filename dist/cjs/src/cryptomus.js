@@ -79,7 +79,7 @@ class cryptomus extends cryptomus$1["default"] {
                 'fetchConvertTradeHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false, // v1/exchange/market/assets is nginx 404
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -120,7 +120,7 @@ class cryptomus extends cryptomus$1["default"] {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': true,
-                'fetchOrderBook': true,
+                'fetchOrderBook': false, // v1/exchange/market/order-book is nginx 404
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -133,10 +133,10 @@ class cryptomus extends cryptomus$1["default"] {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': true,
+                'fetchTicker': true,
+                'fetchTickers': false, // v1/exchange/market/tickers is nginx 404; price is per symbol
                 'fetchTime': false,
-                'fetchTrades': true,
+                'fetchTrades': false, // v1/exchange/market/trades is nginx 404
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
@@ -171,12 +171,10 @@ class cryptomus extends cryptomus$1["default"] {
                 'public': {
                     'get': {
                         'v2/user-api/exchange/markets': { 'cost': 1 }, // done
-                        'v2/user-api/exchange/market/price': { 'cost': 1 }, // not used
-                        'v2/user-api/exchange/markets/price': { 'cost': 1 },
-                        'v1/exchange/market/assets': { 'cost': 1 }, // done
-                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 }, // done
-                        'v1/exchange/market/tickers': { 'cost': 1 }, // done
-                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 }, // done
+                        'v2/user-api/exchange/markets/price': { 'cost': 1 }, // done
+                        'v1/exchange/market/assets': { 'cost': 1 }, // nginx 404
+                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 }, // nginx 404
+                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 }, // nginx 404
                     },
                 },
                 'private': {
@@ -271,7 +269,9 @@ class cryptomus extends cryptomus$1["default"] {
                     // {"message":"Minimum amount 15 USDT","state":1}
                     // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 },
-                'broad': {},
+                'broad': {
+                    'Market ': errors.BadSymbol, // {"code":1,"message":"Market NOPE_USDT doesn't exist."}
+                },
             },
             'precisionMode': number.TICK_SIZE,
             'requiredCredentials': {
@@ -285,7 +285,7 @@ class cryptomus extends cryptomus$1["default"] {
      * @method
      * @name cryptomus#fetchMarkets
      * @description retrieves data on all markets for the exchange
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -476,46 +476,37 @@ class cryptomus extends cryptomus$1["default"] {
     }
     /**
      * @method
-     * @name cryptomus#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @name cryptomus#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers(symbols = undefined, params = {}) {
+    async fetchTicker(symbol, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.publicGetV1ExchangeMarketTickers(params);
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV2UserApiExchangeMarketsPrice(this.extend(request, params));
         //
         //     {
-        //         "data": [
-        //         {
-        //             "currency_pair": "MATIC_USDT",
-        //             "last_price": "0.342",
-        //             "base_volume": "1676.84092771",
-        //             "quote_volume": "573.48033609043"
-        //         },
-        //         ...
+        //         "price": "78450.4"
         //     }
         //
-        const data = this.safeList(response, 'data');
-        return this.parseTickers(data, symbolsNormalized);
+        return this.parseTicker(response, market);
     }
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829772",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "price": "78450.4"
         //     }
         //
-        const marketId = this.safeString(ticker, 'currency_pair');
-        const marketResolved = this.safeMarket(marketId, market);
-        const last = this.safeString(ticker, 'last_price');
+        const marketResolved = this.safeMarket(undefined, market);
+        const last = this.safeString(ticker, 'price');
         return this.safeTicker({
             'symbol': marketResolved['symbol'],
             'timestamp': undefined,
@@ -534,8 +525,8 @@ class cryptomus extends cryptomus$1["default"] {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'base_volume'),
-            'quoteVolume': this.safeString(ticker, 'quote_volume'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'info': ticker,
         }, marketResolved);
     }
@@ -1214,6 +1205,7 @@ class cryptomus extends cryptomus$1["default"] {
         if (codeError !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
         else if (message !== undefined) {

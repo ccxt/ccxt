@@ -2866,7 +2866,7 @@ class bybit(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
 
-    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -4040,7 +4040,7 @@ class bybit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         types = await self.is_unified_enabled()
-        enableUnifiedAccount = types[1]
+        enableUnifiedAccount = self.safe_bool(types, 1, False)
         if enableUnifiedAccount is not True:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports UTA accounts only')
         market = self.market(symbol)
@@ -4092,7 +4092,7 @@ class bybit(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         parts = await self.is_unified_enabled()
-        enableUnifiedAccount = parts[1]
+        enableUnifiedAccount = self.safe_bool(parts, 1, False)
         isTrailingOrder = self.safe_string_2(params, 'trailingAmount', 'trailingStop') is not None
         isStopLossOrder = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitOrder = self.safe_string(params, 'takeProfitPrice') is not None
@@ -4394,7 +4394,7 @@ class bybit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         accounts = await self.is_unified_enabled()
-        isUta = accounts[1]
+        isUta = self.safe_bool(accounts, 1, False)
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
@@ -4745,7 +4745,7 @@ class bybit(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         types = await self.is_unified_enabled()
-        enableUnifiedAccount = types[1]
+        enableUnifiedAccount = self.safe_bool(types, 1, False)
         if enableUnifiedAccount is not True:
             raise NotSupported(self.id + ' cancelOrders() supports UTA accounts only')
         category, paramsValue = self.get_bybit_type('cancelOrders', market, params)
@@ -4856,7 +4856,7 @@ class bybit(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         types = await self.is_unified_enabled()
-        enableUnifiedAccount = types[1]
+        enableUnifiedAccount = self.safe_bool(types, 1, False)
         if enableUnifiedAccount is not True:
             raise NotSupported(self.id + ' cancelOrdersForSymbols() supports UTA accounts only')
         ordersRequests = []
@@ -6300,7 +6300,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         accounts = await self.is_unified_enabled()
-        isUta = accounts[1]
+        isUta = self.safe_bool(accounts, 1, False)
         accountTypeOption, paramsAccountType = self.handle_option_string_and_params(paramsWithdrawTag, 'withdraw', 'accountType')
         defaultAccountType = 'UTA' if (isUta is True) else 'SPOT'
         accountType = defaultAccountType if (accountTypeOption is None) else accountTypeOption

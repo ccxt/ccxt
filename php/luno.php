@@ -1399,12 +1399,11 @@ class luno extends Exchange {
         // by default without entry number or limit number, return most recent entry
         $entryValue = ($entry === null) ? -1 : $entry;
         $limitValue = ($limit === null) ? 1 : $limit;
-        $since = null;
         $request = array(
             'min_row' => $entryValue,
             'max_row' => $this->sum($entryValue, $limitValue),
         );
-        return $this->fetch_ledger($code, $since, $limitValue, $this->extend($request, $params));
+        return $this->fetch_ledger($code, null, $limitValue, $this->extend($request, $params));
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1731,7 +1730,7 @@ class luno extends Exchange {
         if ($response === null) {
             return null;
         }
-        $error = $this->safe_value($response, 'error');
+        $error = $this->safe_string($response, 'error');
         if ($error !== null) {
             $feedback = $this->id . ' ' . $this->json($response);
             $errorCode = $this->safe_string($response, 'error_code');

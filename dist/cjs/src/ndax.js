@@ -694,7 +694,7 @@ class ndax extends ndax$1["default"] {
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
-            const level = this.safeValue(orderbook, i);
+            const level = this.safeList(orderbook, i);
             const newTimestamp = this.safeInteger(level, 2);
             if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
                 latestTimestamp = newTimestamp;
@@ -879,8 +879,7 @@ class ndax extends ndax$1["default"] {
         //         }
         //     ]
         //
-        const tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(this.parseTickers(response), 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -2540,7 +2539,7 @@ class ndax extends ndax$1["default"] {
                 type = 'withdrawal';
             }
         }
-        const templateForm = this.parseJson(this.safeValue2(transaction, 'TemplateForm', 'DepositInfo'));
+        const templateForm = this.parseJson(this.safeString2(transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger(transaction, 'LastUpdateTimeStamp');
         if (templateForm !== undefined) {
             updated = this.safeInteger(templateForm, 'LastUpdated', updated);

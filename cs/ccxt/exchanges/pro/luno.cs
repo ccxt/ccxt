@@ -45,7 +45,7 @@ public partial class luno : ccxt.luno
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -125,7 +125,7 @@ public partial class luno : ccxt.luno
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // watchTrades (public)
@@ -144,7 +144,7 @@ public partial class luno : ccxt.luno
             symbol = null;
         } else
         {
-            symbol = ((string)getValue(market, "symbol"));
+            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -174,7 +174,7 @@ public partial class luno : ccxt.luno
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

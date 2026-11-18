@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::blofin::BlofinCore;
+use super::blofin::Blofin;
 use crate::exchange::ExchangeRuntime;
 
-impl BlofinCore {
+impl Blofin {
     /// Auto-generated wrapper for the `publicGetMarketInstruments` implicit endpoint.
     pub async fn public_get_market_instruments(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_instruments".into()), optional_args).await

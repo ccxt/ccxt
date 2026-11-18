@@ -18,7 +18,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "symbol=.JUPUSDTFR8H&limit=3&end=1792454399000": {
+                    "end=1792454399000": {
                         "code": 0,
                         "msg": "OK",
                         "data": {
@@ -44,33 +44,7 @@
                             ]
                         }
                     },
-                    "symbol=.JUPUSDTFR8H&limit=3&end=1792411199999": {
-                        "code": 0,
-                        "msg": "OK",
-                        "data": {
-                            "rows": [
-                                {
-                                    "symbol": ".JUPUSDTFR8H",
-                                    "fundingRate": "0.00005",
-                                    "fundingTime": 1792368000000,
-                                    "intervalSeconds": 14400
-                                },
-                                {
-                                    "symbol": ".JUPUSDTFR8H",
-                                    "fundingRate": "0.00005",
-                                    "fundingTime": 1792382400000,
-                                    "intervalSeconds": 14400
-                                },
-                                {
-                                    "symbol": ".JUPUSDTFR8H",
-                                    "fundingRate": "0.00005",
-                                    "fundingTime": 1792396800000,
-                                    "intervalSeconds": 14400
-                                }
-                            ]
-                        }
-                    },
-                    "symbol=.JUPUSDTFR8H&start=1792368000000&limit=3&end=1792454399000": {
+                    "end=1792411199999": {
                         "code": 0,
                         "msg": "OK",
                         "data": {

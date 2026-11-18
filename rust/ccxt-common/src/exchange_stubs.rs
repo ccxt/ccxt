@@ -22,6 +22,43 @@ use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
+/// The needle of `in_array`: a `Value` (as before), or a typed string / integer local lent as is, so the transpiled
+/// code passes it without boxing or copying it. Each answers exactly `is_equal(element, &boxed_needle)`.
+pub trait InArrayNeedle {
+    fn needle_eq(&self, x: &Value) -> bool;
+}
+impl InArrayNeedle for Value {
+    fn needle_eq(&self, x: &Value) -> bool { crate::runtime::is_equal(x, self) }
+}
+impl InArrayNeedle for str {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Str(y) => y.as_ref() == self,
+            _ => matches!((crate::runtime::value_as_f64(x), self.parse::<f64>().ok()), (Some(a), Some(b)) if a == b),
+        }
+    }
+}
+impl InArrayNeedle for String {
+    fn needle_eq(&self, x: &Value) -> bool { self.as_str().needle_eq(x) }
+}
+impl InArrayNeedle for Option<String> {
+    fn needle_eq(&self, x: &Value) -> bool { match self { Some(s) => s.as_str().needle_eq(x), None => matches!(x, Value::Null) } }
+}
+impl InArrayNeedle for i64 {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Int(y) => y == self,
+            _ => crate::runtime::value_as_f64(x) == Some(*self as f64),
+        }
+    }
+}
+impl InArrayNeedle for Option<i64> {
+    fn needle_eq(&self, x: &Value) -> bool { match self { Some(n) => n.needle_eq(x), None => matches!(x, Value::Null) } }
+}
+impl<T: InArrayNeedle + ?Sized> InArrayNeedle for &T {
+    fn needle_eq(&self, x: &Value) -> bool { (**self).needle_eq(x) }
+}
+
 /// Coerces `&Exchange` to `&mut Exchange`. The lint that warns about
 /// this is suppressed locally — see the safety note on the call site.
 #[allow(clippy::mut_from_ref, invalid_reference_casting)]
@@ -32,8 +69,8 @@ unsafe fn coerce_to_mut_unsafe(e: &Exchange) -> &mut Exchange {
 
 // One owner thread hands out the counter, so two tasks can never take the same
 // value and no call site touches an atomic.
-static RANDOM_COUNTER: once_cell::sync::Lazy<crate::value::OwnerThread<u64>> =
-    once_cell::sync::Lazy::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
+static RANDOM_COUNTER: std::sync::LazyLock<crate::value::OwnerThread<u64>> =
+    std::sync::LazyLock::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
 
 /// Non-cryptographic 64-bit PRNG (splitmix64) seeded from a global
 /// counter mixed with the high-resolution clock. Good enough for the
@@ -503,6 +540,19 @@ fn arg_default(opt: &[Value]) -> Value {
     opt.get(0).cloned().unwrap_or(Value::Null)
 }
 
+/// The one body of the `safe_string_{lower,upper}*_opt` twins: a found string is case-transformed, else
+/// the default is returned verbatim when it is a string (`None` where the boxed helper's
+/// `arg_default(..).as_str()` is `None`), matching TS `safeStringLower/Upper` (type.ts).
+fn cased_or_default(found: Option<String>, upper: bool, optional_args: &[Value]) -> Option<String> {
+    match found {
+        Some(s) => Some(if upper { s.to_uppercase() } else { s.to_lowercase() }),
+        None => match arg_default(optional_args) {
+            Value::Str(d) => Some(d.to_string()),
+            _ => None,
+        },
+    }
+}
+
 fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
@@ -575,8 +625,8 @@ pub(crate) fn next_spawn_due() -> Option<std::time::Duration> {
 /// `client.reusable_future ()` return). Re-exported here because the generated
 /// venue files reach the base through `crate::exchange_stubs::…`, a path that
 /// resolves in both `ccxt-base` and `ccxt-pro`.
-pub async fn ws_await_flight(handle: &Value) -> Value {
-    crate::pro::ws_client::ws_await_flight(handle).await
+pub async fn ws_await_flight(handle: impl Into<crate::pro::ws_client::Flight>) -> Value {
+    crate::pro::ws_client::ws_await_flight(handle.into()).await
 }
 
 /// Queue an async WS handler for the drive loop to run. The sync
@@ -617,8 +667,8 @@ impl Exchange {
     /// so we trust it as the formatted message and trim it. Used by
     /// exchanges that re-throw with a contextual prefix in their
     /// catch arms (grvt.transfer is the canonical case).
-    pub fn exception_message(&self, exc: Value, _optional_args: &[Value]) -> Value {
-        let s = match exc {
+    pub fn exception_message(&self, exc: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        let s = match exc.into() {
             Value::Str(s) => s,
             other => crate::runtime::stringify_param(&other).into(),
         };
@@ -645,8 +695,8 @@ impl Exchange {
     // savings are several thousand allocations.
 
     #[inline]
-    pub fn safe_value_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
-        let v = crate::value::get_value_k(&obj, key);
+    pub fn safe_value_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
+        let v = obj.key_read(key);
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
             arg_default(optional_args)
@@ -656,7 +706,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_string_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_string_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Str(_) => v,
@@ -671,7 +721,7 @@ impl Exchange {
     /// `safe_string_k` without the box: same lookup, empty-string and default
     /// rules, `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
         match self.safe_value_k(obj, key, &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
@@ -685,7 +735,7 @@ impl Exchange {
 
     /// `safe_string` without the box (Value key): same lookup and default rules.
     #[inline]
-    pub fn safe_string_opt(&self, obj: Value, key: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
         match self.safe_value(obj, key, &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
@@ -698,7 +748,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_integer_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Int(_) => v,
@@ -715,7 +765,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_float_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_float_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Float(_) => v,
@@ -729,13 +779,13 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_number_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_number_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         self.safe_float_k(obj, key, optional_args)
     }
 
     /// `safe_bool_k` without the box: `Some` only for an actual boolean, else `None`.
     #[inline]
-    pub fn safe_bool_k_opt(&self, obj: Value, key: &str, _optional_args: &[Value]) -> Option<bool> {
+    pub fn safe_bool_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, _optional_args: &[Value]) -> Option<bool> {
         match self.safe_value_k(obj, key, &[]) {
             Value::Bool(b) => Some(b),
             _ => None,
@@ -744,7 +794,7 @@ impl Exchange {
 
     /// `safe_bool` without the box (Value key): same lookup rule as `safe_bool_k_opt`.
     #[inline]
-    pub fn safe_bool_opt(&self, obj: Value, key: Value, _optional_args: &[Value]) -> Option<bool> {
+    pub fn safe_bool_opt(&self, obj: impl crate::value::KeyRead, key: Value, _optional_args: &[Value]) -> Option<bool> {
         match self.safe_value(obj, key, &[]) {
             Value::Bool(b) => Some(b),
             _ => None,
@@ -753,7 +803,7 @@ impl Exchange {
 
     /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
     #[inline]
-    pub fn safe_bool2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
+    pub fn safe_bool2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
         if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
             return Some(b);
         }
@@ -765,7 +815,7 @@ impl Exchange {
 
     /// `safe_bool_n` without the box: `Some` only for an actual boolean, else `None`.
     #[inline]
-    pub fn safe_bool_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<bool> {
+    pub fn safe_bool_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, _optional_args: &[Value]) -> Option<bool> {
         match self.safe_value_n(obj, keys, &[]) {
             Value::Bool(b) => Some(b),
             _ => None,
@@ -775,7 +825,7 @@ impl Exchange {
     /// `safe_string2` without the box: first key whose `safe_string` is non-null, then the
     /// default; `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string2_opt(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
         self.safe_string_opt(obj.clone(), k1, &[])
             .or_else(|| self.safe_string_opt(obj, k2, &[]))
             .or_else(|| match arg_default(optional_args) {
@@ -787,7 +837,7 @@ impl Exchange {
     /// `safe_string_n` without the box: first key whose `safe_string` is non-null, then the
     /// default; `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string_n_opt(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 if let Some(s) = self.safe_string_opt(obj.clone(), k, &[]) {
@@ -802,7 +852,7 @@ impl Exchange {
     }
 
     /// `safe_number2` without the box (no default): first key whose string form parses as f64.
-    pub fn safe_number2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
+    pub fn safe_number2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
         match self.safe_string2(obj, k1, k2, &[]) {
             Value::Str(s) => s.parse::<f64>().ok(),
             _ => None,
@@ -810,7 +860,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_bool_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         // Mirror CCXT `safeBool`: the value is returned ONLY when it is an
         // actual boolean (`typeof value === 'boolean'`). A string like
         // "true" or an integer is NOT a boolean, so it yields the default
@@ -825,7 +875,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_dict_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_dict_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         if matches!(v, Value::Dict(_)) {
             v
@@ -835,7 +885,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_list_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_list_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         if matches!(v, Value::Arr(_)) {
             v
@@ -844,12 +894,12 @@ impl Exchange {
         }
     }
 
-    pub fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges
         // that signal end-of-pagination with `cursor: ""` loop forever
         // because `is_equal(&Value::Str(""), &Value::Null)` is false.
-        let v = crate::get_value(&obj, &Value::Str(key_str(&key).into()));
+        let v = obj.read(&Value::Str(key_str(&key).into()));
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
             arg_default(optional_args)
@@ -858,7 +908,7 @@ impl Exchange {
         }
     }
 
-    pub fn safe_value2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_value2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_value(obj.clone(), k1, &[]);
         if !v.is_null() {
             return v;
@@ -871,7 +921,7 @@ impl Exchange {
         }
     }
 
-    pub fn safe_value_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_value_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 let v = self.safe_value(obj.clone(), k, &[]);
@@ -883,7 +933,7 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    pub fn safe_string(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_value(obj, key, &[]);
         match v {
             Value::Str(_) => v,
@@ -897,7 +947,7 @@ impl Exchange {
         }
     }
 
-    pub fn safe_string2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_string(obj.clone(), k1, &[]);
         if !v.is_null() {
             return v;
@@ -910,7 +960,7 @@ impl Exchange {
         }
     }
 
-    pub fn safe_string_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 let v = self.safe_string(obj.clone(), k, &[]);
@@ -928,7 +978,7 @@ impl Exchange {
     // `$default` verbatim. Passing the default through `safe_string` first
     // (and then casing the result) wrongly lower-cased mixed-case defaults
     // such as hyperliquid's checksummed builder address.
-    pub fn safe_string_upper(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string_upper(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_string(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
@@ -941,7 +991,7 @@ impl Exchange {
 
     /// `safe_string_upper` with a `&str` key — the `safe_*_k` twin.
     #[inline]
-    pub fn safe_string_upper_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_string_upper_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
@@ -955,17 +1005,11 @@ impl Exchange {
     /// `safe_string_upper_k` without the box: the found value is upper-cased, a
     /// default is returned verbatim (`None` where the boxed helper yields `Null`).
     #[inline]
-    pub fn safe_string_upper_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
-        match self.safe_string_k_opt(obj, key, &[]) {
-            Some(s) => Some(s.to_uppercase()),
-            None => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
-        }
+    pub fn safe_string_upper_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_k_opt(obj, key, &[]), true, optional_args)
     }
 
-    pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string_lower_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 let v = self.safe_string(obj.clone(), k, &[]);
@@ -980,7 +1024,7 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    pub fn safe_string_upper_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string_upper_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 let v = self.safe_string(obj.clone(), k, &[]);
@@ -995,7 +1039,7 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    pub fn safe_string_lower(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_string_lower(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_string(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
@@ -1009,7 +1053,7 @@ impl Exchange {
     /// `safe_string_lower` with a `&str` key — the `safe_*_k` twin of the
     /// lookup above (same `get_value_k` path as the rest of the family).
     #[inline]
-    pub fn safe_string_lower_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_string_lower_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
@@ -1023,19 +1067,13 @@ impl Exchange {
     /// `safe_string_lower_k` without the box: the found value is lower-cased, a
     /// default is returned verbatim (`None` where the boxed helper yields `Null`).
     #[inline]
-    pub fn safe_string_lower_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
-        match self.safe_string_k_opt(obj, key, &[]) {
-            Some(s) => Some(s.to_lowercase()),
-            None => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
-        }
+    pub fn safe_string_lower_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_k_opt(obj, key, &[]), false, optional_args)
     }
 
     pub fn safe_string_lower2(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         k1: Value,
         k2: Value,
         optional_args: &[Value],
@@ -1052,7 +1090,7 @@ impl Exchange {
 
     pub fn safe_string_upper2(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         k1: Value,
         k2: Value,
         optional_args: &[Value],
@@ -1065,6 +1103,42 @@ impl Exchange {
             return v;
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_string_lower` without the box (Value key): see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_lower_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_opt(obj, key, &[]), false, optional_args)
+    }
+
+    /// `safe_string_upper` without the box (Value key): see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_upper_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_opt(obj, key, &[]), true, optional_args)
+    }
+
+    /// `safe_string_lower2` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_lower2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string2_opt(obj, k1, k2, &[]), false, optional_args)
+    }
+
+    /// `safe_string_upper2` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_upper2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string2_opt(obj, k1, k2, &[]), true, optional_args)
+    }
+
+    /// `safe_string_lower_n` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_lower_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_n_opt(obj, keys, &[]), false, optional_args)
+    }
+
+    /// `safe_string_upper_n` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_upper_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_n_opt(obj, keys, &[]), true, optional_args)
     }
 
     /// `super.X(...)` from derived exchanges — routes back to the base
@@ -1096,7 +1170,7 @@ impl Exchange {
     // shape and we reborrow `&mut` via the same helper as `super_set_markets`.
     pub fn set_last_rest_request_timestamp(&self) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
-        me.lastRestRequestTimestamp = self.milliseconds();
+        me.lastRestRequestTimestamp = Value::Int(self.milliseconds());
     }
 
     pub fn set_last_request(&self, request: Value) {
@@ -1139,10 +1213,10 @@ impl Exchange {
     // `client(url)` returns the client-handle `Value` (`Map{url, subscriptions,
     // futures}`) the transpiled `handle_message` reads; the live connection is
     // established lazily by `watch()`.
-    pub fn client(&mut self, args: &[Value]) -> Value {
-        match args.get(0) {
-            Some(Value::Str(url)) => crate::pro::ws_client::client_value(url),
-            _ => Value::Null,
+    pub fn client<'a>(&mut self, url: impl Into<Option<&'a str>>) -> Value {
+        match url.into() {
+            Some(url) => crate::pro::ws_client::client_value(url),
+            None => Value::Null,
         }
     }
     // `spawn(fn, ...)` / `delay(ms, fn, ...)`: the transpiler lowers the JS
@@ -1170,20 +1244,20 @@ impl Exchange {
         }
         Value::Null
     }
-    pub fn order_book(&self, args: &[Value]) -> Value {
-        crate::pro::OrderBook::new(
+    pub fn order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_PLAIN, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
     }
-    pub fn indexed_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::IndexedOrderBook::new(
+    pub fn indexed_order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_INDEXED, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
     }
-    pub fn counted_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::CountedOrderBook::new(
+    pub fn counted_order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_COUNTED, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
@@ -1224,10 +1298,11 @@ impl Exchange {
     /// CRC-32 checksum — used by a few WS order-book reconcilers
     /// (bitget, bitfinex, independentreserve). Stub returns 0; will be
     /// replaced with the real algorithm when those order books need it.
-    pub fn crc32(&self, args: &[Value]) -> Value {
+    /// `crc32(str, signed)`: TypeScript declares `number`, and the runtime always yields an integer.
+    pub fn crc32(&self, args: &[Value]) -> i64 {
         let payload = args.get(0).cloned().unwrap_or(Value::Str(String::new().into()));
         let signed = args.get(1).cloned().unwrap_or(Value::Bool(false));
-        crate::runtime::crc32(payload, signed)
+        crate::runtime::crc32(payload, signed).as_i64().unwrap_or_default()
     }
     /// `decode_proto_msg(message)` — exchange-specific protobuf decoder
     /// (mexc). `message` is the binary frame carried as a byte array; decode
@@ -1286,24 +1361,28 @@ impl Exchange {
     }
 
     /// `randNumber(size)` — a random integer with `size` decimal digits.
-    pub fn rand_number(&self, size: Value) -> Value {
-        use rand::Rng;
+    pub fn rand_number(&self, size: Value) -> i64 {
+        use rsa::rand_core::{OsRng, RngCore};
         let n = size.as_i64().unwrap_or(0).max(0) as usize;
-        let mut rng = rand::thread_rng();
         let mut s = String::new();
-        for _ in 0..n {
-            s.push(char::from(b'0' + rng.gen_range(0..10u8)));
+        let mut byte = [0u8; 1];
+        while s.len() < n {
+            OsRng.fill_bytes(&mut byte);
+            // Reject 250..=255 so every digit is equally likely.
+            if byte[0] < 250 {
+                s.push(char::from(b'0' + byte[0] % 10));
+            }
         }
-        Value::Int(s.parse::<i64>().unwrap_or(0))
+        s.parse::<i64>().unwrap_or(0)
     }
 
     /// `randomBytes(length)` — `length` random bytes as a hex string.
-    pub fn random_bytes(&self, length: Value) -> Value {
-        use rand::Rng;
+    pub fn random_bytes(&self, length: Value) -> String {
+        use rsa::rand_core::{OsRng, RngCore};
         let n = length.as_i64().unwrap_or(0).max(0) as usize;
-        let mut rng = rand::thread_rng();
-        let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
-        Value::Str(hex::encode(bytes).into())
+        let mut bytes = vec![0u8; n];
+        OsRng.fill_bytes(&mut bytes);
+        crate::exchange::hex_encode(bytes)
     }
 
     /// `convertToBigInt(value)` — the Value-bag has no distinct bigint type,
@@ -1372,7 +1451,7 @@ impl Exchange {
         let mut hash = hasher.finalize().to_vec();
         hash[6] = (hash[6] & 0x0f) | 0x50;
         hash[8] = (hash[8] & 0x3f) | 0x80;
-        let h = hex::encode(&hash[0..16]);
+        let h = crate::exchange::hex_encode(&hash[0..16]);
         Value::Str(format!(
             "{}-{}-{}-{}-{}",
             &h[0..8],
@@ -1414,7 +1493,7 @@ impl Exchange {
                         }
                     })
                     .collect(),
-                Value::Str(s) => hex::decode(s.trim_start_matches("0x")).unwrap_or_default(),
+                Value::Str(s) => crate::exchange::hex_decode(s.trim_start_matches("0x")).unwrap_or_default(),
                 _ => Vec::new(),
             }
         };
@@ -1639,7 +1718,7 @@ impl Exchange {
     /// wallet transfer; inherited by binancecoinm / binanceusdm.
     pub async fn futures_transfer(
         &self,
-        _code: Value,
+        _code: &str,
         _amount: Value,
         _transfer_type: Value,
         _optional_args: &[Value],
@@ -1690,10 +1769,9 @@ impl Exchange {
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
-    pub fn urlencode_with_array_repeat(&self, params: Value) -> Value {
-        let m = match &params {
-            Value::Dict(m) => m,
-            _ => return Value::Str(String::new().into()),
+    pub fn urlencode_with_array_repeat(&self, params: impl Into<Value>) -> String {
+        let Value::Dict(m) = Into::<Value>::into(params) else {
+            return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, v) in m.iter() {
@@ -1717,10 +1795,10 @@ impl Exchange {
                 }
             }
         }
-        Value::Str(pairs.join("&").into())
+        pairs.join("&")
     }
 
-    pub fn safe_integer(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_value(obj, key, &[]);
         match v {
             Value::Int(_) => v,
@@ -1741,7 +1819,7 @@ impl Exchange {
 
     pub fn safe_integer2(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         k1: Value,
         k2: Value,
         optional_args: &[Value],
@@ -1758,7 +1836,7 @@ impl Exchange {
         }
     }
 
-    pub fn safe_integer_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_integer_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 let v = self.safe_integer(obj.clone(), k, &[]);
@@ -1771,12 +1849,12 @@ impl Exchange {
     }
 
     /// `safe_integer2` without the box (no default): first key yielding an integer.
-    pub fn safe_integer2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
+    pub fn safe_integer2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
         self.safe_integer(obj.clone(), k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
     }
 
     /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
-    pub fn safe_integer_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<i64> {
+    pub fn safe_integer_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, _optional_args: &[Value]) -> Option<i64> {
         let Value::Arr(ks) = keys else { return None };
         ks.iter().find_map(|k| self.safe_integer(obj.clone(), k.clone(), &[]).as_i64())
     }
@@ -1785,7 +1863,7 @@ impl Exchange {
     /// to i64. Used to convert seconds → milliseconds for timestamps.
     pub fn safe_integer_product(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         key: Value,
         factor: Value,
         optional_args: &[Value],
@@ -1812,7 +1890,7 @@ impl Exchange {
     #[inline]
     pub fn safe_integer_product_k(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         key: &str,
         factor: Value,
         optional_args: &[Value],
@@ -1837,7 +1915,7 @@ impl Exchange {
 
     pub fn safe_integer_product2(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         k1: Value,
         k2: Value,
         factor: Value,
@@ -1857,7 +1935,7 @@ impl Exchange {
 
     pub fn safe_integer_product_n(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         keys: Value,
         factor: Value,
         optional_args: &[Value],
@@ -1875,7 +1953,7 @@ impl Exchange {
 
     pub fn safe_timestamp2(
         &self,
-        obj: Value,
+        obj: impl crate::value::KeyRead,
         k1: Value,
         k2: Value,
         optional_args: &[Value],
@@ -1883,11 +1961,11 @@ impl Exchange {
         self.safe_integer_product2(obj, k1, k2, Value::Int(1000), optional_args)
     }
 
-    pub fn safe_timestamp_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_timestamp_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         self.safe_integer_product_n(obj, keys, Value::Int(1000), optional_args)
     }
 
-    pub fn safe_float(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_float(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_value(obj, key, &[]);
         match v {
             Value::Float(_) => v,
@@ -1903,7 +1981,7 @@ impl Exchange {
     /// `safeTimestamp(o, k)` — `parseInt(asFloat(value) * 1000)`. The
     /// value is read as a float (seconds, possibly fractional) and
     /// converted to integer milliseconds.
-    pub fn safe_timestamp(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_timestamp(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         match self.safe_float(obj, key, &[]) {
             Value::Float(f) => Value::Int((f * 1000.0) as i64),
             Value::Int(n) => Value::Int(n * 1000),
@@ -1913,7 +1991,7 @@ impl Exchange {
 
     /// `safe_timestamp` with a `&str` key — the `safe_*_k` twin.
     #[inline]
-    pub fn safe_timestamp_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_timestamp_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         match self.safe_float_k(obj, key, &[]) {
             Value::Float(f) => Value::Int((f * 1000.0) as i64),
             Value::Int(n) => Value::Int(n * 1000),
@@ -1924,8 +2002,8 @@ impl Exchange {
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
-    pub fn is_empty(&self, v: Value) -> Value {
-        let empty = match &v {
+    pub fn is_empty(&self, v: impl Into<Value>) -> Value {
+        let empty = match &Into::<Value>::into(v) {
             Value::Null => true,
             Value::Arr(a) => a.is_empty(),
             Value::Dict(m) => m.is_empty(),
@@ -1934,87 +2012,68 @@ impl Exchange {
         Value::Bool(empty)
     }
 
-    pub fn value_is_defined(&self, v: Value) -> Value {
-        Value::Bool(!v.is_null())
+    pub fn value_is_defined(&self, v: Value) -> bool {
+        !v.is_null()
     }
 
     // ── extend / deep_extend / omit ─────────────────────────────────────────
 
-    pub fn extend(&self, a: Value, optional_args: &[Value]) -> Value {
-        let mut out = match a {
-            Value::Dict(m) => Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()),
-            _ => HashMap::new(),
-        };
-        let merge = |out: &mut HashMap<String, Value>, src: Value| {
-            if let Value::Dict(m) = src {
-                let m = Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone());
-                for (k, v) in m {
-                    out.insert(k, v);
-                }
+    pub fn extend(&self, a: impl crate::value::ExtendHead, optional_args: impl crate::value::MergeOperands) -> Value {
+        let mut out = a.into_head();
+        optional_args.for_each_map(|m| {
+            for (k, v) in m.iter() {
+                out.insert(k.clone(), v.clone());
             }
-        };
-        for extra in optional_args {
-            merge(&mut out, extra.clone());
-        }
+        });
         Value::Map(out)
     }
 
-    pub fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value {
-        let mut current = a;
-        for extra in optional_args {
-            current = crate::value::deep_extend(current, extra.clone());
-        }
+    pub fn deep_extend(&self, a: impl Into<Value>, optional_args: impl crate::value::MergeOperands) -> Value {
+        let mut current: Value = a.into();
+        optional_args.for_each_operand(|extra| {
+            current = crate::value::deep_extend(std::mem::take(&mut current), extra);
+        });
         current
     }
 
-    pub fn omit(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Value {
-        match obj {
+    pub fn omit(&self, obj: impl crate::value::OmitSource, keys: impl crate::value::OmitKeys, _optional_args: &[Value]) -> Value {
+        match obj.into_operand() {
             Value::Dict(mut m) => {
                 let mm = Arc::make_mut(&mut m);
-                match keys {
-                    Value::Arr(ks) => {
-                        for k in ks.iter() {
-                            if let Value::Str(s) = k {
-                                mm.shift_remove(s.as_ref());
-                            }
-                        }
-                    }
-                    Value::Str(s) => {
-                        mm.shift_remove(s.as_ref());
-                    }
-                    _ => {}
-                }
+                keys.for_each_key(|k| { mm.shift_remove(k); });
                 Value::Dict(m)
             }
             other => other,
         }
     }
 
-    pub fn omit_zero(&self, v: Value) -> Value {
+    pub fn omit_zero(&self, v: Value) -> Option<String> {
         // Mirrors TS `omitZero`: undefined/'' or any value that parses to
         // numeric 0 → undefined. The old `s == "0"` check missed "0.0",
         // "0.00", "0e0" etc. — e.g. gate echoes `gt_fee:"0.0"`, and
         // keeping it as a non-null fee left `safeTrade` with 3 fee
         // entries (so it couldn't collapse to a single `fee`).
+        // The TS parameter is `string | undefined`; any other input reads as its text.
         match &v {
-            Value::Int(0) => Value::Null,
-            Value::Float(f) if *f == 0.0 => Value::Null,
+            Value::Null | Value::Int(0) => None,
+            Value::Float(f) if *f == 0.0 => None,
             Value::Str(s) => {
                 if s.is_empty() {
-                    return Value::Null;
+                    return None;
                 }
                 match s.parse::<f64>() {
-                    Ok(n) if n == 0.0 => Value::Null,
-                    _ => v,
+                    Ok(n) if n == 0.0 => None,
+                    _ => Some(s.to_string()),
                 }
             }
-            _ => v,
+            _ => Some(stringify_param(&v)),
         }
     }
 
     // ── array / object utilities ────────────────────────────────────────────
 
-    pub fn to_array(&self, v: Value) -> Value {
+    pub fn to_array(&self, v: impl Into<Value>) -> Value {
+        let v: Value = v.into();
         // A WS cache (ArrayCache / order-book cache) keeps its entries in `_data`
         // or the shared cache registry, not the dict's meta fields — surface
         // those, else `to_array` would leak `__cacheKind`/counters/flags as rows.
@@ -2029,8 +2088,8 @@ impl Exchange {
         }
     }
 
-    pub fn array_concat(&self, a: Value, b: Value) -> Value {
-        crate::runtime::concat_arrays(&a, &b)
+    pub fn array_concat(&self, a: impl Into<Value>, b: impl Into<Value>) -> Value {
+        crate::runtime::concat_arrays(&a.into(), &b.into())
     }
 
     pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> Value {
@@ -2065,13 +2124,12 @@ impl Exchange {
         }
     }
 
-    pub fn in_array(&self, needle: Value, haystack: Value) -> Value {
-        let hit = if let Value::Arr(a) = haystack {
-            a.iter().any(|x| crate::runtime::is_equal(x, &needle))
+    pub fn in_array(&self, needle: impl InArrayNeedle, haystack: impl Into<Value>) -> bool {
+        if let Value::Arr(a) = haystack.into() {
+            a.iter().any(|x| needle.needle_eq(x))
         } else {
             false
-        };
-        Value::Bool(hit)
+        }
     }
 
     pub fn unique(&self, v: Value) -> Value {
@@ -2277,8 +2335,17 @@ impl Exchange {
         }
         Value::Bool(parsed == Some(true))
     }
-    pub fn check_option_integer(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
-        value
+    // Int and null pass; an integral finite Float reads as Int; any other present value panics BadRequest (as the Go/C#/Java ports)
+    pub fn check_option_integer(&self, method_name: Value, option_name: Value, value: Value) -> Value {
+        match value {
+            Value::Null | Value::Int(_) => value,
+            Value::Float(f) if f.is_finite() && f == f.trunc() => Value::Int(f as i64),
+            _ => {
+                let label = if method_name.is_null() { "exchange-wide".to_string() } else { format!("{}()", stringify_param(&method_name)) };
+                let message = format!("{} {} option {} must be an integer", stringify_param(&self.id), label, stringify_param(&option_name));
+                panic!("{}", crate::exchange_errors::create_error("BadRequest", message));
+            }
+        }
     }
 
     /// `clone(value)` — CCXT's deep clone, distinct from Rust's `Clone` trait.
@@ -2413,7 +2480,7 @@ impl Exchange {
         put("commonCurrencies", &self.commonCurrencies);
         put("baseCurrencies", &self.baseCurrencies);
         put("quoteCurrencies", &self.quoteCurrencies);
-        put("symbols", &self.symbols);
+        put("symbols", &Value::from(&self.symbols));
         put("ids", &self.ids);
         put("codes", &self.codes);
         put("timeframes", &self.timeframes);
@@ -2429,18 +2496,19 @@ impl Exchange {
         put("headers", &self.headers);
         put("accounts", &self.accounts);
         put("accountsById", &self.accountsById);
-        put("orderbooks", &self.orderbooks);
-        put("orders", &self.orders);
-        put("trades", &self.trades);
-        put("myTrades", &self.myTrades);
-        put("positions", &self.positions);
+        put("orderbooks", &Value::from(&self.orderbooks));
+        put("orders", &Value::from(&self.orders));
+        put("trades", &Value::from(&self.trades));
+        put("myTrades", &Value::from(&self.myTrades));
+        put("positions", &Value::from(&self.positions));
+        put("positionsByType", &Value::from(&self.positionsByType));
         put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
-        put("ohlcvs", &self.ohlcvs);
+        put("ohlcvs", &Value::from(&self.ohlcvs));
         put("clients", &self.clients);
         put("balance", &self.balance);
-        put("liquidations", &self.liquidations);
-        put("myLiquidations", &self.myLiquidations);
+        put("liquidations", &Value::from(&self.liquidations));
+        put("myLiquidations", &Value::from(&self.myLiquidations));
         put("transactions", &self.transactions);
         put("reloadingMarkets", &self.reloadingMarkets);
         put("marketsLoading", &self.marketsLoading);
@@ -2470,35 +2538,32 @@ impl Exchange {
         Value::Map(m)
     }
 
-    pub fn base16ToBinary(&self, hex: Value, optional_args: &[Value]) -> Value {
+    pub fn base16ToBinary(&self, hex: Value, optional_args: &[Value]) -> crate::value::Bytes {
         self.base16_to_binary(hex, optional_args)
     }
-    pub fn base58_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
+    pub fn base58_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
         match &s {
-            Value::Str(s) => match base58_decode(s) {
-                Some(b) => bytes_to_value(&b),
-                None => Value::Null,
-            },
-            _ => Value::Null,
+            Value::Str(s) => crate::value::Bytes::of(&base58_decode(s).unwrap_or_default()),
+            _ => crate::value::Bytes::default(),
         }
     }
-    pub fn binary_to_base58(&self, b: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(base58_encode(&crate::exchange::value_to_bytes(&b)).into())
+    pub fn binary_to_base58(&self, b: impl Into<Value>, _optional_args: &[Value]) -> String {
+        base58_encode(&crate::exchange::value_to_bytes(&b.into()))
     }
-    pub fn binary_length(&self, b: Value, _optional_args: &[Value]) -> Value {
-        match b {
-            Value::Arr(a) => Value::Int(a.len() as i64),
-            _ => Value::Int(0),
+    pub fn binary_length(&self, b: impl Into<Value>, _optional_args: &[Value]) -> i64 {
+        match b.into() {
+            Value::Arr(a) => a.len() as i64,
+            _ => 0,
         }
     }
     /// `isBinaryMessage` — in this port a binary buffer is a
     /// `Value::Array` of byte-valued ints (see `base16_to_binary`,
     /// `string_to_binary`). `instanceof Uint8Array` can't transpile.
-    pub fn is_binary_message(&self, v: Value, _optional_args: &[Value]) -> Value {
-        Value::Bool(is_byte_array(&v))
+    pub fn is_binary_message(&self, v: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        Value::Bool(is_byte_array(&v.into()))
     }
     /// `numberToBE(n, padding)` — big-endian byte array of width `padding`.
-    pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> Value {
+    pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> crate::value::Bytes {
         let num: u64 = match &n {
             Value::Int(i) => (*i).max(0) as u64,
             Value::Float(f) => (*f).max(0.0) as u64,
@@ -2518,7 +2583,7 @@ impl Exchange {
         } else {
             out.extend_from_slice(&be[be.len() - padding..]);
         }
-        bytes_to_value(&out)
+        crate::value::Bytes::of(&out)
     }
     /// `parseDate(x)` — ports `functions/time.ts`. Parses an ISO-8601
     /// timestamp (with `T`/`Z` or a plain `YYYY-MM-DD HH:MM:SS` form,
@@ -2557,7 +2622,7 @@ impl Exchange {
             self.yyyymmdd(ts, optional_args)
         }
     }
-    pub fn safe_float_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_float_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
                 let v = self.safe_float(obj.clone(), k, &[]);
@@ -2568,7 +2633,7 @@ impl Exchange {
         }
         arg_default(optional_args)
     }
-    pub fn safe_float2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_float2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_float(obj.clone(), k1, &[]);
         if !v.is_null() {
             return v;
@@ -2588,60 +2653,54 @@ impl Exchange {
     }
     /// `binaryConcat(a, b, ...)` — concatenates byte buffers. The
     /// variadic call-site wrap folds the tail args into `optional_args`.
-    pub fn binary_concat(&self, first: Value, optional_args: &[Value]) -> Value {
-        let mut out = crate::exchange::value_to_bytes(&first);
+    pub fn binary_concat(&self, first: impl Into<Value>, optional_args: &[Value]) -> crate::value::Bytes {
+        let mut out = crate::exchange::value_to_bytes(&first.into());
         for v in optional_args {
             out.extend(crate::exchange::value_to_bytes(v));
         }
-        bytes_to_value(&out)
+        crate::value::Bytes::of(&out)
     }
-    pub fn stringToBase64(&self, s: Value, optional_args: &[Value]) -> Value {
+    pub fn stringToBase64(&self, s: Value, optional_args: &[Value]) -> String {
         self.string_to_base64(s, optional_args)
     }
     /// `binaryToString(buffer)` — decodes a byte buffer as UTF-8.
-    pub fn binary_to_string(&self, b: Value, _optional_args: &[Value]) -> Value {
-        let bytes = crate::exchange::value_to_bytes(&b);
-        Value::Str(String::from_utf8_lossy(&bytes).into_owned().into())
+    pub fn binary_to_string(&self, b: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let bytes = crate::exchange::value_to_bytes(&b.into());
+        String::from_utf8_lossy(&bytes).into_owned()
     }
-    pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
+    pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
         match s {
-            Value::Str(s) => Value::Array(s.bytes().map(|b| Value::Int(b as i64)).collect()),
-            _ => Value::Array(vec![]),
+            Value::Str(s) => crate::value::Bytes::of(s.as_bytes()),
+            _ => crate::value::Bytes::default(),
         }
     }
     /// `urlencodeBase64(payload)` — url-safe base64 with `+/` → `-_`
     /// and trailing `=` padding stripped. Accepts a string or a byte
     /// buffer (`Value::Array`).
-    pub fn urlencode_base64(&self, v: Value, _optional_args: &[Value]) -> Value {
-        let bytes = match &v {
-            Value::Str(s) => s.as_bytes().to_vec(),
-            _ => crate::exchange::value_to_bytes(&v),
-        };
-        let encoded = match self.binary_to_base64(bytes_to_value(&bytes), &[]) {
-            Value::Str(s) => s,
-            _ => String::new().into(),
-        };
+    pub fn urlencode_base64(&self, v: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        // a string reads as its UTF-8 bytes, as `value_to_bytes` does for `Value::Str`
+        let bytes = crate::exchange::value_to_bytes(&v.into());
+        let encoded = self.binary_to_base64(bytes_to_value(&bytes), &[]);
         let trimmed = encoded.trim_end_matches('=');
         Value::Str(trimmed.replace('+', "-").replace('/', "_").into())
     }
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
-    pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> Value {
-        let m = match &v {
-            Value::Dict(m) => m,
-            _ => return Value::Str(String::new().into()),
+    pub fn urlencode_nested(&self, v: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let Value::Dict(m) = Into::<Value>::into(v) else {
+            return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
         for (k, val) in m.iter() {
             urlencode_nested_walk(k, val, &mut pairs);
         }
-        Value::Str(pairs.join("&").into())
+        pairs.join("&")
     }
-    pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> Value {
+    pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> bool {
         match optional_args.get(0) {
-            Some(Value::Str(s)) => Value::Bool(s.starts_with('{') || s.starts_with('[')),
-            _ => Value::Bool(false),
+            Some(Value::Str(s)) => s.starts_with('{') || s.starts_with('['),
+            _ => false,
         }
     }
     pub fn strip(&self, s: Value, _optional_args: &[Value]) -> Value {
@@ -2675,11 +2734,7 @@ impl Exchange {
         let amount = timeframe[..timeframe.len().saturating_sub(1)]
             .parse::<i64>()
             .unwrap_or(0);
-        let secs = match self.parse_timeframe(tf) {
-            Value::Int(s) => s,
-            Value::Float(s) => s as i64,
-            _ => return ts,
-        };
+        let secs = self.parse_timeframe(tf);
         let ms = secs * 1000;
         let t = match &ts {
             Value::Int(i) => *i,
@@ -2749,9 +2804,9 @@ impl Exchange {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
             _ => return Value::Str(String::new().into()),
         };
-        let pk_bytes = match hex::decode(&pk_s) {
-            Ok(b) => b,
-            Err(_) => return Value::Str(String::new().into()),
+        let pk_bytes = match crate::exchange::hex_decode(&pk_s) {
+            Some(b) => b,
+            None => return Value::Str(String::new().into()),
         };
         let sk = match SigningKey::from_slice(&pk_bytes) {
             Ok(k) => k,
@@ -2760,15 +2815,29 @@ impl Exchange {
         let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
         let pubkey = &point.as_bytes()[1..]; // 64 bytes
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
-        Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
+        Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
+    }
+    /// ensures the file path has a whitelisted extension, so users are safeguarded from arbitrary file access
+    pub fn ensure_whitelisted_file(&self, p: &Value) {
+        let path = match p {
+            Value::Str(s) => s.to_string(),
+            _ => panic!("invalid file path: {}", stringify_param(p)),
+        };
+        let exts = ["ccxtfile", "pem", "wasm"];
+        if exts.iter().any(|ext| path.ends_with(&format!(".{}", ext))) {
+            return;
+        }
+        panic!("invalid file path: {}", path);
     }
     pub fn exists_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => Value::Bool(std::path::Path::new(path.as_ref()).is_file()),
             _ => Value::Bool(false),
         }
     }
     pub fn read_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => match std::fs::read_to_string(path.as_ref()) {
                 Ok(s) => Value::Str(s.into()),
@@ -2778,6 +2847,7 @@ impl Exchange {
         }
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),
@@ -2850,27 +2920,26 @@ impl Exchange {
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
-    pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> Value {
-        let m = match &params {
-            Value::Dict(m) => m,
-            _ => return Value::Str(String::new().into()),
+    pub fn rawencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let Value::Dict(m) = Into::<Value>::into(params) else {
+            return String::new();
         };
         let pairs: Vec<String> = m
             .iter()
             .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
             .collect();
-        Value::Str(pairs.join("&").into())
+        pairs.join("&")
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
-    pub fn int_to_base16(&self, n: Value, _optional_args: &[Value]) -> Value {
+    pub fn int_to_base16(&self, n: Value, _optional_args: &[Value]) -> String {
         let v = match n {
             Value::Int(n) => n as u64,
             Value::Float(f) => f as u64,
             Value::Str(s) => s.parse::<u64>().unwrap_or(0),
             _ => 0,
         };
-        Value::Str(format!("{:x}", v).into())
+        format!("{:x}", v)
     }
 
     /// `packb(action)` — MessagePack pack stub. Hyperliquid signs the
@@ -2878,46 +2947,59 @@ impl Exchange {
     /// to make the call compile; live signing won't be correct.
     /// `packb(value)` — MessagePack-encode a Value into a byte array.
     pub fn packb(&self, action: Value, _optional_args: &[Value]) -> Value {
-        fn to_rmpv(v: &Value) -> rmpv::Value {
+        // Narrowest-form MessagePack: non-negative ints as uint, negative as int, floats as f64.
+        fn head(buf: &mut Vec<u8>, fix: u8, fix_max: u64, tags: [u8; 4], n: u64) {
+            match n {
+                n if n <= fix_max => buf.push(fix | n as u8),
+                n if n <= 0xff && tags[0] != 0 => buf.extend([tags[0], n as u8]),
+                n if n <= 0xffff => { buf.push(tags[1]); buf.extend((n as u16).to_be_bytes()) }
+                n if n <= 0xffff_ffff => { buf.push(tags[2]); buf.extend((n as u32).to_be_bytes()) }
+                n => { buf.push(tags[3]); buf.extend(n.to_be_bytes()) }
+            }
+        }
+        fn enc(buf: &mut Vec<u8>, v: &Value) {
             match v {
-                Value::Null => rmpv::Value::Nil,
-                Value::Bool(b) => rmpv::Value::Boolean(*b),
-                Value::Int(i) => rmpv::Value::Integer((*i).into()),
-                Value::Float(f) => rmpv::Value::F64(*f),
-                Value::Str(s) => rmpv::Value::String(s.clone().into()),
-                Value::Arr(a) => rmpv::Value::Array(a.iter().map(to_rmpv).collect()),
-                Value::Dict(m) => rmpv::Value::Map(
-                    m.iter()
-                        .map(|(k, v)| (rmpv::Value::String(k.clone().into()), to_rmpv(v)))
-                        .collect(),
-                ),
+                Value::Null => buf.push(0xc0),
+                Value::Bool(b) => buf.push(0xc2 | *b as u8),
+                Value::Int(i) if *i >= 0 => head(buf, 0x00, 0x7f, [0xcc, 0xcd, 0xce, 0xcf], *i as u64),
+                Value::Int(i) if *i >= -32 => buf.push(*i as u8),
+                Value::Int(i) if *i >= -128 => buf.extend([0xd0, *i as u8]),
+                Value::Int(i) if *i >= -32768 => { buf.push(0xd1); buf.extend((*i as i16).to_be_bytes()) }
+                Value::Int(i) if *i >= i32::MIN as i64 => { buf.push(0xd2); buf.extend((*i as i32).to_be_bytes()) }
+                Value::Int(i) => { buf.push(0xd3); buf.extend(i.to_be_bytes()) }
+                Value::Float(f) => { buf.push(0xcb); buf.extend(f.to_be_bytes()) }
+                Value::Str(s) => { head(buf, 0xa0, 31, [0xd9, 0xda, 0xdb, 0xdb], s.len() as u64); buf.extend(s.as_bytes()) }
+                Value::Arr(a) => { head(buf, 0x90, 15, [0, 0xdc, 0xdd, 0xdd], a.len() as u64); a.iter().for_each(|x| enc(buf, x)) }
+                Value::Dict(m) => {
+                    head(buf, 0x80, 15, [0, 0xde, 0xdf, 0xdf], m.len() as u64);
+                    m.iter().for_each(|(k, x)| { enc(buf, &Value::Str(k.clone().into())); enc(buf, x) })
+                }
             }
         }
         let mut buf: Vec<u8> = Vec::new();
-        match rmpv::encode::write_value(&mut buf, &to_rmpv(&action)) {
-            Ok(_) => Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+        enc(&mut buf, &action);
+        Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect())
     }
 
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
     /// encoding: returns the `\x19\x01 || domainSeparator || structHash`
     /// preimage that the caller keccak-hashes before signing.
-    pub fn eth_encode_structured_data(&self, domain: Value, types: Value, message: Value) -> Value {
+    /// Returns the typed byte handle (TS `Uint8Array`); `Value::from` boxes it to the same list as before.
+    pub fn eth_encode_structured_data(&self, domain: Value, types: Value, message: Value) -> crate::value::Bytes {
         let bytes = crate::exchange::eip712_encode(&domain, &types, &message);
-        Value::Array(bytes.iter().map(|b| Value::Int(*b as i64)).collect())
+        crate::value::Bytes::of(&bytes)
     }
 
     /// `uuid22()` — pseudo-random 22-char hex id.
-    pub fn uuid22(&self, _optional_args: &[Value]) -> Value {
-        Value::Str(random_hex(22).into())
+    pub fn uuid22(&self, _optional_args: &[Value]) -> String {
+        random_hex(22)
     }
     /// `uuid16()` — pseudo-random 16-char hex id.
-    pub fn uuid16(&self, _optional_args: &[Value]) -> Value {
-        Value::Str(random_hex(16).into())
+    pub fn uuid16(&self, _optional_args: &[Value]) -> String {
+        random_hex(16)
     }
     /// `uuid()` — pseudo-random UUID v4: `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`.
-    pub fn uuid(&self, _optional_args: &[Value]) -> Value {
+    pub fn uuid(&self, _optional_args: &[Value]) -> String {
         let h = random_hex(32);
         let variant = ['8', '9', 'a', 'b'][(random_u64() % 4) as usize];
         let s = format!(
@@ -2929,12 +3011,12 @@ impl Exchange {
             &h[17..20],
             &h[20..32],
         );
-        Value::Str(s.into())
+        s
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
-    pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(self.urlencode_kv(&params).into())
+    pub fn urlencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
+        self.urlencode_kv(&params.into())
     }
 
     /// `json(value)` — JSON-stringify.
@@ -2943,16 +3025,16 @@ impl Exchange {
     }
 
     /// `encode(s)` — UTF-8 encode string to bytes (as Value::Array of ints).
-    pub fn encode(&self, s: Value) -> Value {
+    pub fn encode(&self, s: Value) -> crate::value::Bytes {
         match s {
-            Value::Str(s) => Value::Array(s.bytes().map(|b| Value::Int(b as i64)).collect()),
-            _ => Value::Array(vec![]),
+            Value::Str(s) => crate::value::Bytes::of(s.as_bytes()),
+            _ => crate::value::Bytes::default(),
         }
     }
 
     /// `decode(bytes)` — decode bytes to a UTF-8 string.
-    pub fn decode(&self, b: Value) -> Value {
-        match b {
+    pub fn decode(&self, b: impl Into<Value>) -> Value {
+        match b.into() {
             Value::Str(s) => Value::Str(s),
             Value::Arr(a) => {
                 let bytes: Vec<u8> = a
@@ -2981,13 +3063,13 @@ impl Exchange {
 
     // ── string / number formatting ──────────────────────────────────────────
 
-    pub fn number_to_string(&self, n: Value) -> Value {
+    pub fn number_to_string(&self, n: Value) -> Option<String> {
         // TS `numberToString(undefined)` returns undefined — don't
         // stringify a missing value into the literal "null".
         if matches!(n, Value::Null) {
-            return Value::Null;
+            return None;
         }
-        Value::Str(stringify_param(&n).into())
+        Some(stringify_param(&n))
     }
 
     pub fn parse_number(&self, v: Value, optional_args: &[Value]) -> Value {
@@ -3001,11 +3083,11 @@ impl Exchange {
         }
     }
 
-    pub fn parse_timeframe(&self, tf: Value) -> Value {
+    pub fn parse_timeframe(&self, tf: Value) -> i64 {
         let s = stringify_param(&tf);
         let last = s.chars().last().unwrap_or('m');
         let num: i64 = s[..s.len().saturating_sub(1)].parse().unwrap_or(0);
-        Value::Int(match last {
+        match last {
             's' => num,
             'm' => num * 60,
             'h' => num * 3600,
@@ -3014,22 +3096,22 @@ impl Exchange {
             'M' => num * 2592000,
             'y' => num * 31536000,
             _ => 0,
-        })
+        }
     }
 
     /// `precisionFromString(str)` — ports `functions/number.ts`.
     /// Scientific notation (`1e-4` → 4, `1e4` → -4); otherwise the
     /// number of fractional digits after stripping trailing zeros.
-    pub fn precision_from_string(&self, s: Value) -> Value {
+    pub fn precision_from_string(&self, s: Value) -> i64 {
         let s = stringify_param(&s);
         if let Some(idx) = s.find(['e', 'E']) {
             let exp: i64 = s[idx + 1..].parse().unwrap_or(0);
-            return Value::Int(-exp);
+            return -exp;
         }
         let trimmed = s.trim_end_matches('0');
         match trimmed.split_once('.') {
-            Some((_, frac)) => Value::Int(frac.len() as i64),
-            None => Value::Int(0),
+            Some((_, frac)) => frac.len() as i64,
+            None => 0,
         }
     }
 
@@ -3070,13 +3152,13 @@ impl Exchange {
         ).into())
     }
 
-    pub fn capitalize(&self, s: Value) -> Value {
+    pub fn capitalize(&self, s: Value) -> String {
         let s = stringify_param(&s);
         let mut c = s.chars();
-        Value::Str(match c.next() {
-            None => String::new().into(),
+        match c.next() {
+            None => String::new(),
             Some(f) => f.to_uppercase().chain(c).collect(),
-        })
+        }
     }
 
     pub fn encode_uri_component(&self, s: Value) -> Value {
@@ -3098,7 +3180,7 @@ impl Exchange {
         Value::Array(s.chars().map(|c| Value::Str(c.to_string().into())).collect())
     }
 
-    pub fn string_to_base64(&self, s: Value, _optional_args: &[Value]) -> Value {
+    pub fn string_to_base64(&self, s: Value, _optional_args: &[Value]) -> String {
         self.binary_to_base64(s, &[])
     }
 
@@ -3362,6 +3444,40 @@ pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode
 }
 
 #[cfg(test)]
+mod built_list_sort_parity_tests {
+    // ral-xf: `x = self.sort_by(Value::Arr(x), ..).into_list()` on a native list against the boxed
+    // `x = self.sort_by(x, ..)`: same order, and an Arr input always answers a `Value::Arr`.
+    use super::*;
+
+    fn rows() -> Vec<Value> {
+        let mut out = Vec::new();
+        for (ts, id) in [(3, "c"), (1, "a"), (2, "b"), (1, "z")] {
+            let mut m = HashMap::new();
+            m.insert("timestamp".to_string(), Value::Int(ts));
+            m.insert("id".to_string(), Value::Str(id.into()));
+            out.push(Value::Dict(Arc::new(m)));
+        }
+        out.push(Value::Null);
+        out
+    }
+
+    #[test]
+    fn native_list_sort_matches_boxed_sort() {
+        let ex = Exchange::default();
+        let sort: fn(&Exchange, Value, Value, &[Value]) -> Value = Exchange::sort_by;
+        let sort2: fn(&Exchange, Value, Value, Value, &[Value]) -> Value = Exchange::sort_by2;
+        for desc in [false, true] {
+            let native: crate::value::List = Arc::new(rows());
+            let native = sort(&ex, Value::Arr(native), Value::Str("timestamp".into()), &[Value::Bool(desc)]).into_list();
+            assert_eq!(Value::Arr(native), sort(&ex, Value::Array(rows()), Value::Str("timestamp".into()), &[Value::Bool(desc)]));
+            let native2: crate::value::List = Arc::new(rows());
+            let native2 = sort2(&ex, Value::Arr(native2), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]).into_list();
+            assert_eq!(Value::Arr(native2), sort2(&ex, Value::Array(rows()), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]));
+        }
+    }
+}
+
+#[cfg(test)]
 mod spawn_queue_tests {
     use super::*;
 
@@ -3398,5 +3514,262 @@ mod spawn_queue_tests {
         assert_eq!(batch.len(), 1);
         assert_eq!(batch[0].0, "keep_alive_listen_key");
         assert!(next_spawn_due().is_none(), "queue drained");
+    }
+}
+
+#[cfg(test)]
+mod eth_encode_structured_data_bytes_tests {
+    // ral-44e: `eth_encode_structured_data` returns the typed `Bytes` handle; boxing it gives exactly the
+    // `Value::Arr` of byte ints the old `-> Value` stub returned, and the same 0x1901-prefixed preimage.
+    use super::*;
+
+    fn entry(name: &'static str, ty: &'static str) -> Value {
+        let mut m = HashMap::new();
+        m.insert("name".to_string(), Value::Str(name.into()));
+        m.insert("type".to_string(), Value::Str(ty.into()));
+        Value::Dict(Arc::new(m))
+    }
+
+    fn inputs() -> (Value, Value, Value) {
+        let mut domain = HashMap::new();
+        domain.insert("name".to_string(), Value::Str("ccxt".into()));
+        domain.insert("chainId".to_string(), Value::Int(1));
+        let mut types = HashMap::new();
+        types.insert("Mail".to_string(), Value::Array(vec![entry("contents", "string"), entry("nonce", "uint256")]));
+        let mut message = HashMap::new();
+        message.insert("contents".to_string(), Value::Str("hello".into()));
+        message.insert("nonce".to_string(), Value::Int(7));
+        (Value::Dict(Arc::new(domain)), Value::Dict(Arc::new(types)), Value::Dict(Arc::new(message)))
+    }
+
+    #[test]
+    fn bytes_box_to_the_old_value_list() {
+        let ex = Exchange::default();
+        let (d, t, m) = inputs();
+        let raw = crate::exchange::eip712_encode(&d, &t, &m);
+        let old = Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect());
+        let (d, t, m) = inputs();
+        let typed: crate::value::Bytes = ex.eth_encode_structured_data(d, t, m);
+        assert_eq!(typed.0.len(), 66);
+        assert_eq!(typed.0[0], Value::Int(0x19));
+        assert_eq!(typed.0[1], Value::Int(0x01));
+        assert_eq!(Value::from(&typed), old);
+        assert_eq!(Value::from(typed), old);
+    }
+}
+
+#[cfg(test)]
+mod cased_reader_opt_twin_tests {
+    // ral-65o: every `safe_string_{lower,upper}{,2,_n}_opt` twin equals its boxed reader followed by
+    // `.as_str().map(str::to_owned)` (the long form it replaces in generated Rust), over found strings,
+    // numbers, booleans, missing keys, string / non-string / mixed-case defaults.
+    use super::*;
+
+    fn row() -> Value {
+        let mut m = HashMap::new();
+        m.insert("s".to_string(), Value::Str("MiXed".into()));
+        m.insert("n".to_string(), Value::Int(42));
+        m.insert("f".to_string(), Value::Float(1.5));
+        m.insert("b".to_string(), Value::Bool(true));
+        m.insert("e".to_string(), Value::Str("".into()));
+        Value::Dict(Arc::new(m))
+    }
+
+    const KEYS: [&'static str; 6] = ["s", "n", "f", "b", "e", "missing"];
+
+    fn key(k: &'static str) -> Value {
+        Value::Str(k.into())
+    }
+
+    fn keys() -> Vec<Value> {
+        let mut out = Vec::new();
+        for k in KEYS {
+            out.push(key(k));
+        }
+        out
+    }
+
+    fn three(a: &'static str, b: &'static str) -> Value {
+        Value::Array(vec![key(a), key(b), key("s")])
+    }
+
+    fn defaults() -> Vec<Vec<Value>> {
+        vec![vec![], vec![Value::Null], vec![Value::Str("DefAult".into())], vec![Value::Int(7)]]
+    }
+
+    fn long(v: Value) -> Option<String> {
+        v.as_str().map(str::to_owned)
+    }
+
+    #[test]
+    fn one_key_twins_match_the_long_form() {
+        let ex = Exchange::default();
+        for k in KEYS {
+            for d in defaults() {
+                assert_eq!(ex.safe_string_lower_opt(row(), key(k), &d), long(ex.safe_string_lower(row(), key(k), &d)));
+                assert_eq!(ex.safe_string_upper_opt(row(), key(k), &d), long(ex.safe_string_upper(row(), key(k), &d)));
+                assert_eq!(ex.safe_string_lower_k_opt(row(), k, &d), long(ex.safe_string_lower_k(row(), k, &d)));
+                assert_eq!(ex.safe_string_upper_k_opt(row(), k, &d), long(ex.safe_string_upper_k(row(), k, &d)));
+            }
+        }
+        assert_eq!(ex.safe_string_lower_opt(row(), Value::Str("s".into()), &[]), Some("mixed".to_string()));
+        assert_eq!(ex.safe_string_upper_opt(row(), Value::Str("missing".into()), &[Value::Str("DefAult".into())]), Some("DefAult".to_string()));
+    }
+
+    #[test]
+    fn two_key_and_n_key_twins_match_the_long_form() {
+        let ex = Exchange::default();
+        for a in KEYS {
+            for b in KEYS {
+                for d in defaults() {
+                    assert_eq!(ex.safe_string_lower2_opt(row(), key(a), key(b), &d), long(ex.safe_string_lower2(row(), key(a), key(b), &d)));
+                    assert_eq!(ex.safe_string_upper2_opt(row(), key(a), key(b), &d), long(ex.safe_string_upper2(row(), key(a), key(b), &d)));
+                    assert_eq!(ex.safe_string_lower_n_opt(row(), three(a, b), &d), long(ex.safe_string_lower_n(row(), three(a, b), &d)));
+                    assert_eq!(ex.safe_string_upper_n_opt(row(), three(a, b), &d), long(ex.safe_string_upper_n(row(), three(a, b), &d)));
+                }
+            }
+        }
+        assert_eq!(ex.safe_string_upper2_opt(row(), Value::Str("missing".into()), Value::Str("n".into()), &[]), Some("42".to_string()));
+        assert_eq!(ex.safe_string_lower_n_opt(Value::Null, Value::Array(keys()), &[Value::Int(1)]), None);
+    }
+}
+
+#[cfg(test)]
+mod packb_tests {
+    use crate::exchange::Exchange;
+    use crate::Value;
+    use sha2::{Digest, Sha256};
+
+    fn packb_bytes(v: Value) -> Vec<u8> {
+        match Exchange::new(None).packb(v, &[]) {
+            Value::Arr(a) => a.iter().map(|b| match b { Value::Int(i) => *i as u8, _ => panic!("non-int byte") }).collect(),
+            other => panic!("packb returned {:?}", other),
+        }
+    }
+    fn hex(b: &[u8]) -> String { b.iter().map(|x| format!("{:02x}", x)).collect() }
+    fn pack_json(j: &str) -> String { hex(&packb_bytes(Value::from_json(&serde_json::from_str(j).unwrap()))) }
+
+    // (json input, expected hex): the shared TS vectors, all byte-identical in Rust.
+    const VECTORS: &[(&str, &str)] = &[
+        ("null", "c0"),
+        ("true", "c3"),
+        ("false", "c2"),
+        ("0", "00"),
+        ("1", "01"),
+        ("127", "7f"),
+        ("128", "cc80"),
+        ("255", "ccff"),
+        ("256", "cd0100"),
+        ("65535", "cdffff"),
+        ("65536", "ce00010000"),
+        ("4294967295", "ceffffffff"),
+        ("4294967296", "cf0000000100000000"),
+        ("1700000000000", "cf0000018bcfe56800"),
+        ("9007199254740991", "cf001fffffffffffff"),
+        ("-1", "ff"),
+        ("-32", "e0"),
+        ("-33", "d0df"),
+        ("-128", "d080"),
+        ("-129", "d1ff7f"),
+        ("-32768", "d18000"),
+        ("-32769", "d2ffff7fff"),
+        ("-2147483648", "d280000000"),
+        ("-2147483649", "d3ffffffff7fffffff"),
+        ("-1700000000000", "d3fffffe74301a9800"),
+        ("1.5", "cb3ff8000000000000"),
+        ("0.1", "cb3fb999999999999a"),
+        ("-2.25", "cbc002000000000000"),
+        ("\"\"", "a0"),
+        ("\"a\"", "a161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "bf61616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "d9206161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "d9ff616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "da010061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"héllo €𝄞\"", "ae68c3a96c6c6f20e282acf09d849e"),
+        ("[]", "90"),
+        ("[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]", "9f000102030405060708090a0b0c0d0e"),
+        ("[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]", "dc0010000102030405060708090a0b0c0d0e0f"),
+        ("{}", "80"),
+        ("{\"k0\":0,\"k1\":1,\"k2\":2,\"k3\":3,\"k4\":4,\"k5\":5,\"k6\":6,\"k7\":7,\"k8\":8,\"k9\":9,\"k10\":10,\"k11\":11,\"k12\":12,\"k13\":13,\"k14\":14}", "8fa26b3000a26b3101a26b3202a26b3303a26b3404a26b3505a26b3606a26b3707a26b3808a26b3909a36b31300aa36b31310ba36b31320ca36b31330da36b31340e"),
+        ("{\"k0\":0,\"k1\":1,\"k2\":2,\"k3\":3,\"k4\":4,\"k5\":5,\"k6\":6,\"k7\":7,\"k8\":8,\"k9\":9,\"k10\":10,\"k11\":11,\"k12\":12,\"k13\":13,\"k14\":14,\"k15\":15}", "de0010a26b3000a26b3101a26b3202a26b3303a26b3404a26b3505a26b3606a26b3707a26b3808a26b3909a36b31300aa36b31310ba36b31320ca36b31330da36b31340ea36b31350f"),
+        ("{\"a\":[1,{\"b\":null,\"c\":[true,\"x\"]}],\"d\":{}}", "82a161920182a162c0a16392c3a178a16480"),
+        ("{\"type\":\"order\",\"orders\":[{\"a\":4,\"b\":true,\"p\":\"1100.5\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}},\"c\":\"0x1234567890abcdef1234567890abcdef\"}],\"grouping\":\"na\",\"builder\":{\"b\":\"0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6\",\"f\":10}}", "84a474797065a56f72646572a66f72646572739187a16104a162c3a170a6313130302e35a173a3302e32a172c2a17481a56c696d697481a3746966a3477463a163d92230783132333435363738393061626364656631323334353637383930616263646566a867726f7570696e67a26e61a76275696c64657282a162d92a307836353330353132613663383963376366636562633362613766636439616461356633303832376136a1660a"),
+        ("{\"type\":\"order\",\"orders\":[{\"a\":10005,\"b\":false,\"p\":\"0\",\"s\":\"1\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"1900\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\"}", "83a474797065a56f72646572a66f72646572739186a161cd2715a162c2a170a130a173a131a172c3a17481a77472696767657283a869734d61726b6574c3a9747269676765725078a431393030a47470736ca2736ca867726f7570696e67aa6e6f726d616c5470736c"),
+        ("{\"type\":\"cancel\",\"cancels\":[{\"a\":0,\"o\":123456789012}]}", "82a474797065a663616e63656ca763616e63656c739182a16100a16fcf0000001cbe991a14"),
+        ("{\"type\":\"cancelByCloid\",\"cancels\":[{\"asset\":3,\"cloid\":\"0x1234567890abcdef1234567890abcdef\"}]}", "82a474797065ad63616e63656c4279436c6f6964a763616e63656c739182a5617373657403a5636c6f6964d92230783132333435363738393061626364656631323334353637383930616263646566"),
+        ("{\"type\":\"batchModify\",\"modifies\":[{\"oid\":70000,\"order\":{\"a\":1,\"b\":true,\"p\":\"2000\",\"s\":\"0.01\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Alo\"}}}}]}", "82a474797065ab62617463684d6f64696679a86d6f6469666965739182a36f6964ce00011170a56f7264657286a16101a162c3a170a432303030a173a4302e3031a172c2a17481a56c696d697481a3746966a3416c6f"),
+        ("{\"type\":\"updateLeverage\",\"asset\":1,\"isCross\":true,\"leverage\":20}", "84a474797065ae7570646174654c65766572616765a5617373657401a7697343726f7373c3a86c6576657261676514"),
+        ("{\"type\":\"updateIsolatedMargin\",\"asset\":1,\"isBuy\":true,\"ntli\":-5000000}", "84a474797065b475706461746549736f6c617465644d617267696ea5617373657401a56973427579c3a46e746c69d2ffb3b4c0"),
+        ("{\"type\":\"vaultTransfer\",\"vaultAddress\":\"0xdfc24b077bc1425ad1dea75bcb6f8158e10df303\",\"isDeposit\":true,\"usd\":5000000}", "84a474797065ad7661756c745472616e73666572ac7661756c7441646472657373d92a307864666332346230373762633134323561643164656137356263623666383135386531306466333033a969734465706f736974c3a3757364ce004c4b40"),
+        ("{\"type\":\"scheduleCancel\",\"time\":1700000000000}", "82a474797065ae7363686564756c6543616e63656ca474696d65cf0000018bcfe56800"),
+        ("{\"type\":\"twapOrder\",\"twap\":{\"a\":0,\"b\":true,\"s\":\"1\",\"r\":false,\"m\":30,\"t\":false}}", "82a474797065a9747761704f72646572a47477617086a16100a162c3a173a131a172c2a16d1ea174c2"),
+        ("[\"op\",1,\"0xabc\",[1700000000000,\"x\"],null,false]", "96a26f7001a5307861626392cf0000018bcfe56800a178c0c2"),
+    ];
+
+    #[test]
+    fn packb_matches_vectors() {
+        for (j, h) in VECTORS {
+            assert_eq!(pack_json(j), *h, "input {}", j);
+        }
+    }
+
+    #[test]
+    fn packb_long_str_and_array() {
+        for (kind, n, len, head, sha) in [
+        ("str", 65535, 65538, "daffff616161", "ae606c3d6aaca8b43b24feb4aae3e5ab4088edb6d99d254d366f00e08f287c3d"),
+        ("str", 65536, 65541, "db0001000061", "5f97d047d40a13f57389f8c7817f5afd69fe1e7739a305850eb23c5adb54674a"),
+        ("array", 65535, 196224, "dcffff000102", "8c336eb0f76e5433623ce52adf0fa4704a7410cacd206d5442c835b7bd294f04"),
+        ("array", 65536, 196229, "dd0001000000", "659da62605120aecab3feb7ceb9f912947719200e22ea46c7705c99cb10cacfa"),
+        ] {
+            let v = if kind == "str" { Value::Str("a".repeat(n).into()) } else { Value::Array((0..n as i64).map(Value::Int).collect()) };
+            let b = packb_bytes(v);
+            assert_eq!((b.len(), &hex(&b)[..12]), (len, head), "{} {}", kind, n);
+            assert_eq!(hex(&Sha256::digest(&b)), sha, "{} {}", kind, n);
+        }
+    }
+
+    #[test]
+    fn packb_edges_beyond_vectors() {
+        let one = |v: Value| hex(&packb_bytes(v));
+        assert_eq!(one(Value::Int(i64::MAX)), "cf7fffffffffffffff");
+        assert_eq!(one(Value::Int(i64::MIN)), "d38000000000000000");
+        assert_eq!(one(Value::Int(2147483647)), "ce7fffffff");
+        assert_eq!(one(Value::Int(-31)), "e1");
+        assert_eq!(one(Value::Float(-0.0)), "cb8000000000000000");
+        assert_eq!(one(Value::Float(3.0)), "cb4008000000000000");
+        assert_eq!(one(Value::Str("\u{e9}".repeat(16).into())), format!("d920{}", "c3a9".repeat(16)));
+        assert_eq!(&one(Value::Str("\u{20ac}".repeat(85).into()))[..4], "d9ff");
+        assert_eq!(&one(Value::Str("\u{e9}".repeat(128).into()))[..6], "da0100");
+        let m16: Value = Value::from_json(&serde_json::from_str(&format!("{{{}}}", (0..65536).map(|i| format!("\"{}\":0", i)).collect::<Vec<_>>().join(","))).unwrap());
+        assert_eq!(&one(m16)[..10], "df00010000");
+    }
+}
+
+#[cfg(test)]
+mod random_tests {
+    use super::*;
+
+    #[test]
+    fn random_bytes_is_lowercase_hex_of_requested_length() {
+        let ex = Exchange::new(None);
+        let a = ex.random_bytes(Value::Int(32));
+        let b = ex.random_bytes(Value::Int(32));
+        assert_eq!(a.len(), 64);
+        assert!(a.bytes().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')), "{a}");
+        assert_ne!(a, b, "two calls differ");
+        assert_eq!(ex.random_bytes(Value::Int(0)), "");
+    }
+
+    #[test]
+    fn rand_number_has_requested_digit_count() {
+        let ex = Exchange::new(None);
+        let mut seen = std::collections::HashSet::new();
+        for _ in 0..20 {
+            let v = ex.rand_number(Value::Int(12));
+            assert!((0..1_000_000_000_000).contains(&v), "{v}");
+            seen.insert(v);
+        }
+        assert!(seen.len() > 1, "two calls differ");
+        assert_eq!(ex.rand_number(Value::Int(0)), 0);
     }
 }

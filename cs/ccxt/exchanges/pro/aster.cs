@@ -106,10 +106,10 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
+        parameters["callerMethodName"] = "watchTicker";
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -135,10 +135,10 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchTicker";
+        parameters["callerMethodName"] = "unWatchTicker";
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
@@ -169,8 +169,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsList = symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), type);
         if ((url == null))
@@ -183,9 +182,9 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(this.safeString(symbolsList, i, ""));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@ticker"));
             messageHashes.Add(("ticker:" + this.safeString(market, "symbol", "")));
         }
@@ -200,7 +199,7 @@ public partial class aster : ccxt.aster
             }
             return ccxt.BaseExchange.ToTickers(result);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsList));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
     /**
@@ -215,7 +214,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -230,8 +229,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsList = symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), type);
         if ((url == null))
@@ -244,9 +242,9 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(this.safeString(symbolsList, i, ""));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@ticker"));
             messageHashes.Add(("unsubscribe:ticker:" + this.safeString(market, "symbol", "")));
         }
@@ -264,10 +262,10 @@ public partial class aster : ccxt.aster
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchMarkPrice";
+        parameters["callerMethodName"] = "watchMarkPrice";
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -288,10 +286,10 @@ public partial class aster : ccxt.aster
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchMarkPrice(string? symbol, object parameters = null)
+    public async override Task<object> unWatchMarkPrice(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchMarkPrice";
+        parameters["callerMethodName"] = "unWatchMarkPrice";
         return await this.unWatchMarkPrices(new List<object>() {symbol}, parameters);
     }
 
@@ -306,7 +304,7 @@ public partial class aster : ccxt.aster
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchMarkPrices(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchMarkPrices(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -321,8 +319,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsList = symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
         string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), type);
@@ -337,9 +334,9 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
         };
         bool? use1sFreq = this.safeBool(paramsOmitted, "use1sFreq", true);
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(this.safeString(symbolsList, i, ""));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             string suffix = "";
             if ((use1sFreq == true))
             {
@@ -359,7 +356,7 @@ public partial class aster : ccxt.aster
             }
             return ccxt.BaseExchange.ToTickers(result);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsList));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
     }
 
     /**
@@ -373,7 +370,7 @@ public partial class aster : ccxt.aster
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchMarkPrices(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchMarkPrices(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -388,8 +385,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsList = symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         Dictionary<string, object> paramsOmitted = this.omit(paramsCallerMethodName, "callerMethodName");
         string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), type);
@@ -404,9 +400,9 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
         };
         bool? use1sFreq = this.safeBool(paramsOmitted, "use1sFreq", true);
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(this.safeString(symbolsList, i, ""));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             string suffix = "";
             if ((use1sFreq == true))
             {
@@ -453,8 +449,7 @@ public partial class aster : ccxt.aster
         //     }
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
-        object ticker = message;
-        ccxt.Ticker parsed = this.parseWsTicker(ticker, marketType);
+        ccxt.Ticker parsed = this.parseWsTicker(message, marketType);
         string? symbol = parsed.symbol;
         if ((symbol != null))
         {
@@ -530,8 +525,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsList = symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), type);
         if ((url == null))
@@ -544,9 +538,9 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(this.safeString(symbolsList, i, ""));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@bookTicker"));
             messageHashes.Add(("bidask:" + this.safeString(market, "symbol", "")));
         }
@@ -561,7 +555,7 @@ public partial class aster : ccxt.aster
             }
             return ccxt.BaseExchange.ToTickers(result);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsList));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
     /**
@@ -576,7 +570,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -588,8 +582,7 @@ public partial class aster : ccxt.aster
         {
             throw new ArgumentsRequired ((this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }
-        IList<object> symbolsList = symbolsNormalized;
-        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsList);
+        Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), type);
         if ((url == null))
@@ -602,9 +595,9 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(this.safeString(symbolsList, i, ""));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@bookTicker"));
             messageHashes.Add(("unsubscribe:bidask:" + this.safeString(market, "symbol", "")));
         }
@@ -627,10 +620,9 @@ public partial class aster : ccxt.aster
         //     }
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
-        object data = message;
-        string? marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        Dictionary<string, object> ticker = this.parseWsBidAsk(data, market);
+        Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
         string? symbol = this.safeString(ticker, "symbol");
         if ((symbol != null))
         {
@@ -673,10 +665,10 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTrades";
+        parameters["callerMethodName"] = "watchTrades";
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
@@ -691,10 +683,10 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchTrades";
+        parameters["callerMethodName"] = "unWatchTrades";
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
@@ -711,7 +703,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -773,7 +765,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -828,10 +820,9 @@ public partial class aster : ccxt.aster
         //     }
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
-        object trade = message;
-        string? marketId = this.safeString(trade, "s");
+        string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        ccxt.Trade parsed = this.parseWsTrade(trade, market);
+        ccxt.Trade parsed = this.parseWsTrade(message, market);
         string? symbol = parsed.symbol;
         if ((symbol == null))
         {
@@ -847,7 +838,7 @@ public partial class aster : ccxt.aster
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public watchTrades (spot)
@@ -1024,10 +1015,10 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrderBook";
+        parameters["callerMethodName"] = "watchOrderBook";
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
@@ -1044,10 +1035,10 @@ public partial class aster : ccxt.aster
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchOrderBook";
+        parameters["callerMethodName"] = "unWatchOrderBook";
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
@@ -1064,7 +1055,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1124,7 +1115,7 @@ public partial class aster : ccxt.aster
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1198,9 +1189,8 @@ public partial class aster : ccxt.aster
         //     }
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
-        object data = message;
-        string? marketId = this.safeString(data, "s");
-        Int64? timestamp = this.safeInteger(data, "T");
+        string? marketId = this.safeString(message, "s");
+        Int64? timestamp = this.safeInteger(message, "T");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
@@ -1208,7 +1198,7 @@ public partial class aster : ccxt.aster
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+        ccxt.OrderBook snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a");
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = (("orderbook" + ":") + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -1228,12 +1218,12 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        parameters["callerMethodName"] = "watchOHLCV";
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1254,12 +1244,12 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchOHLCV";
+        parameters["callerMethodName"] = "unWatchOHLCV";
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
     }
 
@@ -1275,7 +1265,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1343,7 +1333,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
+    public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1420,23 +1410,21 @@ public partial class aster : ccxt.aster
         //     }
         //
         string marketType = this.getAccountTypeFromUrl(client.url);
-        Dictionary<string, object> data = message;
-        string? marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        IDictionary<string, object> kline = this.safeDict(data, "k");
+        IDictionary<string, object> kline = this.safeDict(message, "k");
         string? timeframeId = this.safeString(kline, "i");
         string? timeframe = this.findTimeframe(timeframeId);
         if ((timeframe == null))
         {
             return;
         }
-        IDictionary<string, object> ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
-        if ((ohlcvsByTimeframe == null))
+        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if ((this.safeValue(ohlcvsByTimeframe, timeframe) == null))
+        if ((this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
@@ -1449,12 +1437,12 @@ public partial class aster : ccxt.aster
         client.resolve(resolveData, messageHash);
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
-    public async virtual Task authenticate(object type = null, object parameters = null)
+    public async virtual Task authenticate(object type = null, IDictionary<string, object> parameters = null)
     {
         type ??= "spot";
         parameters ??= new Dictionary<string, object>();
@@ -1580,18 +1568,17 @@ public partial class aster : ccxt.aster
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        string? type = null;
-        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
+        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if (((type == null)) || ((typeMarketType == null)))
+        if ((typeMarketType == null))
         {
             throw new ArgumentsRequired ((this.id + " watchBalance() requires a market type")) ;
         }
@@ -1746,7 +1733,7 @@ public partial class aster : ccxt.aster
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1778,7 +1765,7 @@ public partial class aster : ccxt.aster
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((cache == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watchMultiple(url, messageHashes, null, new List<object>() {type});
         if (this.newUpdates)
@@ -1970,7 +1957,7 @@ public partial class aster : ccxt.aster
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1985,11 +1972,10 @@ public partial class aster : ccxt.aster
             symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "orders";
-        string? type = null;
-        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if (((type == null)) || ((typeMarketType == null)))
+        if ((typeMarketType == null))
         {
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a market type")) ;
         }
@@ -2023,7 +2009,7 @@ public partial class aster : ccxt.aster
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2038,11 +2024,10 @@ public partial class aster : ccxt.aster
             symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "myTrades";
-        string? type = null;
-        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
+        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if (((type == null)) || ((typeMarketType == null)))
+        if ((typeMarketType == null))
         {
             throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a market type")) ;
         }

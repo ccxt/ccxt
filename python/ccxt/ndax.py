@@ -690,7 +690,7 @@ class ndax(Exchange, ImplicitAPI):
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
-            level = self.safe_value(orderbook, i)
+            level = self.safe_list(orderbook, i)
             newTimestamp = self.safe_integer(level, 2)
             if (newTimestamp is not None) and ((latestTimestamp is None) or (newTimestamp > latestTimestamp)):
                 latestTimestamp = newTimestamp
@@ -867,8 +867,7 @@ class ndax(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        tickers = self.parse_tickers(response)
-        return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(self.parse_tickers(response), 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -2452,7 +2451,7 @@ class ndax(Exchange, ImplicitAPI):
             id = self.safe_string(transaction, 'WithdrawId')
             if id is not None:
                 type = 'withdrawal'
-        templateForm = self.parse_json(self.safe_value_2(transaction, 'TemplateForm', 'DepositInfo'))
+        templateForm = self.parse_json(self.safe_string_2(transaction, 'TemplateForm', 'DepositInfo'))
         updated = self.safe_integer(transaction, 'LastUpdateTimeStamp')
         if templateForm is not None:
             updated = self.safe_integer(templateForm, 'LastUpdated', updated)

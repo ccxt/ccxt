@@ -108,11 +108,29 @@ class nado(Exchange, ImplicitAPI):
                     'public': {
                         'get': {
                             'symbols': {'cost': 2},
-                            'query': {'cost': 1},
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            },
                             'edge/query': {'cost': 1},
                         },
                         'post': {
-                            'query': {'cost': 1},
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            },
                             'edge/query': {'cost': 1},
                         },
                     },
@@ -126,23 +144,33 @@ class nado(Exchange, ImplicitAPI):
                     'public': {
                         'get': {
                             'assets': {'cost': 2},
-                            'pairs': {'cost': 1},
+                            'pairs': {'cost': 2},
                             'orderbook': {'cost': 1},
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': {'cost': 1},
+                        '': {
+                            'cost': 2,
+                            # [ base weight, rows per extra weight unit ]
+                            'byQuery': {
+                                'candlesticks': [2, 100],
+                                'events': [2, 10],
+                                'matches': [2, 10],
+                                'orders': [2, 20],
+                                'interest_and_funding': [5],
+                            },
+                        },
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': {'cost': 1},
-                            'contracts': {'cost': 1},
-                            'trades': {'cost': 1},
-                            'symbols': {'cost': 1},
+                            'tickers': {'cost': 2},
+                            'contracts': {'cost': 2},
+                            'trades': {'cost': 4, 'byRows': [2, 50]},
+                            'symbols': {'cost': 2},
                         },
                     },
                 },
@@ -2301,7 +2329,7 @@ class nado(Exchange, ImplicitAPI):
             'fee': fee,
         }, marketResolved)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "product_id": 1,
@@ -3004,6 +3032,40 @@ class nado(Exchange, ImplicitAPI):
         if marketId.endswith('-PERP'):
             return marketId[0:-5]
         return marketId
+
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+        # the gateway weighs a query by its 'type' param, the archive by the query key of the
+        # body, and every archive weight grows with the number of rows requested
+        if ('byType' in config) and ('type' in params):
+            queryType = params['type']
+            byType = config['byType']
+            if queryType in byType:
+                return byType[queryType]
+        byQuery = self.safe_dict(config, 'byQuery')
+        if byQuery is not None:
+            queryNames = list(byQuery.keys())
+            for i in range(0, len(queryNames)):
+                queryName = queryNames[i]
+                if queryName in params:
+                    weights = self.safe_list(byQuery, queryName, [])
+                    baseWeight = self.safe_integer(weights, 0, 2)
+                    rowsPerWeight = self.safe_integer(weights, 1)
+                    if rowsPerWeight is None:
+                        return baseWeight
+                    query = self.safe_dict(params, queryName, {})
+                    rows = self.safe_integer(query, 'limit', 100)  # the archive default page
+                    nestedLimit = self.safe_dict(query, 'limit')  # the events query sends { 'raw': 100 }
+                    if nestedLimit is not None:
+                        rows = self.safe_integer(nestedLimit, 'raw', 100)
+                    return self.sum(baseWeight, self.parse_to_int(rows / rowsPerWeight))
+        byRows = self.safe_list(config, 'byRows')
+        if byRows is not None:
+            # distinct local names: the C# emitter rejects a name already used in a sibling block
+            rowsBaseWeight = self.safe_integer(byRows, 0, 2)
+            rowsDivisor = self.safe_integer(byRows, 1, 50)
+            rowCount = self.safe_integer(params, 'limit', 100)  # the v2 default page
+            return self.sum(rowsBaseWeight, self.parse_to_int(rowCount / rowsDivisor))
+        return self.safe_value(config, 'cost', 1)
 
     def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None

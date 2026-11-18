@@ -3082,7 +3082,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # a websocket handshake, and the venue documents both forms
         return base + '?apiKey=' + self.apiKey
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         """
  @ignore
         a monotonic id the venue echoes back so a subscription reply can be matched to its request
@@ -3095,7 +3095,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         self.unlock_id()
         return next
 
-    def outcome_for_token(self, tokenId: Str, market: object = None) -> object:
+    def outcome_for_token(self, tokenId: Str, market: Market = None) -> object:
         """
  @ignore
         resolves the outcome a row belongs to from its own token id, taking the caller's outcome only when it names that same token
@@ -3601,8 +3601,6 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        existingHeaders = {}
-        headersValue = existingHeaders
         authHeaders = {}
         if (apiKey is not None) and (not sandboxMode):
             # the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3641,5 +3639,5 @@ class predictfun(PredictionExchange, ImplicitAPI):
                 self.check_required_credentials()
             authHeaders['Content-Type'] = 'application/json'
             bodyValue = self.json(params)
-        headersExtended = self.extend(headersValue, authHeaders)
+        headersExtended = self.extend({}, authHeaders)
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

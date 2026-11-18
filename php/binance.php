@@ -375,6 +375,7 @@ class binance extends Exchange {
                         'sub-account/universalTransfer' => array( 'cost' => 0.1 ),
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => array( 'cost' => 1 ),
                         'sub-account/transaction-statistics' => array( 'cost' => 0.40002 ), // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset' => array( 'cost' => 0.1 ),
                         'managed-subaccount/accountSnapshot' => array( 'cost' => 240 ),
@@ -578,6 +579,8 @@ class binance extends Exchange {
                         'margin/max-leverage' => array( 'cost' => 300 ), // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn' => array( 'cost' => 0.1 ),
                         'sub-account/virtualSubAccount' => array( 'cost' => 0.1 ),
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ),
+                        'sub-account/subAccountApiPermission' => array( 'cost' => 20.001 ),
                         'sub-account/margin/transfer' => array( 'cost' => 4.0002 ), // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable' => array( 'cost' => 0.1 ),
                         'sub-account/futures/enable' => array( 'cost' => 0.1 ),
@@ -718,6 +721,7 @@ class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList' => array( 'cost' => 1 ),
                         'algo/spot/order' => array( 'cost' => 0.1 ),
                         'algo/futures/order' => array( 'cost' => 0.1 ),
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     ),
                 ),
@@ -737,6 +741,7 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'eth-staking/eth/stake' => array( 'cost' => 15 ), // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow' => array( 'cost' => 40.002 ), // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay' => array( 'cost' => 40.002 ), // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -3198,7 +3203,7 @@ class binance extends Exchange {
         $responseCurrencies = $this->safe_value($results, 0);
         $marginablesById = null;
         if ($fetchMargins) {
-            $responseMarginables = $this->safe_value($results, 1);
+            $responseMarginables = $this->safe_list($results, 1);
             $marginablesById = $this->index_by($responseMarginables, 'assetName');
         }
         return $this->parse_currencies_custom($responseCurrencies, $marginablesById);
@@ -4975,7 +4980,7 @@ class binance extends Exchange {
     public function parse_tickers_for_rolling(mixed $response, ?array $symbols): array {
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $marketId = $this->safe_string($this->safe_value($response, $i), 'symbol');
+            $marketId = $this->safe_string($this->safe_dict($response, $i), 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, 'spot');
             $parsedTicker = $this->parse_ticker($this->safe_value($response, $i));
             $parsedTicker['symbol'] = $tickerMarket['symbol'];
@@ -6802,7 +6807,16 @@ class binance extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $marketResolved['symbol'];
         $filled = $this->safe_string_n($order, array( 'executedQty', 'filledQty', 'actualQty' ), '0'); // actualQty: algo orders
-        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' )); // order of the keys matters here
+        $timestamp = $this->safe_integer_2($order, 'time', 'createTime'); // order of the keys matters here
+        if ($timestamp === null) {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            $workingTime = $this->safe_integer($order, 'workingTime');
+            if (($workingTime !== null) && ($workingTime > 0)) {
+                $timestamp = $workingTime;
+            } else {
+                $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'updateTime', 'createdAt' ));
+            }
+        }
         $lastTradeTimestamp = null;
         if ((is_array($order) && array_key_exists('transactTime' ?? '', $order)) || (is_array($order) && array_key_exists('updateTime' ?? '', $order)) || (is_array($order) && array_key_exists('updatedAt' ?? '', $order))) {
             $timestampValue = $this->safe_integer_n($order, array( 'updateTime', 'transactTime', 'updatedAt' ));
@@ -7956,7 +7970,8 @@ class binance extends Exchange {
                 }
                 $response = $this->sapiGetMarginAllOrders($this->extend($request, $paramsPaginate));
             } elseif ($stock) {
-                $response = $this->sapiGetEquityOrderHistory($this->extend($request, $paramsPaginate));
+                $equityResponse = $this->sapiGetEquityOrderHistory($this->extend($request, $paramsPaginate));
+                $response = $this->safe_list($equityResponse, 'rows', array());
             } else {
                 $response = $this->privateGetAllOrders($this->extend($request, $paramsPaginate));
             }
@@ -8167,10 +8182,6 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        if ($stock) {
-            $result = $this->safe_list($response, 'rows', array());
-            return $this->parse_orders($result, $market, $since, $limitResolved);
-        }
         return $this->parse_orders($response, $market, $since, $limitResolved);
     }
 
@@ -10997,8 +11008,8 @@ class binance extends Exchange {
             $linearFees = array();
             $feeTier = $this->safe_integer($response, 'feeTier');
             $feeTiers = $this->safe_value($this->safe_value($this->safe_value($this->fees, 'linear'), 'trading'), 'tiers');
-            $maker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
-            $taker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
+            $maker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
+            $taker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
@@ -11032,8 +11043,8 @@ class binance extends Exchange {
             $inverseFees = array();
             $feeTier = $this->safe_integer($response, 'feeTier');
             $feeTiers = $this->safe_value($this->safe_value($this->safe_value($this->fees, 'inverse'), 'trading'), 'tiers');
-            $maker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
-            $taker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
+            $maker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
+            $taker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
@@ -11154,7 +11165,7 @@ class binance extends Exchange {
         $request = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 1000);
         }
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         $type = $this->safe_string($paramsPaginate, 'type', $defaultType);
@@ -11233,7 +11244,6 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingRates', null, $params, 'linear');
         $query = $this->omit($paramsSubType, 'type');
-        $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetPremiumIndex($query);
         } elseif ($this->is_inverse($type, $subType)) {
@@ -11244,7 +11254,7 @@ class binance extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         // fetchFundingRate, fetchFundingRates
@@ -11472,7 +11482,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_value($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -11698,7 +11708,7 @@ class binance extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_value($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -14105,7 +14115,7 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        $rows = $this->safe_list($response, 'rows');
+        $rows = $this->safe_list($response, 'rows', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
@@ -15723,7 +15733,6 @@ class binance extends Exchange {
         }
         $type = 'swap';
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');
-        $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetFundingInfo($paramsSubType);
         } elseif ($this->is_inverse($type, $subType)) {

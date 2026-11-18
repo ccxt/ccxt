@@ -2968,7 +2968,8 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return [currency, this.safeList(data, 'rows', [])];
+        const rows = this.safeList(data, 'rows', []);
+        return rows;
     }
     /**
      * @method
@@ -2982,9 +2983,11 @@ export default class woo extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -3110,9 +3113,11 @@ export default class woo extends Exchange {
         const request = {
             'type': 'BALANCE',
         };
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1, []);
+        const rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseTransactions(rows, currency, since, limit, this.omit(params, 'tokenSide'));
     }
     parseTransaction(transaction, currency = undefined) {

@@ -907,7 +907,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]a
 	var keys []string = ObjectKeys(tickers)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var ticker any = this.SafeValue(tickers, key)
+		var ticker map[string]any = this.SafeDictMap(tickers, key, map[string]any{})
 		var marketId *string = this.SafeString(ticker, "symbol", key)
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
 		var symbol *string = SafeStringPtr(market["symbol"])
@@ -1856,12 +1856,12 @@ func (this *Hollaex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hollaex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hollaex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hollaex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2738,7 +2738,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(float64(timeoutMs)/1000))
-		var expires any = this.Sum(this.Seconds(), defaultExpires)
+		var expires int64 = this.Seconds() + *defaultExpires
 		var expiresString *string = this.NumberToString(expires)
 		var auth any = method + requestPath + *expiresString
 		requestHeaders = map[string]any{

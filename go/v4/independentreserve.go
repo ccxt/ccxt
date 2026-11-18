@@ -442,7 +442,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var limits any = this.SafeValue(responses, 2)
+	var limits map[string]any = SafeMapTyped(responses, 2)
 	//
 	//     {
 	//         "Xbt": 0.0001,
@@ -452,8 +452,8 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	//     }
 	//
 	var result []any = []any{}
-	var baseCurrencyIds []any = this.ToArray(this.SafeValue(responses, 0))
-	var quoteCurrencyIds []any = this.ToArray(this.SafeValue(responses, 1))
+	var baseCurrencyIds []any = this.ToArray(this.SafeList(responses, 0))
+	var quoteCurrencyIds []any = this.ToArray(this.SafeList(responses, 1))
 	for i := 0; i < len(baseCurrencyIds); i++ {
 		var baseId *string = this.SafeString(baseCurrencyIds, i, "")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -949,12 +949,12 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan AsyncResult[[]Order]
 		request["primaryCurrencyCode"] = market["baseId"]
 		request["secondaryCurrencyCode"] = market["quoteId"]
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 50
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 50
+	} else {
+		limitResolved = *limit
+	}
 	request["pageIndex"] = 1
 	request["pageSize"] = limitResolved
 
@@ -1009,12 +1009,12 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan AsyncResult[[]Orde
 		request["primaryCurrencyCode"] = market["baseId"]
 		request["secondaryCurrencyCode"] = market["quoteId"]
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 50
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 50
+	} else {
+		limitResolved = *limit
+	}
 	request["pageIndex"] = 1
 	request["pageSize"] = limitResolved
 
@@ -1220,7 +1220,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	var fees map[string]any = map[string]any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var fee any = DerefScalar(rows[i])
+		var fee any = rows[i]
 		var currencyId *string = this.SafeString(fee, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var tradingFee *float64 = this.SafeNumber(fee, "Fee")
@@ -1331,12 +1331,12 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[Order], symb
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Independentreserve) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Independentreserve) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Independentreserve) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

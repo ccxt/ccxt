@@ -169,8 +169,8 @@ class bitget extends bitget$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTicker(symbol, params = {}) {
-        return this.unWatchChannel(symbol, 'ticker', 'ticker', 'watchTicker', params);
+    async unWatchTicker(symbol, params = {}) {
+        return await this.unWatchChannel(symbol, 'ticker', 'ticker', 'watchTicker', params);
     }
     /**
      * @method
@@ -677,8 +677,7 @@ class bitget extends bitget$1["default"] {
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = this.safeString(market, 'symbol', '');
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
@@ -694,11 +693,11 @@ class bitget extends bitget$1["default"] {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -772,8 +771,8 @@ class bitget extends bitget$1["default"] {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -878,7 +877,8 @@ class bitget extends bitget$1["default"] {
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
             channel += limit.toString();
-            incrementalFeed = false;
+            // books50 sends a snapshot first and incremental updates afterwards
+            incrementalFeed = (limit === 50);
         }
         const topics = [];
         const messageHashes = [];
@@ -980,7 +980,7 @@ class bitget extends bitget$1["default"] {
             return;
         }
         const timestamp = this.safeInteger(rawOrderBook, 'ts');
-        const incrementalBook = (channel === 'books');
+        const incrementalBook = ((channel === 'books') || (channel === 'books50'));
         if (incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(symbol in this.orderbooks)) {
@@ -1092,8 +1092,8 @@ class bitget extends bitget$1["default"] {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -1520,14 +1520,11 @@ class bitget extends bitget$1["default"] {
         //
         const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeString(arg, 'instType', '');
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const action = this.safeString(message, 'action');
-        if (!(instType in this.positions) || (action === 'snapshot')) {
-            this.positions[instType] = new Cache.ArrayCacheBySymbolBySide();
+        if (!(instType in this.positionsByType) || (action === 'snapshot')) {
+            this.positionsByType[instType] = new Cache.ArrayCacheBySymbolBySide();
         }
-        const cache = this.positions[instType];
+        const cache = this.positionsByType[instType];
         const rawPositions = this.safeList(message, 'data', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1622,7 +1619,7 @@ class bitget extends bitget$1["default"] {
         const percentage = Precise["default"].stringMul(percentageDecimal, '100');
         let contractSize = undefined;
         if (market !== undefined) {
-            contractSize = market['contractSize'];
+            contractSize = this.safeNumber(market, 'contractSize');
         }
         return this.safePosition({
             'info': position,

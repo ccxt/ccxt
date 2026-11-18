@@ -1,7 +1,7 @@
 // Per-language metadata for the playground.
 // Runnable languages execute in the backend sandbox (lib/runners/).
 
-export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp" | "java";
+export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp" | "java" | "rust";
 export type LanguageId = RunnableLanguageId;
 
 export type Install = {
@@ -171,6 +171,39 @@ public class Main {
         Ticker ticker = exchange.fetchTicker("BTC/USDT");
         System.out.println(ticker.symbol + "  last=" + ticker.last + "  bid=" + ticker.bid + "  ask=" + ticker.ask);
     }
+}
+`,
+  },
+  {
+    id: "rust",
+    label: "Rust",
+    monaco: "rust",
+    ext: "rs",
+    hint: "compiled — rustc + tokio, build ~1s",
+    available: enabled("rust", true),
+    install: {
+      via: "Terminal",
+      command: "cargo add ccxt tokio --features tokio/full",
+      docs: "https://crates.io/crates/ccxt",
+      note: "crates.io · add ccxt-pro for watch*",
+    },
+    sample: `use ccxt::{Binance, Params};
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Binance::new(None);
+    let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+    println!("{:?}", ticker);
+    Ok(())
+}`,
+    defaultCode: `use ccxt::{Binance, Params};
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Binance::new(None);
+    let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+    println!("{}  last={:?}  bid={:?}  ask={:?}", ticker.symbol, ticker.last, ticker.bid, ticker.ask);
+    Ok(())
 }
 `,
   },

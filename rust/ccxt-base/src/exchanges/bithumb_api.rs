@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bithumb::BithumbCore;
+use super::bithumb::Bithumb;
 use crate::exchange::ExchangeRuntime;
 
-impl BithumbCore {
+impl Bithumb {
     /// Auto-generated wrapper for the `publicGetPublicTickerALLQuoteId` implicit endpoint.
     pub async fn public_get_public_ticker_all_quote_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_public_ticker_all_quote_id".into()), optional_args).await
