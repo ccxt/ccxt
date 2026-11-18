@@ -1868,7 +1868,7 @@ export class BaseExchange {
                         //               |
                         //               V
                         client.throttle (cost).then (() => {
-                            client.send (message);
+                            return client.send (message);
                         }).catch ((e: any) => {
                             for (let i = 0; i < missingSubscriptions.length; i++) {
                                 const subscribeHash = missingSubscriptions[i];
@@ -1949,7 +1949,7 @@ export class BaseExchange {
                         //               |
                         //               V
                         client.throttle (cost).then (() => {
-                            client.send (message);
+                            return client.send (message);
                         }).catch ((e: any) => {
                             client.onError (e);
                         });
