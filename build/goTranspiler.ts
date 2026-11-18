@@ -6696,6 +6696,103 @@ function goTernaryIifeStatementsCheck (): string[] {
     return (out === want) ? [] : [ 'ternary iife statements: ' + out ];
 }
 
+// `func() T { if c { return a }; return b }()` inside a statement (map value, call arg, `+` operand): when
+// nothing before it in the statement is evaluated by a call, a typed local set in an if/else before the
+// statement takes the same branch in the same order
+// reads of a map/scalar with no side effect: may be evaluated before the hoisted branch
+const GO_IIFE_PURE_CALLEE = /^(?:(?:ccxt\.)?(?:Add|ToString|IsEqual)|this\.Safe(?:String|Integer|Number|Bool|Value|Dict|List)(?:2|N|Lower|Upper)*|strconv\.FormatInt|(?:ccxt\.)?(?:StatusFromMap|MapTyped))$/;
+function goTernaryIifeOperands (content: string): string {
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/func\(\) (?:bool|string|\*string|int64|float64) \{\n/.test (content)) {
+        return content;
+    }
+    const indentOf = (s: string) => /^\t*/.exec (s)[0].length;
+    const mask = (s: string) => s.replace (/"(?:[^"\\\n]|\\.)*"|`[^`]*`/g, (q) => '"' + ' '.repeat (q.length - 2) + '"');
+        return content.split (/(?=\nfunc )/).map ((func) => {
+        const lines = func.split ('\n');
+        let changed = true;
+        const skip = new Set<number> ();
+        while (changed) {
+            changed = false;
+            for (let i = 0; i < lines.length; i++) {
+                const head = /^(.*)func\(\) (bool|string|\*string|int64|float64) \{$/.exec (lines[i]);
+                if ((head === null) || skip.has (i) || (i + 5 >= lines.length)) { continue; }
+                const k = indentOf (lines[i]);
+                const t1 = '\t'.repeat (k + 1);
+                const t2 = '\t'.repeat (k + 2);
+                const c = new RegExp ('^' + t1 + 'if ([^\\n]+) \\{$').exec (lines[i + 1]);
+                const a = new RegExp ('^' + t2 + 'return ([^\\n]+)$').exec (lines[i + 2]);
+                const b = new RegExp ('^' + t1 + 'return ([^\\n]+)$').exec (lines[i + 4]);
+                const close = new RegExp ('^' + '\t'.repeat (k) + '\\}\\(\\)(.*)$').exec (lines[i + 5]);
+                const prefixMasked = mask (head[1]);
+                if ((c === null) || (a === null) || (b === null) || (close === null) || (lines[i + 3] !== t1 + '}')
+                    || /func\(|\}\(\)/.test (c[1] + a[1] + b[1]) || c[1].endsWith ('{')) { skip.add (i); continue; }
+                // statement start: the latest line opening at the depth of the innermost enclosing block brace
+                const stacks = goIifeLineStacks (lines.slice (0, i + 1), mask);
+                const own = stacks[i];
+                let blockDepth = -1;
+                for (let d = own.length - 1; d >= 0; d--) { if (own[d] === 'B') { blockDepth = d + 1; break; } }
+                let start = -1;
+                for (let L = i; L >= 0; L--) { if (stacks[L].length === blockDepth) { start = L; break; } }
+                if (start < 0 || ((start === i) && (close[1].trim () === '') && /^\t*(?:var \w+ \S+ = |\w+ := |[\w.]+(?:\[[^\]]+\])? = )$/.test (head[1])) || ((start > 0) && /[-+*\/%&|=<>!,.:]$/.test (mask (lines[start - 1]).replace (/\/\/.*$/, '').trimEnd ())) || /^\t*(?:if |for |switch |\} else|case |default:|select )/.test (lines[start])) { skip.add (i); continue; }
+                // nothing evaluated earlier in the statement may be a call (an open, unclosed paren is an enclosing call)
+                const before = mask (lines.slice (start, i).join ('\n') + '\n' + head[1]);
+                const depthStack: number[] = [];
+                let callBefore = false;
+                for (let q = 0; q < before.length; q++) {
+                    const ch = before[q];
+                    if (ch === '(') {
+                        const callee = /([\w.\]\[)]*)$/.exec (before.slice (0, q))[1];
+                        depthStack.push ((callee === '') ? 0 : (GO_IIFE_PURE_CALLEE.test (callee) ? 2 : 1));
+                    } else if (ch === ')') { if (depthStack.pop () === 1) { callBefore = true; } }
+                }
+                if (callBefore || /\.\(|<-/.test (before.replace (/^(\t*)ch <- /, '$1'))) { skip.add (i); continue; }
+                const key = /"(\w+)": $/.exec (head[1]);
+                const base = ((key !== null) ? key[1].replace (/^\d/, '_$&') : 'branch') + 'Value';
+                let name = base;
+                for (let n = 2; new RegExp ('\\b' + name + '\\b').test (lines.join ('\n')); n++) { name = base + n; }
+                const s = '\t'.repeat (indentOf (lines[start]));
+                const hoist = [ s + 'var ' + name + ' ' + head[2], s + 'if ' + c[1] + ' {', s + '\t' + name + ' = ' + a[1], s + '} else {', s + '\t' + name + ' = ' + b[1], s + '}' ];
+                const merged = head[1] + name + close[1];
+                lines.splice (i, 6, merged);
+                lines.splice (start, 0, ...hoist);
+                const shifted = new Set<number> ();
+                for (const x of skip) { shifted.add (x >= start ? x + hoist.length : x); }
+                skip.clear ();
+                for (const x of shifted) { skip.add (x); }
+                changed = true;
+                break;
+            }
+        }
+        return lines.join ('\n');
+    }).join ('');
+}
+// open-bracket stack at the start of each line: `B` a block brace (` {` at line end), `(`, `[`, `{` otherwise
+function goIifeLineStacks (lines: string[], mask: (s: string) => string): string[][] {
+    const out: string[][] = [];
+    const st: string[] = [];
+    for (const line of lines) {
+        out.push (st.slice ());
+        const m = mask (line).replace (/\/\/.*$/, '');
+        for (let q = 0; q < m.length; q++) {
+            const ch = m[q];
+            if (ch === '(' || ch === '[') { st.push (ch); }
+            else if (ch === '{') { st.push ((q === m.trimEnd ().length - 1) && (m[q - 1] === ' ') ? 'B' : '{'); }
+            else if (ch === ')' || ch === ']' || ch === '}') { st.pop (); }
+        }
+    }
+    return out;
+}
+
+function goTernaryIifeOperandsCheck (): string[] {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
+    const lit = (t: string) => '\t\t\tif s == "buy" {\n\t\t\t\treturn "bid"\n\t\t\t}\n\t\t\treturn "ask"\n\t\t}()' + t;
+    const src = head + 'func f(s string, m map[string]any) {\n\tvar r map[string]any = map[string]any{\n\t\t"id": m["id"],\n\t\t"action": func() string {\n' + lit (',\n') + '\t}\n\tvar q map[string]any = map[string]any{\n\t\t"n": this.Nonce(),\n\t\t"action": func() string {\n' + lit (',\n') + '\t}\n}\n';
+    const want = head + 'func f(s string, m map[string]any) {\n\tvar actionValue string\n\tif s == "buy" {\n\t\tactionValue = "bid"\n\t} else {\n\t\tactionValue = "ask"\n\t}\n\tvar r map[string]any = map[string]any{\n\t\t"id": m["id"],\n\t\t"action": actionValue,\n\t}\n\tvar q map[string]any = map[string]any{\n\t\t"n": this.Nonce(),\n\t\t"action": func() string {\n' + lit (',\n') + '\t}\n}\n';
+    const out = goTernaryIifeOperands (src);
+    return (out === want) ? [] : [ 'ternary iife operands: ' + JSON.stringify (out) ];
+}
+
+
 function goIsEqualBoolMethodCheck (): string[] {
     const problems: string[] = [];
     const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
@@ -11312,6 +11409,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = goIsEqualBoolMethod (content);  // IsEqual(this.boolMethod(..), true) -> native ==
         content = goSafeStringPtrHoist (content);  // SafeStringPtr(<Go string>) at return / declaration -> &local
         content = goTernaryIifeStatements (content);  // typed statement-level ternary literals -> if/else
+        content = goTernaryIifeOperands (content);  // typed ternary literals inside a statement -> hoisted if/else
         // runs after the spacing pass: its line-local lexer misreads a `}(args) + x` continuation
         content = alignGoTrailingComments (goGofmtBinarySpacing (content));
     }
@@ -14814,7 +14912,7 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
