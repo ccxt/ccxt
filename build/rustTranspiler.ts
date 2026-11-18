@@ -814,7 +814,7 @@ const CONTAINER_OP_CLIENT_STATE = /^&get_value\(&(client), &Value::Str\("(subscr
 // A side marker is the only `Value` whose length differs from `Value::len`.
 const CONTAINER_OP_SIDE_WORD = /asks|bids|[Ss]ide|[Bb]ook|entries|__sideKind/;
 // Sources that yield a plain JSON tree or a plain container.
-const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
+const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit|(?:public|private)_\w+)\(|^get_arg\(|^split\(|^json_parse\(|^Value::(?:Map|List|Array|Str|from)\(/;
 // Reads that cannot change the stored container shape.
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
@@ -1172,6 +1172,9 @@ function nativeContainerOpsSelfTest (): string[] {
     // A receiver written from an API read has no pinned shape, but its length is native.
     const unknown = fn ('        let mut r: Value = get_value(&self.options, &Value::Str("x".to_string()));\n        let n: Value = get_array_length(&r);');
     check ('api read length', unknown, unknown.replace ('get_array_length(&r)', 'Value::Int(r.len() as i64)'));
+    // An exchange API call or `json_parse` yields a plain JSON tree: length is native too.
+    const apiCall = fn ('        let mut r: Value = self.public_post_info(&[q]).await;\n        let mut j: Value = json_parse(&s);\n        let n: Value = get_array_length(&r);\n        let k: Value = get_array_length(&j);');
+    check ('api call length', apiCall, apiCall.replace ('get_array_length(&r)', 'Value::Int(r.len() as i64)').replace ('get_array_length(&j)', 'Value::Int(j.len() as i64)'));
     // The ws registry serves both client fields as a map; only subscriptions is tagged.
     const stateIn = fn ('        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &hash)) {\n            let ks: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));\n            let sub: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));\n        }');
     check ('client state', stateIn, fn ('        if (matches!((&get_value(&client, &Value::Str("subscriptions".to_string())), &hash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {\n            let ks: Value = Value::Array(get_value(&client, &Value::Str("futures".to_string())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());\n            let sub: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));\n        }'));
