@@ -9413,8 +9413,44 @@ function dictRowSafeReadOnlyLocal (csharp, declaration) {
     return reads > 0;
 }
 
+// a row element local read by at least one literal-key `'k' in row` (and otherwise only by pure safe*
+// readers and null tests): the typed local prints a null-tested ContainsKey (installCsharpNullableInOpKeyGuard)
+function dictRowInOpLocal (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier || DICT_ROW_VETO_NAMES.has (name)) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    let tests = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword && ts.isStringLiteralLike (parent.left)) {
+            tests++;
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (parent.expression.name?.text)) {
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
+            const other = (parent.left === use) ? parent.right : parent.left;
+            if ((other?.kind === ts.SyntaxKind.Identifier && other.text === 'undefined') || other?.kind === ts.SyntaxKind.NullKeyword) {
+                continue;
+            }
+        }
+        return false;
+    }
+    return tests > 0;
+}
+
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text) && !dictRowNativeWriteLocal (csharp, declaration) && !dictRowSafeReadOnlyLocal (csharp, declaration)) {
+    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text) && !dictRowNativeWriteLocal (csharp, declaration) && !dictRowSafeReadOnlyLocal (csharp, declaration) && !dictRowInOpLocal (csharp, declaration)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue
@@ -15862,6 +15898,12 @@ export function installCsharpNullableInOpKeyGuard (csharp) {
         const printed = upstream (key, obj);
         if (typeof printed !== 'string') {
             return printed;
+        }
+        if (obj?.kind === ts.SyntaxKind.Identifier && ts.isStringLiteralLike (key) && printed === obj.text + '.ContainsKey(' + JSON.stringify (key.text) + ')') {
+            const row = csharpIdentifierDeclaration (csharp, obj);
+            if (row?.kind === ts.SyntaxKind.VariableDeclaration && dictRowInOpLocal (csharp, row) && dictRowElementReadType (csharp, row) !== undefined) {
+                return '(' + obj.text + ' != null && ' + printed + ')'; // inOp answers false on a null element
+            }
         }
         // the printed key may be the printer's own `((string)x)` view of a nullable string local
         let identifier = key;
