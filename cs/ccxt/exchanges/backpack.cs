@@ -1630,12 +1630,12 @@ public partial class backpack : Exchange
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    public virtual List<object> filterStockStructures(object entries)
+    public virtual List<object> filterStockStructures(IList<object> entries)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(entries); i++)
+        for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
-            object entry = getValue(entries, i);
+            object entry = (entries != null && i < entries.Count ? entries[i] : null);
             string? symbol = this.safeString(entry, "symbol");
             IDictionary<string, object> market = this.safeDict(this.markets, symbol);
             if ((this.safeBool(market, "stock", false) == true))
@@ -1686,7 +1686,7 @@ public partial class backpack : Exchange
         IList<object> symbolsResolved = new List<object>(((IDictionary<string,object>)this.markets).Keys);
         if ((symbolsLength != 0))
         {
-            symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
+            symbolsResolved = this.marketSymbols(symbols, null, false);
         }
         bool hasRfqSymbol = false;
         bool hasStockSymbol = false;
@@ -3785,7 +3785,7 @@ public partial class backpack : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(response));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbolsNormalized));
     }
 

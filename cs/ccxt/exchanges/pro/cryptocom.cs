@@ -123,7 +123,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Int64? limitResolved = 50;
@@ -388,7 +388,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -1044,7 +1044,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "nonce", id },
         };
         string messageHash = "positions";
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (!this.isEmpty(symbolsNormalized))
         {
             if ((symbolsNormalized == null))
@@ -1382,15 +1382,16 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "private/cancel-all-orders" },
-            { "params", this.extend(new Dictionary<string, object>() {}, parameters) },
-        };
+        Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request["params"])["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestParams["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "private/cancel-all-orders" },
+            { "params", requestParams },
+        };
         Int64? messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));
     }

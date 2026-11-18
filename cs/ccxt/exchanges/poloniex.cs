@@ -1375,7 +1375,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, false);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -4284,7 +4284,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.swapPrivateGetV3TradePositionOpens(parameters);
         //
         //    {
@@ -4363,7 +4363,7 @@ public partial class poloniex : Exchange
         string? leverage = this.safeString(position, "lever");
         string? initialMargin = this.safeString(position, "im");
         string? notional = Precise.stringMul(leverage, initialMargin);
-        object positionMargin = null;
+        string? positionMargin = null;
         string? collateral = null;
         if (marginMode == "isolated")
         {

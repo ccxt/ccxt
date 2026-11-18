@@ -547,12 +547,12 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override IList<object> parseMarkets(object markets)
+    public override IList<object> parseMarkets(IList<object> markets)
     {
         List<object> result = new List<object>() {};
         IDictionary<string, object> defaultFees = this.safeDict(this.fees, "trading", new Dictionary<string, object>() {});
         IDictionary<string, object> feesByCategory = this.safeDict(this.fees, "byCategory", new Dictionary<string, object>() {});
-        for (int i = 0; i < getArrayLength(markets); i++)
+        for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
             IDictionary<string, object> market = this.safeDict(markets, i);
             string? id = this.safeString(market, "market");
@@ -898,7 +898,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     /**
@@ -2918,13 +2918,15 @@ public partial class bitvavo : Exchange
             networkId = currencyCode;
         }
         string? networkCode = this.networkIdToCode(networkId, currencyCode);
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+            networkFees[(string)networkCode] = new Dictionary<string, object>() {
                 { "deposit", result["deposit"] },
                 { "withdraw", result["withdraw"] },
             };
         }
+        result["networks"] = networkFees;
         return result;
     }
 
@@ -3049,7 +3051,7 @@ public partial class bitvavo : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !(inOp(parameters, "market")))

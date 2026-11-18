@@ -252,9 +252,9 @@ public partial class binance : PredictionExchange
         while (true)
         {
             int collectedLength = (collected?.Count ?? 0);
-            object remaining = (maxTopicsResolved - collectedLength);
-            object reqLimit = (isLessThan(remaining, pageLimit)) ? remaining : pageLimit;
-            if (isLessThanOrEqual(reqLimit, 0))
+            Int64? remaining = this.parseToInt((maxTopicsResolved - collectedLength));
+            Int64? reqLimit = ((pageLimit != null && (remaining == null || remaining < pageLimit))) ? remaining : pageLimit;
+            if ((reqLimit == null || reqLimit <= 0))
             {
                 break;
             }
@@ -302,7 +302,7 @@ public partial class binance : PredictionExchange
                 collected.Add((pageTopics != null && i < pageTopics.Count ? pageTopics[i] : null));
             }
             bool? hasMore = this.safeBool(response, "hasMore", false);
-            if ((hasMore != true) || (isLessThan(pageTopicsLength, reqLimit)))
+            if ((hasMore != true) || ((pageTopicsLength < reqLimit)))
             {
                 break;
             }
@@ -959,7 +959,7 @@ public partial class binance : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
-        await this.loadOutcomes(this.toArray(outcomes));
+        await this.loadOutcomes(outcomes);
         Dictionary<string, object> responsesByMarketId = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         int outcomesLength = outcomes?.Count ?? 0;
@@ -1115,13 +1115,8 @@ public partial class binance : PredictionExchange
             string? marketId = this.safeString(order, "marketId");
             string? outcome = this.safeStringUpper(order, "outcome");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? outcomeName = this.safeString(market, "market");
-            if ((outcomeName == null))
-            {
-                outcomeName = marketId;
-            }
-            outcomeName = (outcomeName == null ? null : outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            string? marketName = this.safeString(market, "market", marketId);
+            outcomeObjResolved = this.safeOutcome((marketName == null ? null : marketName + ":" + outcome));
         }
         string? side = this.safeStringLower(order, "side");
         Int64? timestamp = this.safeInteger(order, "createTime");
@@ -1516,13 +1511,8 @@ public partial class binance : PredictionExchange
             string? marketId = this.safeString(position, "marketId");
             string? outcome = this.safeStringUpper(position, "outcomeName");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? outcomeName = this.safeString(market, "market");
-            if ((outcomeName == null))
-            {
-                outcomeName = marketId;
-            }
-            outcomeName = (outcomeName == null ? null : outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            string? marketName = this.safeString(market, "market", marketId);
+            outcomeObjResolved = this.safeOutcome((marketName == null ? null : marketName + ":" + outcome));
         }
         Int64? timestamp = this.safeInteger(position, "createdTime");
         double? totalCost = this.parseNumber(this.safeString(position, "totalCost"));
@@ -1705,13 +1695,8 @@ public partial class binance : PredictionExchange
             string? marketId = this.safeString(trade, "marketId");
             string? outcome = this.safeStringUpper(trade, "outcome");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? outcomeName = this.safeString(market, "market");
-            if ((outcomeName == null))
-            {
-                outcomeName = marketId;
-            }
-            outcomeName = (outcomeName == null ? null : outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            string? marketName = this.safeString(market, "market", marketId);
+            outcomeObjResolved = this.safeOutcome((marketName == null ? null : marketName + ":" + outcome));
         }
         Int64? timestamp = this.safeInteger(trade, "createTime");
         string? filled = this.safeString(trade, "filledShareQty");

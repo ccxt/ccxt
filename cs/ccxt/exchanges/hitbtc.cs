@@ -1125,7 +1125,7 @@ public partial class hitbtc : Exchange
                 request["currency"] = parsedNetwork;
             }
         }
-        object paramsOmitted = parameters;
+        IDictionary<string, object> paramsOmitted = parameters;
         if (((network != null)) && ((code == "USDT")))
         {
             paramsOmitted = this.omit(parameters, "network");
@@ -1169,7 +1169,7 @@ public partial class hitbtc : Exchange
                 request["currency"] = parsedNetwork;
             }
         }
-        object paramsOmitted = parameters;
+        IDictionary<string, object> paramsOmitted = parameters;
         if (((network != null)) && ((code == "USDT")))
         {
             paramsOmitted = this.omit(parameters, "network");
@@ -1306,7 +1306,7 @@ public partial class hitbtc : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -4172,6 +4172,7 @@ public partial class hitbtc : Exchange
         //
         List<object> networks = this.safeList(fee, "networks", new List<object>() {});
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(networks, j);
@@ -4196,7 +4197,7 @@ public partial class hitbtc : Exchange
             }
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                networkFees[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", withdrawResult },
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
@@ -4205,6 +4206,7 @@ public partial class hitbtc : Exchange
                 };
             }
         }
+        result["networks"] = networkFees;
         return result;
     }
 

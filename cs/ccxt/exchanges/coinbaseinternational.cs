@@ -1325,7 +1325,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
         if ((symbolsResolved == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires a symbols argument")) ;
@@ -1501,7 +1501,7 @@ public partial class coinbaseinternational : Exchange
                 }
                 for (int i = 0; i < (depths?.Count ?? 0); i++)
                 {
-                    if (isLessThanOrEqual(limit, this.parseToInt((depths != null && i < depths.Count ? depths[i] : null))))
+                    if ((limit <= this.parseToInt((depths != null && i < depths.Count ? depths[i] : null))))
                     {
                         request["depth"] = this.safeInteger(depths, i, 0);
                         break;
@@ -2237,7 +2237,7 @@ public partial class coinbaseinternational : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(result));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 
@@ -2484,14 +2484,14 @@ public partial class coinbaseinternational : Exchange
      * @param {float} amount unified order quantity
      * @returns {string} precision-formatted exchange order amount
      */
-    public virtual string? getOrderAmount(object market, object amount)
+    public virtual string? getOrderAmount(IDictionary<string, object> market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
         if (this.isNativeDeribitCredentials() && (this.safeBool(market, "contract", false) == true))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
-        return this.amountToPrecision(getValue(market, "symbol"), exchangeAmount);
+        return this.amountToPrecision((market != null && market.ContainsKey("symbol") ? market["symbol"] : null), exchangeAmount);
     }
 
     /**

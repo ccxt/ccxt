@@ -398,7 +398,7 @@ public partial class backpack : ccxt.backpack
                 {
                     string symbol = messageHash.Replace("unsubscribe:orders:", (string)"");
                     ccxt.pro.ArrayCache cache = this.orders;
-                    if (((this.orders != null)) && (inOp(cache, symbol)))
+                    if (((this.orders != null)) && ((cache != null && cache.Contains(symbol))))
                     {
                         ((IDictionary<string,object>)cache).Remove(symbol);
                     }
@@ -1025,7 +1025,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -1233,7 +1233,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1409,7 +1409,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cacheLength;
             }
-            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -1836,7 +1836,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         if ((symbolsNormalized != null))

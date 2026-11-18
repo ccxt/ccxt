@@ -7,10 +7,10 @@ public partial class PredictionExchange : BaseExchange
 
     public PredictionExchange(object args = null) : base(args) {}
 
-    public object outcomes { get; set; } = null;
-    public object outcomes_by_id { get; set; } = null;
-    public object events { get; set; } = null;
-    public object events_by_slug { get; set; } = null;
+    public IDictionary<string, object> outcomes { get; set; } = null;
+    public IDictionary<string, object> outcomes_by_id { get; set; } = null;
+    public IDictionary<string, object> events { get; set; } = null;
+    public IDictionary<string, object> events_by_slug { get; set; } = null;
     public bool reloadingEvents { get; set; } = false;
     public Task<object> eventsLoading { get; set; } = null;
 
@@ -475,11 +475,11 @@ public partial class PredictionExchange : BaseExchange
     {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
-        if (((this.events != null)) && (inOp(this.events, eventIdOrSlug)))
+        if (((this.events != null)) && ((this.events != null && this.events.ContainsKey(eventIdOrSlug))))
         {
             return this.safeDict(this.events, eventIdOrSlug);
         }
-        if (((this.events_by_slug != null)) && (inOp(this.events_by_slug, eventIdOrSlug)))
+        if (((this.events_by_slug != null)) && ((this.events_by_slug != null && this.events_by_slug.ContainsKey(eventIdOrSlug))))
         {
             return this.safeDict(this.events_by_slug, eventIdOrSlug);
         }
@@ -496,11 +496,11 @@ public partial class PredictionExchange : BaseExchange
         {
             throw new ExchangeError ((this.id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
-        if (inOp(this.outcomes, outcomeSymbol))
+        if ((this.outcomes != null && outcomeSymbol is string inOpKey1 && this.outcomes.ContainsKey(inOpKey1)))
         {
             return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes, outcomeSymbol))));
         }
-        if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeSymbol)))
+        if (((this.outcomes_by_id != null)) && ((this.outcomes_by_id != null && outcomeSymbol is string inOpKey2 && this.outcomes_by_id.ContainsKey(inOpKey2))))
         {
             return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes_by_id, outcomeSymbol))));
         }
@@ -516,11 +516,11 @@ public partial class PredictionExchange : BaseExchange
         {
             return false;
         }
-        if (((this.outcomes != null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
+        if (((this.outcomes != null)) && ((this.outcomes != null && outcomeIdOrSymbol is string inOpKey3 && this.outcomes.ContainsKey(inOpKey3))))
         {
             return true;
         }
-        if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
+        if (((this.outcomes_by_id != null)) && ((this.outcomes_by_id != null && outcomeIdOrSymbol is string inOpKey4 && this.outcomes_by_id.ContainsKey(inOpKey4))))
         {
             return true;
         }
@@ -531,11 +531,11 @@ public partial class PredictionExchange : BaseExchange
     {
         if ((outcomeIdOrSymbol != null))
         {
-            if (((this.outcomes != null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
+            if (((this.outcomes != null)) && ((this.outcomes != null && outcomeIdOrSymbol is string inOpKey5 && this.outcomes.ContainsKey(inOpKey5))))
             {
                 return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes, outcomeIdOrSymbol))));
             }
-            if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
+            if (((this.outcomes_by_id != null)) && ((this.outcomes_by_id != null && outcomeIdOrSymbol is string inOpKey6 && this.outcomes_by_id.ContainsKey(inOpKey6))))
             {
                 return ((IDictionary<string, object>)((object)(this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol))));
             }
@@ -1834,7 +1834,7 @@ public partial class PredictionExchange : BaseExchange
         // instead — and an outcome object rebuilt from cached markets may still hold a legacy
         // `symbol` key, which would silently drop every parsed row
         parameters ??= new Dictionary<string, object>();
-        IList<object> rows = this.toArray(trades);
+        IList<object> rows = trades;
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
@@ -1863,7 +1863,7 @@ public partial class PredictionExchange : BaseExchange
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         parameters ??= new Dictionary<string, object>();
-        IList<object> rows = this.toArray(orders);
+        IList<object> rows = orders;
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
@@ -1892,7 +1892,7 @@ public partial class PredictionExchange : BaseExchange
         // venue-specific outcome filtering stays in the exchange (position identity differs
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         parameters ??= new Dictionary<string, object>();
-        IList<object> rows = this.toArray(positions);
+        IList<object> rows = positions;
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {

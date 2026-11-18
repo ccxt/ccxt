@@ -3596,6 +3596,7 @@ public partial class gate : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         if ((withdrawFixOnChains != null))
         {
             List<object> chainKeys = new List<object>(withdrawFixOnChains.Keys);
@@ -3607,7 +3608,7 @@ public partial class gate : Exchange
                 string? networkCode = this.networkIdToCode(chainKey, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    networkFees[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.parseNumber((withdrawFixOnChains != null && chainKey != null && withdrawFixOnChains.ContainsKey(chainKey) ? withdrawFixOnChains[chainKey] : null)) },
                             { "percentage", false },
@@ -3620,6 +3621,7 @@ public partial class gate : Exchange
                 }
             }
         }
+        result["networks"] = networkFees;
         return result;
     }
 
@@ -4077,7 +4079,7 @@ public partial class gate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -4507,7 +4509,7 @@ public partial class gate : Exchange
             Int64 distance = (((limitValue - 1)) * duration);
             Int64 toTimestamp = this.sum(fromTimestamp, distance);
             Int64 currentTimestamp = this.seconds();
-            Int64 to = ((Int64)Math.Min(toTimestamp, currentTimestamp));
+            object to = mathMin(toTimestamp, currentTimestamp);
             if ((until != null))
             {
                 request["to"] = mathMin(to, until);
@@ -7552,7 +7554,7 @@ public partial class gate : Exchange
             request["settle"] = (currency.ContainsKey("id") ? currency["id"] : null); // todo: currencies have network-junctions
         }
         bool isMarginTransfer = (fromId == "margin") || (toId == "margin");
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         if (isMarginTransfer)
         {
             query = this.omit(parameters, "symbol");
@@ -7977,7 +7979,7 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -10319,7 +10321,7 @@ public partial class gate : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, this.toArray(symbols), paramsValue));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

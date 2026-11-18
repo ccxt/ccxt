@@ -828,7 +828,7 @@ public partial class opinion : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
-        await this.loadOutcomes(this.toArray(outcomes));
+        await this.loadOutcomes(outcomes);
         int outcomesLength = outcomes?.Count ?? 0;
         List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         for (int i = 0; i < outcomesLength; i++)
@@ -1664,7 +1664,7 @@ public partial class opinion : PredictionExchange
         if ((outcomes != null))
         {
             outcomesLength = outcomes?.Count ?? 0;
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.walletAddress },
@@ -1981,7 +1981,7 @@ public partial class opinion : PredictionExchange
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    public virtual IDictionary<string, object> opinionOutcomeByMarketIdSide(object marketId, object outcomeSide)
+    public virtual IDictionary<string, object> opinionOutcomeByMarketIdSide(object marketId, Int64? outcomeSide)
     {
         if (((marketId == null)) || ((this.markets == null)))
         {
@@ -1996,7 +1996,7 @@ public partial class opinion : PredictionExchange
             if (isEqual(this.safeInteger(info, "marketId"), marketId))
             {
                 List<object> outcomes = this.safeList(market, "outcomes", new List<object>() {});
-                int index = (isEqual(outcomeSide, 2)) ? 1 : 0;
+                int index = ((outcomeSide == 2)) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }
@@ -2258,26 +2258,26 @@ public partial class opinion : PredictionExchange
      * @param {int} status the numeric order status
      * @returns {string} a unified order status, or undefined
      */
-    public virtual string? parseWsOrderStatus(object status)
+    public virtual string? parseWsOrderStatus(Int64? status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
-        if (isEqual(status, 1))
+        if ((status == 1))
         {
             return "open";
         }
-        if (isEqual(status, 2))
+        if ((status == 2))
         {
             return "closed";
         }
-        if (isEqual(status, 3))
+        if ((status == 3))
         {
             return "canceled";
         }
-        if (isEqual(status, 4))
+        if ((status == 4))
         {
             return "expired";
         }
-        if (isEqual(status, 5))
+        if ((status == 5))
         {
             return "rejected";
         }

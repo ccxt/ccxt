@@ -691,7 +691,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
         List<object> responses = new List<object>(await Task.WhenAll(promises));
         //
@@ -833,7 +833,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetInfoBbo(parameters);
         //
         //     [
@@ -1992,7 +1992,7 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadProxyCredentials();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.privateGetAccountPortfolio(parameters);
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> rows = this.safeList(response, "positions", new List<object>() {});
@@ -2959,7 +2959,7 @@ public partial class polymarket : Exchange
             {
                 return credentials;
             }
-            Int64? refreshAfter = (expires - margin);
+            Int64? refreshAfter = this.parseToInt((expires - margin));
             if ((this.milliseconds() < refreshAfter))
             {
                 return credentials;
@@ -3086,24 +3086,24 @@ public partial class polymarket : Exchange
         return result;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((path is "account/orders"))
+        if ((path == "account/orders"))
         {
             return (inOp(parameters, "order_id")) ? 1 : 10;
         }
-        if ((path is "account/open-orders"))
+        if ((path == "account/open-orders"))
         {
             return (inOp(parameters, "instrument_id")) ? 1 : 20;
         }
-        if (((path is "trade/orders")) || ((path is "trade/orders-coid")))
+        if (((path == "trade/orders")) || ((path == "trade/orders-coid")))
         {
             IDictionary<string, object> op = this.safeDict(parameters, "op", new Dictionary<string, object>() {});
             List<object> args = this.safeList(op, "args", new List<object>() {});
             return this.sum(1, this.parseToInt(((double)args.Count / 20)));
         }
-        if (isEqual(path, "info/book"))
+        if ((path == "info/book"))
         {
             Int64? depth = this.safeInteger(parameters, "depth", 100);
             if ((depth == null || depth <= 10))

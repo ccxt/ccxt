@@ -1420,7 +1420,7 @@ public partial class bitfinex : ccxt.bitfinex
         }, marketResolved);
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         string? channelId = this.safeString(message, 0);
         string? heartbeat = this.safeString(message, 1);

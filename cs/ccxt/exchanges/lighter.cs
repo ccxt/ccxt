@@ -714,7 +714,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         Int64? cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         Int64? minimumRemaining = this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60);
-        if (((cachedDeadline != null)) && ((minimumRemaining != null)) && (isGreaterThanOrEqual((cachedDeadline - minimumRemaining), this.seconds())))
+        if (((cachedDeadline != null)) && ((minimumRemaining != null)) && (((cachedDeadline - minimumRemaining) >= this.seconds())))
         {
             return this.safeString(cachedAuth, "token");
         }
@@ -1941,7 +1941,7 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetOrderBookDetails(parameters);
         List<object> spotTickers = this.safeList(response, "spot_order_book_details", new List<object>() {});
         List<object> swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
@@ -2357,7 +2357,7 @@ public partial class lighter : Exchange
                 allPositions.Add(positions[j]);
             }
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)

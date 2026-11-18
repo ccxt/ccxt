@@ -1829,8 +1829,9 @@ public partial class phemex : Exchange
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         string? last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
         string? quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved);
-        string? baseVolume = this.safeString(ticker, "volume");
-        if ((baseVolume == null))
+        string? volume = this.safeString(ticker, "volume");
+        string? baseVolume = volume;
+        if ((volume == null))
         {
             baseVolume = this.fromEv(this.safeString2(ticker, "volumeEv", "volumeRq"), marketResolved);
         }
@@ -1984,7 +1985,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -2231,7 +2232,7 @@ public partial class phemex : Exchange
         string? costString = null;
         string? type = null;
         Dictionary<string, object> fee = null;
-        object feeCostString = null;
+        string? feeCostString = null;
         string? feeRateString = null;
         string? feeCurrencyCode = null;
         string? marketId = this.safeString(trade, "symbol");
@@ -2960,8 +2961,9 @@ public partial class phemex : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.parseOrderSide(this.safeStringLower(order, "side"));
         string? type = this.parseOrderType(this.safeString(order, "orderType"));
-        string? price = this.safeString(order, "priceRp");
-        if ((price == null))
+        string? priceRp = this.safeString(order, "priceRp");
+        string? price = priceRp;
+        if ((priceRp == null))
         {
             price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         }
@@ -4403,7 +4405,7 @@ public partial class phemex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? code = this.safeString2(parameters, "currency", "code", "USDT");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"currency", "code"});
         object paramsSettle = paramsOmitted;
@@ -5834,7 +5836,7 @@ public partial class phemex : Exchange
         {
             if (!(this.inArray(code, stableCoins)))
             {
-                networkId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
+                networkId = this.safeString(currency, "id", (currency.ContainsKey("id") ? currency["id"] : null));
             } else
             {
                 throw new ArgumentsRequired ((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;

@@ -190,7 +190,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string? outcomeCoin(object encoding)
     {
-        return ("#" + encoding.ToString());
+        return ("#" + ((object)this.parseToInt(encoding)).ToString());
     }
 
     /**
@@ -203,7 +203,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string? outcomeToken(object encoding)
     {
-        return ("+" + encoding.ToString());
+        return ("+" + ((object)this.parseToInt(encoding)).ToString());
     }
 
     /**
@@ -693,7 +693,7 @@ public partial class hyperliquid : PredictionExchange
         string? intPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         int intPartLength = intPart.Length;
         Int64? szDecimalsInt = this.parseToInt(szDecimals);
-        Int64? maxDecimals = (8 - szDecimalsInt);
+        Int64? maxDecimals = this.parseToInt((8 - szDecimalsInt));
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         int digitsLeft = 0;
         if (intPartLength <= 5)
@@ -765,7 +765,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -1120,7 +1120,7 @@ public partial class hyperliquid : PredictionExchange
         {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
@@ -1350,11 +1350,11 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; i < (candidates?.Count ?? 0); i++)
         {
             string? key = ((string)candidates[i]);
-            if (inOp(this.outcomes, key))
+            if ((this.outcomes != null && key != null && this.outcomes.ContainsKey(key)))
             {
                 return this.safeDict(this.outcomes, key, new Dictionary<string, object>() {});
             }
-            if (inOp(this.outcomes_by_id, key))
+            if ((this.outcomes_by_id != null && key != null && this.outcomes_by_id.ContainsKey(key)))
             {
                 return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
@@ -1576,13 +1576,13 @@ public partial class hyperliquid : PredictionExchange
         };
         if ((clientOrderId != null))
         {
-            object cloids = ((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? clientOrderId : new List<object>() {clientOrderId};
+            List<object> cloids = ((List<object>)(((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? clientOrderId : new List<object>() {clientOrderId}));
             cancelAction["type"] = "cancelByCloid";
-            for (int i = 0; i < getArrayLength(cloids); i++)
+            for (int i = 0; i < (cloids?.Count ?? 0); i++)
             {
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", assetId },
-                    { "cloid", getValue(cloids, i) },
+                    { "cloid", cloids[i] },
                 });
             }
         } else
@@ -2383,8 +2383,8 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? rRaw = this.safeString(signature, "r", "");
+        string? sRaw = this.safeString(signature, "s", "");
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
@@ -2659,7 +2659,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))

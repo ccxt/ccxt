@@ -1148,7 +1148,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)

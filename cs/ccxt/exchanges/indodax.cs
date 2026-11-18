@@ -1090,7 +1090,7 @@ public partial class indodax : Exchange
         bool priceIsRequired = false;
         bool quantityIsRequired = false;
         bool isMarketBuy = ((type == "market")) && ((side == "buy"));
-        object paramsOmitted = parameters;
+        IDictionary<string, object> paramsOmitted = parameters;
         if (isMarketBuy)
         {
             paramsOmitted = this.omit(parameters, "cost");

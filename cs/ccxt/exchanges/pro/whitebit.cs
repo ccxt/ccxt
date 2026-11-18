@@ -853,7 +853,7 @@ public partial class whitebit : ccxt.whitebit
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, method, new List<object>() {}, paramsAwaitBalanceSnapshot));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, string subscriptionHash)
+    public virtual void setBalanceCache(WebSocketClient client, string? type, string subscriptionHash)
     {
         if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
@@ -862,7 +862,7 @@ public partial class whitebit : ccxt.whitebit
         bool fetchBalanceSnapshot = ((bool)this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
         if ((fetchBalanceSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchBalanceSnapshot")));
+            string? messageHash = ((string)((type + ":fetchBalanceSnapshot")));
             if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
@@ -1201,7 +1201,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, feedback);
+                this.throwExactlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("exact") ? this.exceptionsWs["exact"] : null), code, feedback);
             }
         } catch(Exception e)
         {
@@ -1262,7 +1262,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message, object id)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message, Int64? id)
     {
         // not every method stores its subscription
         // as an object so we can't do indeById here
@@ -1274,7 +1274,7 @@ public partial class whitebit : ccxt.whitebit
             if (!(subscription is true))
             {
                 Int64? subId = this.safeInteger(subscription, "id");
-                if (((subId != null)) && (isEqual(subId, id)))
+                if (((subId != null)) && ((subId == id)))
                 {
                     object method = this.safeValue(subscription, "method");
                     if ((method != null))

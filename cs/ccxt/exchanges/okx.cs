@@ -3326,7 +3326,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3432,7 +3432,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3718,10 +3718,10 @@ public partial class okx : Exchange
         {
             requestMaxLimit = 100;
         }
-        object limitResolved = 100;
+        Int64? limitResolved = this.parseToInt(100);
         if ((limit != null))
         {
-            limitResolved = Math.Min(limit.Value, requestMaxLimit);
+            limitResolved = this.parseToInt(Math.Min(limit.Value, requestMaxLimit));
         }
         int duration = this.parseTimeframe(timeframeVar);
         string? bar = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -3748,7 +3748,7 @@ public partial class okx : Exchange
             }
             object startTime = ((since > 1)) ? ((since - 1)) : 0;
             request["before"] = startTime;
-            request["after"] = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(durationInMilliseconds, limitResolved));
+            request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
         }
         Int64? until = this.safeInteger(paramsPrice, "until");
         if ((until != null))
@@ -3789,9 +3789,9 @@ public partial class okx : Exchange
         {
             if (isHistoryCandles)
             {
-                if (limitIsUndefined && (isEqual(limitResolved, 100)))
+                if (limitIsUndefined && ((limitResolved == 100)))
                 {
-                    limitResolved = 300;
+                    limitResolved = this.parseToInt(300);
                     request["limit"] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, paramsType));
@@ -4396,26 +4396,27 @@ public partial class okx : Exchange
                     (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(orderParams, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
                     IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
-                    object notional = this.safeNumber2(paramsRequiresPrice, "cost", "sz");
+                    double? notionalParam = this.safeNumber2(paramsRequiresPrice, "cost", "sz");
+                    object notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, new List<object>() {"cost", "sz"});
                     if ((createMarketBuyOrderRequiresPrice == true))
                     {
                         if ((price != null))
                         {
-                            if ((notional == null))
+                            if ((notionalParam == null))
                             {
                                 string? amountString = this.numberToString(amount);
                                 string? priceString = this.numberToString(price);
                                 string? quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
-                        } else if ((notional == null))
+                        } else if ((notionalParam == null))
                         {
                             throw new InvalidOrder ((this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
-                        notional = ((notional == null)) ? amount : notional;
+                        notional = ((notionalParam == null)) ? amount : notionalParam;
                     }
                     request["sz"] = this.costToPrecision(symbol, notional);
                 }
@@ -4752,12 +4753,18 @@ public partial class okx : Exchange
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
-            if ((marketId == null))
-            {
-                throw new ArgumentsRequired ((this.id + " createOrders() requires a symbol for each order")) ;
-            }
             string? type = this.safeString(rawOrder, "type", "");
             string? side = this.safeString(rawOrder, "side");
+            if (((marketId == null)) || ((side == null)))
+            {
+                // a missing side is the createOrderRequest () error
+                string reason = " requires a side argument";
+                if ((marketId == null))
+                {
+                    reason = " createOrders() requires a symbol for each order";
+                }
+                throw new ArgumentsRequired ((this.id + reason)) ;
+            }
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -7730,7 +7737,7 @@ public partial class okx : Exchange
         {
             result.Add(this.parsePosition(positions[i]));
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(this.toArray(symbols))));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols)));
     }
 
     /**
@@ -11009,8 +11016,7 @@ public partial class okx : Exchange
         //         "msg": ""
         //     }
         //
-        List<object> rows = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "baseCcy", "quoteCcy", since, limit));
+        return ccxt.BaseExchange.ToConversionList(this.parseConversions(this.safeList(response, "data", new List<object>() {}),code, "baseCcy", "quoteCcy", since, limit));
     }
 
     public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
@@ -11404,7 +11410,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, this.toArray(symbols), paramsOmitted);
+        IList<object> positions = this.parsePositions(data, symbols, paramsOmitted);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limitResolved));
     }
 

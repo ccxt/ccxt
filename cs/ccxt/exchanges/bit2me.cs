@@ -675,7 +675,7 @@ public partial class bit2me : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> marketSymbols = this.marketSymbols(this.toArray(symbols));
+        IList<object> marketSymbols = this.marketSymbols(symbols);
         List<object> response = await this.publicGetV2TradingTickers(parameters);
         //
         //     [

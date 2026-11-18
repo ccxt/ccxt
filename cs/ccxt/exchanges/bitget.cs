@@ -3907,7 +3907,7 @@ public partial class bitget : Exchange
                 continue;
             }
             Dictionary<string, object> parsedMarket = this.parseMarket(market);
-            if (((parsedMarket != null)) && isTrue((parsedMarket != null && parsedMarket.ContainsKey("spot") ? parsedMarket["spot"] : null)))
+            if (((parsedMarket != null)) && (this.safeBool(parsedMarket, "spot", false) == true))
             {
                 string? marketId = ((string)(parsedMarket != null && parsedMarket.ContainsKey("id") ? parsedMarket["id"] : null));
                 IDictionary<string, object> instrument = this.safeDict(spotInstruments, marketId);
@@ -9046,7 +9046,8 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? productType = ((string)this.handleProductTypeAndParams(market, parameters)[0]);
+        IList<object> productTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
+        string? productType = (string)productTypeVariable[0];
         List<object> requestList = new List<object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
@@ -11644,7 +11645,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> parsedPosition = this.parsePosition(position[i], market);
             result.Add(parsedPosition);
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -14267,7 +14268,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> responseList = this.safeList(data, "list", new List<object>() {});
-        IList<object> positions = this.parsePositions(responseList, this.toArray(symbols), paramsUTA);
+        IList<object> positions = this.parsePositions(responseList, symbols, paramsUTA);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

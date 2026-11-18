@@ -33,7 +33,7 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public async virtual Task<object> watchPublicMultiple(object symbols, object channel, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPublicMultiple(object symbols, string? channel, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -58,7 +58,7 @@ public partial class upbit : ccxt.upbit
         {
             string? marketId = this.safeString(marketIds, i, "");
             string? symbol = this.safeString(symbolsNormalized, i, "");
-            string? messageHash = ((string)(add(add(channel, ":"), symbol)));
+            string? messageHash = ((string)(((channel + ":") + symbol)));
             messageHashes.Add(messageHash);
             if (!(((messageHash != null) && (subscriptions?.ContainsKey(messageHash) == true))))
             {

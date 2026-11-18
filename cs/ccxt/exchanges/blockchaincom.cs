@@ -586,7 +586,7 @@ public partial class blockchaincom : Exchange
             await this.loadMarkets();
         }
         List<object> tickers = await this.publicGetTickers(parameters);
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public virtual string? parseOrderState(string? state)

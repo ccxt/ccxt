@@ -1282,7 +1282,7 @@ public partial class bitso : Exchange
             throw new ExchangeError ((this.id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
         // convert it to an integer unconditionally
-        object paramsMarker = parameters;
+        IDictionary<string, object> paramsMarker = parameters;
         if (markerInParams)
         {
             paramsMarker = this.extend(parameters, new Dictionary<string, object>() {
@@ -1536,7 +1536,7 @@ public partial class bitso : Exchange
             throw new ExchangeError ((this.id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
         // convert it to an integer unconditionally
-        object paramsMarker = parameters;
+        IDictionary<string, object> paramsMarker = parameters;
         if (markerInParams)
         {
             paramsMarker = this.extend(parameters, new Dictionary<string, object>() {

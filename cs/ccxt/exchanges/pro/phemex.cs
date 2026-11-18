@@ -355,7 +355,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, paramsMarketType));
     }
 
-    public virtual void handleBalance(object type, WebSocketClient client, object message)
+    public virtual void handleBalance(string? type, WebSocketClient client, object message)
     {
         // spot
         //    [
@@ -408,8 +408,9 @@ public partial class phemex : ccxt.phemex
             IDictionary<string, object> currency = this.safeDict(this.currencies, code, new Dictionary<string, object>() {});
             Int64? scale = this.safeInteger(currency, "valueScale", 8);
             Dictionary<string, object> account = this.account();
-            string? used = this.safeString(balance, "totalUsedBalanceRv");
-            if ((used == null))
+            string? usedRv = this.safeString(balance, "totalUsedBalanceRv");
+            string? used = usedRv;
+            if ((usedRv == null))
             {
                 string? usedEv = this.safeString(balance, "totalUsedBalanceEv");
                 if ((usedEv == null))
@@ -420,8 +421,9 @@ public partial class phemex : ccxt.phemex
                 }
                 used = this.fromEn(usedEv, scale);
             }
-            string? total = this.safeString(balance, "accountBalanceRv");
-            if ((total == null))
+            string? totalRv = this.safeString(balance, "accountBalanceRv");
+            string? total = totalRv;
+            if ((totalRv == null))
             {
                 string? totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn(totalEv, scale);
@@ -434,7 +436,7 @@ public partial class phemex : ccxt.phemex
             }
             this.balance = this.safeBalance(this.balance);
         }
-        string? messageHash = ((string)(add(type, ":balance")));
+        string? messageHash = ((string)((type + ":balance")));
         client.resolve(this.balance, messageHash);
     }
 
@@ -790,7 +792,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public async virtual Task<object> unSubscribePublic(object method, object subMessageHash, object marketParams, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublic(object method, object subMessageHash, IList<object> marketParams, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));

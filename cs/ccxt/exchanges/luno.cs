@@ -1069,7 +1069,7 @@ public partial class luno : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         List<object> rawTickers = this.safeList(response, "tickers", new List<object>() {});
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
@@ -1564,7 +1564,7 @@ public partial class luno : Exchange
         }
         Int64? maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
         Int64? minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
-        bool limitApplies = ((limit != null)) && (((limit == null || (maxRowBase - minRowBase) > limit)));
+        bool limitApplies = ((limit != null)) && (((maxRowBase - minRowBase) > limit));
         object min_row = (limitApplies && ((limit != null)) && (maxRowBase == null || maxRowBase <= 0)) ? (maxRowBase - limit) : minRowBase;
         object max_row = maxRowBase;
         if (limitApplies && (maxRowBase > 0) && (minRowBase > 0))

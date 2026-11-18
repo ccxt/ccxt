@@ -1262,7 +1262,7 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", "ALL" },
         };
@@ -2142,7 +2142,8 @@ public partial class paradex : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnlyParam = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool reduceOnly = ((reduceOnlyParam == true));
         string orderType = type.ToUpper();
         string orderSide = side.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3089,7 +3090,7 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.privateGetPositions(parameters);
         //
         //     {

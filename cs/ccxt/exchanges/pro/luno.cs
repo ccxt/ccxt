@@ -418,12 +418,12 @@ public partial class luno : ccxt.luno
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    public virtual bool reduceOrderVolume(object orderSide, string orderId, string tradedAmount)
+    public virtual bool reduceOrderVolume(IList<object> orderSide, string orderId, string tradedAmount)
     {
-        int sideLength = getArrayLength(orderSide);
+        int sideLength = orderSide?.Count ?? 0;
         for (int i = 0; i < sideLength; i++)
         {
-            object order = getValue(orderSide, i);
+            object order = (orderSide != null && i < orderSide.Count ? orderSide[i] : null);
             string? entryId = this.safeString(order, 2);
             if ((entryId == orderId))
             {

@@ -1252,7 +1252,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             List<object> marketIds = new List<object>() {};
@@ -2245,7 +2245,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> orderDescriptionObj = this.safeDict(orderOmitted, "descr"); // can be null
         string? orderDescription = ((orderDescriptionObj != null)) ? this.safeString(orderDescriptionObj, "order") : this.safeString(orderOmitted, "descr");
         string? side = null;
-        string? descriptionType = null;
+        object descriptionType = null;
         string? marketId = null;
         string? price = this.safeString(description, "price");
         string? amount = null;
@@ -2272,11 +2272,12 @@ public partial class kraken : Exchange
             {
                 descriptionType = (part4 == null ? null : part4 + " " + part5); // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType == "stop loss" || descriptionType == "take profit")
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((part4 == "stop" && part5 == "loss") || (part4 == "take" && part5 == "profit"))
             {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (descriptionType == "limit")
+            } else if (part4 == "limit")
             {
                 price = this.safeString(parts, 5);
             }
@@ -2713,7 +2714,7 @@ public partial class kraken : Exchange
             { "trades", true },
             { "txid", id },
         };
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         if ((clientOrderId != null))
         {
             request["userref"] = clientOrderId;
@@ -3944,7 +3945,7 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> result = this.safeList(response, "result");
         IList<object> results = this.parsePositions(result, symbolsNormalized);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized));

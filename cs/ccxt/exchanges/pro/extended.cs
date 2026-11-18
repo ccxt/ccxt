@@ -165,7 +165,7 @@ public partial class extended : ccxt.extended
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            object originalOptions = getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options");
+            object originalOptions = (this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null);
             IDictionary<string, object> originalHeaders = this.safeDict(originalOptions, "headers", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = this.extend(this.extend(new Dictionary<string, object>() {}, originalOptions), new Dictionary<string, object>() {
                 { "headers", this.extend(this.extend(new Dictionary<string, object>() {
@@ -432,7 +432,7 @@ public partial class extended : ccxt.extended
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string messageHash = "positions";
         if ((symbolsNormalized != null))
         {

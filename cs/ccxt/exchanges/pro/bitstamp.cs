@@ -1157,7 +1157,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, string? messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -1167,7 +1167,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             throw new AuthenticationError ((this.id + " subscribePrivate() requires a userId from authenticate()")) ;
         }
-        object messageHashValue = add(messageHash, (("-" + userId)));
+        object messageHashValue = (messageHash + (("-" + userId)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {

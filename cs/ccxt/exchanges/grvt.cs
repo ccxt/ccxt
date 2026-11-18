@@ -2094,7 +2094,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.toArray(this.safeList(this.filterTransfersByType(transfers, "internal", false), 1, new List<object>() {})));
     }
 
-    public virtual List<object> filterTransfersByType(IList<object> transfers, object transferType, bool? onlyMainAccount = null)
+    public virtual List<object> filterTransfersByType(IList<object> transfers, string? transferType, bool? onlyMainAccount = null)
     {
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
@@ -2107,7 +2107,7 @@ public partial class grvt : Exchange
                 string? metadata = this.safeString(this.safeDict(transfer, "info", new Dictionary<string, object>() {}), "transfer_metadata");
                 object parsedMetadata = this.parseJson(metadata);
                 string? direction = this.safeString(parsedMetadata, "direction");
-                if (isEqual(direction, transferType))
+                if ((direction == transferType))
                 {
                     matchedResults.Add(transfer);
                 } else
@@ -2140,7 +2140,7 @@ public partial class grvt : Exchange
         bool isInternal = this.inArray(fromAccount, new List<object>() {"trading", "funding"}) && this.inArray(toAccount, new List<object>() {"trading", "funding"});
         string? fromSubAccount = fromAccount;
         string? toSubAccount = toAccount;
-        object paramsFundingAccountId = parameters;
+        IDictionary<string, object> paramsFundingAccountId = parameters;
         if (isInternal)
         {
             (string?, IDictionary<string, object>) tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
@@ -2412,14 +2412,15 @@ public partial class grvt : Exchange
         bool isMarketOrder = ((type == "market"));
         string subAccountId = this.getSubAccountId(paramsOmitted3);
         bool? isReduceOnly = this.safeBool(paramsOmitted3, "reduceOnly", false);
+        Dictionary<string, object> orderMetadata = new Dictionary<string, object>() {
+            { "client_order_id", clientOrderId },
+        };
         Dictionary<string, object> orderRequest = new Dictionary<string, object>() {
             { "sub_account_id", subAccountId },
             { "time_in_force", null },
             { "legs", new List<object>() {orderLeg} },
             { "signature", this.defaultSignature() },
-            { "metadata", new Dictionary<string, object>() {
-                { "client_order_id", clientOrderId },
-            } },
+            { "metadata", orderMetadata },
             { "is_market", isMarketOrder },
             { "post_only", false },
             { "reduce_only", isReduceOnly },
@@ -2504,7 +2505,7 @@ public partial class grvt : Exchange
             }
             // trigger by
             string? triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
-            ((IDictionary<string,object>)orderRequest["metadata"])["trigger"] = new Dictionary<string, object>() {
+            orderMetadata["trigger"] = new Dictionary<string, object>() {
                 { "trigger_type", selectedType },
                 { "tpsl", new Dictionary<string, object>() {
                     { "trigger_by", triggerPriceType },
@@ -2512,6 +2513,7 @@ public partial class grvt : Exchange
                     { "close_position", this.safeBool(paramsTriggerPrices, "closePosition", false) },
                 } },
             };
+            orderRequest["metadata"] = orderMetadata;
         }
         object paramsTrigger = paramsTriggerPrices;
         if (isTriggerOrder)
@@ -2761,7 +2763,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
         };
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             List<object> baseIds = new List<object>() {};

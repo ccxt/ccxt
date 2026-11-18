@@ -552,7 +552,7 @@ public partial class kucoin : ccxt.kucoin
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
-        Dictionary<string, object> market = this.getMarketFromSymbols(this.toArray(symbols));
+        Dictionary<string, object> market = this.getMarketFromSymbols(symbols);
         bool? isContract = this.safeBool(market, "contract", false);
         string urlType = "spot";
         if ((isContract == true))
@@ -571,7 +571,7 @@ public partial class kucoin : ccxt.kucoin
             { "action", action },
             { "channel", channel },
             { "tradeType", tradeType },
-            { "symbols", this.marketIds(this.toArray(symbols)) },
+            { "symbols", this.marketIds(symbols) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
@@ -591,7 +591,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         string messageHash = "uta:ticker";
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -865,7 +865,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiHelper(string methodName, object channelName, bool? isFuturesChannel, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string methodName, string? channelName, bool? isFuturesChannel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -892,7 +892,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
             { "type", "subscribe" },
-            { "topic", add(channelName, joined) },
+            { "topic", (channelName + joined) },
             { "response", true },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -1285,7 +1285,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
@@ -1678,7 +1678,7 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isFuturesMethod = this.safeBool(firstMarket, "contract", false);
@@ -2001,7 +2001,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 continue;
             }
-            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -3268,7 +3268,7 @@ public partial class kucoin : ccxt.kucoin
         }
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized == null))
         {
             messageHashes.Add(messageHash);

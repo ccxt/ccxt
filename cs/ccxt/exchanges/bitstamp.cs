@@ -1600,7 +1600,7 @@ public partial class bitstamp : Exchange
         //     "pair": "BTC/USD"
         // }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public virtual string? getCurrencyIdFromTransaction(object transaction)
@@ -2005,7 +2005,7 @@ public partial class bitstamp : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        IList<object> responseEntries = this.toArray(response);
+        IList<object> responseEntries = response;
         for (int i = 0; i < (responseEntries?.Count ?? 0); i++)
         {
             IDictionary<string, object> currencyBalance = this.safeDict(responseEntries, i);
@@ -2116,7 +2116,7 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fees },
         };
-        IList<object> feesList = this.toArray(fees);
+        IList<object> feesList = fees;
         for (int i = 0; i < (feesList?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(feesList[i]);
@@ -2255,6 +2255,7 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
         IList<object> feeEntries = this.toArray(fee);
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < (feeEntries?.Count ?? 0); j++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(feeEntries, j);
@@ -2266,7 +2267,7 @@ public partial class bitstamp : Exchange
             };
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                networks[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", withdrawFee },
                         { "percentage", null },
@@ -2278,6 +2279,7 @@ public partial class bitstamp : Exchange
                 };
             }
         }
+        result["networks"] = networks;
         return result;
     }
 

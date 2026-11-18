@@ -829,7 +829,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string? type = ((string)(firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null));
         if ((this.safeBool(firstMarket, "option", false) == true))
@@ -860,7 +860,7 @@ public partial class binance : ccxt.binance
         if ((rpi == true) && type == "linear")
         {
             name = "rpiDepth";
-            watchOrderBookRate = "500";
+            watchOrderBookRate = this.numberToString(500);
         }
         List<object> subParams = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -876,7 +876,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
             }
-            string symbolHash = (((subscriptionHash + "@") + watchOrderBookRate.ToString()) + "ms");
+            string symbolHash = (((subscriptionHash + "@") + watchOrderBookRate) + "ms");
             subParams.Add(symbolHash);
         }
         int messageHashesLength = (messageHashes?.Count ?? 0);
@@ -1154,7 +1154,7 @@ public partial class binance : ccxt.binance
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if ((((U - 1) == null || (U - 1) <= snapshotNonce)) && ((snapshotNonce == null || (u - 1) >= snapshotNonce)))
+                    if ((((U - 1) <= snapshotNonce)) && (((u - 1) >= snapshotNonce)))
                     {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
@@ -1278,7 +1278,7 @@ public partial class binance : ccxt.binance
                         if ((timestamp == null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = (((U - 1) == null || (U - 1) <= nonce)) && ((nonce == null || (u - 1) >= nonce));
+                            conditional = (((U - 1) <= nonce)) && (((u - 1) >= nonce));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
@@ -1429,7 +1429,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         string streamHash = "multipleTrades";
         if ((symbolsNormalized != null))
         {
@@ -3821,7 +3821,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, bool? isPortfolioMargin = null)
+    public virtual void setBalanceCache(WebSocketClient client, string? type, bool? isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
         if (((client.subscriptions != null && type is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))) && ((this.balance != null && type is string inOpKey2 && this.balance.ContainsKey(inOpKey2))))
@@ -3832,7 +3832,7 @@ public partial class binance : ccxt.binance
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if ((fetchBalanceSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchBalanceSnapshot")));
+            string? messageHash = ((string)((type + ":fetchBalanceSnapshot")));
             if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
@@ -4029,7 +4029,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true, true);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -5842,7 +5842,7 @@ public partial class binance : ccxt.binance
         }
         IDictionary<string, object> market = null;
         object messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (!this.isEmpty(symbolsNormalized))
         {
             market = this.getMarketFromSymbols(symbolsNormalized);
@@ -5911,10 +5911,10 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null, bool? isPortfolioMargin = null)
+    public virtual void setPositionsCache(WebSocketClient client, string? type, IList<object>? symbols = null, bool? isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
-        if ((type is "spot"))
+        if ((type == "spot"))
         {
             return;
         }
@@ -5925,10 +5925,10 @@ public partial class binance : ccxt.binance
             // connection was re-established after a disconnect: positions
             // closed while disconnected never arrive as stream deltas, so
             // the cached positions are stale and must be reloaded
-            string? messageHash = ((string)(add(type, ":fetchPositionsSnapshot")));
+            string? messageHash = ((string)((type + ":fetchPositionsSnapshot")));
             if (((fetchPositionsSnapshot == true)) && (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash)))))
             {
-                this.positionsByType.Remove((string)type);
+                this.positionsByType.Remove(type);
             } else
             {
                 return;
@@ -5936,7 +5936,7 @@ public partial class binance : ccxt.binance
         }
         if ((fetchPositionsSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchPositionsSnapshot")));
+            string? messageHash = ((string)((type + ":fetchPositionsSnapshot")));
             if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
@@ -6368,11 +6368,12 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
+            symbolResolved = this.symbol(symbol);
         }
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         var typesubTypeparamsAuthVariable = this.resolveAuthType("watchMyTrades", market, parameters);
         string? type = (string)typesubTypeparamsAuthVariable[0];
         string? subType = (string)typesubTypeparamsAuthVariable[1];
@@ -6490,7 +6491,8 @@ public partial class binance : ccxt.binance
                                 {
                                     feeCostString = "0";
                                 }
-                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = JsParse.parseFloat(feeCostString);
+                                fee["cost"] = JsParse.parseFloat(feeCostString);
+                                order["fee"] = fee;
                             } else if (((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null) == null))
                             {
                                 order["fee"] = tradeFee;
@@ -6708,7 +6710,7 @@ public partial class binance : ccxt.binance
         }
         // reset connection if 5xx error
         string? codeString = this.safeString(error, "code");
-        if (((codeString != null)) && (isEqual((codeString != null && 0 < codeString.Length ? codeString[0].ToString () : null), "5")))
+        if (((codeString != null)) && codeString.StartsWith("5"))
         {
             var resetError = new ExchangeError(((this.id + " ") + this.json(message)));
             client.reset(resetError);

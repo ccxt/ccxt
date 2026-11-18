@@ -2389,7 +2389,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.v2PublicGetExchangeRates(this.extend(request, parameters));
         //
@@ -2428,7 +2428,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -3028,11 +3028,13 @@ public partial class coinbase : Exchange
             string? cursor = this.safeString(pagination, "next_starting_after");
             if (((cursor != null)) && (cursor != ""))
             {
-                ((IDictionary<string,object>)(last != null && last.ContainsKey("info") ? last["info"] : null))["next_starting_after"] = cursor;
+                IDictionary<string, object> lastInfo = this.safeDict(last, "info", new Dictionary<string, object>() {});
+                lastInfo["next_starting_after"] = cursor;
+                last["info"] = lastInfo;
                 ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
             }
         }
-        return ccxt.BaseExchange.ToLedgerEntryList(this.toArray(ledger));
+        return ccxt.BaseExchange.ToLedgerEntryList(ledger);
     }
 
     public virtual string? parseLedgerEntryStatus(string? status)
@@ -4763,7 +4765,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -5568,7 +5570,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.v3PrivateGetBrokerageCfmPositions(parameters);
         //
         //     {

@@ -447,11 +447,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true);
         string messageHash = "tickers";
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "subscribe" },
-            { "subscription", new Dictionary<string, object>() {
-                { "type", "allMids" },
-            } },
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "type", "allMids" },
         };
         string? defaultDex = this.safeString(parameters, "dex");
         string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -468,9 +465,13 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((defaultDex != null))
         {
             messageHash = ("tickers:" + defaultDex);
-            ((IDictionary<string,object>)request["subscription"])["type"] = "allMids";
-            ((IDictionary<string,object>)request["subscription"])["dex"] = defaultDex;
+            subscription["type"] = "allMids";
+            subscription["dex"] = defaultDex;
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "subscription", subscription },
+        };
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         await this.waitForPendingUnsubscribe(url, "tickers");
         object tickers = await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
@@ -1501,7 +1502,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IList<object> symbolsNormalized = symbols;
         if (hasSymbols)
         {
-            symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+            symbolsNormalized = this.marketSymbols(symbols);
         }
         if (hasSymbols && ((symbolsNormalized != null)))
         {

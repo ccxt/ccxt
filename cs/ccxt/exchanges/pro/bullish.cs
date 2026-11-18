@@ -205,7 +205,7 @@ public partial class bullish : ccxt.bullish
             this.trades[(string)symbol] = tradesArrayCache;
         }
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        IList<object> tradesList = this.toArray(trades);
+        IList<object> tradesList = trades;
         for (int i = 0; i < (tradesList?.Count ?? 0); i++)
         {
             tradesArray.append(tradesList[i]);
@@ -390,7 +390,7 @@ public partial class bullish : ccxt.bullish
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        IList<object> entries = this.toArray(entry);
+        IList<object> entries = entry;
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
             if (((Int64)i % 2L != 0))
@@ -801,7 +801,7 @@ public partial class bullish : ccxt.bullish
         IList<object> symbolsNormalized = symbols;
         if (hasSymbols)
         {
-            symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+            symbolsNormalized = this.marketSymbols(symbols);
         }
         if (hasSymbols && ((symbolsNormalized != null)))
         {

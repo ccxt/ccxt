@@ -5468,6 +5468,72 @@ public partial class binance : Exchange
             }
         }
         IDictionary<string, object> feesTrading = this.safeDict(fees, "trading", new Dictionary<string, object>() {});
+        Dictionary<string, object> precision = new Dictionary<string, object>() {
+            { "amount", this.parseNumber(this.parsePrecision(this.safeString2(market, "quantityPrecision", "quantityScale"))) },
+            { "price", this.parseNumber(this.parsePrecision(this.safeString2(market, "pricePrecision", "priceScale"))) },
+            { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
+            { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
+        };
+        Dictionary<string, object> costLimits = new Dictionary<string, object>() {
+            { "min", this.safeNumber(market, "minNotional") },
+            { "max", this.safeNumber(market, "maxNotional") },
+        };
+        if ((filtersByType.ContainsKey("MIN_NOTIONAL")) || (filtersByType.ContainsKey("NOTIONAL")))
+        {
+            IDictionary<string, object> filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new Dictionary<string, object>() {});
+            costLimits["min"] = this.safeNumber2(filter, "minNotional", "notional");
+            costLimits["max"] = this.safeNumber(filter, "maxNotional");
+        }
+        Dictionary<string, object> limits = new Dictionary<string, object>() {
+            { "leverage", new Dictionary<string, object>() {
+                { "min", null },
+                { "max", null },
+            } },
+            { "amount", new Dictionary<string, object>() {
+                { "min", this.safeNumber(market, "minQty") },
+                { "max", this.safeNumber(market, "maxQty") },
+            } },
+            { "price", new Dictionary<string, object>() {
+                { "min", null },
+                { "max", null },
+            } },
+            { "cost", costLimits },
+        };
+        double? stepSize = this.safeNumber(market, "stepSize");
+        if ((stepSize != null))
+        {
+            precision["amount"] = stepSize;
+        }
+        if (filtersByType.ContainsKey("PRICE_FILTER"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits["price"] = new Dictionary<string, object>() {
+                { "min", this.safeNumber(filter, "minPrice") },
+                { "max", this.safeNumber(filter, "maxPrice") },
+            };
+            precision["price"] = this.safeNumber(filter, "tickSize");
+        }
+        if (filtersByType.ContainsKey("LOT_SIZE"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+            precision["amount"] = this.safeNumber(filter, "stepSize");
+            limits["amount"] = new Dictionary<string, object>() {
+                { "min", this.safeNumber(filter, "minQty") },
+                { "max", this.safeNumber(filter, "maxQty") },
+            };
+        }
+        if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+            limits["market"] = new Dictionary<string, object>() {
+                { "min", this.safeNumber(filter, "minQty") },
+                { "max", this.safeNumber(filter, "maxQty") },
+            };
+        }
         Dictionary<string, object> entry = new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -5498,74 +5564,11 @@ public partial class binance : Exchange
             { "expiryDatetime", this.iso8601(expiry) },
             { "strike", parsedStrike },
             { "optionType", this.safeStringLower(market, "side") },
-            { "precision", new Dictionary<string, object>() {
-                { "amount", this.parseNumber(this.parsePrecision(this.safeString2(market, "quantityPrecision", "quantityScale"))) },
-                { "price", this.parseNumber(this.parsePrecision(this.safeString2(market, "pricePrecision", "priceScale"))) },
-                { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
-                { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
-            } },
-            { "limits", new Dictionary<string, object>() {
-                { "leverage", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(market, "minQty") },
-                    { "max", this.safeNumber(market, "maxQty") },
-                } },
-                { "price", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "cost", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(market, "minNotional") },
-                    { "max", this.safeNumber(market, "maxNotional") },
-                } },
-            } },
+            { "precision", precision },
+            { "limits", limits },
             { "info", market },
             { "created", this.safeInteger2(market, "onboardDate", "listingTime") },
         };
-        double? stepSize = this.safeNumber(market, "stepSize");
-        if ((stepSize != null))
-        {
-            ((IDictionary<string,object>)entry["precision"])["amount"] = stepSize;
-        }
-        if (filtersByType.ContainsKey("PRICE_FILTER"))
-        {
-            IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
-            // PRICE_FILTER reports zero values for maxPrice
-            // since they updated filter types in November 2018
-            // https://github.com/ccxt/ccxt/issues/4286
-            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            ((IDictionary<string,object>)entry["limits"])["price"] = new Dictionary<string, object>() {
-                { "min", this.safeNumber(filter, "minPrice") },
-                { "max", this.safeNumber(filter, "maxPrice") },
-            };
-            ((IDictionary<string,object>)entry["precision"])["price"] = this.safeNumber(filter, "tickSize");
-        }
-        if (filtersByType.ContainsKey("LOT_SIZE"))
-        {
-            IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)entry["precision"])["amount"] = this.safeNumber(filter, "stepSize");
-            ((IDictionary<string,object>)entry["limits"])["amount"] = new Dictionary<string, object>() {
-                { "min", this.safeNumber(filter, "minQty") },
-                { "max", this.safeNumber(filter, "maxQty") },
-            };
-        }
-        if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
-        {
-            IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)entry["limits"])["market"] = new Dictionary<string, object>() {
-                { "min", this.safeNumber(filter, "minQty") },
-                { "max", this.safeNumber(filter, "maxQty") },
-            };
-        }
-        if ((filtersByType.ContainsKey("MIN_NOTIONAL")) || (filtersByType.ContainsKey("NOTIONAL")))
-        {
-            IDictionary<string, object> filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)getValue(entry["limits"], "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
-            ((IDictionary<string,object>)getValue(entry["limits"], "cost"))["max"] = this.safeNumber(filter, "maxNotional");
-        }
         return this.safeMarketStructure(entry);
     }
 
@@ -6459,7 +6462,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         if ((symbolsNormalized != null))
         {
             this.checkNoStockSymbols(symbolsNormalized, "fetchBidsAsks");
@@ -6619,7 +6622,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         if ((symbolsNormalized != null))
         {
             this.checkNoStockSymbols(symbolsNormalized, "fetchTickers");
@@ -6760,7 +6763,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -6891,12 +6894,14 @@ public partial class binance : Exchange
         string? price = this.safeString(paramsPaginate, "price");
         Int64? until = this.safeInteger(paramsPaginate, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"price", "until"});
-        Int64? limitRequested = limit;
-        if ((since != null) && (until != null) && (limit == null))
+        Int64? limitValue = this.parseToInt(defaultLimit);
+        if ((limit != null))
         {
-            limitRequested = maxLimit;
+            limitValue = this.parseToInt(Math.Min(limit.Value, maxLimit));
+        } else if (((since != null)) && ((until != null)))
+        {
+            limitValue = this.parseToInt(maxLimit);
         }
-        Int64 limitValue = ((limitRequested == null)) ? defaultLimit : Math.Min(limitRequested.Value, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -6928,9 +6933,9 @@ public partial class binance : Exchange
                 if ((since > 0))
                 {
                     int duration = this.parseTimeframe(timeframeVar);
-                    Int64 endTime = this.sum(since, (((limitValue * duration) * 1000) - 1));
+                    object endTime = this.sum(since, (((limitValue * duration) * 1000) - 1));
                     Int64 now = this.milliseconds();
-                    request["endTime"] = Math.Min(now, endTime);
+                    request["endTime"] = mathMin(now, endTime);
                 }
             }
         }
@@ -11481,7 +11486,7 @@ public partial class binance : Exchange
             // The parameter fromId cannot be sent with startTime or endTime.
             Int64 currentTimestamp = this.milliseconds();
             int oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
-            if (isGreaterThanOrEqual(((currentTimestamp - since)), oneWeek))
+            if (((currentTimestamp - since) >= oneWeek))
             {
                 if (((endTime == null)) && (this.safeBool(market, "linear", false) == true))
                 {
@@ -12960,6 +12965,7 @@ public partial class binance : Exchange
         string? code = this.safeString(currency, "code");
         List<object> networkList = this.safeList(fee, "networkList", new List<object>() {});
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkList.Count; j++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(networkList, j);
@@ -12976,7 +12982,7 @@ public partial class binance : Exchange
             }
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                networks[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", withdrawFee },
                         { "percentage", null },
@@ -12988,6 +12994,7 @@ public partial class binance : Exchange
                 };
             }
         }
+        result["networks"] = networks;
         return result;
     }
 
@@ -13853,16 +13860,20 @@ public partial class binance : Exchange
         {
             timestamp = null;
         }
-        bool? isolated = this.safeBool(position, "isolated");
-        if ((isolated == null))
+        bool? isolatedRaw = this.safeBool(position, "isolated");
+        bool isolated = false;
+        if ((isolatedRaw == null))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
             isolated = !Precise.stringEq(isolatedMarginRaw, "0");
+        } else
+        {
+            isolated = ((isolatedRaw == true));
         }
         string? marginMode = null;
         string? collateralString = null;
         string? walletBalance = null;
-        if ((isolated == true))
+        if (isolated)
         {
             marginMode = "isolated";
             walletBalance = this.safeString(position, "isolatedWallet");
@@ -14164,7 +14175,10 @@ public partial class binance : Exchange
         {
             collateralString = this.safeString(position, "isolatedMargin");
         }
-        collateralString = ((collateralString == null)) ? "0" : collateralString;
+        if ((collateralString == null))
+        {
+            collateralString = this.numberToString(0);
+        }
         double? collateral = this.parseNumber(collateralString);
         double? markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Int64? timestamp = this.safeInteger(position, "updateTime");
@@ -14524,7 +14538,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
@@ -14767,7 +14781,7 @@ public partial class binance : Exchange
         }
         bool? filterClosed = this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -14947,7 +14961,7 @@ public partial class binance : Exchange
                 result.Add(this.parsePositionRisk(rawPosition));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -16219,7 +16233,7 @@ public partial class binance : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
         config ??= new Dictionary<string, object>();

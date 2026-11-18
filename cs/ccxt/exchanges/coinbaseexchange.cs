@@ -961,7 +961,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rawBalances = this.toArray(response);
+        IList<object> rawBalances = response;
         for (int i = 0; i < (rawBalances?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rawBalances, i);
@@ -1142,7 +1142,7 @@ public partial class coinbaseexchange : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.publicGetProductsSparkLines(this.extend(request, parameters));
         //

@@ -528,7 +528,7 @@ public partial class htx : ccxt.htx
         }
         string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         object method = this.handleOrderBookSubscription;
-        object paramsExtended = parameters;
+        IDictionary<string, object> paramsExtended = parameters;
         if (!(this.safeBool(market, "spot", false) == true))
         {
             paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
@@ -1792,7 +1792,7 @@ public partial class htx : ccxt.htx
         string messageHash = "";
         if ((!this.isEmpty(symbols)) && ((symbols != null)))
         {
-            market = this.getMarketFromSymbols(this.toArray(symbols));
+            market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", symbols.ToArray()));
         }
         string? type = null;
@@ -1818,7 +1818,7 @@ public partial class htx : ccxt.htx
             subType = subTypeparamsSubTypeVariable.Item1;
             paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         object paramsPositions = ((market != null)) ? parameters : paramsSubType;
         (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         string marginMode = marginModeparamsMarginModeVariable.Item1;

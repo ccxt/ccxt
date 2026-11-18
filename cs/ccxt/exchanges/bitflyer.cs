@@ -1080,7 +1080,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", this.marketIds(this.toArray(symbols)) },
+            { "product_code", this.marketIds(symbols) },
         };
         List<object> response = await this.privateGetGetpositions(this.extend(request, parameters));
         //

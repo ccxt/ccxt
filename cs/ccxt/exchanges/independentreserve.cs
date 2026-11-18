@@ -508,7 +508,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> accounts = this.toArray(response);
+        IList<object> accounts = response;
         for (int i = 0; i < (accounts?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(accounts, i);

@@ -129,7 +129,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublic(string? name, string? messageHashPrefix, object symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -137,8 +137,8 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
-        bool isBatch = ((string)name).IndexOf("batch", StringComparison.Ordinal) >= 0;
-        bool resolvedPerSymbol = !isBatch || ((messageHashPrefix is "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
+        bool isBatch = name.IndexOf("batch", StringComparison.Ordinal) >= 0;
+        bool resolvedPerSymbol = !isBatch || ((messageHashPrefix == "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         IDictionary<string, object> wsUrls = this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         string? url = this.safeString(wsUrls, "public");
         List<object> messageHashes = new List<object>() {};
@@ -147,7 +147,7 @@ public partial class hitbtc : ccxt.hitbtc
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
                 string? symbolId = ((string)symbolsNormalized[i]);
-                messageHashes.Add(add(add(messageHashPrefix, "::"), symbolId));
+                messageHashes.Add(((messageHashPrefix + "::") + symbolId));
             }
         } else
         {
@@ -177,15 +177,15 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the hitbtc api
      * @returns {boolean} true once the exchange acknowledges the unsubscribe
      */
-    public async virtual Task<object> unSubscribePublic(object name, object messageHashPrefix, object symbols, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublic(object name, string? messageHashPrefix, IList<object> symbols, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? subMessageHash = ((string)(add(add(messageHashPrefix, "::"), getValue(symbols, i))));
+            string? subMessageHash = ((string)(((messageHashPrefix + "::") + (symbols != null && i < symbols.Count ? symbols[i] : null))));
             subMessageHashes.Add(subMessageHash);
             messageHashes.Add(("unsubscribe:" + subMessageHash));
         }
@@ -195,7 +195,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "id", requestId },
             { "ch", name },
             { "params", new Dictionary<string, object>() {
-                { "symbols", this.marketIds(this.toArray(symbols)) },
+                { "symbols", this.marketIds(symbols) },
             } },
         };
         Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {

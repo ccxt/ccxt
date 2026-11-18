@@ -510,17 +510,20 @@ public partial class gate : ccxt.gate
         string messageType = this.getTypeByMarket(market);
         string messageHash = (("orderbook" + ":") + symbolValue);
         // max 100 atm, max 50 for options
-        int defaultLimit = 100;
+        Int64? limitResolved = this.parseToInt(100);
         if ((this.safeBool(market, "spot", false) == true) || (messageType == "options"))
         {
-            defaultLimit = 50;
+            limitResolved = this.parseToInt(50);
         }
-        object limitResolved = ((limit == null)) ? defaultLimit : limit;
+        if ((limit != null))
+        {
+            limitResolved = this.parseToInt(limit);
+        }
         if ((this.safeBool(market, "spot", false) == true))
         {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
-            limitResolved = mathMin(limitResolved, maxSpotLimit);
+            limitResolved = this.parseToInt(mathMin(limitResolved, maxSpotLimit));
         }
         List<object> payload = new List<object>() {};
         string channel = "";
@@ -532,7 +535,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.obu";
             string? finalInterval = interval;
-            if (isEqual(limitResolved, 400))
+            if ((limitResolved == 400))
             {
                 finalInterval = "400";
             }
@@ -541,7 +544,7 @@ public partial class gate : ccxt.gate
         {
             channel = (messageType + ".order_book_update");
             payload = new List<object>() {marketId, interval};
-            string stringLimit = limitResolved.ToString();
+            string stringLimit = ((object)limitResolved).ToString();
             payload.Add(stringLimit);
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -583,14 +586,15 @@ public partial class gate : ccxt.gate
         string? intervalOption = intervalOptionparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalOptionparamsIntervalVariable.Item2);
         string messageType = this.getTypeByMarket(market);
-        object limit = this.safeInteger(paramsInterval, "limit");
-        if ((limit == null))
+        Int64? limitParam = this.safeInteger(paramsInterval, "limit");
+        Int64? limit = this.parseToInt((this.safeBool(market, "spot", false) == true) ? 50 : 100); // max 100 atm
+        if (messageType == "options")
         {
-            limit = (this.safeBool(market, "spot", false) == true) ? 50 : 100; // max 100 atm
-            if (messageType == "options")
-            {
-                limit = 50; // max 50 for options
-            }
+            limit = this.parseToInt(50); // max 50 for options
+        }
+        if ((limitParam != null))
+        {
+            limit = this.parseToInt(limitParam);
         }
         List<object> payload = new List<object>() {};
         string channel = "";
@@ -602,7 +606,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.obu";
             string? finalInterval = intervalOption;
-            if (isEqual(limit, 400))
+            if ((limit == 400))
             {
                 finalInterval = "400";
             }
@@ -611,7 +615,7 @@ public partial class gate : ccxt.gate
         {
             channel = (messageType + ".order_book_update");
             payload = new List<object>() {marketId, intervalOption};
-            string stringLimit = limit.ToString();
+            string stringLimit = ((object)limit).ToString();
             payload.Add(stringLimit);
         }
         string subMessageHash = (("orderbook" + ":") + symbolValue);
@@ -799,7 +803,7 @@ public partial class gate : ccxt.gate
         } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
         {
             return;
-        } else if (((deltaStart != null)) && ((nonce != null)) && (((deltaStart - 1) == null || nonce >= (deltaStart - 1))))
+        } else if (((deltaStart != null)) && ((nonce != null)) && ((nonce >= (deltaStart - 1))))
         {
             this.handleBookDelta(storedOrderBook, delta);
         } else
@@ -831,7 +835,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && ((nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -1114,7 +1118,7 @@ public partial class gate : ccxt.gate
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string messageType = this.getTypeByMarket(market);
@@ -1690,7 +1694,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> payload = new List<object>() {("!" + "all")};
         if (!this.isEmpty(symbolsNormalized))
         {
@@ -1743,7 +1747,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, type)), symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, string? type, IList<object>? symbols = null)
     {
         if ((this.positionsByType != null && type is string inOpKey0 && this.positionsByType.ContainsKey(inOpKey0)))
         {
@@ -1752,7 +1756,7 @@ public partial class gate : ccxt.gate
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchPositionsSnapshot")));
+            string? messageHash = ((string)((type + ":fetchPositionsSnapshot")));
             if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
@@ -2352,10 +2356,10 @@ public partial class gate : ccxt.gate
             string? messageHash = this.safeString(client.subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, this.json(message));
+                this.throwExactlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("exact") ? this.exceptionsWs["exact"] : null), code, this.json(message));
                 this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, this.json(errs));
                 string? errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
-                this.throwBroadlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "broad"), errorMessage, this.json(message));
+                this.throwBroadlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null), errorMessage, this.json(message));
                 throw new ExchangeError (this.json(message)) ;
             } catch(Exception e)
             {

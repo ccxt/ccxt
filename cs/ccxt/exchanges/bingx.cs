@@ -1672,7 +1672,7 @@ public partial class bingx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        Int64 requestLimit = ((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit);
+        Int64? requestLimit = this.parseToInt(((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit));
         if ((since != null))
         {
             request["startTime"] = Math.Max((since.Value - 1), 0);
@@ -2751,7 +2751,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2807,7 +2807,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -2926,7 +2926,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -3375,7 +3375,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         (bool?, IDictionary<string, object>) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
         IDictionary<string, object> paramsStandard = (standardparamsStandardVariable.Item2);
@@ -3541,7 +3541,7 @@ public partial class bingx : Exchange
         }
         string? initialMarginString = this.safeString(position, "initialMargin");
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
-        object collateralString = null;
+        string? collateralString = null;
         if (marginMode == "isolated")
         {
             collateralString = this.omitZero(this.safeString(position, "margin"));
@@ -4637,7 +4637,7 @@ public partial class bingx : Exchange
             }
         }
         object stopLoss = this.safeValue(orderData, "stopLoss");
-        object stopLossPrice = null;
+        string? stopLossPrice = null;
         if (((stopLoss != null)) && (!(stopLoss is "")))
         {
             stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopLoss"));
@@ -4652,7 +4652,7 @@ public partial class bingx : Exchange
             stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopPrice"));
         }
         object takeProfit = this.safeValue(orderData, "takeProfit");
-        object takeProfitPrice = null;
+        string? takeProfitPrice = null;
         if ((takeProfit != null) && (!(takeProfit is "")))
         {
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "takeProfit"));
@@ -6605,13 +6605,14 @@ public partial class bingx : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         if ((networksLength != 0))
         {
             for (int i = 0; i < networksLength; i++)
             {
                 string? networkCode = this.safeString(networkCodes, i, "");
                 IDictionary<string, object> network = this.safeDict(networks, networkCode);
-                ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                networkFees[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
@@ -6630,6 +6631,7 @@ public partial class bingx : Exchange
                 }
             }
         }
+        result["networks"] = networkFees;
         return result;
     }
 

@@ -1359,7 +1359,7 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         List<object> response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
@@ -4391,7 +4391,7 @@ public partial class hyperliquid : Exchange
         }
         string? userAddress = this.safeString(this.handlePublicAddress("fetchPositions", parameters), 0);
         IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchPositions", parameters), 1, new Dictionary<string, object>() {});
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "clearinghouseState" },
             { "user", userAddress },
@@ -5873,9 +5873,10 @@ public partial class hyperliquid : Exchange
             List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
             for (int i = 0; i < statuses.Count; i++)
             {
-                message = this.safeString(statuses[i], "error");
-                if ((message != null))
+                string? statusError = this.safeString(statuses[i], "error");
+                if ((statusError != null))
                 {
+                    message = statusError;
                     break;
                 }
             }
@@ -5936,7 +5937,7 @@ public partial class hyperliquid : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))

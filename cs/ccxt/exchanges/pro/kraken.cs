@@ -1341,7 +1341,7 @@ public partial class kraken : ccxt.kraken
         Int64 now = this.seconds();
         Int64? start = this.safeInteger(subscription, "start");
         Int64? expires = this.safeInteger(subscription, "expires", -1);
-        bool expired = ((start != null)) && ((expires >= 0)) && ((start == null || start <= ((now - expires))));
+        bool expired = ((start != null)) && ((expires >= 0)) && ((start <= (now - expires)));
         if (((subscription == null)) || expired)
         {
             // single-flight leader election, see
@@ -1987,7 +1987,7 @@ public partial class kraken : ccxt.kraken
         if ((errorMessage != null))
         {
             string? requestId = this.safeString2(message, "reqid", "req_id");
-            object broad = getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "broad");
+            object broad = (this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null);
             string? broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             object exception = null;
             if ((broadKey == null))

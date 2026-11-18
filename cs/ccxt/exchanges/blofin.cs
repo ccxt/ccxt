@@ -1072,7 +1072,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetMarketTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
@@ -2718,6 +2718,7 @@ public partial class blofin : Exchange
         //
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         int chainsLength = getArrayLength(fee);
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         for (int i = 0; i < chainsLength; i++)
         {
             IDictionary<string, object> chain = this.safeDict(fee, i);
@@ -2726,7 +2727,7 @@ public partial class blofin : Exchange
             {
                 continue;
             }
-            ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+            networkFees[(string)networkCode] = new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
                     { "fee", this.safeNumber(chain, "withdrawFee") },
                     { "percentage", false },
@@ -2737,6 +2738,7 @@ public partial class blofin : Exchange
                 } },
             };
         }
+        result["networks"] = networkFees;
         if ((chainsLength == 1))
         {
             // a single network means the currency-level fee is unambiguous
@@ -3356,7 +3358,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.privateGetAccountPositions(parameters);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> result = this.parsePositions(data);
@@ -3435,7 +3437,7 @@ public partial class blofin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, this.toArray(symbols), paramsUntil);
+        IList<object> positions = this.parsePositions(data, symbols, paramsUntil);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 

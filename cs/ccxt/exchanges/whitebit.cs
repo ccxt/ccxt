@@ -1883,7 +1883,7 @@ public partial class whitebit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         bool onlyContractSymbols = true;
         if ((symbolsNormalized != null))
         {
@@ -2294,14 +2294,14 @@ public partial class whitebit : Exchange
             Int64? endTime = null;
             if ((until != null))
             {
-                endTime = this.sum(this.parseToInt(((double?)until / 1000)), duration);
+                endTime = this.parseToInt(this.sum(this.parseToInt(((double?)until / 1000)), duration));
             }
             if ((since != null))
             {
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
-                Int64 rangeEnd = this.sum(start, (duration * cappedLimit));
-                if (((endTime == null)) || ((rangeEnd < endTime)))
+                Int64? rangeEnd = this.parseToInt(this.sum(start, (duration * cappedLimit)));
+                if (((endTime == null)) || ((endTime != null && (rangeEnd == null || rangeEnd < endTime))))
                 {
                     endTime = rangeEnd;
                 }
@@ -4662,7 +4662,7 @@ public partial class whitebit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(parameters);
         //
         //     [

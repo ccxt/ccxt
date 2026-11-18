@@ -1442,7 +1442,7 @@ public partial class onetrading : ccxt.onetrading
             marketIds = new List<object>(marketsById.Keys);
         } else
         {
-            marketIds = this.marketIds(this.toArray(symbols));
+            marketIds = this.marketIds(symbols);
         }
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));

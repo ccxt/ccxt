@@ -97,7 +97,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public async virtual Task<object> subscribeMultiple(object name, object symbols = null, object messageHashStart = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(object name, object symbols = null, string? messageHashStart = null, object parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
@@ -119,7 +119,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             market = this.market(symbol);
             string? marketId = this.safeString(market, "id", "");
             productIds.Add(marketId);
-            messageHashes.Add(add(add(messageHashStart, ":"), this.safeString(market, "symbol", "")));
+            messageHashes.Add(((messageHashStart + ":") + this.safeString(market, "symbol", "")));
         }
         object url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((url == null))
@@ -246,7 +246,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string name = "matches";
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(name, symbolsNormalized, name, parameters));
         IDictionary<string, object> first = this.safeDict(trades, 0);
@@ -306,7 +306,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<List<ccxt.Trade>> WatchMyTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -342,7 +342,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string name = "user";
         string messageHash = "orders";
         object authentication = this.authenticate();
@@ -413,7 +413,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
@@ -803,7 +803,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee", new Dictionary<string, object>() {});
                         if ((!(this.safeNumber(previousOrderFee, "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                         {
-                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost")));
+                            previousOrderFee["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost")));
+                            previousOrder["fee"] = previousOrderFee;
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);

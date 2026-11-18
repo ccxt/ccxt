@@ -2739,8 +2739,8 @@ public partial class woo : Exchange
                 }
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true);
-        object paramsRequest = parameters;
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true);
+        IDictionary<string, object> paramsRequest = parameters;
         if ((symbolsNormalized == null))
         {
             IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
@@ -4642,7 +4642,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {

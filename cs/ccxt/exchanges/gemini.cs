@@ -1374,7 +1374,7 @@ public partial class gemini : Exchange
         string? quote = null;
         if (((marketId != null)) && ((marketResolved == null)))
         {
-            int idLength = (marketId.Length - 0);
+            int idLength = marketId.Length;
             if ((idLength == 7))
             {
                 baseId = ((marketId == null) ? null : marketId.Substring(0, Math.Min(4, marketId.Length)));
@@ -1458,7 +1458,7 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, this.toArray(symbols)));
+        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, symbols));
         List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }

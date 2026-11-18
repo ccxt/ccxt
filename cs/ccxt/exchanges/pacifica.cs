@@ -1476,27 +1476,26 @@ public partial class pacifica : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", tf },
         };
-        object sinceValue = since;
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if ((this.safeInteger(requestUntil, "end_time") == null))
+        Int64? untilEnd = this.safeInteger(requestUntil, "end_time");
+        Int64? startTime = this.parseToInt((nowMs - (limitValue * duration)));
+        if ((untilEnd != null))
         {
-            if ((sinceValue == null))
-            {
-                sinceValue = (nowMs - (limitValue * duration));
-            }
-            Int64? windowEnd = this.parseToInt(this.sum(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(sinceValue, 1), (limitValue * duration)));
+            startTime = this.parseToInt((untilEnd - (limitValue * duration)));
+        }
+        if ((since != null))
+        {
+            startTime = this.parseToInt(since);
+        }
+        if ((untilEnd == null))
+        {
+            Int64? windowEnd = this.parseToInt(this.sum((startTime - 1), (limitValue * duration)));
             Int64? until = ((windowEnd > nowMs)) ? nowMs : windowEnd;
             requestUntil["end_time"] = until;
-        } else
-        {
-            if ((sinceValue == null))
-            {
-                sinceValue = subtract(GetValue(requestUntil, "end_time"), (limitValue * duration));
-            }
         }
-        requestUntil["start_time"] = sinceValue;
+        requestUntil["start_time"] = startTime;
         Dictionary<string, object> response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -2508,7 +2507,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
         //
         //  {
@@ -3116,7 +3115,7 @@ public partial class pacifica : Exchange
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchPositions", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
@@ -4248,7 +4247,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         string? cost = this.safeString(config, "cost", "1");
@@ -4358,7 +4357,8 @@ public partial class pacifica : Exchange
         (string?, IDictionary<string, object>) agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams(paramsExpiryWindow, "postActionRequest", "agentAddress");
         string? agentAddress = agentAddressparamsAgentAddressVariable.Item1;
         IDictionary<string, object> paramsAgentAddress = (agentAddressparamsAgentAddressVariable.Item2);
-        string? originAddress = ((string)getValue(this.handleOriginAndSingleAddress("postActionRequest", paramsAgentAddress), 0));
+        IList<object> originAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("postActionRequest", paramsAgentAddress);
+        string? originAddress = (string)originAddressVariable[0];
         if ((originAddress == null))
         {
             throw new ArgumentsRequired ((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
