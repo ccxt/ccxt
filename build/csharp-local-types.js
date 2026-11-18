@@ -9396,6 +9396,10 @@ function dictRowSafeReadOnlyLocal (csharp, declaration) {
             reads++;
             continue;
         }
+        // a value slot of an object literal (`'info': row`): stored as `object`, so the box is unchanged
+        if (parent?.kind === ts.SyntaxKind.PropertyAssignment && parent.initializer === use && parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+            continue;
+        }
         if (parent?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
             const other = (parent.left === use) ? parent.right : parent.left;
             if ((other?.kind === ts.SyntaxKind.Identifier && other.text === 'undefined') || other?.kind === ts.SyntaxKind.NullKeyword) {
