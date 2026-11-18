@@ -4112,7 +4112,7 @@ function rustSelfFieldReadClones (content: string): string {
 // (`_t`: the empty container, `_o`: `None`, exactly what the conversion answered for a non-matching member).
 function rustTypedSafeContainerReads (content: string): string {
     const empty: Record<string, RegExp> = { dict: /^Value::Map\(\{\s*let mut m = indexmap::IndexMap::new\(\);\s*m\s*\}\)$/, list: /^Value::from\(vec!\[\]\)$/ };
-    const head = /\bself(?:\.parent)?\.safe_(dict|list)(_k)?\(/g;
+    const head = /\bself(?:\.parent)?\.safe_(dict|list)(_k|2)?\(/g;
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
         const open = m.index + m[0].length;
@@ -4152,6 +4152,25 @@ function rustTypedMergeResults (content: string): string {
     }
     out += content.slice (last);
     return out === content ? out : rustTypedMergeResults (out);
+}
+
+// `Value::Array(v).into_list()` is the list itself (`Value::Array` builds `Value::Arr(Arc::new(v))`), and
+// `(if (c) { self.omit(&p, Value::Str(k), &[]) } else { p }).into_dict()` is one `omit_t` with a `Null` key when `!c`.
+function rustTypedListAndOmitBranches (content: string): string {
+    let out = '', last = 0, m: RegExpExecArray | null;
+    const head = /(?<![\w:])Value::Array\(/g;
+    while ((m = head.exec (content)) !== null) {
+        const open = m.index + m[0].length;
+        const close = balancedCloseIndex (content, open);
+        if (close >= content.length || !content.startsWith ('.into_list()', close + 1)) continue;
+        out += content.slice (last, m.index) + 'crate::value::List::new(' + content.slice (open, close + 1);
+        last = close + 1 + '.into_list()'.length;
+        head.lastIndex = last;
+    }
+    out += content.slice (last);
+    const branch = /\(if \(([^{}\n]*)\) \{ self(\.parent)?\.omit\((&([A-Za-z_]\w*)|([A-Za-z_]\w*)\.clone\(\)), (Value::Str\("(?:[^"\\]|\\.)*"\.into\(\)\)), &\[\]\) \} else \{ (?:\4|\5)(?:\.clone\(\))? \}\)\.into_dict\(\)/g;
+    return out.replace (branch, (_s, c: string, parent: string | undefined, arg: string, _a: string, _b: string, k: string) =>
+        `self${parent ?? ''}.omit_t(${arg}, if (${c}) { ${k} } else { Value::Null }, &[])`);
 }
 
 // A `&str` / `Option<&str>` parameter copied to `Value` (`let mut x: Value = x.into();`) whose every later read is
@@ -10364,6 +10383,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustStrLiteralLocalNativeString(rustContent);
                 rustContent = rustTypedSafeContainerReads(rustContent);
                 rustContent = rustTypedMergeResults(rustContent);
+                rustContent = rustTypedListAndOmitBranches(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
@@ -11209,6 +11229,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustStrLiteralLocalNativeString(finalFile);
         finalFile = rustTypedSafeContainerReads(finalFile);
         finalFile = rustTypedMergeResults(finalFile);
+        finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustStrParamCopyDrop(finalFile);
         finalFile = rustSelfFieldReadClones(finalFile);
 

@@ -915,6 +915,17 @@ impl Exchange {
     pub fn safe_list_or(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> crate::value::List { self.safe_list_or_o(obj, key, d).unwrap_or_default() }
     pub fn safe_list_or_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> Option<crate::value::List> { match (self.safe_list_o(obj, key), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
 
+    /// Twins of `safe_dict2` / `safe_list2`: the first key's member that is a map / list, else the second's, else the
+    /// default's container (`_t`/`_or`: the empty one; `_o`: `None`), exactly what the boxed reader's `.into_*()` answered.
+    pub fn safe_dict2_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> Option<crate::value::Dict> { let r = |k: Value| obj.read(&Value::Str(key_str(&k).into())); if let Value::Dict(m) = r(k1) { Some(m) } else if let Value::Dict(m) = r(k2) { Some(m) } else { None } }
+    pub fn safe_dict2_t(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> crate::value::Dict { self.safe_dict2_o(obj, k1, k2).unwrap_or_default() }
+    pub fn safe_dict2_or_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> Option<crate::value::Dict> { match (self.safe_dict2_o(obj, k1, k2), d) { (Some(m), _) | (None, Value::Dict(m)) => Some(m), _ => None } }
+    pub fn safe_dict2_or(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> crate::value::Dict { self.safe_dict2_or_o(obj, k1, k2, d).unwrap_or_default() }
+    pub fn safe_list2_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> Option<crate::value::List> { let r = |k: Value| obj.read(&Value::Str(key_str(&k).into())); if let Value::Arr(a) = r(k1) { Some(a) } else if let Value::Arr(a) = r(k2) { Some(a) } else { None } }
+    pub fn safe_list2_t(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> crate::value::List { self.safe_list2_o(obj, k1, k2).unwrap_or_default() }
+    pub fn safe_list2_or_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> Option<crate::value::List> { match (self.safe_list2_o(obj, k1, k2), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
+    pub fn safe_list2_or(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> crate::value::List { self.safe_list2_or_o(obj, k1, k2, d).unwrap_or_default() }
+
     pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges
