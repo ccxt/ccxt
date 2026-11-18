@@ -2501,7 +2501,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    override parseTransaction (transaction: List, currency: Currency = undefined): Transaction {
+    parseTransactionRow (transaction: List, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2820,7 +2820,12 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        const result: Transaction[] = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push (this.parseTransactionRow (this.safeList (response, i, []), currency));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, this.safeString (currency, 'code'), since, limit);
     }
 
     /**
@@ -2912,7 +2917,7 @@ export default class bitfinex extends Exchange {
         if (text !== 'success') {
             this.throwBroadlyMatchedException (this.exceptions['broad'], text, text);
         }
-        return this.parseTransaction (response, currency);
+        return this.parseTransactionRow (response, currency);
     }
 
     /**

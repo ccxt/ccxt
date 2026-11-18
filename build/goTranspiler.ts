@@ -32,7 +32,7 @@ const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, t
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
     'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] },
-    'Transaction': { 'names': [ 'ParseTransaction' ] },
+    'Transaction': { 'names': [ 'ParseTransaction', 'ParseTransactionRow' ] }, // bitfinex list-row parser
     'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] },
     'DepositAddress': { 'names': [ 'ParseDepositAddress' ] },
     'TransferEntry': { 'names': [ 'ParseTransfer' ] },
