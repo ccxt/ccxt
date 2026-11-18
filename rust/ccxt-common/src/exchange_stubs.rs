@@ -3072,8 +3072,8 @@ impl Exchange {
     }
 
     /// `encode(s)` — UTF-8 encode string to bytes (as Value::Array of ints).
-    pub fn encode(&self, s: Value) -> crate::value::Bytes {
-        match s {
+    pub fn encode(&self, s: impl std::borrow::Borrow<Value>) -> crate::value::Bytes {
+        match s.borrow() {
             Value::Str(s) => crate::value::Bytes::of(s.as_bytes()),
             _ => crate::value::Bytes::default(),
         }

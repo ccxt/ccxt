@@ -1269,9 +1269,9 @@ impl Exchange {
         let bytes = value_to_bytes(&data.into());
         B64.encode(&bytes)
     }
-    pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
-        let str_val = match &s { Value::Str(s) => s.clone(), _ => return crate::value::Bytes::default() };
-        crate::value::Bytes::of(&B64.decode(&*str_val).unwrap_or_default())
+    pub fn base64_to_binary(&self, s: impl std::borrow::Borrow<Value>, _optional_args: &[Value]) -> crate::value::Bytes {
+        let str_val = match s.borrow() { Value::Str(s) => s, _ => return crate::value::Bytes::default() };
+        crate::value::Bytes::of(&B64.decode(&**str_val).unwrap_or_default())
     }
     pub fn binary_to_base16(&self, data: impl Into<Value>, _optional_args: &[Value]) -> String {
         let bytes = value_to_bytes(&data.into());
