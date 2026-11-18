@@ -2295,7 +2295,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    public CompletableFuture<Object> isUnifiedEnabled(String method, String address, Boolean shouldRefresh, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> isUnifiedEnabled(String method, String address, Boolean shouldRefresh, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

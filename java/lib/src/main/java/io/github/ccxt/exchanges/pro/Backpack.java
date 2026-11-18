@@ -1443,15 +1443,16 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String messageHash = ("orderbook:" + symbol);
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
+            Integer cacheSize = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
+            Long cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             ((List<Object>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).add(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             Map<String, Object> market = this.market(symbol);
             Boolean isStockMarket = (java.util.Objects.equals(market.get("stock"), true)) || ((!java.util.Objects.equals(marketId, null)) && ((((String)marketId).indexOf(".US_") >= 0) || (((String)marketId).indexOf(".HK_") >= 0)));
             Integer defaultSnapshotDelay = ((Boolean.TRUE.equals(isStockMarket))) ? 0 : 10;
-            Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
-            if (Helpers.isEqual(cacheLength, snapshotDelay))
+            Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay));
+            if (java.util.Objects.equals(cacheLength, snapshotDelay))
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }

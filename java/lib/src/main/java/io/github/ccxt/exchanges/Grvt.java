@@ -786,8 +786,8 @@ public class Grvt extends GrvtApi
             {
                 throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
             }
-            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
-            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
+            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
             (this.loadAccountInfos()).join();
             return true;
         });
@@ -2713,9 +2713,9 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object convertToBigIntCustom(Object x)
+    public Long convertToBigIntCustom(Object x)
     {
-        return Long.parseLong(this.numberToString(x));
+        return ((Long) (switch ((Object) (Long.parseLong(this.numberToString(x)))) { case null -> (Long) null; case Long hx4J40v4 -> hx4J40v4; case Number hx4J40v4 -> Long.valueOf(hx4J40v4.longValue()); case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v4.getClass().getName()); }));
     }
 
     public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
@@ -3822,9 +3822,9 @@ public class Grvt extends GrvtApi
         }};
     }
 
-    public Object feeAmountMultiplier()
+    public Long feeAmountMultiplier()
     {
-        return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
+        return ((Long) (switch ((Object) (this.convertToBigIntCustom("10000"))) { case null -> (Long) null; case Long hx4J40v0 -> hx4J40v0; case Number hx4J40v0 -> Long.valueOf(hx4J40v0.longValue()); case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v0.getClass().getName()); }));  // multiply needed https://t.me/c/3396937126/88
     }
 
     public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Map<String, Object> currencyObj, String signerAddress)
@@ -3833,7 +3833,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> requestSignature = this.safeDict(request, "signature", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
-            Object amountMultiplier = this.convertToBigIntCustom("1000000");
+            Long amountMultiplier = this.convertToBigIntCustom("1000000");
             Object amountInt = Helpers.multiply(request.get("num_tokens"), amountMultiplier);
             if (java.util.Objects.equals(currencyObj, null))
             {
@@ -3853,7 +3853,7 @@ public class Grvt extends GrvtApi
             }
         } else if (java.util.Objects.equals(structureType, "EIP712_WITHDRAWAL_TYPE"))
         {
-            Object amountMultiplier = this.convertToBigIntCustom("1000000");
+            Long amountMultiplier = this.convertToBigIntCustom("1000000");
             if (java.util.Objects.equals(currencyObj, null))
             {
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
@@ -3873,7 +3873,7 @@ public class Grvt extends GrvtApi
             messageData = this.eipMessageForOrder(request, (String) (structureType));
         } else if (java.util.Objects.equals(structureType, "EIP712_BUILDER_APPROVAL_TYPE"))
         {
-            Object amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
+            Long amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
             messageData = new HashMap<String, Object>() {{
                 put( "mainAccountID", request.get("main_account_id") );
                 put( "builderAccountID", request.get("builder_account_id") );

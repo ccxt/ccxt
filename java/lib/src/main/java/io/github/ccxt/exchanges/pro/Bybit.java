@@ -235,7 +235,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             isSpot = (java.util.Objects.equals(type, "spot"));
             if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {
-                Object unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+                List<Object> unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
                 Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
                 Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
                 if (Boolean.TRUE.equals(isUsdcSettled) && (!Boolean.TRUE.equals(isUnifiedMargin)) && (!Boolean.TRUE.equals(isUnifiedAccount)))
@@ -2453,7 +2453,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Object unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
             Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
             String url = (this.getUrlByMarketType((String) null, true, method, paramsSubType)).join();

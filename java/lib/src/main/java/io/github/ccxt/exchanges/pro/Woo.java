@@ -372,7 +372,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = this.safeString(subscription, "symbol");
+            String symbol = this.safeString(subscription, "symbol");
             String messageHash = this.safeString(message, "topic");
             try
             {
@@ -407,7 +407,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 }
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+                    this.orderbooks.put(symbol, orderbook);
                 }
                 client.resolve(orderbook, messageHash);
             } catch(Exception e)

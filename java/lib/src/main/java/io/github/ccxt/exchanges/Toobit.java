@@ -3177,7 +3177,7 @@ public class Toobit extends ToobitApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < response.size(); i++)
             {
-                ((List<Object>)results).add(this.extend(this.parseTransactionWithType((Map<String, Object>) ((response == null || i < 0 || i >= response.size() ? null : response.get(i))), currency, transactType), paramsUntil));
+                ((List<Object>)results).add(this.extend(this.parseTransactionWithType((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), currency, transactType), paramsUntil));
             }
             List<Object> sorted = this.sortBy(results, "timestamp");
             String currencyCode = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);

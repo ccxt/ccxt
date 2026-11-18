@@ -1161,7 +1161,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = this.safeString(subscription, "symbol", "");
+            String symbol = this.safeString(subscription, "symbol", "");
             String messageHash = ("orderbook::" + symbol);
             try
             {
@@ -1231,7 +1231,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+                    this.orderbooks.put(symbol, orderbook);
                 }
                 client.resolve(orderbook, messageHash);
             } catch(Exception e)
@@ -5870,7 +5870,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             messageValue = (Map<String, Object>) this.safeDict(message, "o", message);
             if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && !(messageValue.containsKey("T")))
             {
-                Helpers.addElementToObject(messageValue, "T", this.safeInteger(message, "T")); // keep the outer event time, the algo payload carries no timestamps
+                messageValue.put("T", this.safeInteger(message, "T")); // keep the outer event time, the algo payload carries no timestamps
             }
         }
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))

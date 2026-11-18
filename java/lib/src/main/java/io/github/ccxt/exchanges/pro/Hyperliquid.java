@@ -1327,7 +1327,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, paramsValue, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Object unifiedResult = (this.isUnifiedEnabled("watchBalance", userAddress, false, paramsMarketType)).join();
+            List<Object> unifiedResult = (this.isUnifiedEnabled("watchBalance", userAddress, false, paramsMarketType)).join();
             Boolean isUnifiedEnabled = (Boolean) this.safeBool(unifiedResult, 0, false);
             Map<String, Object> paramsValue2 = (Map<String, Object>) this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");
@@ -1392,7 +1392,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchBalance", (Map<String, Object>) null, paramsValue, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", userAddress, false, paramsMarketType)).join();
+            List<Object> unifiedResult = (this.isUnifiedEnabled("unWatchBalance", userAddress, false, paramsMarketType)).join();
             Boolean isUnifiedEnabled = (Boolean) this.safeBool(unifiedResult, 0, false);
             Map<String, Object> paramsValue2 = (Map<String, Object>) this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");

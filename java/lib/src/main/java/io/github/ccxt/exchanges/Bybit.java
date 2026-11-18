@@ -2411,7 +2411,7 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    public CompletableFuture<Object> isUnifiedEnabled(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> isUnifiedEnabled(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4959,7 +4959,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
@@ -5465,7 +5465,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(types, 1, false);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
@@ -5530,7 +5530,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object parts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> parts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(parts, 1, false);
             Boolean isTrailingOrder = !java.util.Objects.equals(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
             Boolean isStopLossOrder = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
@@ -5959,7 +5959,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean isUta = (Boolean) this.safeBool(accounts, 1, false);
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
@@ -6390,7 +6390,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(types, 1, false);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
@@ -6531,7 +6531,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(types, 1, false);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
@@ -6642,7 +6642,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
@@ -6787,7 +6787,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
@@ -8019,7 +8019,7 @@ public class Bybit extends BybitApi
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, paramsPaginate, "nextPageCursor", "cursor", (Long) null, 50L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnified = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Map<String, Object> currency = null;
             String currencyKey = "coin";
@@ -8312,7 +8312,7 @@ public class Bybit extends BybitApi
             List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
             String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean isUta = (Boolean) this.safeBool(accounts, 1, false);
             Pair<String, Map<String, Object>> accountTypeOptionparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWithdrawTag), "withdraw", "accountType", (String) null);
             String accountTypeOption = accountTypeOptionparamsAccountTypeVariable.first();
@@ -8940,7 +8940,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
@@ -11551,7 +11551,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
@@ -11669,7 +11669,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
@@ -11782,7 +11782,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
+            List<Object> unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);

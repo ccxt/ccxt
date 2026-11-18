@@ -383,7 +383,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     }
 
-    public void handleBalance(String type, Client client, Object message)
+    public void handleBalance(Client client, Object message, String type)
     {
         // spot
         //    [
@@ -1886,7 +1886,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 type = "perpetual";
             }
             List<Object> accounts = (List<Object>) this.safeListN(message, new ArrayList<Object>(Arrays.asList("accounts", "accounts_p", "wallets")), new ArrayList<Object>(Arrays.asList()));
-            this.handleBalance(type, client, accounts);
+            this.handleBalance(client, accounts, type);
         }
     }
 
