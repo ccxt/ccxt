@@ -3785,6 +3785,7 @@ class hitbtc extends hitbtc$1["default"] {
         //
         const networks = this.safeList(fee, 'networks', []);
         const result = this.depositWithdrawFee(fee);
+        const networkFees = {};
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = this.safeDict(networks, j);
             const networkId = this.safeString(networkEntry, 'network');
@@ -3805,7 +3806,7 @@ class hitbtc extends hitbtc$1["default"] {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
@@ -3814,6 +3815,7 @@ class hitbtc extends hitbtc$1["default"] {
                 };
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**

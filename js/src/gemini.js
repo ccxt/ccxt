@@ -1104,7 +1104,7 @@ export default class gemini extends Exchange {
         let base = undefined;
         let quote = undefined;
         if ((marketId !== undefined) && (marketResolved === undefined)) {
-            const idLength = marketId.length - 0;
+            const idLength = marketId.length;
             if (idLength === 7) {
                 baseId = marketId.slice(0, 4);
                 quoteId = marketId.slice(4, 7);

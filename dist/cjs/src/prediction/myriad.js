@@ -1117,8 +1117,8 @@ class myriad extends myriad$1["default"] {
         const encoded = this.ethEncodeStructuredData(domain, types, message);
         const digest = this.hash(encoded, sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1_js.secp256k1, undefined);
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.sum(27, signature['v']);

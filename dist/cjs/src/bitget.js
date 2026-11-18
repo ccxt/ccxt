@@ -2307,7 +2307,7 @@ class bitget extends bitget$1["default"] {
                 continue;
             }
             const parsedMarket = this.parseMarket(market);
-            if ((parsedMarket !== undefined) && parsedMarket['spot']) {
+            if ((parsedMarket !== undefined) && this.safeBool(parsedMarket, 'spot', false)) {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict(spotInstruments, marketId);
                 if (instrument !== undefined) {
@@ -6951,7 +6951,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const productType = this.handleProductTypeAndParams(market, params)[0];
+        const [productType] = this.handleProductTypeAndParams(market, params);
         const requestList = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = this.safeString(ids, i);

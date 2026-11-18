@@ -2724,6 +2724,7 @@ class gate extends gate$1["default"] {
             },
             'networks': {},
         };
+        const networkFees = {};
         if (withdrawFixOnChains !== undefined) {
             const chainKeys = Object.keys(withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
@@ -2732,7 +2733,7 @@ class gate extends gate$1["default"] {
                 const code = this.safeCurrencyCode(currencyId, currency);
                 const networkCode = this.networkIdToCode(chainKey, code);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
                             'percentage': false,
@@ -2745,6 +2746,7 @@ class gate extends gate$1["default"] {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**

@@ -1905,12 +1905,12 @@ class whitebit extends whitebit$1["default"] {
             const duration = this.parseTimeframe(timeframe);
             let endTime = undefined;
             if (until !== undefined) {
-                endTime = this.sum(this.parseToInt(until / 1000), duration);
+                endTime = this.parseToInt(this.sum(this.parseToInt(until / 1000), duration));
             }
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                const rangeEnd = this.sum(start, duration * cappedLimit);
+                const rangeEnd = this.parseToInt(this.sum(start, duration * cappedLimit));
                 if ((endTime === undefined) || (rangeEnd < endTime)) {
                     endTime = rangeEnd;
                 }

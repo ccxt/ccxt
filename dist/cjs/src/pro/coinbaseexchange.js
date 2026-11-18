@@ -711,7 +711,8 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         }
                         const previousOrderFee = this.safeDict(previousOrder, 'fee', {});
                         if ((this.safeNumber(previousOrderFee, 'cost') !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
-                            previousOrder['fee']['cost'] = this.parseNumber(Precise["default"].stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(trade['fee'], 'cost')));
+                            previousOrderFee['cost'] = this.parseNumber(Precise["default"].stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(trade['fee'], 'cost')));
+                            previousOrder['fee'] = previousOrderFee;
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);

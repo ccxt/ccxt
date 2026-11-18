@@ -1188,14 +1188,15 @@ class cryptocom extends cryptocom$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
-        const request = {
-            'method': 'private/cancel-all-orders',
-            'params': this.extend({}, params),
-        };
+        const requestParams = this.extend({}, params);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['params']['instrument_name'] = market['id'];
+            requestParams['instrument_name'] = market['id'];
         }
+        const request = {
+            'method': 'private/cancel-all-orders',
+            'params': requestParams,
+        };
         const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }

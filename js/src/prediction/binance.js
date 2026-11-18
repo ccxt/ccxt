@@ -214,7 +214,7 @@ export default class binance extends Exchange {
         let offset = 0;
         while (true) {
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining = this.parseToInt(maxTopicsResolved - collectedLength);
             const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
@@ -983,12 +983,8 @@ export default class binance extends Exchange {
             const marketId = this.safeString(order, 'marketId');
             const outcome = this.safeStringUpper(order, 'outcome');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'createTime');
@@ -1342,12 +1338,8 @@ export default class binance extends Exchange {
             const marketId = this.safeString(position, 'marketId');
             const outcome = this.safeStringUpper(position, 'outcomeName');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger(position, 'createdTime');
         const totalCost = this.parseNumber(this.safeString(position, 'totalCost'));
@@ -1514,12 +1506,8 @@ export default class binance extends Exchange {
             const marketId = this.safeString(trade, 'marketId');
             const outcome = this.safeStringUpper(trade, 'outcome');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger(trade, 'createTime');
         const filled = this.safeString(trade, 'filledShareQty');

@@ -2727,9 +2727,6 @@ export class BaseExchange {
          * @returns {object | undefined}
          */
         const value = this.safeValueN(dictionaryOrList, keys, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (this.isDictionary(value)) {
             return value;
         }
@@ -2743,9 +2740,6 @@ export class BaseExchange {
          * @returns {object | undefined}
          */
         const value = this.safeValue(dictionaryOrList, key, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (this.isDictionary(value)) {
             return value;
         }
@@ -6093,7 +6087,8 @@ export class BaseExchange {
                 this.setLastRequest(request);
                 const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
                 if (fetchData !== undefined) {
-                    fetchData['response']['body'] = response;
+                    const responseData = { 'body': response };
+                    fetchData['response'] = responseData;
                     this.addFetchCache(fetchData);
                 }
                 return response;

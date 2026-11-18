@@ -1638,6 +1638,7 @@ class bitstamp extends bitstamp$1["default"] {
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
         const feeEntries = this.toArray(fee);
+        const networks = {};
         for (let j = 0; j < feeEntries.length; j++) {
             const networkEntry = this.safeDict(feeEntries, j);
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'network'), code);
@@ -1647,7 +1648,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'percentage': undefined,
             };
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -1659,6 +1660,7 @@ class bitstamp extends bitstamp$1["default"] {
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**

@@ -2604,12 +2604,14 @@ class bitvavo extends bitvavo$1["default"] {
             networkId = currencyCode;
         }
         const networkCode = this.networkIdToCode(networkId, currencyCode);
+        const networkFees = {};
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             };
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**

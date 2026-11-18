@@ -108,15 +108,11 @@ export default class bitget extends bitgetRest {
     }
     getInstType(methodName, market, uta = false, params = {}) {
         const useProductType = (market === undefined) || (this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false));
-        let productTypeAndParams = [undefined, {}];
+        let instTypeDefault = 'SPOT';
+        let paramsProductType = params;
         if (useProductType) {
-            productTypeAndParams = this.handleProductTypeAndParams(market, params);
+            [instTypeDefault, paramsProductType] = this.handleProductTypeAndParams(market, params);
         }
-        else {
-            productTypeAndParams = ['SPOT', params];
-        }
-        const instTypeDefault = productTypeAndParams[0];
-        const paramsProductType = productTypeAndParams[1];
         const [instTypeOption, paramsInstType] = this.handleOptionStringAndParams(paramsProductType, methodName, 'instType', instTypeDefault);
         let instType = instTypeOption;
         if (uta && (instTypeOption !== undefined)) {

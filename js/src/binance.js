@@ -3899,6 +3899,67 @@ export default class binance extends Exchange {
             }
         }
         const feesTrading = this.safeDict(fees, 'trading', {});
+        const precision = {
+            'amount': this.parseNumber(this.parsePrecision(this.safeString2(market, 'quantityPrecision', 'quantityScale'))),
+            'price': this.parseNumber(this.parsePrecision(this.safeString2(market, 'pricePrecision', 'priceScale'))),
+            'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+            'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+        };
+        const costLimits = {
+            'min': this.safeNumber(market, 'minNotional'),
+            'max': this.safeNumber(market, 'maxNotional'),
+        };
+        if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
+            const filter = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
+            costLimits['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
+            costLimits['max'] = this.safeNumber(filter, 'maxNotional');
+        }
+        const limits = {
+            'leverage': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'amount': {
+                'min': this.safeNumber(market, 'minQty'),
+                'max': this.safeNumber(market, 'maxQty'),
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': costLimits,
+        };
+        const stepSize = this.safeNumber(market, 'stepSize');
+        if (stepSize !== undefined) {
+            precision['amount'] = stepSize;
+        }
+        if ('PRICE_FILTER' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits['price'] = {
+                'min': this.safeNumber(filter, 'minPrice'),
+                'max': this.safeNumber(filter, 'maxPrice'),
+            };
+            precision['price'] = this.safeNumber(filter, 'tickSize');
+        }
+        if ('LOT_SIZE' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
+            precision['amount'] = this.safeNumber(filter, 'stepSize');
+            limits['amount'] = {
+                'min': this.safeNumber(filter, 'minQty'),
+                'max': this.safeNumber(filter, 'maxQty'),
+            };
+        }
+        if ('MARKET_LOT_SIZE' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
+            limits['market'] = {
+                'min': this.safeNumber(filter, 'minQty'),
+                'max': this.safeNumber(filter, 'maxQty'),
+            };
+        }
         const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3929,69 +3990,11 @@ export default class binance extends Exchange {
             'expiryDatetime': this.iso8601(expiry),
             'strike': parsedStrike,
             'optionType': this.safeStringLower(market, 'side'),
-            'precision': {
-                'amount': this.parseNumber(this.parsePrecision(this.safeString2(market, 'quantityPrecision', 'quantityScale'))),
-                'price': this.parseNumber(this.parsePrecision(this.safeString2(market, 'pricePrecision', 'priceScale'))),
-                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
-                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': this.safeNumber(market, 'minQty'),
-                    'max': this.safeNumber(market, 'maxQty'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber(market, 'minNotional'),
-                    'max': this.safeNumber(market, 'maxNotional'),
-                },
-            },
+            'precision': precision,
+            'limits': limits,
             'info': market,
             'created': this.safeInteger2(market, 'onboardDate', 'listingTime'),
         };
-        const stepSize = this.safeNumber(market, 'stepSize');
-        if (stepSize !== undefined) {
-            entry['precision']['amount'] = stepSize;
-        }
-        if ('PRICE_FILTER' in filtersByType) {
-            const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
-            // PRICE_FILTER reports zero values for maxPrice
-            // since they updated filter types in November 2018
-            // https://github.com/ccxt/ccxt/issues/4286
-            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            entry['limits']['price'] = {
-                'min': this.safeNumber(filter, 'minPrice'),
-                'max': this.safeNumber(filter, 'maxPrice'),
-            };
-            entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
-        }
-        if ('LOT_SIZE' in filtersByType) {
-            const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
-            entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
-            entry['limits']['amount'] = {
-                'min': this.safeNumber(filter, 'minQty'),
-                'max': this.safeNumber(filter, 'maxQty'),
-            };
-        }
-        if ('MARKET_LOT_SIZE' in filtersByType) {
-            const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
-            entry['limits']['market'] = {
-                'min': this.safeNumber(filter, 'minQty'),
-                'max': this.safeNumber(filter, 'maxQty'),
-            };
-        }
-        if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
-            const filter = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
-            entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
-            entry['limits']['cost']['max'] = this.safeNumber(filter, 'maxNotional');
-        }
         return this.safeMarketStructure(entry);
     }
     parseBalanceHelper(entry) {
@@ -5216,11 +5219,13 @@ export default class binance extends Exchange {
         const price = this.safeString(paramsPaginate, 'price');
         const until = this.safeInteger(paramsPaginate, 'until');
         const paramsOmitted = this.omit(paramsPaginate, ['price', 'until']);
-        let limitRequested = limit;
-        if (since !== undefined && until !== undefined && limit === undefined) {
-            limitRequested = maxLimit;
+        let limitValue = this.parseToInt(defaultLimit);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt(Math.min(limit, maxLimit));
         }
-        const limitValue = (limitRequested === undefined) ? defaultLimit : Math.min(limitRequested, maxLimit);
+        else if ((since !== undefined) && (until !== undefined)) {
+            limitValue = this.parseToInt(maxLimit);
+        }
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitValue,
@@ -10934,6 +10939,7 @@ export default class binance extends Exchange {
         const code = this.safeString(currency, 'code');
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = this.safeDict(networkList, j);
             const networkId = this.safeString(networkEntry, 'network');
@@ -10947,7 +10953,7 @@ export default class binance extends Exchange {
                 };
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -10959,6 +10965,7 @@ export default class binance extends Exchange {
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -11728,10 +11735,14 @@ export default class binance extends Exchange {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        let isolated = this.safeBool(position, 'isolated');
-        if (isolated === undefined) {
+        const isolatedRaw = this.safeBool(position, 'isolated');
+        let isolated = false;
+        if (isolatedRaw === undefined) {
             const isolatedMarginRaw = this.safeString(position, 'isolatedMargin');
             isolated = !Precise.stringEq(isolatedMarginRaw, '0');
+        }
+        else {
+            isolated = (isolatedRaw === true);
         }
         let marginMode = undefined;
         let collateralString = undefined;
@@ -12020,7 +12031,9 @@ export default class binance extends Exchange {
         else {
             collateralString = this.safeString(position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
+        if (collateralString === undefined) {
+            collateralString = this.numberToString(0);
+        }
         const collateral = this.parseNumber(collateralString);
         const markPrice = this.parseNumber(this.omitZero(this.safeString(position, 'markPrice')));
         let timestamp = this.safeInteger(position, 'updateTime');

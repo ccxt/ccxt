@@ -1122,8 +1122,8 @@ export default class myriad extends Exchange {
         const encoded = this.ethEncodeStructuredData(domain, types, message);
         const digest = this.hash(encoded, keccak, 'hex');
         const signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, undefined);
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.sum(27, signature['v']);

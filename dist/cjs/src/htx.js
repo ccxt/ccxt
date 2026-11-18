@@ -9648,6 +9648,7 @@ class htx extends htx$1["default"] {
         const chains = this.safeList(fee, 'chains', []);
         const code = this.safeString(currency, 'code');
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = this.safeDict(chains, j);
             const networkId = this.safeString(chainEntry, 'chain');
@@ -9670,13 +9671,14 @@ class htx extends htx$1["default"] {
                 };
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined,
                     },
                 };
+                result['networks'] = networks;
             }
             this.assignDefaultDepositWithdrawFees(result, currency);
         }

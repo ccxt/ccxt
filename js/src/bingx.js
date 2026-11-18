@@ -1238,7 +1238,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        const requestLimit = (limit === undefined) ? 500 : Math.min(limit, maxLimit);
+        const requestLimit = this.parseToInt((limit === undefined) ? 500 : Math.min(limit, maxLimit));
         if (since !== undefined) {
             request['startTime'] = Math.max(since - 1, 0);
         }
@@ -6453,11 +6453,12 @@ export default class bingx extends Exchange {
             },
             'networks': {},
         };
+        const networkFees = {};
         if (networksLength !== 0) {
             for (let i = 0; i < networksLength; i++) {
                 const networkCode = this.safeString(networkCodes, i, '');
                 const network = this.safeDict(networks, networkCode);
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber(network, 'fee'), 'percentage': false },
                 };
@@ -6469,6 +6470,7 @@ export default class bingx extends Exchange {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**

@@ -449,15 +449,17 @@ class gate extends gate$1["default"] {
         const messageType = this.getTypeByMarket(market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
-        let defaultLimit = 100;
+        let limitResolved = this.parseToInt(100);
         if ((this.safeBool(market, 'spot', false)) || (messageType === 'options')) {
-            defaultLimit = 50;
+            limitResolved = this.parseToInt(50);
         }
-        let limitResolved = (limit === undefined) ? defaultLimit : limit;
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt(limit);
+        }
         if (this.safeBool(market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
-            limitResolved = Math.min(limitResolved, maxSpotLimit);
+            limitResolved = this.parseToInt(Math.min(limitResolved, maxSpotLimit));
         }
         let payload = [];
         let channel = '';
@@ -511,12 +513,13 @@ class gate extends gate$1["default"] {
         const interval = intervalDefault;
         const [intervalOption, paramsInterval] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket(market);
-        let limit = this.safeInteger(paramsInterval, 'limit');
-        if (limit === undefined) {
-            limit = (this.safeBool(market, 'spot', false)) ? 50 : 100; // max 100 atm
-            if (messageType === 'options') {
-                limit = 50; // max 50 for options
-            }
+        const limitParam = this.safeInteger(paramsInterval, 'limit');
+        let limit = this.parseToInt((this.safeBool(market, 'spot', false)) ? 50 : 100); // max 100 atm
+        if (messageType === 'options') {
+            limit = this.parseToInt(50); // max 50 for options
+        }
+        if (limitParam !== undefined) {
+            limit = this.parseToInt(limitParam);
         }
         let payload = [];
         let channel = '';

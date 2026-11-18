@@ -5235,8 +5235,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             const data = this.safeDict(responsePayload, 'data', {});
             const statuses = this.safeList(data, 'statuses', []);
             for (let i = 0; i < statuses.length; i++) {
-                message = this.safeString(statuses[i], 'error');
-                if (message !== undefined) {
+                const statusError = this.safeString(statuses[i], 'error');
+                if (statusError !== undefined) {
+                    message = statusError;
                     break;
                 }
             }

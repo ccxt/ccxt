@@ -1544,10 +1544,9 @@ class bybit extends bybit$1["default"] {
         let messageHash = '';
         let symbolsNormalized = symbols;
         if ((symbols !== undefined) && !this.isEmpty(symbols)) {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if ((symbolsNormalized !== undefined) && !this.isEmpty(symbolsNormalized)) {
-            messageHash = '::' + symbolsNormalized.join(',');
+            const marketSymbols = this.marketSymbols(symbols);
+            symbolsNormalized = marketSymbols;
+            messageHash = '::' + marketSymbols.join(',');
         }
         const firstSymbol = this.safeString(symbolsNormalized, 0);
         const url = await this.getUrlByMarketType(firstSymbol, true, method, params);
@@ -1562,8 +1561,7 @@ class bybit extends bybit$1["default"] {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
-        const topics = ['position'];
-        const newPositions = await this.watchTopics(url, [messageHash], topics, params);
+        const newPositions = await this.watchTopics(url, [messageHash], ['position'], params);
         if (this.newUpdates) {
             return newPositions;
         }

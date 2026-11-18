@@ -1759,7 +1759,8 @@ class paradex extends paradex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnlyParam = this.safeBool2(params, 'reduceOnly', 'reduce_only');
+        let reduceOnly = (reduceOnlyParam === true);
         const orderType = type.toUpperCase();
         const orderSide = side.toUpperCase();
         const request = {

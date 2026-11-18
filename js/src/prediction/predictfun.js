@@ -1759,8 +1759,8 @@ export default class predictfun extends Exchange {
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}

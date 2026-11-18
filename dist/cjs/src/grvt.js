@@ -2019,14 +2019,15 @@ class grvt extends grvt$1["default"] {
         const isMarketOrder = (type === 'market');
         const subAccountId = this.getSubAccountId(paramsOmitted3);
         const isReduceOnly = this.safeBool(paramsOmitted3, 'reduceOnly', false);
+        const orderMetadata = {
+            'client_order_id': clientOrderId,
+        };
         const orderRequest = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [orderLeg],
             'signature': this.defaultSignature(),
-            'metadata': {
-                'client_order_id': clientOrderId,
-            },
+            'metadata': orderMetadata,
             'is_market': isMarketOrder,
             'post_only': false,
             'reduce_only': isReduceOnly,
@@ -2099,7 +2100,7 @@ class grvt extends grvt$1["default"] {
             }
             // trigger by
             const triggerPriceType = this.safeStringUpper(paramsTriggerPrices, 'triggerPriceType', 'LAST');
-            orderRequest['metadata']['trigger'] = {
+            orderMetadata['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
@@ -2107,6 +2108,7 @@ class grvt extends grvt$1["default"] {
                     'close_position': this.safeBool(paramsTriggerPrices, 'closePosition', false),
                 },
             };
+            orderRequest['metadata'] = orderMetadata;
         }
         let paramsTrigger = paramsTriggerPrices;
         if (isTriggerOrder) {

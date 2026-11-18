@@ -692,8 +692,8 @@ export default class sxbet extends Exchange {
         const signature = ecdsa(digest.slice(-64), privateKey.slice(-64), secp256k1, undefined);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.intToBase16(this.sum(27, signature['v']));

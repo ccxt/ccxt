@@ -2038,11 +2038,12 @@ export default class kraken extends Exchange {
             else {
                 descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((part4 === 'stop' && part5 === 'loss') || (part4 === 'take' && part5 === 'profit')) {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
             }
-            else if (descriptionType === 'limit') {
+            else if (part4 === 'limit') {
                 price = this.safeString(parts, 5);
             }
         }

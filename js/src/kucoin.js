@@ -2595,12 +2595,13 @@ export default class kucoin extends Exchange {
                 'networks': {},
             };
             const chains = this.safeList(fee, 'chains', []);
+            const networksNew = {};
             for (let i = 0; i < chains.length; i++) {
                 const chain = this.safeDict(chains, i);
                 const chainId = this.safeString(chain, 'chainId');
                 const networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, 'code'));
                 if (networkCodeNew !== undefined) {
-                    resultNew['networks'][networkCodeNew] = {
+                    networksNew[networkCodeNew] = {
                         'withdraw': {
                             'fee': this.safeNumber2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
                             'percentage': false,
@@ -2612,6 +2613,7 @@ export default class kucoin extends Exchange {
                     };
                 }
             }
+            resultNew['networks'] = networksNew;
             return resultNew;
         }
         const minWithdrawFee = this.safeNumber(fee, 'withdrawMinFee');
@@ -2632,7 +2634,8 @@ export default class kucoin extends Exchange {
         const currencyResolved = this.safeCurrency(currencyId, currency);
         const networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, 'code'));
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            const networks = {};
+            networks[networkCode] = {
                 'withdraw': {
                     'fee': minWithdrawFee,
                     'percentage': false,
@@ -2642,6 +2645,7 @@ export default class kucoin extends Exchange {
                     'percentage': undefined,
                 },
             };
+            result['networks'] = networks;
         }
         return result;
     }
@@ -11692,17 +11696,14 @@ export default class kucoin extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchLeverageTiers() requires a symbols argument');
         }
         const symbolsNormalized = this.marketSymbols(symbols, 'swap', false, true);
-        let marginMode = 'cross';
-        let paramsRequest = undefined;
-        [marginMode, paramsRequest] = this.handleOptionStringAndParams(params, 'fetchLeverageTiers', 'marginMode', marginMode);
-        marginMode = marginMode.toUpperCase();
-        if (marginMode !== 'CROSS') {
+        const [marginMode, paramsRequest] = this.handleOptionStringAndParams(params, 'fetchLeverageTiers', 'marginMode', 'cross');
+        if (marginMode.toUpperCase() !== 'CROSS') {
             throw new BadRequest(this.id + ' fetchLeverageTiers() supports cross margin only');
         }
         const marketIds = this.marketIds(symbolsNormalized);
         const request = {
             'tradeType': 'FUTURES',
-            'marginMode': marginMode,
+            'marginMode': 'CROSS',
             'data': 'RISK_LIMIT',
             'accountType': 'UNIFIED',
             'symbol': marketIds.join(','),

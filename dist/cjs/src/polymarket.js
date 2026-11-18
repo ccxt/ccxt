@@ -2646,7 +2646,7 @@ class polymarket extends polymarket$1["default"] {
             if (expires === undefined) {
                 return credentials;
             }
-            const refreshAfter = expires - margin;
+            const refreshAfter = this.parseToInt(expires - margin);
             if (this.milliseconds() < refreshAfter) {
                 return credentials;
             }

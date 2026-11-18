@@ -1245,22 +1245,21 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'interval': tf,
         };
-        let sinceValue = since;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
-        if (this.safeInteger(requestUntil, 'end_time') === undefined) {
-            if (sinceValue === undefined) {
-                sinceValue = nowMs - limitValue * duration;
-            }
-            const windowEnd = this.parseToInt(this.sum(sinceValue - 1, limitValue * duration));
+        const untilEnd = this.safeInteger(requestUntil, 'end_time');
+        let startTime = this.parseToInt(nowMs - limitValue * duration);
+        if (untilEnd !== undefined) {
+            startTime = this.parseToInt(untilEnd - limitValue * duration);
+        }
+        if (since !== undefined) {
+            startTime = this.parseToInt(since);
+        }
+        if (untilEnd === undefined) {
+            const windowEnd = this.parseToInt(this.sum(startTime - 1, limitValue * duration));
             const until = (windowEnd > nowMs) ? nowMs : windowEnd;
             requestUntil['end_time'] = until;
         }
-        else {
-            if (sinceValue === undefined) {
-                sinceValue = requestUntil['end_time'] - limitValue * duration;
-            }
-        }
-        requestUntil['start_time'] = sinceValue;
+        requestUntil['start_time'] = startTime;
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -3755,7 +3754,7 @@ export default class pacifica extends Exchange {
         const signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         const finalHeaders = {};
         const [agentAddress, paramsAgentAddress] = this.handleOptionStringAndParams(paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        const originAddress = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress)[0];
+        const [originAddress] = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

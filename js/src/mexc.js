@@ -6149,12 +6149,13 @@ export default class mexc extends Exchange {
         //
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = this.safeDict(networkList, j);
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': this.safeNumber(networkEntry, 'withdrawFee'),
                         'percentage': undefined,
@@ -6166,6 +6167,7 @@ export default class mexc extends Exchange {
                 };
             }
         }
+        result['networks'] = networks;
         return this.assignDefaultDepositWithdrawFees(result);
     }
     /**

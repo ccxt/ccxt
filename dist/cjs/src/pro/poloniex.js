@@ -1036,12 +1036,14 @@ class poloniex extends poloniex$1["default"] {
                         previousOrder['average'] = this.parseNumber(Precise["default"].stringDiv(totalCost, totalAmount));
                     }
                     previousOrder['cost'] = this.parseNumber(totalCost);
-                    if (previousOrder['filled'] !== undefined) {
+                    const previousOrderFilledRaw = this.safeString(previousOrder, 'filled');
+                    if (previousOrderFilledRaw !== undefined) {
                         const tradeAmount = this.numberToString(trade['amount']);
                         let previousOrderFilled = this.numberToString(previousOrder['filled']);
                         previousOrderFilled = Precise["default"].stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder['filled'] = previousOrderFilled;
-                        if (previousOrder['amount'] !== undefined) {
+                        const previousOrderAmountRaw = this.safeString(previousOrder, 'amount');
+                        if (previousOrderAmountRaw !== undefined) {
                             const previousOrderAmount = this.numberToString(previousOrder['amount']);
                             previousOrder['remaining'] = this.parseNumber(Precise["default"].stringSub(previousOrderAmount, previousOrderFilled));
                         }

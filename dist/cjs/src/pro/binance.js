@@ -775,7 +775,7 @@ class binance extends binance$1["default"] {
         const [rpi, paramsRpi] = this.handleOptionBoolAndParams(paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
         if (rpi && type === 'linear') {
             name = 'rpiDepth';
-            watchOrderBookRate = '500';
+            watchOrderBookRate = this.numberToString(500);
         }
         const subParams = [];
         const messageHashes = [];
@@ -789,7 +789,7 @@ class binance extends binance$1["default"] {
             if (watchOrderBookRate === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
-            const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString() + 'ms';
+            const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push(symbolHash);
         }
         const messageHashesLength = messageHashes.length;
@@ -5570,10 +5570,11 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            symbolResolved = this.symbol(symbol);
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         const [type, subType, paramsAuth] = this.resolveAuthType('watchMyTrades', market, params);
         let messageHash = 'myTrades';
         let symbolParams = {};
@@ -5663,7 +5664,8 @@ class binance extends binance$1["default"] {
                                 if (feeCostString === undefined) {
                                     feeCostString = '0';
                                 }
-                                order['fee']['cost'] = parseFloat(feeCostString);
+                                fee['cost'] = parseFloat(feeCostString);
+                                order['fee'] = fee;
                             }
                             else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
@@ -5856,7 +5858,7 @@ class binance extends binance$1["default"] {
         }
         // reset connection if 5xx error
         const codeString = this.safeString(error, 'code');
-        if ((codeString !== undefined) && (codeString[0] === '5')) {
+        if ((codeString !== undefined) && codeString.startsWith('5')) {
             const resetError = new errors.ExchangeError(this.id + ' ' + this.json(message));
             client.reset(resetError);
         }

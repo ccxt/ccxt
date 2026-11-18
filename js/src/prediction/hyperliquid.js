@@ -189,7 +189,7 @@ export default class hyperliquid extends Exchange {
      * @returns {string} the coin name
      */
     outcomeCoin(encoding) {
-        return '#' + encoding.toString();
+        return '#' + this.parseToInt(encoding).toString();
     }
     /**
      * @ignore
@@ -200,7 +200,7 @@ export default class hyperliquid extends Exchange {
      * @returns {string} the token name
      */
     outcomeToken(encoding) {
-        return '+' + encoding.toString();
+        return '+' + this.parseToInt(encoding).toString();
     }
     /**
      * @ignore
@@ -622,7 +622,7 @@ export default class hyperliquid extends Exchange {
         const intPart = parts[0];
         const intPartLength = intPart.length;
         const szDecimalsInt = this.parseToInt(szDecimals);
-        const maxDecimals = 8 - szDecimalsInt;
+        const maxDecimals = this.parseToInt(8 - szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         let digitsLeft = 0;
         if (intPartLength <= 5) {
@@ -2075,8 +2075,8 @@ export default class hyperliquid extends Exchange {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {

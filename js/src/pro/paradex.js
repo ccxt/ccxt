@@ -1133,14 +1133,14 @@ export default class paradex extends paradexRest {
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        let remaining = 0;
+        let othersRemain = false;
         const keys = Object.keys(client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             if ((keys[i].indexOf(channel + '.') === 0) && !this.inArray(keys[i], subscribeHashes)) {
-                remaining = remaining + 1;
+                othersRemain = true;
             }
         }
-        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && (remaining === 0))) {
+        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && !othersRemain)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             const channelSubscription = {
                 'topic': 'ticker',
