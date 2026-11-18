@@ -471,6 +471,10 @@ export default class p2b extends p2bRest {
                 bookside.store (price, amount);
             }
         }
+        // depth frames carry no time of their own, so the local clock approximates it
+        const timestamp = this.milliseconds ();
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['symbol'] = symbol;
         client.resolve (orderbook, messageHash);
     }

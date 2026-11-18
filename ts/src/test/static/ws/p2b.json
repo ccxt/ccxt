@@ -1,6 +1,9 @@
 {
     "exchange": "p2b",
-    "skipKeys": [],
+    "skipKeys": [
+        "timestamp",
+        "datetime"
+    ],
     "options": {},
     "methods": {
         "watchOrderBook": [
