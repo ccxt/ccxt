@@ -4345,9 +4345,15 @@ function rustStrParamCopyDrop (content: string): string {
             else if (body[u.index - 1] !== '&' && (r = /^\.clone\(\)(?=[,);\].])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `Value::from(${name})` });
             else if ((r = asAcc.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? name : `Some(${name})` });
             else if (opt && body[u.index - 1] !== '&' && (r = /^ ([=!])= Value::Null(?![\w:(])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name}.${r[1] === '=' ? 'is_none' : 'is_some'}()` });
+            // `Value::from` of a plain `&str` / i64 / f64 / bool is never `Null`: its null test is constant
+            else if (!opt && body[u.index - 1] !== '&' && (r = /^ ([=!])= Value::Null(?![\w:(])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: r[1] === '=' ? 'false' : 'true' });
+            // `Value::Str(s)` displays as `s`
+            else if (!opt && kind === 'str' && /^\.to_string\(\)/.test (after)) local.push ({ start: at, end: at, text: '' });
+            // any other read re-boxes the same value; a write, an index or a mutating/borrowing method keeps the copy
+            else if (!/&mut[ (]*$/.test (body.slice (Math.max (0, u.index - 8), u.index)) && !/^\)*\s*(?:\[|[-+*/|&^%]?=(?!=)|\.(?:push|insert|remove|set|extend|append|clear|truncate|entry|retain|sort|drain|pop|get|iter|keys|values|chars|split|as_|\w+_mut)\w*\()/.test (after)) local.push ({ start: at, end: at + name.length, text: `Value::from(${name})` });
             else ok = false;
         }
-        if (!ok || local.length === 0) continue;
+        if (!ok) continue;
         edits.push ({ start: m.index, end: bodyStart, text: '' }, ...local);
     }
     edits.sort ((a, b) => a.start - b.start);
