@@ -1362,6 +1362,38 @@ func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
 	return result
 }
 
+// ConvertStringMatrixToArray hands a typed [][]string (symbols and timeframes) to a core taking []any rows
+func ConvertStringMatrixToArray(rows [][]string) []any {
+	result := make([]any, 0, len(rows))
+	for _, row := range rows {
+		inner := make([]any, 0, len(row))
+		for _, v := range row {
+			inner = append(inner, v)
+		}
+		result = append(result, inner)
+	}
+	return result
+}
+
+// ConvertCancellationRequestListToArray hands typed cancellation requests to a core taking []any rows
+func ConvertCancellationRequestListToArray(requests []CancellationRequest) []any {
+	result := make([]any, 0, len(requests))
+	for _, request := range requests {
+		row := map[string]any{}
+		if request.Id != nil {
+			row["id"] = *request.Id
+		}
+		if request.ClientOrderId != nil {
+			row["clientOrderId"] = *request.ClientOrderId
+		}
+		if request.Symbol != nil {
+			row["symbol"] = *request.Symbol
+		}
+		result = append(result, row)
+	}
+	return result
+}
+
 // PredictionOrderRequest carries an `outcome` handle instead of a `symbol`
 type PredictionOrderRequest struct {
 	Outcome    *string

@@ -6752,6 +6752,16 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'cancelOrders': { 0: '[]string' },
     // handleDeltas (deltas: any[]) on the base and every ws override; callers pass safeList locals or reads
     'handleDeltas': { 1: '[]any' },
+    // row-list params every ts/src caller hands a `[]any` (literals, typed locals); the typed wrapper keeps
+    // its annotated slice and converts it (Convert*ToArray), so the core never sees a [][]string / struct slice
+    'watchOHLCVForSymbols': { 0: '[]any' }, 'unWatchOHLCVForSymbols': { 0: '[]any' },
+    'cancelOrdersForSymbols': { 0: '[]any' }, 'editOrders': { 0: '[]any' },
+};
+
+// the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
+const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = {
+    'OrderRequest[]': 'ConvertOrderRequestListToArray', 'CancellationRequest[]': 'ConvertCancellationRequestListToArray',
+    'string[][]': 'ConvertStringMatrixToArray',
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings
@@ -12307,7 +12317,7 @@ class NewTranspiler {
         // on the method record (`parameters[i].goType`; an optional or variadic slot rides the options struct and has none)
         const decidedGoType = param?.goType;
         // the typed wrapper keeps `[]OrderRequest` (it converts to the core's []any); only the core is retyped
-        const wrapperKeepsAnnotation = (decidedGoType === '[]any') && /OrderRequest\[\]$/.test (String (param?.type ?? ''));
+        const wrapperKeepsAnnotation = (decidedGoType === '[]any') && /(?:OrderRequest|CancellationRequest|string\[\])\[\]$/.test (String (param?.type ?? ''));
         if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation) {
             return `${safeName} ${decidedGoType}`;
         }
@@ -12639,6 +12649,10 @@ class NewTranspiler {
                 return this.isPrediction ? 'ConvertPredictionOrderRequestListToArray(orders)' : 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
             }
 
+            const sliceConversion = GO_WRAPPER_SLICE_CONVERSIONS[String (param.type ?? '')];
+            if ((sliceConversion !== undefined) && (GO_UNIFIED_SLICE_PARAMS[methodName]?.[0] === '[]any') && (methodWrapper.parameters.indexOf (param) === 0)) {
+                return `${sliceConversion}(${this.safeGoName(param.name)})`;
+            }
             // optional params live on the options struct: hand the field straight to the
             // core call instead of hopping through an identically-typed local
             if (this.usesOptionsStruct(methodWrapper.parameters) && this.isOptionalGoParam(param)) {
@@ -15896,8 +15910,9 @@ function goDerefGuardedListReads (lines: string[], masked: string[], start: numb
             continue;
         }
         const t = typeAt (name, k);
-        // the createOrders `orders []any` parameter keeps GetValue (a native read trades it for a closure)
-        if ((name === 'orders') && /\bcreateOrdersBody\(/.test (masked[start] ?? '') ) {
+        // the unified row-list `[]any` parameters keep GetValue (a native read trades it for a closure)
+        if ((((name === 'orders') && /\b(?:createOrders|cancelOrdersForSymbols|editOrders)Body\(/.test (masked[start] ?? ''))
+            || ((name === 'symbolsAndTimeframes') && /\b(?:un[Ww]|w)atchOHLCVForSymbolsBody\(/.test (masked[start] ?? '')))) {
             continue;
         }
         const ok = ((t === '[]string') || ((t === '[]any') && consumerTail.test (m.substring (0, at)))) && goDerefIntKey (key, k, maskedFunc, typeAt);
