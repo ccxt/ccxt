@@ -4186,6 +4186,35 @@ function rustTypedMergeResults (content: string): string {
     return out === content ? out : rustTypedMergeResults (out);
 }
 
+// An implicit-API wrapper (every `fn` of the generated `*_api.rs`, whose body is `self.call_method("<name>", args)`)
+// taken back with `.into_dict()` / `.into_opt_dict()` calls `call_method_t` / `_o` with that name: same map, empty or None.
+let rustImplicitApiNames: Set<string> | undefined;
+function rustTypedImplicitApiResults (content: string): string {
+    if (rustImplicitApiNames === undefined) {
+        rustImplicitApiNames = new Set ();
+        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[Value\]\) -> Value \{\n\s*self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await\n\s*\}/g;
+        for (const d of [ 'exchanges', 'prediction' ].map ((x) => path.join (__dirname, '..', 'rust', 'ccxt-base', 'src', x))) {
+            for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.rs')) : []) {
+                for (const m of fs.readFileSync (path.join (d, f), 'utf8').matchAll (body)) if (m[1] === m[2]) rustImplicitApiNames.add (m[1]);
+            }
+        }
+    }
+    const own = new Set ([ ...content.matchAll (/\bfn ([a-z0-9_]+)\b/g) ].map ((m) => m[1]));
+    const head = /\bself(?:\.parent)?\.([a-z0-9_]+)\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) {
+        if (!rustImplicitApiNames.has (m[1]) || own.has (m[1])) continue;
+        const open = m.index + m[0].length;
+        const close = balancedCloseIndex (content, open);
+        const conv = content.slice (close + 1).match (/^\.await\.into_(opt_)?dict\(\)/);
+        if (close >= content.length || conv === null) continue;
+        out += content.slice (last, m.index + m[0].length - m[1].length - 1) + (conv[1] ? 'call_method_o("' : 'call_method_t("') + m[1] + '", ' + content.slice (open, close + 1) + '.await';
+        last = close + 1 + conv[0].length;
+        head.lastIndex = last;
+    }
+    return out + content.slice (last);
+}
+
 // `Value::Array(v).into_list()` is the list itself (`Value::Array` builds `Value::Arr(Arc::new(v))`), and
 // `(if (c) { self.omit(&p, Value::Str(k), &[]) } else { p }).into_dict()` is one `omit_t` with a `Null` key when `!c`.
 function rustTypedListAndOmitBranches (content: string): string {
@@ -10491,6 +10520,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustStrLiteralLocalNativeString(rustContent);
                 rustContent = rustTypedSafeContainerReads(rustContent);
                 rustContent = rustTypedMergeResults(rustContent);
+                rustContent = rustTypedImplicitApiResults(rustContent);
                 rustContent = rustTypedListAndOmitBranches(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
@@ -11338,6 +11368,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustStrLiteralLocalNativeString(finalFile);
         finalFile = rustTypedSafeContainerReads(finalFile);
         finalFile = rustTypedMergeResults(finalFile);
+        finalFile = rustTypedImplicitApiResults(finalFile);
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustStrParamCopyDrop(finalFile);

@@ -1959,6 +1959,15 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         }
     } }
 
+    /// `call_method` by name taken back as a dict: the map it answered, else an empty map (as `.into_dict()`).
+    fn call_method_t(&mut self, name: &'static str, args: &[Value]) -> impl ::std::future::Future<Output = crate::value::Dict> + Send { async move {
+        self.call_method_o(name, args).await.unwrap_or_default()
+    } }
+    /// `call_method` by name taken back as an optional dict: `None` for anything but a map (as `.into_opt_dict()`).
+    fn call_method_o(&mut self, name: &'static str, args: &[Value]) -> impl ::std::future::Future<Output = Option<crate::value::Dict>> + Send { async move {
+        if let Value::Dict(m) = self.call_method(Value::Str(name.into()), args).await { Some(m) } else { None }
+    } }
+
     /// Loads markets (and currencies), dispatching `fetch_markets` /
     /// `fetch_currencies` / `set_markets` to the derived overrides.
     fn load_markets(&mut self, reload: bool, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = Result<crate::types::Markets>> + Send { async move {
