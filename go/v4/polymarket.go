@@ -488,13 +488,14 @@ func (this *Polymarket) fetchStatusBody(ch chan AsyncResult[Status], optionalArg
 	//
 	var cancelOnly *bool = this.SafeBool(response, "cancel_only", false)
 
+	var statusValue string
+	if cancelOnly != nil && *cancelOnly {
+		statusValue = "maintenance"
+	} else {
+		statusValue = "ok"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if cancelOnly != nil && *cancelOnly {
-				return "maintenance"
-			}
-			return "ok"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1215,10 +1216,10 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		panic(r.Err)
 	}
 	var paginate bool = false
-	var paramsOmitted any = params
-	var paginateparamsOmittedVariable []any = this.HandleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate")
+	var paramsOmitted map[string]any = params
+	paginateparamsOmittedVariable := TupleSlice(this.HandleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate"))
 	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = paginateparamsOmittedVariable[1]
+	paramsOmitted = MapTyped(paginateparamsOmittedVariable[1])
 	if paginate {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsOmitted, 1000)
@@ -1240,7 +1241,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
@@ -1458,10 +1459,10 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 		panic(r.Err)
 	}
 	var paginate bool = false
-	var paramsOmitted any = params
-	var paginateparamsOmittedVariable []any = this.HandleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate")
+	var paramsOmitted map[string]any = params
+	paginateparamsOmittedVariable := TupleSlice(this.HandleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate"))
 	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = paginateparamsOmittedVariable[1]
+	paramsOmitted = MapTyped(paginateparamsOmittedVariable[1])
 	if paginate {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "1h", paramsOmitted, 100)
@@ -1485,7 +1486,7 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 

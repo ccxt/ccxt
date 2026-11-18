@@ -964,7 +964,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + symbol
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -977,7 +977,11 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	if (previousNonce != nil) && (nonce != nil) && (*nonce <= *previousNonce) {
 		return
 	}
-	ccxt.AddElementToObject(subscription, "nonce", nonce)
+	if nonce != nil {
+		subscription["nonce"] = *nonce
+	} else {
+		subscription["nonce"] = nil
+	}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
 		stored.Append(trade)

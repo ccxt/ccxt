@@ -942,12 +942,12 @@ func (this *Bitbns) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         "code":200
 	//     }
 	//
-	var parsed any = func() any {
-		if response == nil {
-			return map[string]any{}
-		}
-		return response
-	}()
+	var parsed map[string]any
+	if response == nil {
+		parsed = map[string]any{}
+	} else {
+		parsed = response
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(parsed, market)}
 	return nil
@@ -1015,12 +1015,12 @@ func (this *Bitbns) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		panic(r1.Err)
 	}
 	response = r1.Value
-	var parsed any = func() any {
-		if response == nil {
-			return map[string]any{}
-		}
-		return response
-	}()
+	var parsed map[string]any
+	if response == nil {
+		parsed = map[string]any{}
+	} else {
+		parsed = response
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(parsed, market)}
 	return nil

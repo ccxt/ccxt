@@ -4761,13 +4761,14 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	var positionModeValue string
+	if hedged {
+		positionModeValue = "long_short_mode"
+	} else {
+		positionModeValue = "net_mode"
+	}
 	var request map[string]any = map[string]any{
-		"positionMode": func() string {
-			if hedged {
-				return "long_short_mode"
-			}
-			return "net_mode"
-		}(),
+		"positionMode": positionModeValue,
 	}
 
 	//

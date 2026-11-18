@@ -2606,12 +2606,12 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			response = r6.Value
 		}
 	}
-	var orderResponse any = func() any {
-		if response == nil {
-			return map[string]any{}
-		}
-		return response
-	}()
+	var orderResponse map[string]any
+	if response == nil {
+		orderResponse = map[string]any{}
+	} else {
+		orderResponse = response
+	}
 	var order map[string]any = OrderToMap(this.ParseOrder(orderResponse, market))
 	order["type"] = typeVar
 

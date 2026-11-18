@@ -2538,9 +2538,7 @@ func (this *Htx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	}
 	var types any = map[string]any{}
 	var paramsTypes map[string]any = map[string]any{}
-	var typesparamsTypesVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
-	types = typesparamsTypesVariable[0]
-	paramsTypes = MapTyped(typesparamsTypesVariable[1])
+	types, paramsTypes = this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
 	var allMarkets []any = []any{}
 	var promises []any = []any{}
 	var keys []string = ObjectKeys(types)

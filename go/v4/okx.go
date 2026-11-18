@@ -2474,7 +2474,7 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 	}
 }
 func (this *Okx) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
@@ -2484,7 +2484,7 @@ func (this *Okx) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = marketType
 	var isOption bool = false
 	if marketId != nil {
-		var parts []string = Split(marketId, "-")
+		var parts []string = strings.Split(*marketId, "-")
 		var partsLength int = len(parts)
 		// a valid OKX option ends with the call/put flag and carries expiry+strike segments,
 		// e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
@@ -2492,9 +2492,13 @@ func (this *Okx) SafeMarket(optionalArgs ...any) map[string]any {
 		// misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
 		// "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
 		// on the missing expiry.
-		isOption = (partsLength > 3) && (EndsWith(marketId, "-C") || EndsWith(marketId, "-P"))
+		isOption = (partsLength > 3) && (strings.HasSuffix(*marketId, "-C") || strings.HasSuffix(*marketId, "-P"))
 	}
-	if isOption && (marketId != nil) && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	var marketIdKnown bool
+	if marketId != nil {
+		_, marketIdKnown = this.Markets_by_id[*marketId]
+	}
+	if isOption && (marketId != nil) && ((this.Markets_by_id == nil) || !marketIdKnown) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
@@ -2547,17 +2551,18 @@ func (this *Okx) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...an
 	//
 	var data []any = SafeListTyped(response, "data")
 	var dataLength int = len(data)
+	var statusValue string
+	if dataLength == 0 {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	var update map[string]any = map[string]any{
 		"updated": nil,
-		"status": func() string {
-			if dataLength == 0 {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
-		"eta":  nil,
-		"url":  nil,
-		"info": response,
+		"status":  statusValue,
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
 	}
 	for i := 0; i < len(data); i++ {
 		var event map[string]any = SafeMapTyped(data, i)
@@ -5451,12 +5456,12 @@ func (this *Okx) editOrderBody(ch chan AsyncResult[Order], id string, symbol str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Okx) EditOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Okx) editOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Okx) editOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5469,7 +5474,7 @@ func (this *Okx) editOrdersBody(ch chan AsyncResult[[]Order], orders any, option
 		}
 	}
 	var ordersRequests []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
@@ -5764,12 +5769,12 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Okx) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5792,7 +5797,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders
 		methodStr := "privatePostTradeCancelAlgos"
 		method = &methodStr
 	}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var order map[string]any = SafeMapTyped(orders, i)
 		var id *string = this.SafeString(order, "id")
 		var clientOrderId *string = this.SafeString2(order, "clOrdId", "clientOrderId")
@@ -10948,12 +10953,10 @@ func (this *Okx) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInter
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market map[string]any = nil
 	if symbolsNormalized != nil {
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
+		var normalizedLength int = len(symbolsNormalized)
+		if normalizedLength > 0 {
+			market = this.Market(symbolsNormalized[0])
+		}
 	}
 	var marketType *string = nil
 	var paramsSubType map[string]any = map[string]any{}
@@ -12827,9 +12830,9 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]MarginMo
 	_ = symbol
 	var typeVar *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = typeVar
-	var since *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
-	var limit *float64 = GetArgFloat64Ptr(optionalArgs, 3, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
@@ -12877,14 +12880,14 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]MarginMo
 	var now int64 = this.Milliseconds()
 	var oneWeekAgo int64 = now - 604800000
 	var threeMonthsAgo int64 = now - 7776000000
-	if (since == nil) || (since != nil && *since > float64(oneWeekAgo)) {
+	if (since == nil) || (since != nil && *since > oneWeekAgo) {
 
 		r1 := <-this.PrivateGetAccountBills(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if since != nil && *since > float64(threeMonthsAgo) {
+	} else if since != nil && *since > threeMonthsAgo {
 
 		r2 := <-this.PrivateGetAccountBillsArchive(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -13724,7 +13727,7 @@ func (this *Okx) EditOrders(orders []OrderRequest, options ...EditOrdersOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.EditOrdersAsync(orders, opts.Params)
+	r := <-this.EditOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -13807,7 +13810,7 @@ func (this *Okx) CancelOrdersForSymbols(orders []CancellationRequest, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
+	r := <-this.CancelOrdersForSymbolsAsync(ConvertCancellationRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

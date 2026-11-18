@@ -2659,12 +2659,12 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		titleStr := *underlying + titleSuffix
 		title = &titleStr
 	}
-	var endValue any = func() any {
-		if expiryMs != nil {
-			return expiryMs
-		}
-		return firstExpiry
-	}()
+	var endValue *int64
+	if expiryMs != nil {
+		endValue = expiryMs
+	} else {
+		endValue = firstExpiry
+	}
 	return this.Extend(map[string]any{
 		"id":               parentSymbol,
 		"slug":             parentSymbol,
@@ -2743,12 +2743,12 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) ma
 		"connectionId": hash,
 	}
 }
-func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any) any {
+func (this *Hyperliquid) ActionHash(action any, vaultAddress *string, nonce any) any {
 	var dataBinary any = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data any = dataHex
 	data = ccxt.Add(data, "00000"+this.IntToBase16(nonce))
-	if ccxt.IsEqual(vaultAddress, nil) {
+	if vaultAddress == nil {
 		data = ccxt.Add(data, "00")
 	} else {
 		data = ccxt.Add(data, "01")
@@ -2757,7 +2757,7 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any) any
 	return this.Hash(this.Base16ToBinary(data), ccxt.Keccak, "binary")
 }
 func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any) any {
-	vaultAddress := ccxt.GetArg(optionalArgs, 0, nil)
+	var vaultAddress *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = vaultAddress
 	this.CheckRequiredCredentials()
 	var hash any = this.ActionHash(action, vaultAddress, nonce)
@@ -2833,16 +2833,17 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var hyperliquidChainValue string
+	if isSandboxMode != nil && *isSandboxMode {
+		hyperliquidChainValue = "Testnet"
+	} else {
+		hyperliquidChainValue = "Mainnet"
+	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode {
-				return "Testnet"
-			}
-			return "Mainnet"
-		}(),
-		"maxFeeRate": maxFeeRate,
-		"builder":    builder,
-		"nonce":      nonce,
+		"hyperliquidChain": hyperliquidChainValue,
+		"maxFeeRate":       maxFeeRate,
+		"builder":          builder,
+		"nonce":            nonce,
 	}
 	var sig any = this.BuildApproveBuilderFeeSig(payload)
 	var action map[string]any = map[string]any{

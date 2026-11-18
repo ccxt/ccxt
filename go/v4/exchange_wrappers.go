@@ -138,7 +138,7 @@ func (this *BaseExchange) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]OHLCV{}, r.Err
 	}
@@ -152,7 +152,7 @@ func (this *BaseExchange) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1227,7 +1227,7 @@ func (this *BaseExchange) CancelOrdersForSymbols(orders []CancellationRequest, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
+	r := <-this.CancelOrdersForSymbolsAsync(ConvertCancellationRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1780,7 +1780,7 @@ func (this *Exchange) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.EditOrdersAsync(orders, opts.Params)
+	r := <-this.EditOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

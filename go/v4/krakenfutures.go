@@ -3020,10 +3020,12 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var filled *string = this.SafeString2(details, "filledSize", "filled", "0.0")
 	var remaining *string = this.SafeString(details, "unfilledSize")
 	var average any = nil
-	var filled2 any = "0.0"
+	filled2Lit406 := "0.0"
+	var filled2 *string = &filled2Lit406
 	var tradesLength int = len(trades)
 	if tradesLength > 0 {
-		var vwapSum any = "0.0"
+		vwapSumLit409 := "0.0"
+		var vwapSum *string = &vwapSumLit409
 		for i := 0; i < len(trades); i++ {
 			var trade map[string]any = SafeMapTyped(trades, i)
 			var tradeAmount *string = this.SafeString(trade, "amount")

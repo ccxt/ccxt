@@ -2568,7 +2568,7 @@ func (this *Pacifica) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResu
 func (this *Pacifica) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2608,14 +2608,14 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}))})}
 	return nil
 }
-func (this *Pacifica) CancelAllOrdersRequest(symbol any, optionalArgs ...any) any {
+func (this *Pacifica) CancelAllOrdersRequest(symbol *string, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var operationType string = "cancel_all_orders"
 	var sigPayload map[string]any = map[string]any{}
 	var excludeReduceOnly *bool = this.SafeBool(params, "excludeReduceOnly", false)
 	sigPayload["exclude_reduce_only"] = excludeReduceOnly
-	if !IsEqual(symbol, nil) {
+	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		sigPayload["all_symbols"] = false
 		sigPayload["symbol"] = market["id"]

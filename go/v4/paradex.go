@@ -800,13 +800,14 @@ func (this *Paradex) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	//
 	var status *string = this.SafeString(response, "status")
 
+	var statusValue string
+	if status != nil && *status == "ok" {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if status != nil && *status == "ok" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2104,10 +2105,7 @@ func (this *Paradex) prepareParadexDomainBody(ch chan AsyncResult[map[string]any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var systemConfig any = nil
-	if r.Value != nil {
-		systemConfig = r.Value
-	}
+	var systemConfig map[string]any = r.Value
 	if l1 == true {
 		var l1D map[string]any = map[string]any{
 			"name":    "Paradex",
@@ -2142,10 +2140,7 @@ func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) an
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var systemConfig any = nil
-		if r.Value != nil {
-			systemConfig = r.Value
-		}
+		var systemConfig map[string]any = r.Value
 
 		r1 := <-this.PrepareParadexDomainAsync(true)
 		if r1.Err != nil {
@@ -2188,10 +2183,7 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[map[string]any], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var account any = nil
-	if r.Value != nil {
-		account = r.Value
-	}
+	var account map[string]any = r.Value
 	var req map[string]any = map[string]any{
 		"action": "Onboarding",
 	}
@@ -2253,10 +2245,7 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var account any = nil
-	if r.Value != nil {
-		account = r.Value
-	}
+	var account map[string]any = r.Value
 	// https://docs.paradex.trade/api-reference/general-information/authentication
 	var expires int64 = now + 180
 	var req map[string]any = map[string]any{
@@ -2533,9 +2522,7 @@ func (this *Paradex) CreateOrderRequest(symbol *string, typeVar *string, side *s
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 	}
-	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionAndParams2(params, "createOrder", "recvWindow", "recv_window")
-	recvWindow := recvWindowparamsRecvWindowVariable[0]
-	var paramsRecvWindow map[string]any = MapTyped(recvWindowparamsRecvWindowVariable[1])
+	recvWindow, paramsRecvWindow := this.HandleOptionAndParams2(params, "createOrder", "recvWindow", "recv_window")
 	if recvWindow != nil {
 		request["recv_window"] = this.ParseToInt(recvWindow)
 	}
@@ -2603,10 +2590,7 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var account any = nil
-	if r.Value != nil {
-		account = r.Value
-	}
+	var account map[string]any = r.Value
 	var now int64 = this.Milliseconds()
 	var orderType *string = this.SafeString(request, "type")
 	if orderType == nil {
@@ -4570,9 +4554,7 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var leverageOptionparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage")
-	leverageOption := leverageOptionparamsLeverageVariable[0]
-	var paramsLeverage map[string]any = MapTyped(leverageOptionparamsLeverageVariable[1])
+	leverageOption, paramsLeverage := this.HandleOptionAndParams(params, "setMarginMode", "leverage")
 	var leverage any = leverageOption
 	if IsEqual(leverage, nil) {
 		// the endpoint always sets the leverage too, keep the current one instead of resetting it

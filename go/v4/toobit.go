@@ -1237,6 +1237,12 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 	if isContract {
 		symbol = Add(*base+"/"+*quote+":", settle)
 	}
+	var typeValue string
+	if isContract {
+		typeValue = "swap"
+	} else {
+		typeValue = "spot"
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -1246,12 +1252,7 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 		"baseId":   baseId,
 		"quoteId":  quoteId,
 		"settleId": settleId,
-		"type": func() string {
-			if isContract {
-				return "swap"
-			}
-			return "spot"
-		}(),
+		"type": typeValue,
 		"spot":     !isContract,
 		"margin":   false,
 		"swap":     isContract,

@@ -2608,10 +2608,6 @@ func (this *Foxbit) ParseTransactionStatus(status *string) *string {
 func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
-	_ = since
-	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
-	_ = limit
 	var cryptoDetails map[string]any = SafeMapTyped(transaction, "details_crypto")
 	var address *string = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
 	var sn *string = this.SafeString(transaction, "sn")

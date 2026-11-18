@@ -416,10 +416,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var orders any = nil
-	if r2.Value != nil {
-		orders = r2.Value
-	}
+	var orders []any = r2.Value
 	var order map[string]any = this.SafeDictMap(orders, 0)
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(order)}
@@ -1555,8 +1552,10 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				ccxt.AppendToArray(&retRes104720, trade)
 				ccxt.AddElementToObject(previousOrder, "trades", retRes104720)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
-				var totalCost any = "0"
-				var totalAmount any = "0"
+				totalCostLit75 := "0"
+				var totalCost *string = &totalCostLit75
+				totalAmountLit76 := "0"
+				var totalAmount *string = &totalAmountLit76
 				var previousOrderTrades []any = ccxt.SafeListTyped(previousOrder, "trades")
 				for j := 0; j < len(previousOrderTrades); j++ {
 					var previousOrderTrade map[string]any = ccxt.SafeMapTyped(previousOrderTrades, j)

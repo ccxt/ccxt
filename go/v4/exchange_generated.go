@@ -949,7 +949,7 @@ func (this *BaseExchange) SetSandboxMode(enabled bool) {
 			this.Urls["api"] = this.Clone(this.Urls["apiBackup"])
 			this.RefreshUrlsViews()
 		}
-		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackup"))
+		var newUrls map[string]any = this.OmitDict(this.Urls, "apiBackup")
 		this.Urls = newUrls
 		this.RefreshUrlsViews()
 		// set flag
@@ -975,7 +975,7 @@ func (this *BaseExchange) EnableDemoTrading(enable bool) {
 	} else if _, ok := this.Urls["apiBackupDemoTrading"]; ok {
 		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
 		this.RefreshUrlsViews()
-		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
+		var newUrls map[string]any = this.OmitDict(this.Urls, "apiBackupDemoTrading")
 		this.Urls = newUrls
 		this.RefreshUrlsViews()
 	}
@@ -1127,12 +1127,12 @@ func (this *BaseExchange) unWatchTradesForSymbolsBody(ch chan AsyncResult[bool],
 	_ = params
 	panic(NotSupported(this.Id + " unWatchTradesForSymbols() is not supported yet"))
 }
-func (this *BaseExchange) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[map[string]map[string][]OHLCV] {
+func (this *BaseExchange) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan AsyncResult[map[string]map[string][]OHLCV] {
 	ch := make(chan AsyncResult[map[string]map[string][]OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan AsyncResult[map[string]map[string][]OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan AsyncResult[map[string]map[string][]OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1143,12 +1143,12 @@ func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan AsyncResult[map[strin
 	_ = params
 	panic(NotSupported(this.Id + " watchOHLCVForSymbols() is not supported yet"))
 }
-func (this *BaseExchange) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[bool] {
+func (this *BaseExchange) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan AsyncResult[bool] {
 	ch := make(chan AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) unWatchOHLCVForSymbolsBody(ch chan AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *BaseExchange) unWatchOHLCVForSymbolsBody(ch chan AsyncResult[bool], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1744,9 +1744,9 @@ func (this *BaseExchange) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[
 	_ = symbol
 	var typeVar *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = typeVar
-	var since *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
-	var limit *float64 = GetArgFloat64Ptr(optionalArgs, 3, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
@@ -2121,7 +2121,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	}
 	// if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
 	if methodName == nil {
-		if !IsEqual(defaultValue, nil) {
+		if defaultValue != nil {
 			return defaultValue
 		}
 		return methodsContainer
@@ -2129,16 +2129,16 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	if !(InOp(methodsContainer, methodName)) {
 		return defaultValue // unsupported method, check "exchange.features" for details');
 	}
-	var methodDict any = GetValue(methodsContainer, methodName)
-	if methodDict == nil {
-		return defaultValue
-	}
 	// if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
 	if paramName == nil {
-		if !IsEqual(defaultValue, nil) {
+		if defaultValue != nil {
 			return defaultValue
 		}
-		return methodDict
+		return GetValue(methodsContainer, methodName)
+	}
+	var methodDict any = this.SafeDict(methodsContainer, methodName)
+	if methodDict == nil {
+		return defaultValue
 	}
 	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
 	var parentKey *string = SafeStringPtr(func() any {
@@ -2164,7 +2164,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		if !(InOp(GetValue(methodDict, parentKey), subKey)) {
 			return defaultValue // unsupported subKey, check "exchange.features" for details
 		}
-		return GetValue(GetValue(methodDict, parentKey), subKey)
+		return this.SafeValue(dictionary, subKey)
 	}
 }
 func (this *BaseExchange) OrderbookChecksumMessage(symbol any) any {
@@ -2482,7 +2482,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		}
 	}
 	var numCurrencies int = 0
-	if !IsEqual(currencies, nil) {
+	if currencies != nil {
 		var keys []string = ObjectKeys(currencies)
 		numCurrencies = len(keys)
 	}
@@ -4959,7 +4959,7 @@ func (this *BaseExchange) FilterByArray(objects any, key any, optionalArgs ...an
 	_ = indexed
 	var objectsValue []any = this.ToArray(objects)
 	// return all of them if no values were passed
-	if (IsEqual(values, nil)) || (values == false) || (IsEqual(values, 0)) || (values == "") {
+	if (values == nil) || (values == false) || (IsEqual(values, 0)) || (values == "") {
 		// return indexed ? this.indexBy (objects, key) : objects;
 		if indexed == true {
 			return this.IndexBy(objectsValue, key)
@@ -4986,7 +4986,7 @@ func (this *BaseExchange) FilterOutByArray(objects any, key any, optionalArgs ..
 	_ = indexed
 	var objectsValue []any = this.ToArray(objects)
 	// return all of them if no values were passed
-	if (IsEqual(values, nil)) || (values == false) || (IsEqual(values, 0)) || (values == "") {
+	if (values == nil) || (values == false) || (IsEqual(values, 0)) || (values == "") {
 		// return indexed ? this.indexBy (objects, key) : objects;
 		if indexed == true {
 			return this.IndexBy(objectsValue, key)
@@ -5414,7 +5414,7 @@ func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) map[
 	})
 }
 func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	market := GetArg(optionalArgs, 1, nil)
 	_ = market
@@ -5423,14 +5423,14 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	if marketId != nil {
-		if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
+		if _, ok := this.Markets_by_id[*marketId]; ok {
 			var markets []any = SafeListTyped(this.Markets_by_id, marketId)
 			var numMarkets int = len(markets)
 			if numMarkets == 1 {
 				return MarketTyped(markets[0])
 			} else {
 				if (marketType == nil) && (market == nil) {
-					panic(ArgumentsRequired(Add(Add(this.Id+" safeMarket() requires a fourth argument for ", marketId), " to disambiguate between different markets with the same market id")))
+					panic(ArgumentsRequired(this.Id + " safeMarket() requires a fourth argument for " + *marketId + " to disambiguate between different markets with the same market id"))
 				}
 				var marketTypeResolved *string
 				if marketType == nil {
@@ -5491,7 +5491,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	return MarketTyped(emptyMarket)
 }
-func (this *BaseExchange) MarketOrNull(optionalArgs ...any) any {
+func (this *BaseExchange) MarketOrNull(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	if symbol == nil {
@@ -5676,11 +5676,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes707115 map[string]any = r.Value
-	if retRes707115 == nil {
+	var retRes706815 map[string]any = r.Value
+	if retRes706815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes707115}
+		ch <- AsyncResult[map[string]any]{Value: retRes706815}
 	}
 	return nil
 }
@@ -5844,57 +5844,9 @@ func (this *BaseExchange) RequireValue(value any, optionalArgs ...any) any {
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
-	// This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-	defaultValue := GetArg(optionalArgs, 0, nil)
-	_ = defaultValue
-	var defaultOptionName string = "default" + this.Capitalize(optionName) // we also need to check the 'defaultXyzWhatever'
-	// check if params contain the key
-	var value any = this.SafeValue2(params, optionName, defaultOptionName)
-	if !IsEqual(value, nil) {
-		var paramsOmitted any = this.Omit(params, []any{optionName, defaultOptionName})
-		return []any{value, paramsOmitted}
-	} else {
-		// handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
-		var callerMethodName *string = this.SafeString(params, "callerMethodName", methodName)
-		paramsCallerMethodName := params
-		if callerMethodName != nil {
-			paramsCallerMethodName = this.Omit(params, "callerMethodName")
-		}
-		// check if exchange has properties for this method
-		var exchangeWideMethodOptions any = this.SafeValue(this.Options, callerMethodName)
-		if exchangeWideMethodOptions != nil {
-			// check if the option is defined inside this method's props
-			value = this.SafeValue2(exchangeWideMethodOptions, optionName, defaultOptionName)
-		}
-		if IsEqual(value, nil) {
-			// if it's still undefined, check if global exchange-wide option exists
-			value = this.SafeValue2(this.Options, optionName, defaultOptionName)
-		}
-		// if it's still undefined, use the default value
-		if IsEqual(value, nil) {
-			value = defaultValue
-		}
-		return []any{value, paramsCallerMethodName}
-	}
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
-	_ = defaultValue
-	var valueparamsOption1Variable []any = this.HandleOptionAndParams(params, methodName1, optionName1)
-	value := valueparamsOption1Variable[0]
-	paramsOption1 := valueparamsOption1Variable[1]
-	if value != nil {
-		// omit optionName2 too from params
-		var paramsOmitted any = this.Omit(paramsOption1, optionName2)
-		return []any{value, paramsOmitted}
-	}
-	// if still undefined, try optionName2
-	return this.HandleOptionAndParams(paramsOption1, methodName1, optionName2, defaultValue)
-}
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
@@ -5916,7 +5868,7 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
-	var res []any = this.HandleOptionAndParams(map[string]any{}, methodName, optionName, defaultValue)
+	var res []any = TupleSlice(this.HandleOptionAndParams(map[string]any{}, methodName, optionName, defaultValue))
 	return this.SafeValue(res, 0)
 }
 func (this *BaseExchange) ThrowExactlyMatchedException(exact any, string any, message any) {
@@ -6148,10 +6100,7 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan AsyncResult[ADL], sym
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var ranks any = nil
-		if r1.Value != nil {
-			ranks = ADLsToList(r1.Value)
-		}
+		var ranks []any = ADLsToList(r1.Value)
 		var rank map[string]any = this.SafeDictMap(ranks, 0)
 		if rank == nil {
 			panic(NullResponse(this.Id + " fetchPositionsADLRank() could not find a rank for " + *symbolResolved))
@@ -6315,12 +6264,12 @@ func (this *BaseExchange) cancelAllOrdersAfterBody(ch chan AsyncResult[map[strin
 	_ = params
 	panic(NotSupported(this.Id + " cancelAllOrdersAfter() is not supported yet"))
 }
-func (this *BaseExchange) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *BaseExchange) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *BaseExchange) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8023,9 +7972,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	_ = removeRepeated
 	maxCallsPaginationCalls, paramsPaginationCalls := this.HandleOptionIntegerAndParams(params, method, "paginationCalls", 10)
 	maxRetriesOption, paramsMaxRetries := this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", 3)
-	var removeRepeatedOptionparamsRemoveRepeatedVariable []any = this.HandleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated)
-	removeRepeatedOption := removeRepeatedOptionparamsRemoveRepeatedVariable[0]
-	paramsRemoveRepeated := removeRepeatedOptionparamsRemoveRepeatedVariable[1]
+	removeRepeatedOption, paramsRemoveRepeated := this.HandleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated)
 	paginationDirection, paramsPaginationDirection := this.HandleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward")
 	var paginationTimestamp any = nil
 	var result []any = []any{}
@@ -9371,12 +9318,12 @@ func (this *Exchange) closeAllPositionsBody(ch chan AsyncResult[[]Position], opt
 	_ = params
 	panic(NotSupported(this.Id + " closeAllPositions() is not supported yet"))
 }
-func (this *Exchange) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Exchange) EditOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Exchange) editOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Exchange) editOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11567,12 +11514,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048815Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048815 []any = retRes1048815Recv
-	if retRes1048815 == nil {
+	retRes1048515Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048515 []any = retRes1048515Recv
+	if retRes1048515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048515)}
 	}
 	return nil
 }

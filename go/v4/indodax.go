@@ -451,6 +451,12 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		}
 		var isMaintenance *int64 = this.SafeInteger(market, "is_maintenance")
 		var inMaintenance bool = (isMaintenance != nil) && (isMaintenance == nil || *isMaintenance != 0)
+		var activeValue bool
+		if inMaintenance {
+			activeValue = false
+		} else {
+			activeValue = true
+		}
 		result = append(result, map[string]any{
 			"id":       id,
 			"symbol":   *base + "/" + *quote,
@@ -466,12 +472,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			"swap":     false,
 			"future":   false,
 			"option":   false,
-			"active": func() bool {
-				if inMaintenance {
-					return false
-				}
-				return true
-			}(),
+			"active": activeValue,
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,

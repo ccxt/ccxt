@@ -790,16 +790,17 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 		deposit = false
 		withdraw = false
 	}
+	var typeValue string
+	if stock {
+		typeValue = "stock"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"precision": nil,
-		"type": func() string {
-			if stock {
-				return "stock"
-			}
-			return "crypto"
-		}(),
+		"type": typeValue,
 		"name":     this.SafeString(rawCurrency, "displayName"),
 		"active":   active,
 		"deposit":  deposit,

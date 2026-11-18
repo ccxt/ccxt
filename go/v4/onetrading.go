@@ -882,12 +882,12 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
-		var tierObject any = func() any {
-			if *this.SafeBool(market, "spot", false) {
-				return firstSpotTier
-			}
-			return firstFuturesTier
-		}()
+		var tierObject map[string]any
+		if *this.SafeBool(market, "spot", false) {
+			tierObject = firstSpotTier
+		} else {
+			tierObject = firstFuturesTier
+		}
 		result[symbol] = map[string]any{
 			"info":       spotFees,
 			"symbol":     symbol,

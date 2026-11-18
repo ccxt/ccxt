@@ -1149,9 +1149,7 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	var deltasOptionparamsDeltasVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
-	deltasOption := deltasOptionparamsDeltasVariable[0]
-	var paramsDeltas map[string]any = ccxt.MapTyped(deltasOptionparamsDeltasVariable[1])
+	deltasOption, paramsDeltas := this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
 	var deltas bool = (deltasOption == true) || ((limit != nil) && (*limit > 15))
 	var url any = this.GetWsUrl()
 	// an unwatch in flight decides which feed each market is on once acknowledged
@@ -1270,9 +1268,7 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var deltasOptionparamsDeltasVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
-	deltasOption := deltasOptionparamsDeltasVariable[0]
-	var paramsDeltas map[string]any = ccxt.MapTyped(deltasOptionparamsDeltasVariable[1])
+	deltasOption, paramsDeltas := this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
 	var url any = this.GetWsUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	var channels []any = []any{}

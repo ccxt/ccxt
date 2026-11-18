@@ -1420,10 +1420,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var wallet any = nil
-	if r2.Value != nil {
-		wallet = r2.Value
-	}
+	var wallet map[string]any = r2.Value
 	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r3 := <-this.SapiPrivateGetOrderList(this.Extend(request, paramsMaxEntriesPerRequest))
@@ -1554,10 +1551,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var wallet any = nil
-	if r2.Value != nil {
-		wallet = r2.Value
-	}
+	var wallet map[string]any = r2.Value
 	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r3 := <-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))
@@ -1650,10 +1644,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wallet any = nil
-	if r1.Value != nil {
-		wallet = r1.Value
-	}
+	var wallet map[string]any = r1.Value
 	var request map[string]any = map[string]any{
 		"walletAddress": this.SafeString(wallet, "walletAddress"),
 	}
@@ -1771,10 +1762,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wallet any = nil
-	if r1.Value != nil {
-		wallet = r1.Value
-	}
+	var wallet map[string]any = r1.Value
 	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r2 := <-this.SapiPrivateGetPositionFilter(this.Extend(request, params))
@@ -1929,10 +1917,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var wallet any = nil
-	if r2.Value != nil {
-		wallet = r2.Value
-	}
+	var wallet map[string]any = r2.Value
 	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r3 := <-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))
@@ -2259,10 +2244,7 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wallet any = nil
-	if r1.Value != nil {
-		wallet = r1.Value
-	}
+	var wallet map[string]any = r1.Value
 	var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage", "0.05")
 	var slippage *string = this.SafeString(params, "slippage", defaultSlippage)
 	var cost *string = this.SafeString(params, "cost")
@@ -2318,10 +2300,7 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var quote any = nil
-	if r2.Value != nil {
-		quote = r2.Value
-	}
+	var quote map[string]any = r2.Value
 	var quoteId *string = this.SafeString(quote, "quoteId")
 	var orderRequest map[string]any = this.Extend(commonRequest, map[string]any{
 		"walletId":    this.SafeString(wallet, "walletId"),
@@ -2463,10 +2442,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wallet any = nil
-	if r1.Value != nil {
-		wallet = r1.Value
-	}
+	var wallet map[string]any = r1.Value
 	var request map[string]any = map[string]any{
 		"walletAddress": this.SafeString(wallet, "walletAddress"),
 		"walletId":      this.SafeString(wallet, "walletId"),

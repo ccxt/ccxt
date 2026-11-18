@@ -4374,10 +4374,7 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response any = nil
-	if r1.Value != nil {
-		response = r1.Value
-	}
+	var response map[string]any = r1.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4424,10 +4421,7 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response any = nil
-	if r.Value != nil {
-		response = r.Value
-	}
+	var response map[string]any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4659,10 +4653,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response any = nil
-	if r.Value != nil {
-		response = r.Value
-	}
+	var response map[string]any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)

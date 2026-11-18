@@ -221,7 +221,8 @@ func (this *Binance) RequestId(url any) int64 {
 	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
-	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
+	ccxt.AddElementToObject(options, url, newValue)
+	this.Options["requestId"] = options
 	return newValue
 }
 func (this *Binance) IsSpotUrl(client any) bool {
@@ -241,7 +242,8 @@ func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...a
 		this.Options["streamIndex"] = streamIndex
 		stream = this.NumberToString(normalizedIndex)
 		if !ccxt.IsEqual(subscriptionHash, nil) {
-			ccxt.AddElementToObject(this.Options["streamBySubscriptionsHash"], subscriptionHash, stream)
+			ccxt.AddElementToObject(streamBySubscriptionsHash, subscriptionHash, stream)
+			this.Options["streamBySubscriptionsHash"] = streamBySubscriptionsHash
 		}
 		var subscriptionsByStreams map[string]any = ccxt.SafeMapTyped(this.Options, "numSubscriptionsByStream")
 		if subscriptionsByStreams == nil {
@@ -2155,9 +2157,7 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var stockparamsStockVariable []any = this.HandleOptionAndParams(params, "watchOHLCV", "stock")
-	stock := stockparamsStockVariable[0]
-	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
+	stock, paramsStock := this.HandleOptionAndParams(params, "watchOHLCV", "stock")
 	if stock == true {
 		if (timeframe != "5m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
 			panic(ccxt.BadRequest(this.Id + " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes"))
@@ -2208,12 +2208,12 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Binance) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+func (this *Binance) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
 	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2233,8 +2233,8 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	if stock {
 		var stockStreams []any = []any{}
 		var stockMessageHashes []any = []any{}
-		for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-			var stockSymAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
+		for i := 0; i < len(symbolsAndTimeframes); i++ {
+			var stockSymAndTf any = symbolsAndTimeframes[i]
 			var stockSymbolString any = this.Symbol(this.SafeString(stockSymAndTf, 0, ""))
 			var stockMarket map[string]any = this.Market(stockSymbolString)
 			var stockTicker *string = this.SafeString2(stockMarket, "base", "id")
@@ -2305,8 +2305,8 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	var subscribeHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
+	for i := 0; i < len(symbolsAndTimeframes); i++ {
+		var symAndTf any = symbolsAndTimeframes[i]
 		var symbolString string = *this.SafeString(symAndTf, 0, "")
 		var timeframeString *string = this.SafeString(symAndTf, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
@@ -2375,12 +2375,12 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Binance) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2426,8 +2426,8 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var rawHashes []any = []any{}
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
+	for i := 0; i < len(symbolsAndTimeframes); i++ {
+		var symAndTf any = symbolsAndTimeframes[i]
 		var symbolString string = *this.SafeString(symAndTf, 0, "")
 		var timeframeString *string = this.SafeString(symAndTf, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
@@ -3235,8 +3235,8 @@ func (this *Binance) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes237215 bool = r.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes237215}
+	var retRes237515 bool = r.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes237515}
 	return nil
 }
 
@@ -3346,12 +3346,10 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	var firstMarket map[string]any = nil
 	var symbolsDefined bool = (symbolsNormalized != nil)
 	if symbolsNormalized != nil {
-		firstMarket = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
+		var normalizedLength int = len(symbolsNormalized)
+		if normalizedLength > 0 {
+			firstMarket = this.Market(symbolsNormalized[0])
+		}
 	}
 	var userDefaultType *string = this.SafeString(this.Options, "defaultType")
 	var defaultMarket *string = nil
@@ -3482,13 +3480,14 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channel)), "/"), this.Stream(rawMarketType, streamHash))
 	var requestId int64 = this.RequestId(url)
+	var methodValue string
+	if isUnsubscribe == true {
+		methodValue = "UNSUBSCRIBE"
+	} else {
+		methodValue = "SUBSCRIBE"
+	}
 	var request map[string]any = map[string]any{
-		"method": func() string {
-			if isUnsubscribe == true {
-				return "UNSUBSCRIBE"
-			}
-			return "SUBSCRIBE"
-		}(),
+		"method": methodValue,
 		"params": subscriptionArgs,
 		"id":     requestId,
 	}
@@ -4765,11 +4764,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes350615 []any = ccxt.PositionsToList(r.Value)
-	if retRes350615 == nil {
+	var retRes351215 []any = ccxt.PositionsToList(r.Value)
+	if retRes351215 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes350615)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes351215)}
 	}
 	return nil
 }
@@ -5421,14 +5420,15 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	}
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "editOrderWs", "returnRateLimits", false)
 	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	var methodValue string
+	if isSwap {
+		methodValue = "order.modify"
+	} else {
+		methodValue = "order.cancelReplace"
+	}
 	var message map[string]any = map[string]any{
-		"id": messageHash,
-		"method": func() string {
-			if isSwap {
-				return "order.modify"
-			}
-			return "order.cancelReplace"
-		}(),
+		"id":     messageHash,
+		"method": methodValue,
 		"params": this.SignParams(this.Extend(payload, paramsReturnRateLimits)),
 	}
 	var subscription map[string]any = map[string]any{
@@ -7476,9 +7476,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes568832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes568832, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes568832)
+							retRes569432 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes569432, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes569432)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
@@ -8326,7 +8326,7 @@ func (this *Binance) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
@@ -8355,7 +8355,7 @@ func (this *Binance) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

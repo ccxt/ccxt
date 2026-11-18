@@ -385,12 +385,12 @@ func (this *Toobit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Toobit) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+func (this *Toobit) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
 	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -411,7 +411,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options["ws"], "timeframes")
 	var marketIds []any = []any{}
 	var selectedTimeframe any = nil
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
+	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolStr string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolStr)
@@ -1102,7 +1102,7 @@ func (this *Toobit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = ccxt.MapTyped(this.MarketOrNull(symbol))
+	var market map[string]any = this.MarketOrNull(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", symbol)
 	var messageHash string = "orders"
 	if symbolValue != nil {
@@ -1257,7 +1257,7 @@ func (this *Toobit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = ccxt.MapTyped(this.MarketOrNull(symbol))
+	var market map[string]any = this.MarketOrNull(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", symbol)
 	var messageHash string = "myTrades"
 	if symbolValue != nil {
@@ -1852,7 +1852,7 @@ func (this *Toobit) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}

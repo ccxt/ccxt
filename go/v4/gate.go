@@ -2134,7 +2134,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	}
 }
 func (this *Gate) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
@@ -2142,8 +2142,12 @@ func (this *Gate) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
-	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	var isOption bool = (marketId != nil) && ((strings.Index(*marketId, "-C") > -1) || (strings.Index(*marketId, "-P") > -1))
+	var marketIdKnown bool
+	if marketId != nil {
+		_, marketIdKnown = this.Markets_by_id[*marketId]
+	}
+	if isOption && ((this.Markets_by_id == nil) || !marketIdKnown) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
@@ -8394,12 +8398,12 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Gate) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8417,7 +8421,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], order
 		panic(r1.Err)
 	}
 	var ordersRequests []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var order map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
@@ -9437,7 +9441,8 @@ func (this *Gate) ParseEmulatedLeverageTiers(info any, optionalArgs ...any) []an
 	var initialMarginUnit *string = Precise.StringDiv("1", leverageMax)
 	var maintenanceMarginRate *string = maintenanceMarginUnit
 	var initialMarginRatio *string = initialMarginUnit
-	var floor any = "0"
+	floorLit12 := "0"
+	var floor *string = &floorLit12
 	var tiers []any = []any{}
 	for Precise.StringLt(floor, riskLimitMax) {
 		var cap *string = Precise.StringAdd(floor, riskLimitStep)
@@ -13020,7 +13025,7 @@ func (this *Gate) CancelOrdersForSymbols(orders []CancellationRequest, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
+	r := <-this.CancelOrdersForSymbolsAsync(ConvertCancellationRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

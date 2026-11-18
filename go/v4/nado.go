@@ -2246,13 +2246,14 @@ func (this *Nado) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 	//
 	var status *string = this.SafeString(response, "data")
 
+	var statusValue string
+	if status != nil && *status == "active" {
+		statusValue = "ok"
+	} else {
+		statusValue = "error"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if status != nil && *status == "active" {
-				return "ok"
-			}
-			return "error"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,

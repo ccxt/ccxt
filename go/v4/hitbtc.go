@@ -3602,12 +3602,10 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMo
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized != nil {
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
+		var normalizedLength int = len(symbolsNormalized)
+		if normalizedLength > 0 {
+			market = this.Market(symbolsNormalized[0])
+		}
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMarginMode", market, params)
 	var response map[string]any = nil
@@ -3897,14 +3895,12 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized != nil {
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
-		var queryMarketIds []string = this.MarketIdsStrings(symbolsNormalized)
-		request["symbols"] = strings.Join(queryMarketIds, ",")
+		var normalizedLength int = len(symbolsNormalized)
+		if normalizedLength > 0 {
+			market = this.Market(symbolsNormalized[0])
+			var queryMarketIds []string = this.MarketIdsStrings(symbolsNormalized)
+			request["symbols"] = strings.Join(queryMarketIds, ",")
+		}
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
 	if typeVar == nil || *typeVar != "swap" {
@@ -4002,11 +3998,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297119 []any = r1.Value
-		if retRes297119 == nil {
+		var retRes297719 []any = r1.Value
+		if retRes297719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297719)}
 		}
 		return nil
 	}

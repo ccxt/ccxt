@@ -888,7 +888,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	}
 }
 func (this *Deribit) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
@@ -896,8 +896,12 @@ func (this *Deribit) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")))
-	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	var isOption bool = (marketId != nil) && ((strings.HasSuffix(*marketId, "-C")) || (strings.HasSuffix(*marketId, "-P")))
+	var marketIdKnown bool
+	if marketId != nil {
+		_, marketIdKnown = this.Markets_by_id[*marketId]
+	}
+	if isOption && ((this.Markets_by_id == nil) || !marketIdKnown) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
@@ -1076,13 +1080,14 @@ func (this *Deribit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	var locked *string = this.SafeString(result, "locked")
 	var updateTime *int64 = this.SafeIntegerProduct(response, "usIn", 0.001, this.Milliseconds())
 
+	var statusValue string
+	if locked != nil && *locked == "false" {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if locked != nil && *locked == "false" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": updateTime,
 		"eta":     nil,
 		"url":     nil,

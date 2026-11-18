@@ -6200,7 +6200,8 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any 
 	var riskIncrVol *string = this.SafeString(info, "riskIncrVol")
 	var riskIncrMmr *string = this.SafeString(info, "riskIncrMmr")
 	var riskIncrImr *string = this.SafeString(info, "riskIncrImr")
-	var floor any = "0"
+	floorLit49 := "0"
+	var floor *string = &floorLit49
 	var tiers []any = []any{}
 	var quoteId *string = this.SafeString(info, "quoteCoin")
 	if riskIncrVol != nil && *riskIncrVol == "0" {

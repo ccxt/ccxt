@@ -1291,12 +1291,13 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[Order], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var orderType string = this.Capitalize(typeVar)
-	orderType += func() string {
-		if side == "sell" {
-			return "Offer"
-		}
-		return "Bid"
-	}()
+	var branchValue string
+	if side == "sell" {
+		branchValue = "Offer"
+	} else {
+		branchValue = "Bid"
+	}
+	orderType += branchValue
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   market["baseId"],
 		"secondaryCurrencyCode": market["quoteId"],

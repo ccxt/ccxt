@@ -2504,7 +2504,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger2(data, "sequenceEnd", "timestamp")
 		if nonce == nil {
-			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
+			var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(orderbook.GetCache()))
 			var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 			var subscription any = nil
 			for i := 0; i < len(subscriptions); i++ {
@@ -2515,8 +2515,8 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 				}
 			}
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 5)
-			if ccxt.IsEqual(cacheLength, snapshotDelay) {
+			var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 5))
+			if cacheLength == snapshotDelay {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 			}
 			orderbook.AppendCache(data)
@@ -2568,14 +2568,14 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger(data, "C")
 		if nonce == nil {
-			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
+			var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(orderbook.GetCache()))
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 5)
+			var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 5))
 			var utaParams map[string]any = map[string]any{
 				"uta": true,
 			}
-			if ccxt.IsEqual(cacheLength, snapshotDelay) {
+			if cacheLength == snapshotDelay {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, utaParams)
 			}
 			orderbook.AppendCache(data)

@@ -2666,7 +2666,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var TRADE_MODULE_ADDRESS string = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b" // shared across mainnet and testnet in v3
 	var priceString *string = this.NumberToString(price)
-	var maxFeeOptionAndParams []any = this.HandleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee")
+	var maxFeeOptionAndParams []any = TupleSlice(this.HandleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee"))
 	var maxFeeString *string = this.SafeString(maxFeeOptionAndParams, 0)
 	if maxFeeString == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a max_fee argument in params"))
@@ -4930,9 +4930,7 @@ func (this *Derive) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var riskUniverseIdparamsUniverseVariable []any = this.HandleOptionAndParams(params, "fetchBorrowRateHistory", "risk_universe_id", 1)
-	riskUniverseId := riskUniverseIdparamsUniverseVariable[0]
-	var paramsUniverse map[string]any = MapTyped(riskUniverseIdparamsUniverseVariable[1])
+	riskUniverseId, paramsUniverse := this.HandleOptionAndParams(params, "fetchBorrowRateHistory", "risk_universe_id", 1)
 	var request map[string]any = map[string]any{
 		"currency":         currency["id"],
 		"risk_universe_id": riskUniverseId,
@@ -5465,9 +5463,7 @@ func (this *Derive) ParseTransactionStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []any {
-	var derivesubAccountIdparamsSubaccountIdVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
-	derivesubAccountId := derivesubAccountIdparamsSubaccountIdVariable[0]
-	paramsSubaccountId := derivesubAccountIdparamsSubaccountIdVariable[1]
+	derivesubAccountId, paramsSubaccountId := this.HandleOptionAndParams(params, methodName, "subaccount_id")
 	if (derivesubAccountId != nil) && (derivesubAccountId != "") {
 		// the venue rejects a string subaccount_id ("expected i64"), so coerce early
 		var subaccountIdInt int64 = this.ParseToInt(derivesubAccountId)

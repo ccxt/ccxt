@@ -1042,6 +1042,12 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
+	var typeValue string
+	if hasProvider {
+		typeValue = "fiat"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":       id,
 		"code":     code,
@@ -1052,12 +1058,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 		"withdraw": this.SafeBool(rawCurrency, "can_withdraw"),
 		"fee":      nil,
 		"networks": networks,
-		"type": func() string {
-			if hasProvider {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type": typeValue,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "currency_precision"))),
 		"limits": map[string]any{
 			"amount": map[string]any{

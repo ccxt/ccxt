@@ -2151,13 +2151,14 @@ func (this *Kucoin) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var data map[string]any = SafeMapTyped(response, "data")
 	var status *string = this.SafeString2(data, "status", "serverStatus")
 
+	var statusValue string
+	if status != nil && *status == "open" {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if status != nil && *status == "open" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3000,16 +3001,17 @@ func (this *Kucoin) ParseCurrency(currency any) map[string]any {
 	var rawPrecision *string = this.SafeString(entry, "precision")
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(rawPrecision))
 	var isFiat bool = (chainsLength == 0)
+	var typeValue string
+	if isFiat {
+		typeValue = "fiat"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":   id,
-		"name": this.SafeString(entry, "fullName"),
-		"code": code,
-		"type": func() string {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"id":        id,
+		"name":      this.SafeString(entry, "fullName"),
+		"code":      code,
+		"type":      typeValue,
 		"precision": precision,
 		"info":      entry,
 		"networks":  networks,

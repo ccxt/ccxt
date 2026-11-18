@@ -1841,7 +1841,7 @@ func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any 
 	}
 }
 func (this *Grvt) GetSubAccountId(params any) string {
-	var subAccountId *string = this.SafeString(this.HandleOptionAndParams(params, "getSubAccountId", "accountId"), 0)
+	var subAccountId *string = this.SafeString(TupleSlice(this.HandleOptionAndParams(params, "getSubAccountId", "accountId")), 0)
 	if subAccountId == nil {
 		panic(ArgumentsRequired(this.Id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page"))
 	}
@@ -2430,7 +2430,9 @@ func (this *Grvt) FilterTransfersByType(transfers any, transferType string, opti
 	var nonMatchedResults []any = []any{}
 	for i := 0; i < GetArrayLength(transfers); i++ {
 		var transfer any = GetValue(transfers, i)
-		if ((onlyMainAccount == true) && (this.SafeString(transfer, "fromAccount") != nil && *this.SafeString(transfer, "fromAccount") == "0") && (this.SafeString(transfer, "toAccount") != nil && *this.SafeString(transfer, "toAccount") == "0")) || (!(onlyMainAccount == true) && ((this.SafeString(transfer, "fromAccount") == nil || *this.SafeString(transfer, "fromAccount") != "0") || (this.SafeString(transfer, "toAccount") == nil || *this.SafeString(transfer, "toAccount") != "0"))) {
+		var fromAccount string = *this.SafeString(transfer, "fromAccount", "")
+		var toAccount string = *this.SafeString(transfer, "toAccount", "")
+		if ((onlyMainAccount == true) && (fromAccount == "0") && (toAccount == "0")) || (!(onlyMainAccount == true) && ((fromAccount != "0") || (toAccount != "0"))) {
 			var metadata *string = this.SafeString(this.SafeDict(transfer, "info", map[string]any{}), "transfer_metadata")
 			var parsedMetadata any = this.ParseJson(metadata)
 			var direction *string = this.SafeString(parsedMetadata, "direction")
@@ -3105,11 +3107,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes228519 []any = r1.Value
-		if retRes228519 == nil {
+		var retRes228719 []any = r1.Value
+		if retRes228719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228719)}
 		}
 		return nil
 	}
@@ -3572,11 +3574,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262419 []any = r1.Value
-		if retRes262419 == nil {
+		var retRes262619 []any = r1.Value
+		if retRes262619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes262419)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes262619)}
 		}
 		return nil
 	}

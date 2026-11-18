@@ -75,7 +75,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
+	var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var marketId *string = this.SafeString(marketIds, i, "")
@@ -83,16 +83,22 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 		var messageHash string = channel + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		if !(ccxt.InOp(subscriptions, messageHash)) {
-			ccxt.AddElementToObject(subscriptions, messageHash, map[string]any{
+			subscriptions[messageHash] = map[string]any{
 				"type":  channel,
 				"codes": []any{marketId},
-			})
+			}
 		}
 	}
 	var finalMessage []any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
-	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
+	var channelKeys []string = nil
+	if subscriptions != nil {
+		channelKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			channelKeys = append(channelKeys, objectKey)
+		}
+	}
 	for i := 0; i < len(channelKeys); i++ {
 		var key string = channelKeys[i]
 		finalMessage = append(finalMessage, ccxt.GetValue(subscriptions, key))
@@ -550,17 +556,23 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol *strin
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
+	var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
 	var isNewChannel bool = !(ccxt.InOp(subscriptions, channelKey))
 	if isNewChannel {
-		ccxt.AddElementToObject(subscriptions, channelKey, request)
+		subscriptions[channelKey] = request
 	}
 	// Build subscription message with all requested private channels
 	// Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
 	var message []any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
-	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
+	var channelKeys []string = nil
+	if subscriptions != nil {
+		channelKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			channelKeys = append(channelKeys, objectKey)
+		}
+	}
 	for i := 0; i < len(channelKeys); i++ {
 		message = append(message, ccxt.GetValue(subscriptions, channelKeys[i]))
 	}

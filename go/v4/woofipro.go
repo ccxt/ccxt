@@ -3029,12 +3029,12 @@ func (this *Woofipro) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		extendParams["id"] = id
 	}
 	if trigger != nil && *trigger {
-		var parsedResponse any = func() any {
-			if response == nil {
-				return map[string]any{}
-			}
-			return response
-		}()
+		var parsedResponse map[string]any
+		if response == nil {
+			parsedResponse = map[string]any{}
+		} else {
+			parsedResponse = response
+		}
 
 		ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(parsedResponse)), extendParams))}
 		return nil
@@ -4506,6 +4506,12 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 	_ = market
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var success *bool = this.SafeBool(data, "success", false)
+	var statusValue string
+	if success != nil && *success {
+		statusValue = "ok"
+	} else {
+		statusValue = "failed"
+	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
@@ -4514,14 +4520,9 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status": func() string {
-			if success != nil && *success {
-				return "ok"
-			}
-			return "failed"
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"status":     statusValue,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 

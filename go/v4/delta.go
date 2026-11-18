@@ -523,7 +523,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	})
 }
 func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
@@ -531,8 +531,12 @@ func (this *Delta) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
-	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	var isOption bool = (marketId != nil) && ((strings.HasSuffix(*marketId, "-C")) || (strings.HasSuffix(*marketId, "-P")) || (strings.HasPrefix(*marketId, "C-")) || (strings.HasPrefix(*marketId, "P-")))
+	var marketIdKnown bool
+	if marketId != nil {
+		_, marketIdKnown = this.Markets_by_id[*marketId]
+	}
+	if isOption && ((this.Markets_by_id == nil) || !marketIdKnown) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}

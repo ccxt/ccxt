@@ -298,14 +298,15 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
+	var methodValue string
+	if isContract {
+		methodValue = "SUBSCRIBE"
+	} else {
+		methodValue = "subscribe"
+	}
 	var subscribe map[string]any = map[string]any{
-		"method": func() string {
-			if isContract {
-				return "SUBSCRIBE"
-			}
-			return "subscribe"
-		}(),
-		"id": id,
+		"method": methodValue,
+		"id":     id,
 	}
 	if privateAccess {
 		if !isContract {
@@ -396,14 +397,15 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
+	var methodValue string
+	if isContract {
+		methodValue = "UNSUBSCRIBE"
+	} else {
+		methodValue = "unsubscribe"
+	}
 	var unsubscribe map[string]any = map[string]any{
-		"method": func() string {
-			if isContract {
-				return "UNSUBSCRIBE"
-			}
-			return "unsubscribe"
-		}(),
-		"id": id,
+		"method": methodValue,
+		"id":     id,
 	}
 	if privateAccess {
 		if !isContract {
@@ -1810,9 +1812,9 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if nonce == nil {
-			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
-			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 25)
-			if ccxt.IsEqual(cacheLength, snapshotDelay) {
+			var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(orderbook.GetCache()))
+			var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 25))
+			if cacheLength == snapshotDelay {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 			}
 			orderbook.AppendCache(data)

@@ -1403,6 +1403,12 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 	} else {
 		amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
+	var typeValue string
+	if isContract {
+		typeValue = "swap"
+	} else {
+		typeValue = "spot"
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -1412,12 +1418,7 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 		"baseId":   baseId,
 		"quoteId":  quoteId,
 		"settleId": settleId,
-		"type": func() string {
-			if isContract {
-				return "swap"
-			}
-			return "spot"
-		}(),
+		"type": typeValue,
 		"spot":           spot,
 		"margin":         false,
 		"swap":           swap,
@@ -4362,9 +4363,9 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Margin
 	_ = symbol
 	var typeVar *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = typeVar
-	var since *float64 = GetArgFloat64Ptr(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
-	var limit *float64 = GetArgFloat64Ptr(optionalArgs, 3, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
@@ -4391,7 +4392,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Margin
 		}()
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -4449,27 +4450,29 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	var noErrorCode bool = (errorCode == nil)
 	var success bool = (errorCode != nil && *errorCode == "200")
+	var typeValue string
+	if rawType != nil && *rawType == 1 {
+		typeValue = "add"
+	} else {
+		typeValue = "reduce"
+	}
+	var statusValue string
+	if success || noErrorCode {
+		statusValue = "ok"
+	} else {
+		statusValue = "failed"
+	}
 	return map[string]any{
-		"info":   data,
-		"symbol": marketResolved["symbol"],
-		"type": func() string {
-			if rawType != nil && *rawType == 1 {
-				return "add"
-			}
-			return "reduce"
-		}(),
+		"info":       data,
+		"symbol":     marketResolved["symbol"],
+		"type":       typeValue,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"code":       this.SafeString(data, "asset"),
 		"total":      nil,
-		"status": func() string {
-			if success || noErrorCode {
-				return "ok"
-			}
-			return "failed"
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"status":     statusValue,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 func (this *Aster) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {

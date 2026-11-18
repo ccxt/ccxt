@@ -1611,9 +1611,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsMarketType, methodName, "until")
-	until := untilparamsUntilVariable[0]
-	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
+	until, paramsUntil := this.HandleOptionAndParams(paramsMarketType, methodName, "until")
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -1853,9 +1851,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsPaginate, methodName, "until")
-	until := untilparamsUntilVariable[0]
-	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
+	until, paramsUntil := this.HandleOptionAndParams(paramsPaginate, methodName, "until")
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -5119,6 +5115,12 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var errorCode *string = this.SafeString(data, "code")
 	var success bool = (errorCode != nil && *errorCode == "0000")
+	var statusValue string
+	if success {
+		statusValue = "ok"
+	} else {
+		statusValue = "failed"
+	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     marketResolved["symbol"],
@@ -5127,14 +5129,9 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 		"amount":     nil,
 		"total":      this.SafeNumber(data, "margin"),
 		"code":       marketResolved["settle"],
-		"status": func() string {
-			if success {
-				return "ok"
-			}
-			return "failed"
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"status":     statusValue,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 

@@ -3132,15 +3132,16 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 	var outcomesLength int = len(outcomes)
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome any = resolvedOutcome
+	var marketTypeValue string
+	if outcomesLength > 2 {
+		marketTypeValue = "categorical"
+	} else {
+		marketTypeValue = "binary"
+	}
 	return map[string]any{
 		"id":     ccxt.Add(ccxt.Add(networkId, ":"), marketId),
 		"market": marketSymbol,
-		"marketType": func() string {
-			if outcomesLength > 2 {
-				return "categorical"
-			}
-			return "binary"
-		}(),
+		"marketType": marketTypeValue,
 		"executionModel":  marketExecutionModel,
 		"base":            slug,
 		"quote":           quoteCurrency,

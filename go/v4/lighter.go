@@ -645,9 +645,7 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan AsyncResult[bool], option
 func (this *Lighter) HandleApiKeyIndex(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) []any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
-	var apiKeyIndexOptionparamsApiKeyIndexVariable []any = this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
-	apiKeyIndexOption := apiKeyIndexOptionparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexOptionparamsApiKeyIndexVariable[1]
+	apiKeyIndexOption, paramsApiKeyIndex := this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
 	var apiKeyIndex *int64 = this.SafeInteger([]any{apiKeyIndexOption}, 0)
 	if (apiKeyIndex != nil) && (*apiKeyIndex >= 4) && (*apiKeyIndex <= 254) {
 		return []any{this.ParseToInt(apiKeyIndex), paramsApiKeyIndex}
@@ -667,9 +665,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan AsyncResult[[]any], params a
 	defer ReturnPanicError(ch)
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
-	var accountIndexOptionparamsAccountIndexVariable []any = this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
-	accountIndexOption := accountIndexOptionparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexOptionparamsAccountIndexVariable[1]
+	accountIndexOption, paramsAccountIndex := this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
 	var accountIndex any = accountIndexOption
 	if IsEqual(accountIndex, nil) {
 		var walletAddress any = this.WalletAddress
@@ -788,12 +784,12 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 	_ = params
 	var apiKeyIndex *string = this.SafeString2(params, "apiKeyIndex", "api_key_index")
 	if apiKeyIndex == nil {
-		var res []any = this.HandleOptionAndParams2(map[string]any{}, "createAuth", "apiKeyIndex", "api_key_index")
+		var res []any = TupleSlice(this.HandleOptionAndParams2(map[string]any{}, "createAuth", "apiKeyIndex", "api_key_index"))
 		apiKeyIndex = this.SafeString(res, 0)
 	}
 	var accountIndex *string = this.SafeString2(params, "accountIndex", "account_index")
 	if accountIndex == nil {
-		var res []any = this.HandleOptionAndParams2(map[string]any{}, "createAuth", "accountIndex", "account_index")
+		var res []any = TupleSlice(this.HandleOptionAndParams2(map[string]any{}, "createAuth", "accountIndex", "account_index"))
 		accountIndex = this.SafeString(res, 0)
 	}
 	var auths map[string]any = SafeMapTyped(this.Options, "auths")
@@ -1158,12 +1154,8 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string,
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "createOrder", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
 	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
-	var accountIndexparamsAccountIndexVariable []any = this.HandleOptionAndParams2(paramsApiKeyIndex, "createOrder", "accountIndex", "account_index")
-	accountIndex := accountIndexparamsAccountIndexVariable[0]
-	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
-	var nonceparamsNonceVariable []any = this.HandleOptionAndParams(paramsAccountIndex, "createOrder", "nonce")
-	nonce := nonceparamsNonceVariable[0]
-	paramsNonce := nonceparamsNonceVariable[1]
+	accountIndex, paramsAccountIndex := this.HandleOptionAndParams2(paramsApiKeyIndex, "createOrder", "accountIndex", "account_index")
+	nonce, paramsNonce := this.HandleOptionAndParams(paramsAccountIndex, "createOrder", "nonce")
 	orderExpiryOption, paramsOrderExpiry := this.HandleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0)
 	var orderExpiry any = orderExpiryOption
 	if nonce != nil {
@@ -1680,13 +1672,14 @@ func (this *Lighter) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	//
 	var status *string = this.SafeString(response, "status")
 
+	var statusValue string
+	if status != nil && *status == "200" {
+		statusValue = "ok"
+	} else {
+		statusValue = "error"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if status != nil && *status == "200" {
-				return "ok"
-			}
-			return "error"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3047,14 +3040,15 @@ func (this *Lighter) ParseAccount(account any) map[string]any {
 	//     }
 	//
 	var accountType *string = this.SafeString(account, "account_type")
+	var typeValue string
+	if accountType != nil && *accountType == "0" {
+		typeValue = "main"
+	} else {
+		typeValue = "subaccount"
+	}
 	return map[string]any{
-		"id": this.SafeString(account, "account_index"),
-		"type": func() string {
-			if accountType != nil && *accountType == "0" {
-				return "main"
-			}
-			return "subaccount"
-		}(),
+		"id":   this.SafeString(account, "account_index"),
+		"type": typeValue,
 		"code": nil,
 		"info": account,
 	}
@@ -3538,9 +3532,7 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	var accountIndexparamsAccountIndexVariable []any = accountIndexparamsAccountIndexVariableRecv
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
-	var toAccountIndexparamsToAccountIndexVariable []any = this.HandleOptionAndParams2(paramsAccountIndex, "transfer", "toAccountIndex", "to_account_index", accountIndex)
-	toAccountIndex := toAccountIndexparamsToAccountIndexVariable[0]
-	paramsToAccountIndex := toAccountIndexparamsToAccountIndexVariable[1]
+	toAccountIndex, paramsToAccountIndex := this.HandleOptionAndParams2(paramsAccountIndex, "transfer", "toAccountIndex", "to_account_index", accountIndex)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -4532,9 +4524,7 @@ func (this *Lighter) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if false {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an marginMode parameter"))
 	}
-	var leverageparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage")
-	leverage := leverageparamsLeverageVariable[0]
-	var paramsLeverage map[string]any = MapTyped(leverageparamsLeverageVariable[1])
+	leverage, paramsLeverage := this.HandleOptionAndParams(params, "setMarginMode", "leverage")
 	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires an leverage parameter"))
 	}

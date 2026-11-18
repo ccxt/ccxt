@@ -1121,13 +1121,14 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], optio
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
 
+	var statusValue string
+	if tradingActive != nil && *tradingActive {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status": func() string {
-			if tradingActive != nil && *tradingActive {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,

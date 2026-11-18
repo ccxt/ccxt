@@ -427,13 +427,14 @@ func (this *Hyperliquid) fetchStatusBody(ch chan AsyncResult[Status], optionalAr
 	//
 	var status *string = this.SafeString(response, "specialStatuses")
 
+	var statusValue string
+	if status == nil {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if status == nil {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": this.SafeInteger(response, "time"),
 		"eta":     nil,
 		"url":     nil,
@@ -1290,13 +1291,14 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 	var paramsValue map[string]any = MapTyped(isUnifiedEnabledparamsValueVariable[1])
 	var dex *string = this.SafeString(paramsValue, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled == true)) && (dex == nil)
+	var typeValue string
+	if isSpot {
+		typeValue = "spotClearinghouseState"
+	} else {
+		typeValue = "clearinghouseState"
+	}
 	var request map[string]any = map[string]any{
-		"type": func() string {
-			if isSpot {
-				return "spotClearinghouseState"
-			}
-			return "clearinghouseState"
-		}(),
+		"type": typeValue,
 		"user": userAddress,
 	}
 
@@ -2053,13 +2055,13 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) ma
 		"connectionId": hash,
 	}
 }
-func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any, optionalArgs ...any) any {
+func (this *Hyperliquid) ActionHash(action any, vaultAddress *string, nonce any, optionalArgs ...any) any {
 	expiresAfter := GetArg(optionalArgs, 0, nil)
 	_ = expiresAfter
 	var dataBinary any = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data any = dataHex + "00000" + this.IntToBase16(nonce)
-	if IsEqual(vaultAddress, nil) {
+	if vaultAddress == nil {
 		data = Add(data, "00")
 	} else {
 		data = Add(data, "01")
@@ -2071,7 +2073,7 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any, opt
 	return this.Hash(this.Base16ToBinary(data), keccak, "binary")
 }
 func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any) any {
-	vaultAdress := GetArg(optionalArgs, 0, nil)
+	var vaultAdress *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = vaultAdress
 	var expiresAfter *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = expiresAfter
@@ -2338,16 +2340,17 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan AsyncResult[map[string]an
 	defer ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var hyperliquidChainValue string
+	if isSandboxMode != nil && *isSandboxMode {
+		hyperliquidChainValue = "Testnet"
+	} else {
+		hyperliquidChainValue = "Mainnet"
+	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode {
-				return "Testnet"
-			}
-			return "Mainnet"
-		}(),
-		"maxFeeRate": maxFeeRate,
-		"builder":    builder,
-		"nonce":      nonce,
+		"hyperliquidChain": hyperliquidChainValue,
+		"maxFeeRate":       maxFeeRate,
+		"builder":          builder,
+		"nonce":            nonce,
 	}
 	var sig any = this.BuildApproveBuilderFeeSig(payload)
 	var action map[string]any = map[string]any{
@@ -2616,16 +2619,17 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan AsyncResult[map[string]a
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
+	var hyperliquidChainValue string
+	if isSandboxMode != nil && *isSandboxMode {
+		hyperliquidChainValue = "Testnet"
+	} else {
+		hyperliquidChainValue = "Mainnet"
+	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode {
-				return "Testnet"
-			}
-			return "Mainnet"
-		}(),
-		"user":        userAddress,
-		"abstraction": abstraction,
-		"nonce":       nonce,
+		"hyperliquidChain": hyperliquidChainValue,
+		"user":             userAddress,
+		"abstraction":      abstraction,
+		"nonce":            nonce,
 	}
 	var sig any = this.BuildUserAbstractionSig(payload)
 	var action map[string]any = map[string]any{
@@ -2684,16 +2688,17 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan AsyncResult[map[st
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
+	var hyperliquidChainValue string
+	if isSandboxMode != nil && *isSandboxMode {
+		hyperliquidChainValue = "Testnet"
+	} else {
+		hyperliquidChainValue = "Mainnet"
+	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode {
-				return "Testnet"
-			}
-			return "Mainnet"
-		}(),
-		"user":    userAddress,
-		"enabled": enabled,
-		"nonce":   nonce,
+		"hyperliquidChain": hyperliquidChainValue,
+		"user":             userAddress,
+		"enabled":          enabled,
+		"nonce":            nonce,
 	}
 	var sig any = this.BuildUserDexAbstractionSig(payload)
 	var action map[string]any = map[string]any{
@@ -3526,12 +3531,12 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
  * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3559,7 +3564,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 		"cancels": []any{},
 	}
 	var cancelByCloid bool = false
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var order map[string]any = SafeMapTyped(orders, i)
 		var clientOrderId *string = this.SafeString(order, "clientOrderId")
 		if clientOrderId != nil {
@@ -3713,12 +3718,12 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) EditOrdersRequest(orders []any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	var hasClientOrderId bool = false
-	var ordersLength int = GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
@@ -3922,12 +3927,12 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[Order], id string, sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hyperliquid) EditOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5759,16 +5764,17 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var strAmountFinal any = strAmount // java req
 		var toPerp bool = (toAccount == "perp") || (toAccount == "swap")
+		var hyperliquidChainValue string
+		if isSandboxMode != nil && *isSandboxMode {
+			hyperliquidChainValue = "Testnet"
+		} else {
+			hyperliquidChainValue = "Mainnet"
+		}
 		var transferPayload map[string]any = map[string]any{
-			"hyperliquidChain": func() string {
-				if isSandboxMode != nil && *isSandboxMode {
-					return "Testnet"
-				}
-				return "Mainnet"
-			}(),
-			"amount": strAmountFinal,
-			"toPerp": toPerp,
-			"nonce":  nonce,
+			"hyperliquidChain": hyperliquidChainValue,
+			"amount":           strAmountFinal,
+			"toPerp":           toPerp,
+			"nonce":            nonce,
 		}
 		var transferSig any = this.BuildUsdClassSendSig(transferPayload)
 		var transferRequest map[string]any = map[string]any{
@@ -5852,13 +5858,14 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
+		var hyperliquidChainValue2 string
+		if isSandboxMode != nil && *isSandboxMode {
+			hyperliquidChainValue2 = "Testnet"
+		} else {
+			hyperliquidChainValue2 = "Mainnet"
+		}
 		var sendAssetPayload map[string]any = map[string]any{
-			"hyperliquidChain": func() string {
-				if isSandboxMode != nil && *isSandboxMode {
-					return "Testnet"
-				}
-				return "Mainnet"
-			}(),
+			"hyperliquidChain": hyperliquidChainValue2,
 			"destination": func() any {
 				if isDeposit {
 					return subAccountAddress
@@ -6040,16 +6047,17 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 		sig = this.SignL1Action(action, nonce)
 	} else {
 		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+		var hyperliquidChainValue string
+		if isSandboxMode != nil && *isSandboxMode {
+			hyperliquidChainValue = "Testnet"
+		} else {
+			hyperliquidChainValue = "Mainnet"
+		}
 		var payload map[string]any = map[string]any{
-			"hyperliquidChain": func() string {
-				if isSandboxMode != nil && *isSandboxMode {
-					return "Testnet"
-				}
-				return "Mainnet"
-			}(),
-			"destination": address,
-			"amount":      this.NumberToString(amount),
-			"time":        nonce,
+			"hyperliquidChain": hyperliquidChainValue,
+			"destination":      address,
+			"amount":           this.NumberToString(amount),
+			"time":             nonce,
 		}
 		sig = this.BuildWithdrawSig(payload)
 		action = map[string]any{
@@ -7628,7 +7636,7 @@ func (this *Hyperliquid) CancelOrdersForSymbols(orders []CancellationRequest, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
+	r := <-this.CancelOrdersForSymbolsAsync(ConvertCancellationRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -7713,7 +7721,7 @@ func (this *Hyperliquid) EditOrders(orders []OrderRequest, options ...EditOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.EditOrdersAsync(orders, opts.Params)
+	r := <-this.EditOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

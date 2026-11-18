@@ -79,10 +79,11 @@ func (this *Woofipro) Describe() map[string]any {
 	})
 }
 func (this *Woofipro) RequestId(url string) int64 {
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
+	var options map[string]any = this.SafeDictMap(this.Options, "requestId", map[string]any{})
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
-	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
+	options[url] = newValue
+	this.Options["requestId"] = options
 	return newValue
 }
 func (this *Woofipro) WatchPublicAsync(messageHash string, message map[string]any) <-chan ccxt.AsyncResult[any] {

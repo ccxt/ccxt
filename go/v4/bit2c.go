@@ -629,8 +629,8 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod")                                                // kept here for backward compatibility #29154
-	var method *string = this.SafeString(this.HandleOptionAndParams(map[string]any{}, "fetchTrades", "method", optionValue), 0) // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod")                                                            // kept here for backward compatibility #29154
+	var method *string = this.SafeString(TupleSlice(this.HandleOptionAndParams(map[string]any{}, "fetchTrades", "method", optionValue)), 0) // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}

@@ -817,17 +817,18 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 			}
 		}
 	}
+	var typeValue string
+	if isCrypto {
+		typeValue = "crypto"
+	} else {
+		typeValue = "other"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,
 		"code": code,
 		"info": currency,
 		"name": this.SafeString(currency, "name"),
-		"type": func() string {
-			if isCrypto {
-				return "crypto"
-			}
-			return "other"
-		}(),
+		"type": typeValue,
 		"active":    (this.SafeString(currency, "status") != nil && *this.SafeString(currency, "status") == "CURRENCY_STATUS_ACTIVE"),
 		"deposit":   nil,
 		"withdraw":  nil,

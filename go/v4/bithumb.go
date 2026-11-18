@@ -1572,9 +1572,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var response any = nil
 	var data any = []any{}
 	if generation == 2 {
-		var paginateparamsPaginateVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
-		paginate := paginateparamsPaginateVariable[0]
-		var paramsPaginate map[string]any = MapTyped(paginateparamsPaginateVariable[1])
+		paginate, paramsPaginate := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		if EvalTruthy(paginate) {
 
 			r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 200)

@@ -2834,12 +2834,12 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
  * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Digifinex) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2855,8 +2855,8 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 	var symbols []any = []any{}
 	var symbolsById map[string]any = map[string]any{}
 	var marketType *string = nil
-	for i := 0; i < GetArrayLength(orders); i++ {
-		var order map[string]any = MapTyped(GetValue(orders, i))
+	for i := 0; i < len(orders); i++ {
+		var order map[string]any = MapTyped(orders[i])
 		var id *string = this.SafeString(order, "id")
 		if id == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires an id for each order"))
@@ -5037,12 +5037,9 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}
-			symbol = func() any {
-				if 0 >= 0 && 0 < len(symbolsNormalized) {
-					return symbolsNormalized[0]
-				}
-				return nil
-			}()
+			if symbolsLength == 1 {
+				symbol = symbolsNormalized[0]
+			}
 		} else {
 			symbol = symbolsNormalized
 		}
@@ -6740,7 +6737,7 @@ func (this *Digifinex) CancelOrdersForSymbols(orders []CancellationRequest, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
+	r := <-this.CancelOrdersForSymbolsAsync(ConvertCancellationRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

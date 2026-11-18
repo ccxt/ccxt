@@ -1012,10 +1012,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var proxy any = nil
-	if r.Value != nil {
-		proxy = r.Value
-	}
+	var proxy map[string]any = r.Value
 	var deployed *bool = this.SafeBool(proxy, "deployed", false)
 	if !(deployed != nil && *deployed) {
 
@@ -1032,10 +1029,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var state any = nil
-			if r2.Value != nil {
-				state = r2.Value
-			}
+			var state map[string]any = r2.Value
 			if *this.SafeBool(state, "deployed", false) {
 				break
 			}
@@ -1046,10 +1040,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var obv3 any = nil
-	if r3.Value != nil {
-		obv3 = r3.Value
-	}
+	var obv3 map[string]any = r3.Value
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var chainId *int64 = this.SafeInteger(obv3, "chainId")
 	var usdcAddress *string = this.SafeString(activeAsset, "baseToken")
@@ -1235,10 +1226,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var obv3 any = nil
-	if r1.Value != nil {
-		obv3 = r1.Value
-	}
+	var obv3 map[string]any = r1.Value
 	var domain map[string]any = this.SafeDictMap(obv3, "domain", map[string]any{})
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var baseToken *string = this.SafeString(activeAsset, "baseToken")
@@ -2155,10 +2143,7 @@ func (this *Sxbet) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var obv3 any = nil
-	if r.Value != nil {
-		obv3 = r.Value
-	}
+	var obv3 map[string]any = r.Value
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var usdcAddress *string = this.SafeStringLower(activeAsset, "baseToken", "")
 
@@ -2742,10 +2727,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var rows any = nil
-		if r2.Value != nil {
-			rows = ccxt.MapSliceToList(r2.Value)
-		}
+		var rows []any = ccxt.MapSliceToList(r2.Value)
 		var rowsLength int = ccxt.GetArrayLength(rows)
 		for j := 0; j < rowsLength; j++ {
 			var row any = ccxt.GetValue(rows, j)

@@ -251,9 +251,9 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = kind + ":" + *symbol + "@" + topic
 		var subscriptionKey string = "marketData:" + topic
-		var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey, map[string]any{})
+		var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey, map[string]any{})
 		if unwatch == true {
-			subscriptions = this.Omit(subscriptions, messageHash)
+			subscriptions = this.OmitDict(subscriptions, messageHash)
 			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, "unsubscribe:"+messageHash)
 			if bidAsk == true {
 				if symbol != nil {
@@ -265,14 +265,20 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 				}
 			}
 		} else {
-			ccxt.AddElementToObject(subscriptions, messageHash, map[string]any{
+			subscriptions[messageHash] = map[string]any{
 				"symbol": symbol,
 				"bidAsk": bidAsk,
-			})
+			}
 			messageHashes = append(messageHashes, messageHash)
 		}
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionKey, subscriptions)
-		var subscriptionHashes []string = ccxt.ObjectKeys(subscriptions)
+		var subscriptionHashes []string = nil
+		if subscriptions != nil {
+			subscriptionHashes = make([]string, 0, len(subscriptions))
+			for objectKey := range subscriptions {
+				subscriptionHashes = append(subscriptionHashes, objectKey)
+			}
+		}
 		var subscriptionsLength int = len(subscriptionHashes)
 		if !(unwatch == true) || (subscriptionsLength == 0) {
 			if !this.InArray(topic, topics) {
@@ -1016,12 +1022,12 @@ func (this *Backpack) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
  * @param {string} [params.source] Venue only
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+func (this *Backpack) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
 	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1036,7 +1042,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
 		panic(r.Err)
 	}
 	query := r.Value
-	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = len(symbolsAndTimeframes)
 	if (symbolsLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']"))
 	}
@@ -1087,12 +1093,12 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
  * @param {string} [params.source] Venue only
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Backpack) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Backpack) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1103,7 +1109,7 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 		panic(r.Err)
 	}
 	query := r.Value
-	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = len(symbolsAndTimeframes)
 	if (symbolsLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']"))
 	}
@@ -2920,7 +2926,7 @@ func (this *Backpack) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
@@ -2946,7 +2952,7 @@ func (this *Backpack) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

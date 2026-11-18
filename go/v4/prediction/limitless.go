@@ -664,15 +664,16 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 	var outcomesLength int = len(outcomes)
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome any = resolvedOutcome
+	var marketTypeValue string
+	if outcomesLength > 2 {
+		marketTypeValue = "categorical"
+	} else {
+		marketTypeValue = "binary"
+	}
 	return map[string]any{
 		"id":     slug,
 		"market": marketSymbol,
-		"marketType": func() string {
-			if outcomesLength > 2 {
-				return "categorical"
-			}
-			return "binary"
-		}(),
+		"marketType": marketTypeValue,
 		"executionModel":  "clob",
 		"collateral":      "USDC",
 		"base":            slug,
@@ -2627,9 +2628,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		maker = this.WalletAddress
 	}
 	var paramsValue any = params
-	var makerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "maker", maker)
-	maker = makerparamsValueVariable[0]
-	paramsValue = makerparamsValueVariable[1]
+	maker, paramsValue = this.HandleOptionAndParams(paramsValue, "createOrder", "maker", maker)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2660,9 +2659,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	if isSmartWallet {
 		signer = embeddedAddress
 	}
-	var signerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "signer", signer)
-	signer = signerparamsValueVariable[0]
-	paramsValue = signerparamsValueVariable[1]
+	signer, paramsValue = this.HandleOptionAndParams(paramsValue, "createOrder", "signer", signer)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2685,9 +2682,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 
 	}
 	var taker any = (*this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"))
-	var takerparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "taker", taker)
-	taker = takerparamsValueVariable[0]
-	paramsValue = takerparamsValueVariable[1]
+	taker, paramsValue = this.HandleOptionAndParams(paramsValue, "createOrder", "taker", taker)
 
 	{
 		func(this *Limitless) (ret_ any) {
@@ -2724,9 +2719,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		}
 		return 0
 	}()
-	var signatureTypeparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType)
-	signatureType = signatureTypeparamsValueVariable[0]
-	paramsValue = signatureTypeparamsValueVariable[1]
+	signatureType, paramsValue = this.HandleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType)
 	var signRequest map[string]any = map[string]any{
 		"salt":          nonce,
 		"maker":         maker,
@@ -3193,9 +3186,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	var paramsValue any = params
 	if outcome != nil {
 		var warn any = true
-		var warnparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
-		warn = warnparamsValueVariable[0]
-		paramsValue = warnparamsValueVariable[1]
+		warn, paramsValue = this.HandleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
 		if warn == true {
 			panic(ccxt.BadRequest(this.Id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message."))
 		}
@@ -3271,12 +3262,10 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var paginate any = false
 	var maxLimit int = 100
-	var paramsValue any = params
-	var paginateparamsValueVariable []any = this.HandleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate)
-	paginate = paginateparamsValueVariable[0]
-	paramsValue = paginateparamsValueVariable[1]
+	var paramsValue map[string]any = params
+	paginate, paramsValue = this.HandleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate)
 	if paginate == true {
-		paramsValue = this.Omit(paramsValue, "paginate")
+		paramsValue = this.OmitDict(paramsValue, "paginate")
 
 		r1 := <-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", nil, maxLimit)
 		if r1.Err != nil {

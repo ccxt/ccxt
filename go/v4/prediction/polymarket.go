@@ -2039,13 +2039,14 @@ func (this *Polymarket) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], o
 	//
 	var ok bool = (response == "OK") || (response == "ok")
 
+	var statusValue string
+	if ok {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status": func() string {
-			if ok {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,

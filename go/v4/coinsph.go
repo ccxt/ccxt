@@ -810,16 +810,17 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
+	var typeValue string
+	if isFiat != nil && *isFiat {
+		typeValue = "fiat"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,
 		"name": this.SafeString(rawCurrency, "name"),
 		"code": code,
-		"type": func() string {
-			if isFiat != nil && *isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type": typeValue,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "transferPrecision"))),
 		"info":      rawCurrency,
 		"active":    nil,

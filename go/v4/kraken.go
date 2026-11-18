@@ -909,13 +909,14 @@ func (this *Kraken) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var result map[string]any = SafeMapTyped(response, "result")
 	var statusRaw *string = this.SafeString(result, "status")
 
+	var statusValue string
+	if statusRaw != nil && *statusRaw == "online" {
+		statusValue = "ok"
+	} else {
+		statusValue = "maintenance"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if statusRaw != nil && *statusRaw == "online" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1050,18 +1051,19 @@ func (this *Kraken) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	var isFiat bool = (strings.Index(*code, ".HOLD") >= 0)
 	var rawCurrencyOmitted any = this.Omit(rawCurrency, "_coin_id")
+	var typeValue string
+	if isFiat {
+		typeValue = "fiat"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":     id,
 		"code":   code,
 		"info":   rawCurrencyOmitted,
 		"name":   this.SafeString(rawCurrencyOmitted, "altname"),
 		"active": (this.SafeString(rawCurrencyOmitted, "status") != nil && *this.SafeString(rawCurrencyOmitted, "status") == "enabled"),
-		"type": func() string {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type": typeValue,
 		"deposit":   nil,
 		"withdraw":  nil,
 		"fee":       nil,

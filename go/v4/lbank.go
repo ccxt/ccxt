@@ -1980,12 +1980,12 @@ func (this *Lbank) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	//        "code": 0
 	//    }
 	//
-	var balanceResponse any = func() any {
-		if response == nil {
-			return map[string]any{}
-		}
-		return response
-	}()
+	var balanceResponse map[string]any
+	if response == nil {
+		balanceResponse = map[string]any{}
+	} else {
+		balanceResponse = response
+	}
 	var balanceResult map[string]any = this.ParseBalance(balanceResponse)
 	if balanceResult == nil {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))

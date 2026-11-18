@@ -4296,15 +4296,16 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		}
 	} else {
 		if isTwapOrder {
+			var positionSideValue string
+			if side != nil && *side == "buy" {
+				positionSideValue = "LONG"
+			} else {
+				positionSideValue = "SHORT"
+			}
 			var twapRequest map[string]any = map[string]any{
-				"symbol": request["symbol"],
-				"side":   request["side"],
-				"positionSide": func() string {
-					if side != nil && *side == "buy" {
-						return "LONG"
-					}
-					return "SHORT"
-				}(),
+				"symbol":       request["symbol"],
+				"side":         request["side"],
+				"positionSide": positionSideValue,
 				"triggerPrice": this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice)),
 				"totalAmount":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
 			}
@@ -5669,13 +5670,14 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var isActive bool = (timeout > 0)
+	var typeValue string
+	if isActive {
+		typeValue = "ACTIVATE"
+	} else {
+		typeValue = "CLOSE"
+	}
 	var request map[string]any = map[string]any{
-		"type": func() string {
-			if isActive {
-				return "ACTIVATE"
-			}
-			return "CLOSE"
-		}(),
+		"type": typeValue,
 		"timeOut": func() any {
 			if isActive {
 				return (this.ParseToInt(float64(timeout) / 1000))
@@ -7312,15 +7314,16 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
+	var typeValue string
+	if typeVar != nil && *typeVar == "1" {
+		typeValue = "add"
+	} else {
+		typeValue = "reduce"
+	}
 	return map[string]any{
-		"info":   data,
-		"symbol": this.SafeString(market, "symbol"),
-		"type": func() string {
-			if typeVar != nil && *typeVar == "1" {
-				return "add"
-			}
-			return "reduce"
-		}(),
+		"info":       data,
+		"symbol":     this.SafeString(market, "symbol"),
+		"type":       typeValue,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),
@@ -7743,9 +7746,7 @@ func (this *Bingx) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	}
 	var currency map[string]any = this.Currency(code)
 	var defaultWalletType int = 15 // spot
-	var walletTypeOptionparamsWalletTypeVariable []any = this.HandleOptionAndParams2(paramsWithdrawTag, "withdraw", "type", "walletType", defaultWalletType)
-	walletTypeOption := walletTypeOptionparamsWalletTypeVariable[0]
-	var paramsWalletType map[string]any = MapTyped(walletTypeOptionparamsWalletTypeVariable[1])
+	walletTypeOption, paramsWalletType := this.HandleOptionAndParams2(paramsWithdrawTag, "withdraw", "type", "walletType", defaultWalletType)
 	var walletTypes map[string]any = map[string]any{
 		"funding":   1,
 		"fund":      1,

@@ -1149,7 +1149,8 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 			var totalCost any = "0"
-			var totalAmount any = "0"
+			totalAmountLit104 := "0"
+			var totalAmount *string = &totalAmountLit104
 			var trades []map[string]any = this.SafeListMapsTyped(previousOrder, "trades")
 			for i := 0; i < len(trades); i++ {
 				var currentTrade map[string]any = trades[i]

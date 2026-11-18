@@ -2327,9 +2327,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var nonce int64 = this.IncrementingNonce()
 	var salt *string = this.SafeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.NumberToString(nonce))
 	var taker string = "0x0000000000000000000000000000000000000000"
-	var takerOptionparamsTakerVariable []any = this.HandleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker)
-	takerOption := takerOptionparamsTakerVariable[0]
-	var paramsTaker map[string]any = ccxt.MapTyped(takerOptionparamsTakerVariable[1])
+	takerOption, paramsTaker := this.HandleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker)
 	var contractOrder map[string]any = map[string]any{
 		"salt":        salt,
 		"maker":       this.WalletAddress,

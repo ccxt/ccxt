@@ -3665,9 +3665,7 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[[]any], params an
 	defer ReturnPanicError(ch)
 	var defaultValue bool = GetArgBool(optionalArgs, 0, false)
 	_ = defaultValue
-	var utaparamsUtaVariable []any = this.HandleOptionAndParams(params, methodName, "uta")
-	uta := utaparamsUtaVariable[0]
-	paramsUta := utaparamsUtaVariable[1]
+	uta, paramsUta := this.HandleOptionAndParams(params, methodName, "uta")
 	if uta != nil {
 
 		ch <- AsyncResult[[]any]{Value: []any{uta, paramsUta}}
@@ -4625,17 +4623,18 @@ func (this *Bitget) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	var active bool = (withdraw == true) && (deposit == true)
 	var isFiat bool = this.InArray(code, fiatCurrencies)
+	var typeValue string
+	if isFiat {
+		typeValue = "fiat"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":     entry,
 		"id":       id,
 		"code":     code,
 		"networks": networks,
-		"type": func() string {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type": typeValue,
 		"name":      nil,
 		"active":    active,
 		"deposit":   deposit,
@@ -13909,15 +13908,16 @@ func (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	if isCrossMarginMode {
 		shortLevKey = "crossedMarginLeverage"
 	}
+	var marginModeValue string
+	if isCrossMarginMode {
+		marginModeValue = "cross"
+	} else {
+		marginModeValue = "isolated"
+	}
 	return LeverageFromMap(map[string]any{
-		"info":   leverage,
-		"symbol": this.SafeString(market, "symbol"),
-		"marginMode": func() string {
-			if isCrossMarginMode {
-				return "cross"
-			}
-			return "isolated"
-		}(),
+		"info":          leverage,
+		"symbol":        this.SafeString(market, "symbol"),
+		"marginMode":    marginModeValue,
 		"longLeverage":  this.SafeInteger(leverage, longLevKey),
 		"shortLeverage": this.SafeInteger(leverage, shortLevKey),
 	})
@@ -15320,7 +15320,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 		"coin": currency["id"],
 	}
 	var response map[string]any = nil
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchCrossBorrowRate", false)
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -15348,7 +15348,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 		//         }
 		//     }
 		//
-		result = this.SafeDict(response, "data", map[string]any{})
+		result = this.SafeDictMap(response, "data", map[string]any{})
 	} else {
 
 		r3 := <-this.PrivateMarginGetV2MarginCrossedInterestRateAndLimit(this.Extend(request, paramsUTA))
@@ -15383,10 +15383,14 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 		//     }
 		//
 		var data []any = SafeListTyped(response, "data")
-		result = this.SafeDict(data, 0, map[string]any{})
+		result = this.SafeDictMap(data, 0, map[string]any{})
 	}
 	var timestamp *int64 = this.SafeInteger(response, "requestTime")
-	AddElementToObject(result, "timestamp", timestamp)
+	if timestamp != nil {
+		result["timestamp"] = *timestamp
+	} else {
+		result["timestamp"] = nil
+	}
 
 	ch <- AsyncResult[CrossBorrowRate]{Value: CrossBorrowRateFromMap(this.ParseBorrowRate(result, currency))}
 	return nil

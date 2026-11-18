@@ -715,12 +715,12 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bitvavo) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+func (this *Bitvavo) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
 	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -739,8 +739,8 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	var name string = "candles"
 	var messageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+	for i := 0; i < len(symbolsAndTimeframes); i++ {
+		var symbolAndTimeframe any = symbolsAndTimeframes[i]
 		var market map[string]any = this.Market(this.SafeString(symbolAndTimeframe, 0, ""))
 		var timeframeString *string = this.SafeString(symbolAndTimeframe, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
@@ -844,12 +844,12 @@ func (this *Bitvavo) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitvavo) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitvavo) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -864,8 +864,8 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var name string = "candles"
 	var subMessageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
+	for i := 0; i < len(symbolsAndTimeframes); i++ {
+		var symbolAndTimeframe any = symbolsAndTimeframes[i]
 		var market map[string]any = this.Market(this.SafeString(symbolAndTimeframe, 0, ""))
 		var timeframeString *string = this.SafeString(symbolAndTimeframe, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
@@ -1736,9 +1736,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 		panic(r1.Err)
 	}
 	var request map[string]any = map[string]any{}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
-	operatorId := operatorIdparamsOperatorIdVariable[0]
-	var paramsOperatorId map[string]any = ccxt.MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -3161,7 +3159,7 @@ func (this *Bitvavo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]ccxt.OHLCV{}, r.Err
 	}
@@ -3209,7 +3207,7 @@ func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(ccxt.ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

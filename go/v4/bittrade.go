@@ -1729,12 +1729,20 @@ func (this *Bittrade) ParseBalance(response any) map[string]any {
 		var balance map[string]any = balances[i]
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.SafeDict(result, code, this.Account())
+		var account map[string]any = this.SafeDictMap(result, code, this.Account())
 		if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "trade" {
-			AddElementToObject(account, "free", this.SafeString(balance, "balance"))
+			if ptrValue := this.SafeString(balance, "balance"); ptrValue != nil {
+				account["free"] = *ptrValue
+			} else {
+				account["free"] = nil
+			}
 		}
 		if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "frozen" {
-			AddElementToObject(account, "used", this.SafeString(balance, "balance"))
+			if ptrValue := this.SafeString(balance, "balance"); ptrValue != nil {
+				account["used"] = *ptrValue
+			} else {
+				account["used"] = nil
+			}
 		}
 		if code != nil {
 			result[*code] = account

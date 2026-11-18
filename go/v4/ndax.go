@@ -639,13 +639,14 @@ func (this *Ndax) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 	//
 	var message *string = this.SafeString(response, "msg")
 
+	var statusValue string
+	if message != nil && *message == "PONG" {
+		statusValue = "ok"
+	} else {
+		statusValue = "error"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if message != nil && *message == "PONG" {
-				return "ok"
-			}
-			return "error"
-		}(),
+		"status": statusValue,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,

@@ -770,16 +770,17 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
 	var market map[string]any = this.Market(symbol)
+	var actionValue string
+	if side == "buy" {
+		actionValue = "bid"
+	} else {
+		actionValue = "ask"
+	}
 	var request map[string]any = map[string]any{
 		"currency_pair": market["id"],
-		"action": func() string {
-			if side == "buy" {
-				return "bid"
-			}
-			return "ask"
-		}(),
-		"amount": amount,
-		"price":  price,
+		"action":        actionValue,
+		"amount":        amount,
+		"price":         price,
 	}
 
 	r1 := <-this.PrivatePostTrade(this.Extend(request, params))

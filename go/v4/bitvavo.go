@@ -786,6 +786,12 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
+	var typeValue string
+	if isFiat {
+		typeValue = "fiat"
+	} else {
+		typeValue = "crypto"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"id":        id,
@@ -797,12 +803,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 		"networks":  networks,
 		"fee":       withdrawFee,
 		"precision": nil,
-		"type": func() string {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type": typeValue,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -2016,9 +2017,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	if postOnly {
 		request["postOnly"] = true
 	}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
-	operatorId := operatorIdparamsOperatorIdVariable[0]
-	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2162,7 +2161,7 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, 
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorId any = GetValue(this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId"), 0)
+	var operatorId any = GetValue(TupleSlice(this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId")), 0)
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2235,9 +2234,7 @@ func (this *Bitvavo) CancelOrderRequest(id *string, optionalArgs ...any) map[str
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
-	operatorId := operatorIdparamsOperatorIdVariable[0]
-	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2327,9 +2324,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		market = this.Market(symbol)
 		request["market"] = market["id"]
 	}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
-	operatorId := operatorIdparamsOperatorIdVariable[0]
-	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {

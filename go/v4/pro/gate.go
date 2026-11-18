@@ -2545,12 +2545,13 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 			var status *string = this.SafeString(parsed, "status")
 			if status == nil {
 				var left *string = this.SafeString(info, "left")
-				ccxt.AddElementToObject(parsed, "status", func() string {
-					if ccxt.Precise.StringEquals(left, "0") {
-						return "closed"
-					}
-					return "canceled"
-				}())
+				var branchValue string
+				if ccxt.Precise.StringEquals(left, "0") {
+					branchValue = "closed"
+				} else {
+					branchValue = "canceled"
+				}
+				ccxt.AddElementToObject(parsed, "status", branchValue)
 			}
 		}
 		stored.Append(parsed)

@@ -1283,12 +1283,13 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, func() string {
-		if isSpot {
-			return "spot"
-		}
-		return "contract"
-	}())
+	var branchValue string
+	if isSpot {
+		branchValue = "spot"
+	} else {
+		branchValue = "contract"
+	}
+	var fees map[string]any = SafeMapTyped(this.Fees, branchValue)
 	if id == nil {
 		panic(ExchangeError(this.Id + " method() missing id"))
 	}

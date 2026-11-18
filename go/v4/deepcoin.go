@@ -1707,10 +1707,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var addressess any = nil
-	if r1.Value != nil {
-		addressess = DepositAddressesToList(r1.Value)
-	}
+	var addressess []any = DepositAddressesToList(r1.Value)
 	var length int = GetArrayLength(addressess)
 	var index any = 0
 	if (network != nil) && (length > 1) {
