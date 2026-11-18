@@ -8955,7 +8955,7 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
 // The helper derefs a pointer key/value (a nil pointer or a typed-nil container becomes
 // untyped nil) and is a no-op on a typed-nil map; its mutex guards shared maps only. So the
 // native write needs a never-nil map local, a string key and a value the deref leaves alone.
-const GO_MAPWRITE_NON_NIL_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\(|this\.Account\(\)$|this\.SafeDict(?:2)?Map\([^\n]*, map\[string\]any\{\}\)$)/;  // a literal-default SafeDictMap read of decoded data is never nil
+const GO_MAPWRITE_NON_NIL_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\(|this\.Account\(\)$|this\.SafeDict(?:2)?Map\([^\n]*, (?:map\[string\]any\{\}|this\.Account\(\))\)$)/;  // a literal-default SafeDictMap read of decoded data is never nil
 // hand-written callees (no generated override) whose result derefScalar leaves unchanged
 const GO_MAPWRITE_PLAIN_CALLS = [
     'this.Milliseconds', 'this.Seconds', 'this.Microseconds', 'this.Uuid', 'this.Uuid2', 'this.Uuid16', 'this.Uuid22',
@@ -14990,7 +14990,7 @@ async function runMain () {
             goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest,
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
-            [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
+            [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goTernaryAnyTypedCheck
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
@@ -17048,8 +17048,17 @@ function goTypedIsEqualSelfTest (ok: SelfTestOk): void {
 // and no read observes the box, so the typed-container pass can print plain `x[k] = v` for its writes.
 function goTypedAddElemMapWrite (rhs: string, n: string): string | undefined {
     const r = rhs.trim ();
-    if (/^(?:map\[string\]any\{|this\.(?:Extend|DeepExtend)\()/.test (r)) {
+    if (/^(?:map\[string\]any\{|this\.(?:Extend|DeepExtend)\()/.test (r) || (r === 'this.Account()')) {
         return r;
+    }
+    // SafeDict* with a fresh-map default (or x itself) never answers nil: its typed twin reads the same map
+    const sd = /^this\.SafeDict(2|N)?\(/.exec (r);
+    if ((sd !== null) && (goMapWriteGroupEnd (r, sd[0].length - 1) === r.length)) {
+        const args = goMapWriteTopLevelParts (r.substring (sd[0].length, r.length - 1), ',').map ((a) => a.trim ());
+        const last = args[args.length - 1];
+        if ((args.length === (sd[1] === '2' ? 4 : 3)) && ((last === 'map[string]any{}') || (last === 'this.Account()') || (last === n))) {
+            return 'this.SafeDict' + (sd[1] ?? '') + 'Map(' + r.substring (sd[0].length);
+        }
     }
     const omit = new RegExp ('^this\\.Omit\\(' + n + ', ').exec (r);
     return ((omit !== null) && (goMapWriteGroupEnd (r, r.indexOf ('(')) === r.length)) ? 'this.OmitDict(' + r.substring (omit[0].length - n.length - 2) : undefined;
@@ -17075,8 +17084,9 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
             const w = writeRx.exec (masked[k]);
             if (d) {
                 const rhs = lines[k].substring (d[1].length + 3 + d[2].length);
-                safe = /^map\[string\]any\{/.test (rhs.trim ()) || /^this\.(?:Extend|DeepExtend)\(/.test (rhs.trim ());
-                edits.push ([ k, lines[k].replace (declRx, '$1map[string]any$2$3') ]);
+                const out = goTypedAddElemMapWrite (rhs, n);
+                safe = (out !== undefined) && (out !== 'this.OmitDict(' + rhs.trim ().substring (('this.Omit(').length)) && (lines[k].indexOf ('//') < 0);
+                edits.push ([ k, d[1] + 'map[string]any' + d[2] + (out ?? '') ]);
             } else if (w) {
                 const rhs = lines[k].substring (w[1].length);
                 const out = (goMapWriteGroupEnd (masked[k].substring (w[1].length), w[2].indexOf ('(') < 0 ? 0 : w[2].indexOf ('(')) >= 0) ? goTypedAddElemMapWrite (rhs, n) : undefined;
@@ -17099,6 +17109,16 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
             }
         }
     }
+}
+
+function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
+    const f = (body: string) => goTypedAddElemRetypeMapLocals ('func (this *X) f(p any, code string) any {\n' + body + '\treturn nil\n}\n');
+    let r = f ('\tvar account any = this.SafeDict(p, code, this.Account())\n\tAddElementToObject(account, "free", this.SafeString(p, "f"))\n');
+    ok (r.includes ('var account map[string]any = this.SafeDictMap(p, code, this.Account())'), 'defaulted SafeDict receiver is typed: ' + r);
+    r = f ('\tvar account any = this.Account()\n\taccount = this.SafeDict2(p, code, "x", account)\n\tAddElementToObject(account, "free", 1)\n');
+    ok (r.includes ('var account map[string]any = this.Account()') && r.includes ('account = this.SafeDict2Map(p, code, "x", account)'), 'Account seed and self-default write: ' + r);
+    r = f ('\tvar a any = this.SafeDict(p, code)\n\tvar b any = this.SafeDict(p, code, other)\n\tAddElementToObject(a, "x", 1)\n\tAddElementToObject(b, "x", 1)\n');
+    ok (r.includes ('var a any = ') && r.includes ('var b any = '), 'nil-capable SafeDict keeps the box: ' + r);
 }
 
 function goTypedAddElemRetypeMapLocals (content: string): string {
