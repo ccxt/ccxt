@@ -221,7 +221,8 @@ export default class binance extends binanceRest {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
 
@@ -241,7 +242,8 @@ export default class binance extends binanceRest {
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
             if (subscriptionHash !== undefined) {
-                this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+                streamBySubscriptionsHash[subscriptionHash] = stream;
+                this.options['streamBySubscriptionsHash'] = streamBySubscriptionsHash;
             }
             const subscriptionsByStreams = this.safeDict (this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {

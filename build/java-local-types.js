@@ -26478,7 +26478,7 @@ function j3NonNull (printer, node, env, depth) {
     }
     const checker = printer.getChecker ();
     // base producers whose Java body only returns a new object (orderBook: hand-written, safeTicker: new Ticker)
-    if (isThisCall (value) && J6_NEW_OBJECT_CALLS.has (value.expression.name.text) && j3BaseOnly (value)) {
+    if (isThisCall (value) && J6_NEW_OBJECT_CALLS.has (value.expression.name.text) && (j3BaseOnly (value) || j7BaseUnoverridden (checker, value))) {
         return true;
     }
     if (ts.isIdentifier (value)) {
@@ -26490,6 +26490,16 @@ function j3NonNull (printer, node, env, depth) {
             return env.get (symbol);
         }
         const declaration = symbol.valueDeclaration?.resolve ();
+        // the statement just before the read's statement stores a non-null value into the binding
+        const statement = ts.findAncestor (value, (n) => ts.isStatement (n) && n.parent !== undefined && ts.isBlock (n.parent));
+        const previous = statement?.parent.statements[statement.parent.statements.indexOf (statement) - 1];
+        const store = previous !== undefined && ts.isExpressionStatement (previous) ? javaFreshMapUnwrap (previous.expression) : undefined;
+        if (store !== undefined && ts.isBinaryExpression (store) && store.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (store.left)
+            && checker.getSymbolAtLocation (store.left) === symbol && ts.isExpressionStatement (statement) && ts.isBinaryExpression (statement.expression)
+            && statement.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken && javaFreshMapUnwrap (statement.expression.right) === value
+            && j3NonNull (printer, store.right, env, depth + 1)) {
+            return true;
+        }
         if (declaration === undefined || !j3Unwritten (printer, checker, declaration, symbol)) {
             return false;
         }
@@ -26563,6 +26573,14 @@ function j3NonNull (printer, node, env, depth) {
 
 const J6_NEW_OBJECT_CALLS = new Set ([ 'orderBook', 'safeTicker' ]);
 
+// a base method no indexed class outside ts/src/base declares (calls from classes the dispatch index cannot chain)
+function j7BaseUnoverridden (checker, call) {
+    const declaration = checker.getResolvedSignature (call)?.declaration?.resolve ();
+    const name = call.expression.name.text;
+    return declaration !== undefined && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)
+        && [ ...javaFreshMapMethods ().classes ].every (([ file, entry ]) => BASE_SOURCE_FILE.test (file) || !entry.methods.has (name));
+}
+
 // `market['symbol']` on a structure local whose DTO declares the key String (the put takes the printer's String key)
 function j6StringStructureKey (printer, key) {
     try {
@@ -26630,7 +26648,8 @@ export function installJavaNonNullMapPuts (transpiler) {
         if (javaBaseMapField (printer, receiver)) {
             const field = `this.${receiver.name.text}`;
             const keyText = printer.printNode (key, 0);
-            const head = `Helpers.addElementToObject(${field}, ${keyText}, `;
+            const rawKey = printer.printNode (node.left.argumentExpression, 0);
+            const head = `Helpers.addElementToObject(${field}, ${printed.startsWith (`Helpers.addElementToObject(${field}, ${rawKey}, `) ? rawKey : keyText}, `;
             const valueOk = j6HashMapOnlyField (receiver.name.text) || javaNonNullPutValue (printer, node.right);
             return printed.startsWith (head) && printed.endsWith (')') && valueOk
                 ? `${field}.put(${printer.elementWriteKeyText (key, keyText)}, ${printed.slice (head.length)}` : printed;
