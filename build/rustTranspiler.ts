@@ -538,7 +538,7 @@ class Proof {
         if (t.startsWith('Value::Map(')) return true;
         if (t.startsWith('Value::Null')) return true;
         const callee = t.match(/^(?:self\.|<Self as crate::exchange::DerivedExchange>::)([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
-        if (callee === null) return false;
+        if (callee === null) return /^(?:(?:__pro_message|message)\.get\(|get_value\(&|crate::value::KeyRead::read\(&&)/.test(t) && this.wireRead(t, body, region, depth + 1);
         const name = callee[1];
         if (BUILDERS.has(name) || PARSERS.has(name)) return true;
         if (EXTENDERS.has(name)) {
@@ -548,7 +548,35 @@ class Proof {
             if (INSERT_CHAIN_IDENT.test(head)) return this.localTagFree(head, body, region, depth + 1);
             return this.srcTagFree(head, body, region, depth + 1);
         }
+        // only a dict read with no default (or a fresh-literal one): the receiver is a map or absent
+        if (/^safe_dict\w*$/.test(name) && (!t.includes('&[') || /&\[(?:\]|Value::Map\(\{)/.test(t))) {
+            const arg = firstArg(t);
+            return arg !== undefined && this.wireRead(arg.trim().replace(/^&+/, ''), body, region, depth + 1);
+        }
         return this.calleePlain(name, region);
+    }
+
+    /** A read off a parsed wire payload (an API response or a ws handler's `message`): JSON parse never makes a `__` tag. */
+    wireRead (src: string, body: string, region: Region, depth: number): boolean {
+        if (depth > 5) return false;
+        const t = src.trim().replace(/;$/, '').replace(/\.into_(?:opt_)?(?:dict|list)\(\)$/, '').replace(/\.cloned\(\)\.unwrap_or(?:_default\(\)|\((?:crate::)?Value::Null\))$/, '').replace(/\.clone\(\)$/, '');
+        if (/^self\.[a-z0-9]+(?:_[a-z0-9]+)*_(?:get|post|put|delete|patch)_[a-z0-9_]+\([^\n]*\)\.await$/.test(t)) return true;
+        const read = t.match(/^(?:crate::value::KeyRead::read\(&&|get_value\(&|self\.safe_(?:dict|list|value)\w*\(&?)?([A-Za-z_][A-Za-z0-9_]*)(?:\.get\(|[,)]|$)/);
+        if (read === null) return false;
+        const root = read[1];
+        const header = body.slice(0, body.indexOf('{'));
+        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, client: &Value, mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
+        // a root the function writes into could hold a cached (tagged) value
+        if (!/^[a-z][A-Za-z0-9]*$/.test(root) || new RegExp('&mut ' + root + '\\b').test(body)) return false;
+        const bind = new RegExp('(?:^|[^.\\w])' + root + '[ \\t]*(?::[^=\\n]*)?=(?!=)(.*)$', 'gm');
+        let m: RegExpExecArray | null, n = 0;
+        while ((m = bind.exec(body)) !== null) {
+            n++;
+            const rhs = m[1].trim();
+            if (rhs === 'None;' || rhs === 'Value::Null;') continue;
+            if (!this.wireRead(rhs, body, region, depth + 1)) return false;
+        }
+        return n > 0;
     }
 
     /** Same-file method whose only `return` is a proven tag-free local. */
