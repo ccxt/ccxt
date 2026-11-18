@@ -5,6 +5,143 @@
     "methods": {
         "watchPositions": [
             {
+                "description": "watchPositions with a symbol",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://openapi.blofin.com/ws/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": "0",
+                        "msg": ""
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "positions"
+                        }
+                    },
+                    {
+                        "arg": {
+                            "channel": "positions"
+                        },
+                        "data": [
+                            {
+                                "instType": "SWAP",
+                                "instId": "LTC-USDT",
+                                "marginMode": "cross",
+                                "positionId": "6000000342619",
+                                "positionSide": "net",
+                                "positions": "0.01",
+                                "availablePositions": "0.01",
+                                "averagePrice": "43.91",
+                                "unrealizedPnl": "-0.0000288235288889",
+                                "unrealizedPnlRatio": "-0.000196926865558414",
+                                "leverage": "3",
+                                "liquidationPrice": "",
+                                "breakEvenPrice": "43.97",
+                                "markPrice": "43.9",
+                                "initialMargin": "0.1463570588237037",
+                                "margin": "",
+                                "marginRatio": "3193.829428394879272043",
+                                "maintenanceMargin": "0.00285396264706222215",
+                                "adl": "1",
+                                "createTime": "1795014611393",
+                                "updateTime": "1795014611393"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "TS",
+                                "nonce": "NONCE",
+                                "sign": "SIGNATURE"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "positions"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign",
+                    "nonce"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "instType": "SWAP",
+                                "instId": "LTC-USDT",
+                                "marginMode": "cross",
+                                "positionId": "6000000342619",
+                                "positionSide": "net",
+                                "positions": "0.01",
+                                "availablePositions": "0.01",
+                                "averagePrice": "43.91",
+                                "unrealizedPnl": "-0.0000288235288889",
+                                "unrealizedPnlRatio": "-0.000196926865558414",
+                                "leverage": "3",
+                                "liquidationPrice": "",
+                                "breakEvenPrice": "43.97",
+                                "markPrice": "43.9",
+                                "initialMargin": "0.1463570588237037",
+                                "margin": "",
+                                "marginRatio": "3193.829428394879272043",
+                                "maintenanceMargin": "0.00285396264706222215",
+                                "adl": "1",
+                                "createTime": "1795014611393",
+                                "updateTime": "1795014611393"
+                            },
+                            "id": null,
+                            "symbol": "LTC/USDT:USDT",
+                            "notional": 0.439,
+                            "marginMode": "cross",
+                            "liquidationPrice": null,
+                            "entryPrice": 43.91,
+                            "exitPrice": null,
+                            "unrealizedPnl": -0.0000288235288889,
+                            "realizedPnl": null,
+                            "percentage": -0.0196926865558414,
+                            "contracts": 0.01,
+                            "contractSize": 1,
+                            "markPrice": 43.9,
+                            "lastPrice": null,
+                            "side": "long",
+                            "hedged": false,
+                            "timestamp": 1795014611393,
+                            "datetime": "2026-11-18T15:10:11.393Z",
+                            "lastUpdateTimestamp": null,
+                            "maintenanceMargin": 0.002853962647062222,
+                            "maintenanceMarginPercentage": 0.0065,
+                            "positionMargin": null,
+                            "collateral": 0.1463282352948148,
+                            "initialMargin": 0.1463570588237037,
+                            "initialMarginPercentage": 0.3333,
+                            "leverage": 3,
+                            "marginRatio": 0.0195,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null
+                        }
+                    ]
+                ]
+            },
+            {
                 "description": "watchPositions without symbols",
                 "input": [],
                 "url": "wss://openapi.blofin.com/ws/private",
