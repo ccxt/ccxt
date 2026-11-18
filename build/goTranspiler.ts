@@ -11493,6 +11493,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = alignGoTrailingComments (goGofmtBinarySpacing (content));
     }
     content = path.endsWith ('.go') ? goTypedRecvLocals (content) : content;  // after every pass keyed on `x := rN.Value`
+    content = path.endsWith ('.go') ? goTypedNilFoldLocals (content) : content;
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
     overwriteFile (path, content);
@@ -11536,6 +11537,69 @@ function goTypedRecvLocals (content: string): string {
         edits.push ({ start, 'end': start + m[2].length + 4 + r.length + 6, 'text': 'var ' + m[2] + ' ' + type + ' = ' + r + '.Value' });
     }
     return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+// `var x any = nil; if rN.Value != nil { x = <rN.Value | XsToList(rN.Value)> }` of a map/list receive: a nil map/slice
+// reads like the untyped nil through every use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test),
+// so x takes the receive's type and the guard goes.
+const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength))\($/;
+function goTypedNilFoldLocals (content: string): string {
+    if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const table = goChan3Table ();
+    const re = /\n(\t+)var (\w+) any = nil\n\1if (r\d*)\.Value != nil \{\n\1\t\2 = ((?:ccxt\.)?\w+ToList\(\3\.Value\)|\3\.Value)\n\1\}(?=\n)/g;
+    const edits: Edit[] = [];
+    for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
+        const [ ind, name, r, value ] = [ m[1], m[2], m[3], m[4] ];
+        const [ fs0, fe0 ] = goChan3Func (masked, m.index + 1);
+        const fn = masked.substring (fs0, fe0);
+        const binds = fn.match (new RegExp ('\\n\\t+' + r + ' := <-this\\.(?:\\w+\\.)?(\\w+)Async\\(', 'g')) || [];
+        const rWrites = fn.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
+        if ((binds.length !== 1) || (rWrites.length !== 1)) {
+            continue;
+        }
+        let type: string | undefined = '[]any';
+        if (value === r + '.Value') {
+            const raw = goChan3LookupRaw (table, goChan3EnclosingReceiver (masked, m.index + 1), /(\w+)Async\($/.exec (binds[0])[1]);
+            type = ((raw === 'map[string]any') || (raw === '[]any')) ? raw : undefined;
+        } else if (!/ToList\(/.test (value) || /OHLCVToList\(/.test (value) || /^(?:ccxt\.)?ToList\(/.test (value)) {
+            type = undefined;
+        }
+        if (type === undefined) {
+            continue;
+        }
+        const offset = m.index - fs0;
+        const rest = fn.substring (0, offset) + fn.substring (offset + m[0].length);
+        const use = new RegExp ('(?<![\\w.&])' + name + '\\b', 'g');
+        let safe = true;
+        for (let u = use.exec (rest); safe && (u !== null); u = use.exec (rest)) {
+            const before = rest.substring (Math.max (0, u.index - 60), u.index);
+            const after = rest.substring (u.index + name.length, u.index + name.length + 8);
+            const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
+            const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
+            safe = nilTest || ((reader !== null) && GO_NIL_FOLD_READERS.test (reader[1]) && /^[,)]/.test (after));
+        }
+        if (!safe || new RegExp ('&' + name + '\\b|var ' + name + '\\b|' + name + '\\s*[-+*/]?:?=(?!=)').test (rest)) {
+            continue;
+        }
+        const start = m.index + 1;
+        edits.push ({ start, 'end': m.index + m[0].length, 'text': ind + 'var ' + name + ' ' + type + ' = ' + content.substring (m.index + m[0].lastIndexOf ('= ') + 2, m.index + m[0].lastIndexOf ('\n')) });
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
+    const fold = (r: string, call: string, x: string, v: string) => '\t' + r + ' := <-this.' + call + '\n\tif ' + r + '.Err != nil {\n\t\tpanic(' + r + '.Err)\n\t}\n\tvar ' + x + ' any = nil\n\tif ' + r + '.Value != nil {\n\t\t' + x + ' = ' + v + '\n\t}\n';
+    const src = 'package ccxt\n\nfunc (this *Zz) f() any {\n' + fold ('r', 'HandleUTAAndParamsAsync(nil)', 'a', 'r.Value') + fold ('r1', 'FetchOrdersAsync()', 'b', 'OrdersToList(r1.Value)') +
+        fold ('r2', 'NoSuchThingAsync()', 'c', 'r2.Value') + fold ('r3', 'FetchOrdersAsync()', 'd', 'OrdersToList(r3.Value)') +
+        '\tx := GetArrayLength(b) + len(this.SafeString(a, "k"))\n\treturn []any{x, c, d}\n}\n';
+    const out = goTypedNilFoldLocals (src);
+    ok (out.includes ('\tvar a []any = r.Value\n'), 'tabled list fold typed: ' + out);
+    ok (out.includes ('\tvar b []any = OrdersToList(r1.Value)\n'), 'ToList fold typed: ' + out);
+    ok (out.includes ('\tvar c any = nil\n'), 'untabled fold kept: ' + out);
+    ok (out.includes ('\tvar d any = nil\n'), 'fold handed on as a value kept: ' + out);
 }
 
 function goTypedRecvLocalsCheck (ok: SelfTestOk): void {
@@ -14991,7 +15055,7 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goTernaryAnyTypedCheck
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goTernaryAnyTypedCheck
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
