@@ -336,7 +336,7 @@ export default class phemex extends phemexRest {
         return await this.subscribePrivate (type, messageHash, paramsMarketType);
     }
 
-    handleBalance (type: string, client: Client, message: any[]) {
+    handleBalance (client: Client, message: any[], type: string) {
         // spot
         //    [
         //       {
@@ -1688,7 +1688,7 @@ export default class phemex extends phemexRest {
                 type = 'perpetual';
             }
             const accounts = this.safeListN (message, [ 'accounts', 'accounts_p', 'wallets' ], []);
-            this.handleBalance (type, client, accounts);
+            this.handleBalance (client, accounts, type);
         }
     }
 
