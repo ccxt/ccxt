@@ -9712,7 +9712,7 @@ function goGuardedReadContainer (maskedLines: string[], fn: any, name: string, l
     }
     const init = ((lines !== undefined) && (declareLine >= 0)) ? lines[declareLine] : undefined;
     const header = ((lines !== undefined) && (declareLine > fn.open + 1)) ? lines[declareLine - 1] : undefined;
-    return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line), 'init': init, 'header': header };
+    return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line), 'init': init, 'header': header, 'line': declareLine };
 }
 
 // top-level comma split of a call's argument text (string/rune aware)
@@ -9764,6 +9764,29 @@ function goGuardedReadSplitHasSeparator (init: string, header: string | undefine
     }
     const probe = ('strings.Index(' + split[2] + ', ' + split[3] + ')').replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp ('(?:^|[(&] ?)' + probe + ' (?:>= 0|> 0|> -1)(?:\\)|$| &&)').test (cond[2]);
+}
+
+// `parts := strings.Split(*h, sep)` with `h` element i of an unwritten FindMessageHashes(client, e) result, read first in
+// `for i := 0; i < len(hashes); i++`: every found hash contains `e`, so when `e` holds `sep` index 1 exists
+function goGuardedReadSplitOfFoundHash (maskedLines: string[], fn: any, read: any, lines: string[], key: string): boolean {
+    const at = read.line;
+    const split = ((key !== '1') || (at < fn.open + 3)) ? null : /^([ \t]+)var [A-Za-z_]\w* \[\]string = strings\.Split\(\*([A-Za-z_]\w*), ("[^"\\]+")\)[ \t]*$/.exec (lines[at]);
+    if (split === null) {
+        return false;
+    }
+    const h = split[2];
+    const hash = new RegExp ('^' + split[1] + 'var ' + h + ' \\*string = (?:(?:ccxt\\.)?SafeStringPtr\\((\\w+)\\[(\\w+)\\]\\)|this\\.SafeString\\((\\w+), (\\w+), ""\\))$').exec (lines[at - 1]);
+    if (hash === null) {
+        return false;
+    }
+    const hashes = hash[1] ?? hash[3];
+    const i = hash[2] ?? hash[4];
+    if (lines[at - 2] !== split[1].substring (1) + 'for ' + i + ' := 0; ' + i + ' < len(' + hashes + '); ' + i + '++ {') {
+        return false;
+    }
+    const source = goGuardedReadContainer (maskedLines, fn, hashes, lines);
+    const found = (source?.init === undefined) ? null : /^[ \t]*var \w+ \[\]any = (?:ccxt\.)?ArrayTyped\(this\.FindMessageHashes\((?:ccxt\.)?AsClient\(client\), (?:[A-Za-z_]\w*\+)?("[^"\\]*")\)\)[ \t]*$/.exec (source.init);
+    return (found !== null) && (found[1].indexOf (split[3].slice (1, -1)) >= 0);
 }
 
 // names bound to `len(container)` that still hold at the block, declared once and unwritten
@@ -9909,7 +9932,8 @@ function nativeGuardedListElementReads (content: string): string {
         }
         const isWrapped = (maskedLines[index + 1] === wrapped);
         const readText = (isWrapped && !read.json) ? (deref + '(' + container + '[' + key + '])') : (container + '[' + key + ']');
-        if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key) || goGuardedReadInitProvesIndex (read.init, key, read.header)) {
+        if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key) || goGuardedReadInitProvesIndex (read.init, key, read.header)
+            || goGuardedReadSplitOfFoundHash (maskedLines, fn, read, lines, key)) {
             // an earlier closure of the same expression may already have been merged into
             // the roof line, so splice into what was emitted, not the original text
             const roofText = out[out.length - 1];
@@ -9957,6 +9981,9 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     ok (sep ('a || strings.Index(*id, ":") >= 0', '1').indexOf ('func() any {') >= 0, 'an || condition keeps the literal');
     ok (sep ('strings.Index(*id, "-") >= 0', '1').indexOf ('func() any {') >= 0, 'another separator keeps the literal');
     ok (sep ('strings.Index(*id, ":") >= 0', '2').indexOf ('func() any {') >= 0, 'index 2 keeps the literal');
+    const hashes = (e: string, sepLit: string) => g ('\tvar hs []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ' + e + '))\n\tfor i := 0; i < len(hs); i++ {\n\t\tvar h *string = ccxt.SafeStringPtr(hs[i])\n\t\tvar parts []string = strings.Split(*h, ' + sepLit + ')\n' + read ('1', 'parts', '') + '\t}\n');
+    ok (hashes ('t+":positions::"', '"::"').indexOf ('var m any = parts[1]') >= 0, 'a found hash holding the separator proves index 1');
+    ok (hashes ('"positions:"', '"::"').indexOf ('func() any {') >= 0, 'a found hash without the separator keeps the literal');
     ok (g (lists + '\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'an unknown bound name keeps the literal');
     ok (g (lists + '\tif len(markets) > 0 {\n\t\tmarkets = []any{}\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'a written slice keeps the literal');
     ok (g (lists + '\tif len(markets) > 1 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[1]') >= 0, 'len() > key');
@@ -14274,7 +14301,7 @@ ${caseStatements.join('\n')}
     // returns a Go `[]any` on every path, so the declared `any` return becomes `[]any`. All receivers are retyped because an
     // override shadows the base method for its own call sites; a `[]any` still boxes into every `any` sink.
     coerceTupleHelperSignatures (content: string): string {
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
             // hand-written base (exchange_market_type.go) returns the pair as two results; the
             // Okx/Deepcoin overrides only `return super...` so they carry the same results
             .replace (/func\s+\(this \*(\w+)\)\s+(HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams|HandleMarginModeAndParams)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (*string, map[string]any) {')
