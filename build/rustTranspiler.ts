@@ -269,8 +269,8 @@ class Proof {
 
     private localTagFreeUncached (name: string, body: string, region: Region, depth: number): boolean {
         if (body.includes('"__')) return false;
-        const decl = new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*Value\\b(.*)$', 'gm');
-        const bare = new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*=(.*)$', 'gm');
+        const decl = new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*(?:Value|crate::value::Dict|Option<crate::value::Dict>)(?![\\w:<])(.*)$', 'gm');
+        const bare = new RegExp('^[ \\t]*let (?:mut )?' + name + '[ \\t]*=(.*)$', 'gm');
         const bound = new RegExp('(^|[^.\\w])' + name + '[ \\t]*=(?!=)(.*)$', 'gm');
         const sources: string[] = [];
         let sawBind = false;
@@ -289,6 +289,15 @@ class Proof {
         }
         if (!sawBind) return false;
         while ((m = bound.exec(body)) !== null) sources.push(m[2]);
+        // a multi-line source (`extend(Value::Map({`) is read up to its closing bracket
+        for (let k = 0; k < sources.length; k++) {
+            const at = body.indexOf(sources[k]);
+            const open = sources[k].indexOf('(');
+            if (at >= 0 && open >= 0 && firstArg(sources[k]) === undefined) {
+                const close = closeParenAt(body, at + open);
+                if (close > 0) sources[k] = body.slice(at, close);
+            }
+        }
         for (const src of sources) {
             if (!this.srcTagFree(src, body, region, depth)) return false;
         }
@@ -297,7 +306,8 @@ class Proof {
 
     /** A value expression that can only be a fresh plain dict. */
     srcTagFree (src: string, body: string, region: Region, depth = 0): boolean {
-        const t = src.trim();
+        // a typed map local's `.into_dict()` / `.into_opt_dict()` unboxes the same source (a non-map gives empty / None)
+        const t = src.trim().replace(/;$/, '').replace(/\.into_(?:opt_)?dict\(\)$/, '');
         if (depth > 2) return false;
         if (t.startsWith('Value::Map(')) return true;
         if (t.startsWith('Value::Null')) return true;
@@ -353,6 +363,23 @@ function keyConv (arg: string, intermediate: boolean): string | undefined {
     const place = arg.trim().match(PLACE_KEY);
     if (place !== null) return 'crate::runtime::stringify_param(&' + place[1] + ')';
     return undefined;
+}
+
+/** `x[k] = v` on a tag-free `Dict` / `Option<Dict>` local: `insert` on the map itself (`None` skips, as the helper's
+ *  Null receiver did). undefined: not a typed map local; null: typed but unprovable (keep the helper). */
+function typedMapInsert (name: string, body: string, hops: number, keyArg: string, value: string): string | null | undefined {
+    const decl = body.match(new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*(crate::value::Dict|Option<crate::value::Dict>)[ \\t]*=', 'm'));
+    if (decl === null) return undefined;
+    const lit = keyArg.trim().match(LITERAL_KEY);
+    const place = keyArg.trim().match(PLACE_KEY);
+    // a place key must be a boxed local, the `&Value` the helper stringifies
+    const key = lit !== null ? lit[1] + '.to_string()'
+        : (place !== null && new RegExp('^[ \\t]*let mut ' + place[1] + '[ \\t]*:[ \\t]*Value\\b', 'm').test(body) ? 'crate::runtime::stringify_param(&' + place[1] + ')' : undefined);
+    if (hops > 0 || key === undefined || new RegExp('\\b' + name + '\\b').test(value)) return null;
+    const val = value.startsWith('Value::') ? value : 'Value::from(' + value + ')';
+    return decl[1] === 'crate::value::Dict'
+        ? 'std::sync::Arc::make_mut(&mut ' + name + ').insert(' + key + ', ' + val + ');'
+        : 'if let Some(__rdm) = &mut ' + name + ' { std::sync::Arc::make_mut(__rdm).insert(' + key + ', ' + val + '); }';
 }
 
 /**
@@ -412,6 +439,16 @@ function nativeInserts (content: string): string {
         }
         else if (local !== null) {
             if (!proof.localTagFree(local[1], body, region)) continue;
+            const typed = typedMapInsert(local[1], body, chain.length, args[1], args[2].trim());
+            if (typed === null) continue;
+            if (typed !== undefined) {
+                const lineStart = content.lastIndexOf('\n', at) + 1;
+                let lineEnd = content.indexOf('\n', after);
+                if (lineEnd < 0) lineEnd = content.length;
+                const merged = content.slice(lineStart, at) + typed + content.slice(after, lineEnd).replace(/^;/, '');
+                if (!(content.slice(lineStart, lineEnd).length <= 400 && merged.length > 400)) edits.push({ start: at, end: after, text: typed });
+                continue;
+            }
             // A nested write reaches a value the function may have taken off a
             // tagged cache / book / subscription snapshot.
             if (chain.length > 0 && TAG_ACCESS.some(t => body.includes(t))) continue;
