@@ -13009,7 +13009,7 @@ ${constStatements.join('\n')}
                 'WatchMyTrades', 'WatchOHLCV', 'WatchOrders', 'WatchPositions', 'WatchTrades', 'FetchOrderBook', 'FetchStatus' ].join ('|')})${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
             // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
             // Handle*AndParams pairs and MarketSymbols, exchange_misc.go ImplodeHostname): drop the copies
-            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOption(?:Bool|Integer)AndParams2?',
+            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
                 'HandleOptionStringAndParams2', 'HandleUntilOption', 'MarketSymbols', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
 
@@ -14016,7 +14016,7 @@ ${caseStatements.join('\n')}
     // returns a Go `[]any` on every path, so the declared `any` return becomes `[]any`. All receivers are retyped because an
     // override shadows the base method for its own call sites; a `[]any` still boxes into every `any` sink.
     coerceTupleHelperSignatures (content: string): string {
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
             // hand-written base (exchange_market_type.go) returns the pair as two results; the
             // Okx/Deepcoin overrides only `return super...` so they carry the same results
             .replace (/func\s+\(this \*(\w+)\)\s+(HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams|HandleMarginModeAndParams)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (*string, map[string]any) {')
@@ -16604,7 +16604,7 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
 // is x's only declaration in the function, Omit(x, ..) always yields a map, so MapTyped(Omit) == OmitDict.
 function goTypedMaplistTupleMethods (): string {
-    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?';
+    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?|HandleOptionAndParams2?';
 }
 
 function goTypedMaplistTupleMap (func: string, name: string, pairs: string = ''): boolean {
@@ -18450,13 +18450,18 @@ function goTupleSlotIdentPlain (ctx: any, fn: any, name: string, k: number, dept
         if (/^\s*(?:case\b|default:)/.test (ctx.masked[j])) {
             return false;
         }
-        if (!writes (j)) {
+        // both results of the hand-written (any, map[string]any) option pair: a derefScalar'd value and a map
+        const optionPair = new RegExp ('^\\s*(?:' + name + ', \\w+|\\w+, ' + name + ') :?= this\\.HandleOptionAndParams2?\\(').test (ctx.masked[j]);
+        if (!writes (j) && !optionPair) {
             continue;
         }
         if (!goTupleSlotEncloses (ctx, j, k)) {
             return false;
         }
         const m = ctx.masked[j];
+        if (optionPair) {
+            return true;
+        }
         if (new RegExp ('^\\s*var ' + name + ' any\\s*$').test (m)) {
             return true;
         }
@@ -19678,7 +19683,9 @@ function goPlainBoxIsEqual (content: string): string {
             const decl = new RegExp ('^\\t+(?:' + x + ' :=|var ' + x + ' any =) (?:ccxt\\.)?GetValue\\((?!this,)[^\\n]*\\)$', 'm').test (fn)
                 // the pair bind's `x := func() any { if xPtr != nil { return *xPtr }; return nil }()` answers what the GetValue deref did
                 || new RegExp ('^\\t+' + x + ' := func\\(\\) any \\{\\n\\t+if (\\w+Ptr) != nil \\{\\n\\t+return \\*\\1\\n\\t+\\}\\n\\t+return nil\\n\\t+\\}\\(\\)$', 'm').test (fn)
-                || goPlainTupleSlotLocal (fn, masked, fileMasked, x);
+                || goPlainTupleSlotLocal (fn, masked, fileMasked, x)
+                // slot 0 of the base option pair is returned derefScalar'd (exchange_market_type.go)
+                || new RegExp ('^\\t+' + x + ', \\w+ := this\\.HandleOptionAndParams2?\\(', 'm').test (masked);
             const ok = decl && (binds.length === 1) && !new RegExp ('[(,]\\s*' + x + ' ').test (header) && !new RegExp ('&' + x + '\\b|' + n + '\\s*(?:=(?!=)|[-+*/%|&^]=|\\+\\+|--)').test (masked);
             plainLocal.set (x, ok);
             return ok;
