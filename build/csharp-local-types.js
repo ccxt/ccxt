@@ -15269,7 +15269,11 @@ export function installCsharpLocalTypes (transpiler) {
             }
             // the printer prints a bare `getValue (recv, key)`; the named element type only
             // compiles once the box is cast back
-            value = '((' + info.cast + ')' + value + ')';
+            value = (info.castWhole === true)
+                // a conditional / binary value: a cast binds its own operand first, so the whole
+                // expression needs its own paren pair (`((T)(cond ? A : B))`)
+                ? '((' + info.cast + ')(' + value + '))'
+                : '((' + info.cast + ')' + value + ')';
         }
         // the destructuring print (a later statement in the same function) casts back to this
         recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type, isUTAEnabledAwaitedInit (declaration));

@@ -26116,7 +26116,6 @@ const JAVA_LIST_PARAM_SLOTS = {
 // dictionary slots: every caller hands a checker-proven string-indexed object
 // (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
 const JAVA_MAP_PARAM_SLOTS = {
-    'addKeyInArrayItems': [ 0 ],
 };
 // ws order-book slots: every caller passes a local the printer declares WsOrderBook
 const JAVA_ORDERBOOK_PARAM_SLOTS = {
