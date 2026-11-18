@@ -2475,18 +2475,19 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $tradesLength = count($trades);
             }
             if ($isArray && ($tradesLength > 0)) {
+                $headTrade = $trades[0];
                 // move properties that are defined in trades up into the order
                 if ($parseSymbol) {
-                    $orderDict['symbol'] = $trades[0]['symbol'];
+                    $orderDict['symbol'] = $headTrade['symbol'];
                 }
                 if ($parseSide) {
-                    $orderDict['side'] = $trades[0]['side'];
+                    $orderDict['side'] = $headTrade['side'];
                 }
                 if ($this->safe_string($orderDict, 'type') === null) {
-                    $orderDict['type'] = $trades[0]['type'];
+                    $orderDict['type'] = $headTrade['type'];
                 }
                 if ($this->safe_string($orderDict, 'id') === null) {
-                    $orderDict['id'] = $trades[0]['order'];
+                    $orderDict['id'] = $headTrade['order'];
                 }
                 if ($parseFilled) {
                     $filled = '0';
@@ -4104,7 +4105,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $transactionsArray = $this->to_array($transactions);
         $result = array();
         for ($i = 0; $i < count($transactionsArray); $i++) {
-            $transaction = $this->extend($this->parse_transaction($transactionsArray[$i], $currency), $params);
+            $transaction = $this->extend($this->parse_transaction($this->safe_dict($transactionsArray, $i, array()), $currency), $params);
             $result[] = $transaction;
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -6280,9 +6281,9 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function handle_max_entries_per_request_and_params(string $method, ?int $maxEntriesPerRequest = null, $params = array()) {
-        list($newMaxEntriesPerRequest, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($params, $method, 'maxEntriesPerRequest');
-        $maxEntriesPerRequestOption = ($newMaxEntriesPerRequest !== null) ? $newMaxEntriesPerRequest : $maxEntriesPerRequest;
-        $maxEntriesPerRequestResolved = ($maxEntriesPerRequestOption === null) ? 1000 : $maxEntriesPerRequestOption; // default to 1000
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        $maxEntriesPerRequestDefault = ($maxEntriesPerRequest === null) ? 1000 : $maxEntriesPerRequest;
+        list($maxEntriesPerRequestResolved, $paramsMaxEntriesPerRequest) = $this->handle_option_integer_and_params($params, $method, 'maxEntriesPerRequest', $maxEntriesPerRequestDefault);
         return array( $maxEntriesPerRequestResolved, $paramsMaxEntriesPerRequest );
     }
 

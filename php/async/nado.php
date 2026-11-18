@@ -566,7 +566,7 @@ class nado extends Exchange {
         $isTriggerOrder = $isStopOrder || $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopOrder) {
             // the final omit drops triggerDirection from the request
-            $triggerDirection = $this->safe_string($this->handle_trigger_direction_and_params($paramsRecvWindow), 0);
+            list($triggerDirection) = $this->handle_trigger_direction_and_params($paramsRecvWindow);
             $directionSuffix = 'below';
             if ($triggerDirection === 'ascending') {
                 $directionSuffix = 'above';

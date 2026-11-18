@@ -1255,14 +1255,15 @@ class backpack extends \ccxt\async\backpack {
         $deltaNonce = $this->safe_integer($data, 'u');
         $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
+            $cacheSize = count($storedOrderBook->cache);
+            $cacheLength = $this->parse_to_int($cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             $storedOrderBook->cache[] = $data;
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             $market = $this->market($symbol);
             $isStockMarket = ($market['stock'] === true) || (($marketId !== null) && ((mb_strpos($marketId, '.US_') !== false) || (mb_strpos($marketId, '.HK_') !== false)));
             $defaultSnapshotDelay = $isStockMarket ? 0 : 10;
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', $defaultSnapshotDelay);
+            $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', $defaultSnapshotDelay));
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }

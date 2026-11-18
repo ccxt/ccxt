@@ -2980,7 +2980,7 @@ class toobit extends Exchange {
         $transactType = ($type === 'deposits') ? 'deposit' : 'withdrawal';
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $results[] = $this->extend($this->parse_transaction_with_type($response[$i], $currency, $transactType), $paramsUntil);
+            $results[] = $this->extend($this->parse_transaction_with_type($this->safe_dict($response, $i, array()), $currency, $transactType), $paramsUntil);
         }
         $sorted = $this->sort_by($results, 'timestamp');
         $currencyCode = ($currency !== null) ? $currency['code'] : null;

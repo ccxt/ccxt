@@ -118,11 +118,11 @@ class bitget extends \ccxt\async\bitget {
             list($instTypeDefault, $paramsProductType) = $this->handleProductTypeAndParams($market, $params);
         }
         list($instTypeOption, $paramsInstType) = $this->handle_option_string_and_params($paramsProductType, $methodName, 'instType', $instTypeDefault);
-        $instType = $instTypeOption;
         if ($uta && ($instTypeOption !== null)) {
-            $instType = strtolower($instTypeOption);
+            $instTypeLower = strtolower($instTypeOption);
+            return array( $instTypeLower, $paramsInstType );
         }
-        return array( $instType, $paramsInstType );
+        return array( $instTypeOption, $paramsInstType );
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {

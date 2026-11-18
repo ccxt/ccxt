@@ -343,7 +343,7 @@ class phemex extends \ccxt\async\phemex {
         return Async\await($this->subscribe_private($type, $messageHash, $paramsMarketType));
     }
 
-    public function handle_balance(string $type, Client $client, array $message) {
+    public function handle_balance(Client $client, array $message, string $type) {
         // spot
         //    [
         //       {
@@ -1731,7 +1731,7 @@ class phemex extends \ccxt\async\phemex {
                 $type = 'perpetual';
             }
             $accounts = $this->safe_list_n($message, array( 'accounts', 'accounts_p', 'wallets' ), array());
-            $this->handle_balance($type, $client, $accounts);
+            $this->handle_balance($client, $accounts, $type);
         }
     }
 
