@@ -84,7 +84,8 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const url = this.urls['api']['ws']['public'];
-        const ordersRequest = this.createOrdersRequest (orders, params);
+        const unsignedRequest = this.ordersActionRequest (orders, params);
+        const ordersRequest = await this.signL1Request (unsignedRequest);
         const wrapped = this.wrapAsPostAction (ordersRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
@@ -157,7 +158,8 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, (amount as number), price, params);
-        const postRequest = this.editOrdersRequest ([ order ], globalParams);
+        const unsignedRequest = this.modifyActionRequest ([ order ], globalParams);
+        const postRequest = await this.signL1Request (unsignedRequest);
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
@@ -188,7 +190,8 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = this.cancelOrdersRequest (ids, symbol, params);
+        const unsignedRequest = this.cancelActionRequest (ids, symbol, params);
+        const request = await this.signL1Request (unsignedRequest);
         const url = this.urls['api']['ws']['public'];
         const wrapped = this.wrapAsPostAction (request);
         const wsRequest = this.safeDict (wrapped, 'request', {});
