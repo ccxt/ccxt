@@ -1059,6 +1059,9 @@ export const CSHARP_STRING_RETURN_METHODS_BY_DECLARATION = {
 //   parseTokenAndFeeTemp: woo / woofipro / modetrade, each only returns fee.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'parseTokenAndFeeTemp': 'Dictionary<string, object>',
+    // PredictionExchange filterEventsBy{Status,SearchIn,Tags} (base only, no overrides): each
+    // returns its IList<object> events param or its own List<object> result local
+    'filterEventsByStatus': 'IList<object>', 'filterEventsBySearchIn': 'IList<object>', 'filterEventsByTags': 'IList<object>',
 });
 
 // dydx credential helpers: retrieveDydxCredentials is a hand-written stub that only throws
@@ -1188,6 +1191,12 @@ function unwrapPassthroughExpression (node) {
 // The `string` mapping (CSHARP_STRING_RETURN_METHODS_BY_DECLARATION) has its own predicate: a
 // scalar spelling must not consume the collection arms below (a string literal is NOT a
 // Dictionary, an array literal is not a string).
+function arrayParameterIsList (csharp, node) {
+    const reference = resolveReference (csharp, node);
+    return reference?.kind === ts.SyntaxKind.Parameter && reference.type?.kind === ts.SyntaxKind.ArrayType
+        && reference.parent?.kind === ts.SyntaxKind.MethodDeclaration && !csharpParameterIsWritten (csharp, reference.parent, reference);
+}
+
 function collectionReturnExpressionProves (csharp, expression, mapped) {
     let node = unwrapPassthroughExpression (expression);
     if (mapped === 'string') {
@@ -1200,8 +1209,12 @@ function collectionReturnExpressionProves (csharp, expression, mapped) {
         return mapped === 'List<object>' || mapped === 'IList<object>';
     case ts.SyntaxKind.ConditionalExpression:
         return collectionReturnExpressionProves (csharp, node.whenTrue, mapped) && collectionReturnExpressionProves (csharp, node.whenFalse, mapped);
-    case ts.SyntaxKind.Identifier:
-        return identifierType (csharp, node) === mapped;
+    case ts.SyntaxKind.Identifier: {
+        // a List<object> local is already an IList<object> (implicit reference conversion)
+        // as is an unwritten `x: T[]` parameter, which the printer declares IList<object>
+        const type = identifierType (csharp, node);
+        return type === mapped || (mapped === 'IList<object>' && (type === 'List<object>' || arrayParameterIsList (csharp, node)));
+    }
     case ts.SyntaxKind.CallExpression:
         return callCollectionReturnType (csharp, node) === mapped;
     }
@@ -16835,6 +16848,8 @@ export const SIGNATURE_ARG_TYPES = {
     // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a
     // body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int64?` is its own type
     'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+    // PredictionExchange only (no overrides): `events: any[]` prints IList<object> and is never written
+    'applyEventFetchParams': { 0: 'IList<object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
