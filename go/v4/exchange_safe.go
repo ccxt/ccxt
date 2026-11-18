@@ -1106,3 +1106,57 @@ func (this *BaseExchange) SafeDict2Map(dictionaryOrList any, key1 any, key2 any,
 func (this *BaseExchange) SafeDictNMap(dictionaryOrList any, keys any, optionalArgs ...any) map[string]any {
 	return MapTyped(this.SafeDictN(dictionaryOrList, keys, optionalArgs...))
 }
+
+// SafeList2Strings and SafeListNStrings are SafeList2 / SafeListN read as the []string a string-list
+// local holds: nil exactly where the reader answers nil, else the elements Join joins.
+func (this *BaseExchange) SafeList2Strings(dictionaryOrList any, key1 any, key2 any) []string {
+	return joinListValue(this.SafeList2(dictionaryOrList, key1, key2))
+}
+
+func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []string {
+	return joinListValue(this.SafeListN(dictionaryOrList, keys))
+}
+
+// MarketIdsStrings is MarketIds read as the []string a joined id-list local holds: nil exactly where
+// MarketIds answers nil, else the ids Join joins.
+func (this *BaseExchange) MarketIdsStrings(symbols any) []string {
+	return joinListValue(this.MarketIds(symbols))
+}
+
+// MarketIdsSlice is MarketIds read as a []any: nil exactly where MarketIds answers nil.
+func (this *BaseExchange) MarketIdsSlice(symbols any) []any {
+	return listValueToTypedSlice(this.MarketIds(symbols))
+}
+
+// SafeListSlice is SafeList read as a []any: the member or default list, nil where that answer is
+// not a list (GetArrayLength of such a box was 0, so a length-bounded read sees nothing either way).
+func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultValue any) []any {
+	return listValueToTypedSlice(this.SafeList(dictionaryOrList, key, defaultValue))
+}
+
+// SafeListNSlice is SafeListN (no default) read as a []any: nil exactly where SafeListN answers nil.
+func (this *BaseExchange) SafeListNSlice(dictionaryOrList any, keys any) []any {
+	return listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys))
+}
+
+// SafeListMapsTyped is SafeListTyped read as map rows: nil when the member is absent or not a
+// list, else one entry per element, the element's map or a nil map for any other element.
+func (this *BaseExchange) SafeListMapsTyped(m any, key any) []map[string]any {
+	list := SafeListTyped(m, key)
+	if list == nil {
+		return nil
+	}
+	rows := make([]map[string]any, len(list))
+	for i, element := range list {
+		rows[i], _ = derefScalar(element).(map[string]any)
+	}
+	return rows
+}
+
+// SafeListNSliceDefault is SafeListN with a list default read as a []any: the member list, else the default.
+func (this *BaseExchange) SafeListNSliceDefault(dictionaryOrList any, keys any, defaultValue []any) []any {
+	if value := listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys)); value != nil {
+		return value
+	}
+	return defaultValue
+}

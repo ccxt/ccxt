@@ -148,7 +148,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -176,9 +176,9 @@ public partial class grvt : ccxt.grvt
         {
             throw new ArgumentsRequired ((this.id + " watchTickers requires a symbols argument")) ;
         }
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         (Int64?, object) intervalOptionparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", 500);
         Int64? intervalOption = intervalOptionparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable.Item2);
@@ -320,7 +320,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -338,7 +338,7 @@ public partial class grvt : ccxt.grvt
      * @param {string} [params.limit] 50, 200, 500, 1000 (default 50)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -360,13 +360,13 @@ public partial class grvt : ccxt.grvt
             { "stream", "v1.trade" },
             { "selectors", rawHashes },
         };
-        object trades = await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -412,7 +412,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         // same as REST api
         return this.parseTrade(trade, market);
@@ -430,7 +430,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -440,7 +440,7 @@ public partial class grvt : ccxt.grvt
             await this.loadMarkets();
         }
         string? symbolValue = this.symbol(symbol);
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        parameters["callerMethodName"] = "watchOHLCV";
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
@@ -456,7 +456,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -541,7 +541,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(resolveData, messageHash);
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         // same as REST api
         return ((List<object>)((object)(this.parseOHLCV(ohlcv, market))));
@@ -558,7 +558,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -580,16 +580,16 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         bool isSnapshot = (channel == "v1.book.s");
         int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
@@ -600,7 +600,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitOption = limitOptionparamsLimitOptionVariable.Item1;
         IDictionary<string, object> paramsLimitOption = ((IDictionary<string, object>)limitOptionparamsLimitOptionVariable.Item2);
         Int64? limitResolved = limitOption;
-        object paramsLimit = paramsLimitOption;
+        IDictionary<string, object> paramsLimit = paramsLimitOption;
         if ((limit != null))
         {
             limitResolved = limit;
@@ -613,7 +613,7 @@ public partial class grvt : ccxt.grvt
         string? extraPart = null;
         if (isSnapshot)
         {
-            extraPart = ((((object)interval).ToString() + "-") + limitResolved.ToString());
+            extraPart = ((((object)interval).ToString() + "-") + ((object)limitResolved).ToString());
         } else
         {
             extraPart = ((object)interval).ToString();
@@ -748,7 +748,7 @@ public partial class grvt : ccxt.grvt
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -773,11 +773,11 @@ public partial class grvt : ccxt.grvt
             { "stream", "v1.fill" },
             { "selectors", rawHashes },
         };
-        object trades = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -847,7 +847,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -945,7 +945,7 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -970,13 +970,13 @@ public partial class grvt : ccxt.grvt
             { "stream", "v1.order" },
             { "selectors", rawHashes },
         };
-        object orders = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)

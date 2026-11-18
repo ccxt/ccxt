@@ -79,12 +79,13 @@ func (this *Paradex) Describe() map[string]any {
 	})
 }
 func (this *Paradex) GetWsUrl() any {
-	var url any = this.UrlsApi["ws"]
+	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	if !(*this.SafeBool(this.Options, "sbe", true)) {
 		return url
+	} else {
+		var schemaVersion string = *this.SafeString(this.Options, "sbeSchemaVersion", "3")
+		return *url + "?sbeSchemaId=1&sbeSchemaVersion=" + schemaVersion
 	}
-	var schemaVersion string = *this.SafeString(this.Options, "sbeSchemaVersion", "3")
-	return ccxt.Add(ccxt.Add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion)
 }
 func (this *Paradex) GetOrderBookChannel(marketId any, optionalArgs ...any) any {
 	// the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
@@ -99,7 +100,7 @@ func (this *Paradex) GetOrderBookChannel(marketId any, optionalArgs ...any) any 
 	return ccxt.Add(ccxt.Add("order_book.", marketId), ".snapshot@15@100ms")
 }
 func (this *Paradex) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }
@@ -389,7 +390,7 @@ func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var refused any = 0
+	var refused int = 0
 	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
 		if ccxt.IsGreaterThanOrEqual(i, start) {
 
@@ -402,7 +403,7 @@ func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], 
 							}
 							ret_ = func(this *Paradex) any {
 								// catch block:
-								refused = ccxt.Add(refused, 1)
+								refused = refused + 1
 								return nil
 							}(this)
 						}
@@ -573,9 +574,9 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var url any = this.GetWsUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 
 		r := <-this.AuthenticateRestAsync()
 		if r.Err != nil {
@@ -597,7 +598,7 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 		this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
 	}
 
-	r1 := <-future.(*ccxt.Future).Await()
+	r1 := <-future.Await()
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -622,9 +623,9 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	//     }
 	//
 	// the future stays resolved, so later private watches on this connection skip the auth request
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(true)
+		future.Resolve(true)
 	}
 }
 func (this *Paradex) HandleRequestReply(client any, message any) {
@@ -1727,14 +1728,14 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 		return nil
 	}
 	// the markets left in the scoped subscription once these are removed
-	var remaining any = 0
+	var remaining int = 0
 	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		if (strings.Index(keys[i], channel+".") == 0) && !this.InArray(keys[i], subscribeHashes) {
-			remaining = ccxt.Add(remaining, 1)
+			remaining = remaining + 1
 		}
 	}
-	if (symbolsLength == 0) || ((client.(ccxt.ClientInterface).SubscriptionHas(scopedHash)) && (ccxt.IsEqual(remaining, 0))) {
+	if (symbolsLength == 0) || ((client.(ccxt.ClientInterface).SubscriptionHas(scopedHash)) && (remaining == 0)) {
 		// a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
 		var channelSubscription map[string]any = map[string]any{
 			"topic":            "ticker",
@@ -2121,8 +2122,8 @@ func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var bidAsk any = this.ParseWsBidAsk(data)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(bidAsk, "symbol"))
+	var bidAsk map[string]any = this.ParseWsBidAsk(data)
+	var symbol *string = ccxt.SafeStringPtr(bidAsk["symbol"])
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(bidAsk)
 	}
@@ -2130,7 +2131,7 @@ func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
 	// an SBE frame does not tell bbo.ALL from the per-market channel
 	client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask")
 }
-func (this *Paradex) ParseWsBidAsk(data map[string]any, optionalArgs ...any) any {
+func (this *Paradex) ParseWsBidAsk(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "market")
@@ -2498,7 +2499,7 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
 	var symbol *string = ccxt.SafeStringPtr(position["symbol"])
 	var newPositions []any = []any{}
@@ -2507,7 +2508,7 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	var side *string = this.SafeString(position, "side")
 	var cached []any = this.FilterBySymbolSinceLimit(cache, symbol, nil, nil, true)
 	for i := 0; i < len(cached); i++ {
-		var previous any = ccxt.DerefScalar(cached[i])
+		var previous any = cached[i]
 		var previousSide *string = this.SafeString(previous, "side")
 		var previousContracts *string = this.SafeString(previous, "contracts")
 		var isOpposite bool = (side != nil) && (previousSide != nil) && (previousSide != side && (previousSide == nil || side == nil || *previousSide != *side))
@@ -2516,11 +2517,11 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 				"contracts":           this.ParseNumber("0"),
 				"lastUpdateTimestamp": this.SafeInteger(position, "lastUpdateTimestamp"),
 			})
-			cache.(ccxt.Appender).Append(flattened)
+			cache.Append(flattened)
 			newPositions = append(newPositions, flattened)
 		}
 	}
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	newPositions = append(newPositions, position)
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add("positions:", symbol))
@@ -3052,7 +3053,7 @@ func (this *Paradex) SbeReadString(frameHex string, offset int64, length int64) 
 	var first int64 = this.ParseToInt(offset)
 	var size int64 = this.ParseToInt(length)
 	var start int64 = first * 2
-	var end any = this.Sum(start, size*2)
+	var end int64 = start + size*2
 	return this.BinaryToString(this.Base16ToBinary(ccxt.Slice(frameHex, start, end)))
 }
 func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {
@@ -3105,7 +3106,7 @@ func (this *Paradex) ParseSbeTrade(frameHex string, blockLength int64, frameLeng
 	if blockSize < 50 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 2, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3143,7 +3144,7 @@ func (this *Paradex) ParseSbeBbo(frameHex string, blockLength int64, frameLength
 	if blockSize < 48 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3177,15 +3178,15 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 	var levels []any = []any{}
 	var sides []string = []string{"BUY", "SELL"}
 	var frameEnd int64 = this.ParseToInt(frameLength)
-	var position int64 = this.ParseToInt(this.Sum(blockLength, 8))
+	var position int64 = this.ParseToInt(blockLength + 8)
 	for i := 0; i < len(sides); i++ {
 		if (position + 4) > frameEnd {
 			return nil
 		}
 		var entryLength int64 = this.ParseToInt(this.SbeReadUint(frameHex, position, 2))
 		var numInGroup int64 = this.ParseToInt(this.SbeReadUint(frameHex, position+2, 2))
-		position = this.ParseToInt(position + 4)
-		if (entryLength < 16) || (this.ParseToInt(this.Sum(position, numInGroup*entryLength)) > frameEnd) {
+		position = position + 4
+		if (entryLength < 16) || (this.ParseToInt(position+numInGroup*entryLength) > frameEnd) {
 			return nil
 		}
 		for j := 0; int64(j) < numInGroup; j++ {
@@ -3194,7 +3195,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 				"price": this.SbeReadDecimal(frameHex, position),
 				"size":  this.SbeReadDecimal(frameHex, position+8),
 			})
-			position = this.ParseToInt(this.Sum(position, entryLength))
+			position = this.ParseToInt(position + entryLength)
 		}
 	}
 	var strings []any = this.SbeReadVarStrings(frameHex, position, 1, frameLength)
@@ -3241,7 +3242,7 @@ func (this *Paradex) ParseSbeMarketSummary(client any, frameHex string, blockLen
 	if blockSize < 96 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3284,7 +3285,7 @@ func (this *Paradex) ParseSbeFundingData(frameHex string, blockLength int64, fra
 	if blockSize < 58 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3312,7 +3313,7 @@ func (this *Paradex) ParseSbeOrder(frameHex string, blockLength int64, frameLeng
 	if blockSize < 126 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 4, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 4, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 4 {
 		return nil
@@ -3406,7 +3407,7 @@ func (this *Paradex) ParseSbeFill(frameHex string, blockLength int64, frameLengt
 	if blockSize < 107 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 6, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 6, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 5 {
 		return nil
@@ -3466,7 +3467,7 @@ func (this *Paradex) ParseSbePosition(frameHex string, blockLength int64, frameL
 	if blockSize < 154 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 2, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3521,7 +3522,7 @@ func (this *Paradex) ParseSbeAccount(frameHex string, blockLength int64, frameLe
 	if blockSize < 113 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil

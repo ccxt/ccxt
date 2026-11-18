@@ -818,7 +818,7 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[Order], symbol st
 		"orderQty": this.AmountToPrecision(symbol, amount),
 		"clOrdId":  clientOrderId,
 	}
-	var triggerPrice any = this.SafeValueN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
+	var triggerPrice *string = this.SafeStringN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
 	if (uppercaseOrderType == "STOP") || (uppercaseOrderType == "STOPLIMIT") {
 		if triggerPrice == nil {
@@ -868,12 +868,12 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[Order], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blockchaincom) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Blockchaincom) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Blockchaincom) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

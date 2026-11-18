@@ -780,7 +780,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<Int64> FetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetOpenV1CommonTime(parameters);
@@ -803,7 +803,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetOpenV1CommonSymbols(parameters);
@@ -984,7 +984,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1043,7 +1043,7 @@ public partial class tokocrypto : Exchange
         return orderbook;
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // aggregate trades
@@ -1209,7 +1209,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1412,7 +1412,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1478,7 +1478,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1511,7 +1511,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1575,7 +1575,7 @@ public partial class tokocrypto : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1591,7 +1591,7 @@ public partial class tokocrypto : Exchange
         int maxLimit = 1500;
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
         object limitValue = defaultLimit;
         if ((limit != null))
         {
@@ -1688,7 +1688,7 @@ public partial class tokocrypto : Exchange
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1972,7 +1972,7 @@ public partial class tokocrypto : Exchange
      * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2004,7 +2004,7 @@ public partial class tokocrypto : Exchange
         string initialUppercaseType = typeResolved.ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        object paramsRequest = this.omit(paramsPostOnly, new List<object>() {"clientId", "clientOrderId", "timeInForce"});
+        IDictionary<string, object> paramsRequest = this.omit(paramsPostOnly, new List<object>() {"clientId", "clientOrderId", "timeInForce"});
         if ((triggerPrice != null))
         {
             paramsRequest = this.omit(paramsRequest, new List<object>() {"triggerPrice", "stopPrice"});
@@ -2025,10 +2025,10 @@ public partial class tokocrypto : Exchange
         {
             if ((initialUppercaseType != uppercaseType))
             {
-                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + (typeResolved)) + " orders")) ;
+                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + typeResolved) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((((((this.id + " ") + (typeResolved)) + " is not a valid order type for the ") + symbol) + " market")) ;
+                throw new InvalidOrder ((((((this.id + " ") + typeResolved) + " is not a valid order type for the ") + symbol) + " market")) ;
             }
         }
         Dictionary<string, object> reverseOrderTypeMapping = new Dictionary<string, object>() {
@@ -2092,7 +2092,7 @@ public partial class tokocrypto : Exchange
                 object precision = (marketPrecision != null && marketPrecision.ContainsKey("price") ? marketPrecision["price"] : null);
                 object quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
                 paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty");
@@ -2152,7 +2152,7 @@ public partial class tokocrypto : Exchange
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + (typeResolved)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + typeResolved) + " order")) ;
             }
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2160,7 +2160,7 @@ public partial class tokocrypto : Exchange
         {
             if ((triggerPrice == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice extra param for a ") + (typeResolved)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice extra param for a ") + typeResolved) + " order")) ;
             } else
             {
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -2241,7 +2241,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2295,7 +2295,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -2368,7 +2368,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2388,7 +2388,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2407,7 +2407,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2456,7 +2456,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -2476,7 +2476,7 @@ public partial class tokocrypto : Exchange
         {
             request["startTime"] = since;
         }
-        object paramsOmitted = ((endTime != null)) ? this.omit(parameters, new List<object>() {"endTime", "until"}) : parameters;
+        IDictionary<string, object> paramsOmitted = ((endTime != null)) ? this.omit(parameters, new List<object>() {"endTime", "until"}) : parameters;
         if ((endTime != null))
         {
             request["endTime"] = endTime;
@@ -2525,7 +2525,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2539,7 +2539,7 @@ public partial class tokocrypto : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        object paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
+        IDictionary<string, object> paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         if ((network != null))
         {
             request["network"] = network;
@@ -2585,7 +2585,7 @@ public partial class tokocrypto : Exchange
      * @param {int} [params.until] the latest time in ms to fetch deposits for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2655,7 +2655,7 @@ public partial class tokocrypto : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2731,7 +2731,7 @@ public partial class tokocrypto : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2869,7 +2869,7 @@ public partial class tokocrypto : Exchange
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");

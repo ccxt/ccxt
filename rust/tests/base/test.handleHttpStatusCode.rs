@@ -74,7 +74,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     // statuses missing from the table must not throw — derived handleErrors
     // implementations rely on exactly that swallow when they guard with
     // a httpExceptions lookup before deferring to the status handler

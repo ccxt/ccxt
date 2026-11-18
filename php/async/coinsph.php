@@ -1482,7 +1482,7 @@ class coinsph extends Exchange {
         $orderType = $this->safe_string($paramsOmitted, 'type', $type);
         $orderType = $this->encode_order_type($orderType);
         $paramsType = $this->omit($paramsOmitted, 'type');
-        $paramsQuote = null;
+        $paramsQuote = $paramsType;
         $orderSide = $this->encode_order_side($side);
         $request = array(
             'symbol' => $market['id'],
@@ -1490,7 +1490,7 @@ class coinsph extends Exchange {
             'side' => $orderSide,
         );
         $options = $this->safe_dict($this->options, 'createOrder', array());
-        $newOrderRespTypes = $this->safe_value($options, 'newOrderRespType', array());
+        $newOrderRespTypes = $this->safe_dict($options, 'newOrderRespType', array());
         $newOrderRespType = 'FULL';
         // if limit order
         if ($orderType === 'LIMIT' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT_LIMIT' || $orderType === 'LIMIT_MAKER') {
@@ -1538,8 +1538,7 @@ class coinsph extends Exchange {
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $request['newOrderRespType'] = $newOrderRespType;
-        $paramsBase = ($paramsQuote !== null) ? $paramsQuote : $paramsType;
-        $paramsRequest = $this->omit($paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        $paramsRequest = $this->omit($paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
         if ($testOrder) {
             $response = Async\await($this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest)));

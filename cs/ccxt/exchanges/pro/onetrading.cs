@@ -81,7 +81,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
@@ -167,7 +167,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -241,7 +241,7 @@ public partial class onetrading : ccxt.onetrading
         string? datetime = this.safeString(message, "time");
         for (int i = 0; i < tickers.Count; i++)
         {
-            object ticker = tickers[i];
+            IDictionary<string, object> ticker = ((IDictionary<string, object>)tickers[i]);
             string? marketId = this.safeString(ticker, "instrument");
             string? symbol = this.safeSymbol(marketId);
             ccxt.Ticker parsedTicker = this.parseWSTicker(ticker);
@@ -254,7 +254,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public virtual ccxt.Ticker parseWSTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWSTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -303,7 +303,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -337,7 +337,7 @@ public partial class onetrading : ccxt.onetrading
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
+        trades = this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved);
         int numTrades = getArrayLength(trades);
         if ((numTrades == 0))
         {
@@ -356,7 +356,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -367,7 +367,7 @@ public partial class onetrading : ccxt.onetrading
         string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("book:" + symbolValue);
         string subscriptionHash = "ORDER_BOOK";
-        object depth = 0;
+        Int64? depth = 0;
         if ((limit != null))
         {
             depth = limit;
@@ -490,7 +490,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -524,7 +524,7 @@ public partial class onetrading : ccxt.onetrading
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
+        orders = this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved);
         int numOrders = getArrayLength(orders);
         if ((numOrders == 0))
         {
@@ -1146,7 +1146,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1275,18 +1275,17 @@ public partial class onetrading : ccxt.onetrading
         string? timeframe = this.findTimeframe(timeframeId, timeframes);
         string channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<object> parsed = new List<object> {this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")};
-        IDictionary<string, object> symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        this.ohlcvs[(string)symbol] = symbolOhlcvs;
-        object stored = this.safeValue(symbolOhlcvs, timeframe);
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.BaseCache.appendTo(stored, parsed);
+        stored.append(parsed);
         if ((symbol != null) && (timeframe != null))
         {
-            symbolOhlcvs[timeframe] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         client.resolve(stored, channel);
     }
@@ -1479,7 +1478,7 @@ public partial class onetrading : ccxt.onetrading
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");

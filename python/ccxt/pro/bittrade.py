@@ -44,12 +44,12 @@ class bittrade(ccxt.async_support.bittrade):
             },
         })
 
-    def request_id(self) -> str:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         self.unlock_id()
-        return str(requestId)
+        return requestId
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -73,10 +73,10 @@ class bittrade(ccxt.async_support.bittrade):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': market['symbol'],
             'params': params,
@@ -142,10 +142,10 @@ class bittrade(ccxt.async_support.bittrade):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'params': params,
@@ -223,10 +223,10 @@ class bittrade(ccxt.async_support.bittrade):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'timeframe': timeframe,
@@ -302,10 +302,10 @@ class bittrade(ccxt.async_support.bittrade):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'limit': limitValue,
@@ -372,19 +372,19 @@ class bittrade(ccxt.async_support.bittrade):
             requestId = self.request_id()
             request = {
                 'req': messageHash,
-                'id': requestId,
+                'id': str(requestId),
             }
             # this is a temporary subscription by a specific requestId
             # it has a very short lifetime until the snapshot is received over ws
             snapshotSubscription = {
-                'id': requestId,
+                'id': str(requestId),
                 'messageHash': messageHash,
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
                 'method': self.handle_order_book_snapshot,
             }
-            orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
+            orderbook = await self.watch(url, str(requestId), request, str(requestId), snapshotSubscription)
             return orderbook.limit()
         except Exception as e:
             del client.subscriptions[messageHash]

@@ -425,7 +425,7 @@ class bitso(Exchange, ImplicitAPI):
             cost = Precise.string_abs(amount)
             fee = {
                 'cost': cost,
-                'currency': currencyResolved,
+                'currency': code,
             }
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
         return self.safe_ledger_entry({

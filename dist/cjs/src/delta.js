@@ -349,9 +349,10 @@ class delta extends delta$1["default"] {
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         const hasSlash = symbol.indexOf('/') > -1;
-        const partSource = hasSlash ? symbolBase : optionParts;
-        const baseIndex = hasSlash ? 0 : 1;
-        const base = this.safeString(partSource, baseIndex, '');
+        let base = this.safeString(optionParts, 1, '');
+        if (hasSlash) {
+            base = this.safeString(symbolBase, 0, '');
+        }
         const optionType = this.safeString(optionParts, hasSlash ? 3 : 0, '');
         const rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3, '');
         const expiry = rawExpiry.slice(4) + rawExpiry.slice(2, 4) + rawExpiry.slice(0, 2);
@@ -1957,7 +1958,7 @@ class delta extends delta$1["default"] {
         }
         const marketId = this.safeString(order, 'product_id');
         const marketsByNumericId = this.safeDict(this.options, 'marketsByNumericId', {});
-        const marketValue = this.safeValue(marketsByNumericId, marketId, market);
+        const marketValue = this.safeDict(marketsByNumericId, marketId, market);
         let symbol = undefined;
         if (marketValue === undefined) {
             symbol = marketId;

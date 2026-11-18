@@ -1368,7 +1368,7 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1477,7 +1477,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1790,18 +1790,18 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(paramsPaginate, "endTime", until)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"endTime", "until"})
 	var sinceResolved any = since
 	if (endTime != nil) && (since == nil) {
-		sinceResolved = (*endTime - (((limitResolved * 60) * 60) * 1000))
+		sinceResolved = (*endTime - ((limitResolved * 60) * 60 * 1000))
 	}
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
@@ -1837,7 +1837,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1911,18 +1911,18 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 	if !this.InArray(interval, []any{"PT1H", "P1D"}) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only"))
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"endTime", "until"})
 	var sinceResolved any = since
 	if (endTime != nil) && (since == nil) {
-		sinceResolved = (*endTime - ((limitResolved * this.ParseTimeframe(timeframe)) * 1000))
+		sinceResolved = (*endTime - (limitResolved * this.ParseTimeframe(timeframe) * 1000))
 	}
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
@@ -2246,7 +2246,7 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2410,7 +2410,7 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2559,7 +2559,7 @@ func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string
 	if r1.Value != nil {
 		account = r1.Value
 	}
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	var accountId *string = this.SafeString(account, "accountId")
 	var settlement map[string]any = this.CreateWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag)
 	var request map[string]any = map[string]any{
@@ -2679,7 +2679,7 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2742,7 +2742,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	if (toVault == nil) || (toL2Key == nil) {
 		panic(ArgumentsRequired(this.Id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]"))
 	}
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	var settlement map[string]any = this.CreateTransferSettlementData(amountString, currency, account, *toVault, *toL2Key, params)
 	var request map[string]any = map[string]any{
 		"fromAccount":      currentAccountId,
@@ -3394,7 +3394,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -3680,7 +3680,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 			builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
 			paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
 		} else {
-			var paramsBuilderFeeRate any = nil
+			var paramsBuilderFeeRate map[string]any = nil
 			builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 			builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
 		}
@@ -4083,12 +4083,12 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
  * @param {string} [params.clientOrderId] user-defined order id, cancels by external id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Extended) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4121,7 +4121,7 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 		}
 		response = r1.Value
 	} else {
-		if IsEqual(id, nil) {
+		if false {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument"))
 		}
 		var request map[string]any = map[string]any{
@@ -4139,9 +4139,9 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 	//         "status": "OK"
 	//     }
 	//
-	var orderId any = func() any {
+	var orderId *string = func() *string {
 		if clientOrderId == nil {
-			return id
+			return &id
 		}
 		return nil
 	}()
@@ -4170,12 +4170,12 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id any, option
  * @param {string} [params.clientOrderId] single client order id
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Extended) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4191,9 +4191,9 @@ func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"})
 	var request map[string]any = map[string]any{}
-	var hasOrderIds bool = (!IsEqual(ids, nil))
+	var hasOrderIds bool = (ids != nil)
 	if hasOrderIds {
-		var idsLength int = GetArrayLength(ids)
+		var idsLength int = len(ids)
 		if idsLength > 0 {
 			request["orderIds"] = ids
 		}
@@ -4572,7 +4572,7 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,

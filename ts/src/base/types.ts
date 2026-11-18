@@ -282,9 +282,16 @@ export interface PredictionOutcome {
     negRisk?: Bool;              // polymarket neg-risk exchange flag, read by createOrder
 }
 
+// what safeOutcome / loadOutcome hand back: a cached outcome token, or the market the caller
+// passed in as the fallback (which may carry no outcome identity keys)
+export interface PredictionOutcomeHandle extends MarketInterface {
+    outcome?: Str;
+    outcomeId?: Str;
+}
+
 // a cached outcome token as held in ex.outcomes: market-shaped so it can be passed where a
 // Market is expected, plus the outcome identity keys
-export interface PredictionOutcomeMarket extends MarketInterface {
+export interface PredictionOutcomeMarket extends PredictionOutcomeHandle {
     outcome: string;
     outcomeId: string;
     label?: Str;

@@ -1348,7 +1348,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		request["startTime"] = since
 		// https://github.com/ccxt/ccxt/issues/6400
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-		request["endTime"] = this.Sum(since, 3600000)
+		request["endTime"] = *since + 3600000
 
 		responseRecv := <-this.BinanceGetAggTrades(this.Extend(request, params))
 		if responseRecv.Err != nil {
@@ -2181,9 +2181,9 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	var initialUppercaseType string = strings.ToUpper(typeResolved)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
-	var paramsRequest any = this.Omit(paramsPostOnly, []any{"clientId", "clientOrderId", "timeInForce"})
+	var paramsRequest map[string]any = this.OmitDict(paramsPostOnly, []any{"clientId", "clientOrderId", "timeInForce"})
 	if triggerPrice != nil {
-		paramsRequest = this.Omit(paramsRequest, []any{"triggerPrice", "stopPrice"})
+		paramsRequest = this.OmitDict(paramsRequest, []any{"triggerPrice", "stopPrice"})
 		if postOnly {
 			panic(InvalidOrder(this.Id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type"))
 		}
@@ -2256,7 +2256,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequest, "cost", "quoteOrderQty")
-			paramsRequest = this.Omit(paramsRequest, []any{"cost", "quoteOrderQty"})
+			paramsRequest = this.OmitDict(paramsRequest, []any{"cost", "quoteOrderQty"})
 			if cost != nil {
 				quoteAmount = cost
 			} else if createMarketBuyOrderRequiresPrice {
@@ -2636,12 +2636,12 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Tokocrypto) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2913,9 +2913,9 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	if since != nil {
 		request["startTime"] = since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
-		var endTime any = this.Sum(since, 7776000000)
+		var endTime int64 = *since + 7776000000
 		if until != nil {
-			endTime = mathMin(endTime, until)
+			endTime = min(endTime, *until)
 		}
 		request["endTime"] = endTime
 	}
@@ -3001,7 +3001,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	if since != nil {
 		request["startTime"] = since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
-		request["endTime"] = this.Sum(since, 7776000000)
+		request["endTime"] = *since + 7776000000
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -3229,9 +3229,9 @@ func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		request["addressTag"] = *tagWithdrawTag
 	}
 	networkCode, query := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
-		request["network"] = ToUpper(networkId)
+		request["network"] = strings.ToUpper(*networkId)
 	}
 
 	r1 := <-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))

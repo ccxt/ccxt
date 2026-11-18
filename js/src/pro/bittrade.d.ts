@@ -1,10 +1,10 @@
 import bittradeRest from '../bittrade.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bittrade extends bittradeRest {
     describe(): Dict;
-    requestId(): string;
+    requestId(): int;
     /**
      * @method
      * @name bittrade#watchTicker

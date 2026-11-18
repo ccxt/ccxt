@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bit2me::Bit2meCore;
+use super::bit2me::Bit2me;
 use crate::exchange::ExchangeRuntime;
 
-impl Bit2meCore {
+impl Bit2me {
     /// Auto-generated wrapper for the `publicGetV2TradingMarketConfig` implicit endpoint.
     pub async fn public_get_v2_trading_market_config(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v2_trading_market_config".into()), optional_args).await

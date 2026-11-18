@@ -11,8 +11,8 @@ use super::*;
 
 pub async fn testFetchMarginMode(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchMarginMode".into());
-    let mut marginMode: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_margin_mode", vec![symbol.clone()]).await;
-    testMarginMode(exchange.clone(), skippedProperties.clone(), method.clone(), marginMode.clone());
+    let mut marginMode: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_margin_mode", vec![symbol]).await;
+    testMarginMode(exchange.clone(), skippedProperties, method, marginMode);
     return Value::Bool(true);
 
     Value::Null

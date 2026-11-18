@@ -816,7 +816,7 @@ public class Toobit extends ToobitApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -963,9 +963,9 @@ public class Toobit extends ToobitApi
             //            },
             //          ...
             //
-            List<Object> coins = (List<Object>) this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
+            List<Object> coins = this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)coins).size(); i++)
+            for (var i = 0; i < coins.size(); i++)
             {
                 Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(coin);
@@ -985,8 +985,8 @@ public class Toobit extends ToobitApi
         String id = this.safeString(rawCurrency, "coinId");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> rawNetworks = (List<Object>) this.safeList(rawCurrency, "chainTypes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
+        List<Object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < rawNetworks.size(); j++)
         {
             Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
             String networkId = this.safeString(rawNetwork, "chainType");
@@ -1055,7 +1055,7 @@ public class Toobit extends ToobitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedInfo = (Map<String, Object>) this.safeDict(this.options, "exchangeInfo", (Object) null);
+            Map<String, Object> cachedInfo = this.safeDict(this.options, "exchangeInfo", null);
             Object response = cachedInfo;
             if (!java.util.Objects.equals(cachedInfo, null))
             {
@@ -1192,13 +1192,13 @@ public class Toobit extends ToobitApi
             //            },
             //          ...
             //
-            List<Object> symbols = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
-            List<Object> contracts = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbols = this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> contracts = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<Object> all = (List<Object>) this.arrayConcat(symbols, contracts);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)all).size(); i++)
+            for (var i = 0; i < all.size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.safeDict(all, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> market = this.safeDict(all, i, new HashMap<String, Object>() {{}});
                 MarketInterface parsed = this.parseMarket(market);
                 if (!java.util.Objects.equals(parsed, null))
                 {
@@ -1227,11 +1227,11 @@ public class Toobit extends ToobitApi
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "TRADING"));
-        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
-        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-        Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-        Map<String, Object> minNotionalFilter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+        Map<String, Object> lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         String symbol = ((base + "/") + quote);
         Boolean isContract = (!java.util.Objects.equals(this.safeString(market, "contractMultiplier"), null));
         Boolean inverse = (Boolean) this.safeBool2(market, "isInverse", "inverse", (Object) null);
@@ -1631,7 +1631,7 @@ public class Toobit extends ToobitApi
                 {
                     market = this.market(symbol);
                 }
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if ((java.util.Objects.equals(length, 1)) && (!java.util.Objects.equals(market, null)))
                 {
                     request.put("symbol", market.get("id"));
@@ -1665,7 +1665,7 @@ public class Toobit extends ToobitApi
             //        ...
             //
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Object ticker = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 String marketId = this.safeString(ticker, "s");
@@ -1739,7 +1739,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1797,7 +1797,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1824,7 +1824,7 @@ public class Toobit extends ToobitApi
     public Object parseBidsAsksCustom(List<Object> tickers, Object symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        for (var i = 0; i < tickers.size(); i++)
         {
             Map<String, Object> parsedTicker = this.parseBidAskCustom((Map<String, Object>) ((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i))));
             Map<String, Object> ticker = this.extend(parsedTicker, parameters);
@@ -1875,7 +1875,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -2035,7 +2035,7 @@ public class Toobit extends ToobitApi
         Object balances = this.safeList(response, "balances", response);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String code = this.safeCurrencyCode(this.safeString(balance, "asset"), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString2(balance, "free", "availableBalance"));
@@ -2217,8 +2217,8 @@ public class Toobit extends ToobitApi
         {
             request.put("stopPrice", triggerPrice);
         }
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsTrigger, "stopLoss", (Object) null);
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsTrigger, "takeProfit", (Object) null);
+        Map<String, Object> stopLoss = this.safeDict(paramsTrigger, "stopLoss", null);
+        Map<String, Object> takeProfit = this.safeDict(paramsTrigger, "takeProfit", null);
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         Map<String, Object> triggerPriceTypes = new HashMap<String, Object>() {{
@@ -2554,7 +2554,7 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request, paramsMarketType))).join();
             }
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2779,7 +2779,7 @@ public class Toobit extends ToobitApi
             {
                 responseList = response;
             }
-            for (var i = 0; i < ((List<?>)responseList).size(); i++)
+            for (var i = 0; i < responseList.size(); i++)
             {
                 HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i)));
@@ -2868,7 +2868,7 @@ public class Toobit extends ToobitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3075,9 +3075,8 @@ public class Toobit extends ToobitApi
             // }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Map<String, Object> entry = response;
-            Map<String, Object> marketResolved = this.safeMarket(this.safeString(entry, "symbol"), market, (String) null, (String) null);
-            Map<String, Object> fee = this.parseTradingFee(entry, marketResolved);
+            Map<String, Object> marketResolved = this.safeMarket(this.safeString(response, "symbol"), market, (String) null, (String) null);
+            Map<String, Object> fee = this.parseTradingFee(response, marketResolved);
             result.put((String)marketResolved.get("symbol"), fee);
             return result;
         }).thenApply(TradingFees::new);
@@ -3176,13 +3175,13 @@ public class Toobit extends ToobitApi
             }
             String transactType = (((java.util.Objects.equals(type, "deposits")))) ? "deposit" : "withdrawal";
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 ((List<Object>)results).add(this.extend(this.parseTransactionWithType((Map<String, Object>) ((response == null || i < 0 || i >= response.size() ? null : response.get(i))), currency, transactType), paramsUntil));
             }
             List<Object> sorted = this.sortBy(results, "timestamp");
-            Object currencyCode = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
-            return this.filterByCurrencySinceLimit(sorted, java.util.Objects.toString(currencyCode, null), since, limit, false);
+            String currencyCode = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+            return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit, false);
         });
 
     }
@@ -3311,7 +3310,7 @@ public class Toobit extends ToobitApi
         {
             return null;
         }
-        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -3545,7 +3544,7 @@ public class Toobit extends ToobitApi
             //     }
             // ]
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -3588,7 +3587,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer length = ((List<?>)symbols).size();
+                Integer length = symbols.size();
                 if ((length != null && length > 1))
                 {
                     throw new BadRequest((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;

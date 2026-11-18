@@ -345,7 +345,7 @@ class gate(ccxt.async_support.gate):
         rawOrder = await self.request_private(url, self.extend(request, requestParams), channel)
         return self.parse_order(rawOrder, market)
 
-    def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -357,9 +357,9 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
+        return await self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
 
-    def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -371,7 +371,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
+        return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
 
     async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -648,12 +648,12 @@ class gate(ccxt.async_support.gate):
         storedOrderBook = self.safe_value(self.orderbooks, symbol, self.order_book({}))
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
-            cacheLength = self.parse_to_int(0)
+            cacheLength = 0
             if storedOrderBook is not None:
                 storedCacheLength = len(storedOrderBook.cache)
                 cacheLength = self.parse_to_int(storedCacheLength)
             snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 10))
-            waitAmount = self.parse_to_int(0)
+            waitAmount = 0
             if isSpot:
                 waitAmount = snapshotDelay
             if cacheLength == waitAmount:
@@ -768,7 +768,7 @@ class gate(ccxt.async_support.gate):
         #
         self.handle_ticker_and_bid_ask('ticker', client, message)
 
-    def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
@@ -780,7 +780,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
+        return await self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
@@ -864,7 +864,7 @@ class gate(ccxt.async_support.gate):
             messageHash = objectName + ':' + symbol
             client.resolve(parsedItem, messageHash)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
@@ -879,7 +879,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -939,14 +939,14 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         return await self.un_subscribe_public_multiple(url, 'trades', symbolsNormalized, messageHashes, subMessageHashes, marketIds, channel, params)
 
-    def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.un_watch_trades_for_symbols([symbol], params)
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -1138,8 +1138,8 @@ class gate(ccxt.async_support.gate):
             timeframe = marketIds[symbol]
             interval = self.find_timeframe(timeframe)
             hash = 'candles' + ':' + interval + ':' + symbol
-            stored = self.safe_value(self.ohlcvs[symbol], interval)
-            client.resolve(stored, hash)
+            symbolOhlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), interval)
+            client.resolve(symbolOhlcv, hash)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1162,7 +1162,7 @@ class gate(ccxt.async_support.gate):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchMyTrades', market, paramsMarketType)
         messageType = self.get_supported_mapping(type, {
@@ -1400,18 +1400,16 @@ class gate(ccxt.async_support.gate):
         self.set_positions_cache(client, type, symbolsNormalized)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        cache = self.safe_value(self.positions, type)
+        cache = self.safe_value(self.positionsByType, type)
         if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             return await client.future(type + ':fetchPositionsSnapshot')
         positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.safe_value(self.positions, type), symbolsNormalized, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positionsByType, type), symbolsNormalized, since, limit, True)
 
     def set_positions_cache(self, client: Client, type: str, symbols: Strings = None):
-        if self.positions is None:
-            self.positions = {}
-        if type in self.positions:
+        if type in self.positionsByType:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot is True:
@@ -1420,12 +1418,12 @@ class gate(ccxt.async_support.gate):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash, type)
         else:
-            self.positions[type] = ArrayCacheBySymbolBySide()
+            self.positionsByType[type] = ArrayCacheBySymbolBySide()
 
     async def load_positions_snapshot(self, client: Client, messageHash: str, type: str):
         positions = await self.fetch_positions(None, {'type': type})
-        self.positions[type] = ArrayCacheBySymbolBySide()
-        cache = self.positions[type]
+        self.positionsByType[type] = ArrayCacheBySymbolBySide()
+        cache = self.positionsByType[type]
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
@@ -1470,7 +1468,7 @@ class gate(ccxt.async_support.gate):
         #
         type = self.get_market_type_by_url(client.url)
         data = self.safe_list(message, 'result', [])
-        cache = self.positions[type]
+        cache = self.positionsByType[type]
         newPositions = []
         for i in range(0, len(data)):
             rawPosition = data[i]
@@ -1657,7 +1655,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(stored, messageHash)
         client.resolve(stored, hashPrefix)
 
-    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -1671,7 +1669,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+        return await self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
 
     async def watch_my_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
@@ -2128,11 +2126,11 @@ class gate(ccxt.async_support.gate):
                 client.resolve(result, requestId)
 
     def get_url_by_market(self, market: object) -> str:
-        baseUrl = self.urls['api'][market['type']]
         if self.safe_bool(market, 'contract', False):
-            return baseUrl['usdt'] if (self.safe_bool(market, 'linear', False)) else baseUrl['btc']
+            settleKey = 'usdt' if (self.safe_bool(market, 'linear', False)) else 'btc'
+            return self.safe_string(self.urls['api'][market['type']], settleKey, '')
         else:
-            return baseUrl
+            return self.safe_string(self.urls['api'], market['type'], '')
 
     def get_type_by_market(self, market: Market) -> Str:
         if market is None:
@@ -2145,12 +2143,11 @@ class gate(ccxt.async_support.gate):
             return 'futures'
 
     def get_url_by_market_type(self, type: Str, isInverse: Bool = False) -> Str:
-        api = self.urls['api']
-        url = self.safe_value(api, type)
         if (type == 'swap') or (type == 'future'):
-            return url['btc'] if isInverse else url['usdt']
+            settleKey = 'btc' if isInverse else 'usdt'
+            return self.safe_string(self.safe_dict(self.urls['api'], type), settleKey)
         else:
-            return url
+            return self.safe_string(self.urls['api'], type)
 
     def get_market_type_by_url(self, url: str) -> str:
         findBy = {
@@ -2168,7 +2165,7 @@ class gate(ccxt.async_support.gate):
                 return value
         return 'spot'
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         # their support said that reqid must be an int32, not documented
         self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)

@@ -206,7 +206,7 @@ export default class binance extends Exchange {
             maxTopicsResolved = this.parseToInt (maxTopics);
         }
         const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
-        let pageLimit = this.parseToInt (100);
+        let pageLimit = 100;
         if (pageLimitOption < 100) {
             pageLimit = this.parseToInt (pageLimitOption);
         }
@@ -445,13 +445,13 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: List = [];
         const queriesLength = queries.length;
-        let limitValue = this.parseToInt (20);
+        let limitValue = 20;
         if (limit !== undefined) {
             limitValue = this.parseToInt (limit);
         }
         let limitResolved = limitValue;
         if (limitValue > 50) {
-            limitResolved = this.parseToInt (50);
+            limitResolved = 50;
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
@@ -786,8 +786,7 @@ export default class binance extends Exchange {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
@@ -1581,7 +1580,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    async fetchWallet (methodName: string, params: Dict = {}): Promise<any> {
+    async fetchWallet (methodName: string, params: Dict = {}): Promise<NullableDict> {
         if (this.safeDict (this.options, 'wallet') !== undefined) {
             return this.safeDict (this.options, 'wallet');
         }
@@ -1663,7 +1662,7 @@ export default class binance extends Exchange {
 
     override priceToPrecision (outcome: Str, price: any): string {
         const market = this.market (outcome);
-        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
+        const prec = this.safeNumber (this.safeDict (market, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
         if ((prec !== undefined) && (prec > 0)) {
             decimals = this.precisionFromString (this.numberToString (prec));
@@ -1673,7 +1672,7 @@ export default class binance extends Exchange {
 
     override amountToPrecision (outcome: Str, amount: any): string {
         const market = this.market (outcome);
-        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.01);
+        const prec = this.safeNumber (this.safeDict (market, 'precision', {}), 'amount', 0.01);
         let decimals = 2;
         if ((prec !== undefined) && (prec > 0)) {
             decimals = this.precisionFromString (this.numberToString (prec));

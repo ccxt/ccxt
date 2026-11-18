@@ -287,7 +287,7 @@ public partial class predictfun : PredictionExchange
      * @param {int} [params.limit] the maximum number of events to collect markets from
      * @returns {Market[]} array of market structures
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
@@ -315,7 +315,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.slug] event slug, overrides the id argument when both are given
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, IDictionary<string, object> parameters = null)
     {
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
@@ -346,7 +346,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.marketVariant] predictfun enum value ('SPORTS_MATCH', 'CRYPTO_UP_DOWN' etc.)
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool? allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
@@ -356,7 +356,7 @@ public partial class predictfun : PredictionExchange
         }
         List<object> queries = this.parseSearchQueries(parameters);
         int queriesLength = (queries?.Count ?? 0);
-        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries"}));
+        Dictionary<string, object> paramsValue = this.omit(parameters, new List<object>() {"query", "queries"});
         // keys dropped before the client-side pass; the categories listing also drops its limit
         List<object> postOmitKeys = new List<object>() {"tags"};
         Int64? userLimit = this.safeInteger(paramsValue, "limit");
@@ -589,8 +589,8 @@ public partial class predictfun : PredictionExchange
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
             result.Add(parsedEvent);
-            IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
+            List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
+            int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
@@ -650,7 +650,7 @@ public partial class predictfun : PredictionExchange
             includeResolved = "true";
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"}));
+        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"});
         int queriesLength = queries?.Count ?? 0;
         List<object> result = new List<object>() {};
         // the venue answers every term separately and the same category comes back for each term
@@ -736,8 +736,8 @@ public partial class predictfun : PredictionExchange
             // a term can match a market whose category row is not in the response - those rows are
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
-            IList<object> rawMarkets = (IList<object>)(this.safeList(data, "markets", new List<object>() {}));
-            int rawMarketsLength = (rawMarkets?.Count ?? 0);
+            List<object> rawMarkets = this.safeList(data, "markets", new List<object>() {});
+            int rawMarketsLength = rawMarkets.Count;
             for (int mi = 0; mi < rawMarketsLength; mi++)
             {
                 object rawMarket = (rawMarkets != null && mi < rawMarkets.Count ? rawMarkets[mi] : null);
@@ -748,8 +748,8 @@ public partial class predictfun : PredictionExchange
                     {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        object bucket = (orphanMarkets.ContainsKey(marketSlug) ? orphanMarkets[marketSlug] : null);
-                        ((IList<object>)bucket).Add(rawMarket);
+                        IList<object> bucket = ((IList<object>)(orphanMarkets.ContainsKey(marketSlug) ? orphanMarkets[marketSlug] : null));
+                        bucket.Add(rawMarket);
                         orphanMarkets[(string)marketSlug] = bucket;
                     } else
                     {
@@ -1192,8 +1192,8 @@ public partial class predictfun : PredictionExchange
         string? title = this.safeString(rawMarket, "title", marketId);
         List<object> topicMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
         int marketCount = topicMarkets.Count;
-        object symbolTitle = this.titleForMarketSymbol(topicSlug, title, marketCount);
-        object marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
+        string? symbolTitle = this.titleForMarketSymbol(topicSlug, title, marketCount);
+        string marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
         string? tradingStatus = this.safeString(rawMarket, "tradingStatus");
         string? status = this.safeString(rawMarket, "status");
         bool active = (tradingStatus == "OPEN");
@@ -1223,7 +1223,7 @@ public partial class predictfun : PredictionExchange
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
             string? label = this.stripPriceFormatting(rawLabel);
             string? tokenId = this.safeString(rawOutcome, "onChainId");
-            string? outcomeHandle = ((string)((object)(marketSymbol == null ? null : marketSymbol + ":" + label)));
+            string outcomeHandle = ((marketSymbol + ":") + label);
             bool? winner = null;
             string? outcomeStatus = this.safeString(rawOutcome, "status");
             int? settleFractionRaw = null;
@@ -1335,7 +1335,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1415,7 +1415,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<ccxt.PredictionTicker> FetchTicker(string outcome, object parameters = null)
+    public async override Task<ccxt.PredictionTicker> FetchTicker(string outcome, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1568,7 +1568,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.signerAddress] read another wallet's matches instead of the configured one
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? signerAddress = this.safeString(parameters, "signerAddress", this.walletAddress);
@@ -1587,7 +1587,7 @@ public partial class predictfun : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             request["marketId"] = this.safeString(info, "marketId");
         }
-        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "signerAddress"));
+        Dictionary<string, object> query = this.omit(parameters, "signerAddress");
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         Dictionary<string, object> response = await this.predictfunGetV1OrdersMatches(this.extend(request, query));
@@ -1649,7 +1649,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1871,7 +1871,7 @@ public partial class predictfun : PredictionExchange
     public virtual string? hashMessage(string message)
     {
         string? binaryMessage = this.encode(message);
-        object binaryMessageLength = this.binaryLength(binaryMessage);
+        int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
@@ -1972,7 +1972,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
      * @returns {object} a dictionary with the order hash and the signature
      */
-    public virtual object signPredictfunOrder(IDictionary<string, object> order, bool? isNegRisk, bool? isYieldBearing)
+    public virtual Dictionary<string, object> signPredictfunOrder(IDictionary<string, object> order, bool? isNegRisk, bool? isYieldBearing)
     {
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
@@ -2059,7 +2059,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -2093,9 +2093,9 @@ public partial class predictfun : PredictionExchange
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        (bool?, object) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
+        (bool?, IDictionary<string, object>) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
         bool? warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item1;
-        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = ((IDictionary<string, object>)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item2);
+        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = (warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item2);
         if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order
@@ -2178,7 +2178,7 @@ public partial class predictfun : PredictionExchange
             { "side", isBuy ? 0 : 1 },
             { "signatureType", 0 },
         };
-        object signed = this.signPredictfunOrder(contractOrder, isNegRisk, isYieldBearing);
+        Dictionary<string, object> signed = this.signPredictfunOrder(contractOrder, isNegRisk, isYieldBearing);
         Dictionary<string, object> orderPayload = this.extend(contractOrder, new Dictionary<string, object>() {
             { "hash", this.safeString(signed, "hash") },
             { "signature", this.safeString(signed, "signature") },
@@ -2249,7 +2249,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
@@ -2266,7 +2266,7 @@ public partial class predictfun : PredictionExchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "address", address },
             };
-            IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, "address"));
+            Dictionary<string, object> rest = this.omit(parameters, "address");
             response = await this.predictfunGetV1PositionsAddress(this.extend(request, rest));
         } else
         {
@@ -2337,7 +2337,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.address] read another wallet's position, which needs no JWT
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<ccxt.PredictionPosition> FetchPosition(string outcome, object parameters = null)
+    public async override Task<ccxt.PredictionPosition> FetchPosition(string outcome, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2448,7 +2448,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},outcome, parameters));
@@ -2470,7 +2470,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
@@ -2546,7 +2546,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -2609,7 +2609,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2630,7 +2630,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
         // orders cannot be asked for, so a closed order here means one that filled
@@ -3138,7 +3138,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -3184,7 +3184,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async override Task<object> unWatchOrderBook(object outcome, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object outcome, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -3359,17 +3359,17 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string messageHash = "orders";
-        object outcomeResolved = outcome;
+        string? outcomeResolved = outcome;
         if ((outcome != null))
         {
             await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> outcomeObj = this.outcome(outcomeResolved);
             outcomeResolved = this.safeOutcomeSymbol(null, outcomeObj);
-            messageHash = ("orders::" + (outcomeResolved));
+            messageHash = ("orders::" + outcomeResolved);
         } else
         {
             // events arrive for whatever market the wallet traded, and the handler that resolves
@@ -3385,7 +3385,7 @@ public partial class predictfun : PredictionExchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, outcomeResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(this.toArray(orders), outcomeResolved, since, limitResolved, true));
     }
 
     /**
@@ -3399,17 +3399,17 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
-        object outcomeResolved = outcome;
+        string? outcomeResolved = outcome;
         if ((outcome != null))
         {
             await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> outcomeObj = this.outcome(outcomeResolved);
             outcomeResolved = this.safeOutcomeSymbol(null, outcomeObj);
-            messageHash = ("myTrades::" + (outcomeResolved));
+            messageHash = ("myTrades::" + outcomeResolved);
         } else
         {
             // same as watchOrders (): the fills come from the one wallet topic and are resolved by
@@ -3422,7 +3422,7 @@ public partial class predictfun : PredictionExchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, outcomeResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(this.toArray(trades), outcomeResolved, since, limitResolved, true));
     }
 
     /**
@@ -3434,7 +3434,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async override Task<object> unWatchOrders(string? outcome = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchWalletEvents("orders", parameters);
@@ -3449,7 +3449,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async override Task<object> unWatchMyTrades(string? outcome = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(string? outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchWalletEvents("myTrades", parameters);
@@ -3483,7 +3483,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} whatever the channel resolves with
      */
-    public async virtual Task<object> watchWalletEvents(string? messageHash, object parameters = null)
+    public async virtual Task<object> watchWalletEvents(string? messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string topic = await this.walletEventsTopic();
@@ -3546,7 +3546,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async virtual Task<object> unWatchWalletEvents(string channel, object parameters = null)
+    public async virtual Task<object> unWatchWalletEvents(string channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string topic = await this.walletEventsTopic();
@@ -3649,8 +3649,8 @@ public partial class predictfun : PredictionExchange
         {
             return result;
         }
-        object cached = this.outcomes;
-        List<object> handles = new List<object>(((IDictionary<string,object>)cached).Keys);
+        Dictionary<string, object> cached = ((Dictionary<string, object>)this.outcomes);
+        List<object> handles = new List<object>(cached.Keys);
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
@@ -4247,8 +4247,6 @@ public partial class predictfun : PredictionExchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
-        Dictionary<string, object> headersValue = existingHeaders;
         Dictionary<string, object> authHeaders = new Dictionary<string, object>() {};
         if (((apiKey != null)) && (sandboxMode != true))
         {
@@ -4281,7 +4279,7 @@ public partial class predictfun : PredictionExchange
             authHeaders["Content-Type"] = "application/json";
             bodyValue = this.json(parameters);
         }
-        Dictionary<string, object> headersExtended = this.extend(headersValue, authHeaders);
+        Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {}, authHeaders);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

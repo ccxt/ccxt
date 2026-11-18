@@ -176,8 +176,8 @@ public partial class testMainClass
             object isRequired = getValue(reqCreds, credential);
             if ((isEqual(isRequired, true)) && (isEqual(getExchangeProp(exchange, credential), null)))
             {
-                object fullKey = add(add(exchangeId, "_"), credential);
-                string credentialEnvName = ((string)fullKey).ToUpper(); // example: KRAKEN_APIKEY
+                string? fullKey = ((string)(add(add(exchangeId, "_"), credential)));
+                string credentialEnvName = fullKey.ToUpper(); // example: KRAKEN_APIKEY
                 object envVars = getEnvVars();
                 object credentialValue = (inOp(envVars, credentialEnvName)) ? getValue(envVars, credentialEnvName) : null;
                 if ((credentialValue != null) && !isEqual(credentialValue, ""))
@@ -191,8 +191,8 @@ public partial class testMainClass
     public virtual void expandSettings(BaseExchange exchange)
     {
         object exchangeId = exchange.id;
-        object keysGlobal = add(getRootDir(), "keys.json");
-        object keysLocal = add(getRootDir(), "keys.local.json");
+        string? keysGlobal = ((string)(add(getRootDir(), "keys.json")));
+        string? keysLocal = ((string)(add(getRootDir(), "keys.local.json")));
         object keysGlobalExists = ioFileExists(keysGlobal);
         object keysLocalExists = ioFileExists(keysLocal);
         object globalSettings = new Dictionary<string, object>() {};
@@ -236,7 +236,7 @@ public partial class testMainClass
             this.loadCredentialsFromEnv(exchange);
         }
         // skipped tests
-        object skippedFile = add(getRootDir(), "skip-tests.json");
+        string? skippedFile = ((string)(add(getRootDir(), "skip-tests.json")));
         object skippedSettings = ioFileRead(skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, new Dictionary<string, object>() {});
         object skippedSettingsForExchange = this.skippedSettingsForExchange;
@@ -298,7 +298,7 @@ public partial class testMainClass
         }
         string? skipMessage = null;
         bool supportedByExchange = (inOp(exchange.has, methodName)) && (!isEqual(getValue(exchange.has, methodName), null)) && (!isEqual(getValue(exchange.has, methodName), false));
-        if (!isLoadMarkets && ((getArrayLength(this.onlySpecificTests) > 0) && (!isEqual(exchange.inArray(methodName, this.onlySpecificTests), true))))
+        if (!isLoadMarkets && ((getArrayLength(this.onlySpecificTests) > 0) && !isTrue(exchange.inArray(methodName, this.onlySpecificTests))))
         {
             skipMessage = "[INFO] IGNORED_TEST";
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest)
@@ -1624,7 +1624,7 @@ public partial class testMainClass
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        object filename = add(add(add(getRootDir(), "./ts/src/test/static/markets/"), id), ".json");
+        string? filename = ((string)(add(add(add(getRootDir(), "./ts/src/test/static/markets/"), id), ".json")));
         object content = ioFileRead(filename);
         return content;
     }
@@ -1633,7 +1633,7 @@ public partial class testMainClass
     {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
-        object filename = add(add(add(getRootDir(), "./ts/src/test/static/events/"), id), ".json");
+        string? filename = ((string)(add(add(add(getRootDir(), "./ts/src/test/static/events/"), id), ".json")));
         if (!isTrue(ioFileExists(filename)))
         {
             return null;
@@ -1643,7 +1643,7 @@ public partial class testMainClass
 
     public virtual object loadCurrenciesFromFile(object id)
     {
-        object filename = add(add(add(getRootDir(), "./ts/src/test/static/currencies/"), id), ".json");
+        string? filename = ((string)(add(add(add(getRootDir(), "./ts/src/test/static/currencies/"), id), ".json")));
         object content = ioFileRead(filename);
         return content;
     }
@@ -1803,7 +1803,7 @@ public partial class testMainClass
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
         List<object> keys = new List<object>(((IDictionary<string,object>)target).Keys);
-        object count = 0;
+        Int64? count = 0;
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -1811,7 +1811,7 @@ public partial class testMainClass
             {
                 continue;
             }
-            count = add(count, 1);
+            count = (count + 1);
         }
         return count;
     }
@@ -2041,8 +2041,8 @@ public partial class testMainClass
         {
             if (isTrue(this.info))
             {
-                object errorMessage = add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
-                dump(("[TEST_FAILURE_DETAIL]" + (errorMessage)));
+                string? errorMessage = ((string)(add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)")));
+                dump(("[TEST_FAILURE_DETAIL]" + errorMessage));
             }
             throw e;
         }

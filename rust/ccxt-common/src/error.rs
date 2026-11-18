@@ -122,6 +122,86 @@ mod error_hierarchy_tests {
     }
 }
 
+/// A caught error object: the payload of a `catch (e)` arm (transpiled
+/// `catch_unwind`), kept as the raw `[Kind] message` text the panic carried so
+/// re-throwing it (`panic!("{}", e)`), rejecting a ws future with it, or boxing
+/// it into a `Value` gives byte-for-byte the same string the old `Value::Str`
+/// binding did. Class tests walk the same hierarchy as `runtime::is_instance`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CaughtError {
+    raw: String,
+}
+
+impl CaughtError {
+    /// Takes a `catch_unwind` payload (`String` / `&str` panics; anything else
+    /// reads as `"panic"`, as `runtime::panic_to_value` does).
+    pub fn from_panic(payload: Box<dyn std::any::Any + Send>) -> Self {
+        let raw = payload.downcast_ref::<String>().cloned()
+            .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+            .unwrap_or_else(|| "panic".to_string());
+        Self { raw }
+    }
+    /// The full `[Kind] message` text.
+    pub fn message(&self) -> &str { &self.raw }
+    /// `e instanceof <Class>` for a class with no subclass: `[Class]` appears in the text.
+    pub fn names(&self, class: &str) -> bool { self.raw.contains(&format!("[{class}]")) }
+    /// `e instanceof <Class>` with the error hierarchy walk (`runtime::is_instance`).
+    pub fn is_instance_of(&self, class: &str) -> bool {
+        crate::runtime::is_instance(&crate::Value::from(self), &crate::Value::from(class))
+    }
+    /// The typed `ExchangeError` the text encodes (`runtime::panic_msg_to_error`).
+    pub fn to_exchange_error(&self) -> ExchangeError { crate::runtime::panic_msg_to_error(&self.raw) }
+}
+
+impl std::fmt::Display for CaughtError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str(&self.raw) }
+}
+
+impl From<CaughtError> for crate::Value {
+    fn from(e: CaughtError) -> Self { crate::Value::Str(e.raw.into()) }
+}
+
+impl From<&CaughtError> for crate::Value {
+    fn from(e: &CaughtError) -> Self { crate::Value::Str(e.raw.as_str().to_owned().into()) }
+}
+
+#[cfg(test)]
+mod caught_error_tests {
+    use super::CaughtError;
+    use crate::Value;
+
+    fn caught(p: Box<dyn std::any::Any + Send>) -> CaughtError { CaughtError::from_panic(p) }
+
+    #[test]
+    fn payload_text_is_kept_as_the_value_binding_had_it() {
+        let cases: [(Box<dyn std::any::Any + Send>, &str); 3] = [
+            (Box::new(String::from("[BadSymbol] x not found")), "[BadSymbol] x not found"),
+            (Box::new("plain"), "plain"),
+            (Box::new(7_i32), "panic"),
+        ];
+        for (p, want) in cases {
+            let e = caught(p);
+            assert_eq!(e.message(), want);
+            assert_eq!(format!("{}", e), want);
+            assert_eq!(Value::from(&e), Value::Str(want.to_string().into()));
+            assert_eq!(Value::from(e), crate::runtime::panic_to_value(Box::new(want.to_string())));
+        }
+    }
+
+    #[test]
+    fn class_tests_match_the_value_helpers() {
+        let e = caught(Box::new(String::from("[RateLimitExceeded] slow down")));
+        let v = Value::from(&e);
+        for cls in ["RateLimitExceeded", "NetworkError", "OperationFailed", "BadSymbol", "AuthenticationError"] {
+            assert_eq!(e.is_instance_of(cls), crate::runtime::is_instance(&v, &Value::from(cls)), "{cls}");
+            assert_eq!(e.names(cls), matches!(&v, Value::Str(__s) if __s.contains(&format!("[{cls}]"))), "{cls}");
+        }
+        assert!(e.is_instance_of("NetworkError") && !e.names("NetworkError"));
+        assert_eq!(e.to_exchange_error().kind, "RateLimitExceeded");
+        assert_eq!(e.to_exchange_error().message, "slow down");
+    }
+}
+
 // ── From conversions from common third-party error types ────────────────────
 
 impl From<reqwest::Error> for ExchangeError {

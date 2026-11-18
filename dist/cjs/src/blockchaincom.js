@@ -651,7 +651,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             'orderQty': this.amountToPrecision(symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const triggerPrice = this.safeValueN(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice']);
+        const triggerPrice = this.safeStringN(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice']);
         const paramsOmitted2 = this.omit(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (triggerPrice === undefined) {

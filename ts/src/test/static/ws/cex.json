@@ -315,6 +315,175 @@
                     "symbol": "BTC/USDT"
                 }
             }
+        ],
+        "watchTrades": [
+            {
+                "description": "history snapshot of 'side:ts:amount:price:id' strings then a history-update of lists - elements are never dicts",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.cex.io/ws",
+                "messages": [
+                    {
+                        "e": "history",
+                        "data": [
+                            "buy:1710255706095:444444:71222.2:14892622",
+                            "sell:1710255658251:42530:71300:14892621"
+                        ]
+                    },
+                    {
+                        "e": "history-update",
+                        "data": [
+                            [
+                                "buy",
+                                "1710255716704",
+                                "98070",
+                                "71230.5",
+                                "14892623"
+                            ]
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "e": "subscribe",
+                        "rooms": [
+                            "pair-BTC-USD"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": [
+                                "sell",
+                                "1710255658251",
+                                "42530",
+                                "71300",
+                                "14892621"
+                            ],
+                            "id": "14892621",
+                            "timestamp": 1710255658251,
+                            "datetime": "2024-03-12T15:00:58.251Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "sell",
+                            "order": null,
+                            "takerOrMaker": null,
+                            "price": 71300,
+                            "amount": 42530,
+                            "cost": 3032389000,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                "buy",
+                                "1710255706095",
+                                "444444",
+                                "71222.2",
+                                "14892622"
+                            ],
+                            "id": "14892622",
+                            "timestamp": 1710255706095,
+                            "datetime": "2024-03-12T15:01:46.095Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "order": null,
+                            "takerOrMaker": null,
+                            "price": 71222.2,
+                            "amount": 444444,
+                            "cost": 31654279456.8,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": [
+                                "sell",
+                                "1710255658251",
+                                "42530",
+                                "71300",
+                                "14892621"
+                            ],
+                            "id": "14892621",
+                            "timestamp": 1710255658251,
+                            "datetime": "2024-03-12T15:00:58.251Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "sell",
+                            "order": null,
+                            "takerOrMaker": null,
+                            "price": 71300,
+                            "amount": 42530,
+                            "cost": 3032389000,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                "buy",
+                                "1710255706095",
+                                "444444",
+                                "71222.2",
+                                "14892622"
+                            ],
+                            "id": "14892622",
+                            "timestamp": 1710255706095,
+                            "datetime": "2024-03-12T15:01:46.095Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "order": null,
+                            "takerOrMaker": null,
+                            "price": 71222.2,
+                            "amount": 444444,
+                            "cost": 31654279456.8,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": [
+                                "buy",
+                                "1710255716704",
+                                "98070",
+                                "71230.5",
+                                "14892623"
+                            ],
+                            "id": "14892623",
+                            "timestamp": 1710255716704,
+                            "datetime": "2024-03-12T15:01:56.704Z",
+                            "symbol": "BTC/USD",
+                            "type": null,
+                            "side": "buy",
+                            "order": null,
+                            "takerOrMaker": null,
+                            "price": 71230.5,
+                            "amount": 98070,
+                            "cost": 6985575135,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
         ]
     }
 }

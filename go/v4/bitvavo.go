@@ -1039,7 +1039,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start"] = since
@@ -1404,16 +1404,16 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[stri
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["start"] = since
-		var sinceLimit int64 = func() int64 {
-			if limit == nil {
-				return 1440
-			}
-			return min(*limit, 1440)
-		}()
-		request["end"] = this.Sum(since, ((sinceLimit * duration) * 1000))
+		var sinceLimit int64
+		if limit == nil {
+			sinceLimit = 1440
+		} else {
+			sinceLimit = min(*limit, 1440)
+		}
+		request["end"] = this.Sum(since, (sinceLimit*duration)*1000)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1440) // default 1440, max 1440
+		request["limit"] = min(*limit, 1440) // default 1440, max 1440
 	} else if since != nil {
 		request["limit"] = 1440
 	}
@@ -1957,9 +1957,9 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")     // trigger when price crosses from above to below this value
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice") // trigger when price crosses from below to above this value
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
-	var paramsCost any = paramsOmitted
+	var paramsCost map[string]any = paramsOmitted
 	if isMarketOrder {
-		paramsCost = this.Omit(paramsOmitted, []any{"cost"})
+		paramsCost = this.OmitDict(paramsOmitted, []any{"cost"})
 	}
 	if isMarketOrder {
 		var cost *float64 = nil
@@ -2017,7 +2017,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	paramsOperatorId := operatorIdparamsOperatorIdVariable[1]
+	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2255,12 +2255,12 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitvavo) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2982,7 +2982,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		request["fromDate"] = since
 	}
 	if limit != nil {
-		request["maxItems"] = mathMin(limit, 100)
+		request["maxItems"] = min(*limit, 100)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("toDate", request, params)
 
@@ -3606,7 +3606,7 @@ func (this *Bitvavo) CalculateRateLimiterCost(api any, method string, path strin
 	if _, ok := config["noMarket"]; ok && !(InOp(params, "market")) {
 		return config["noMarket"]
 	}
-	return this.SafeValue(config, "cost", 1)
+	return this.SafeInteger(config, "cost", 1)
 }
 
 func NewBitvavo(userConfig map[string]any) *Bitvavo {

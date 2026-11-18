@@ -1126,8 +1126,8 @@ export default class p2b extends Exchange {
         }
         const untilParam = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        let until = this.parseToInt(0);
-        let sinceResolved = this.parseToInt(0);
+        let until = 0;
+        let sinceResolved = 0;
         if (untilParam !== undefined) {
             until = this.parseToInt(untilParam);
             if (since !== undefined) {
@@ -1137,7 +1137,7 @@ export default class p2b extends Exchange {
                 sinceResolved = this.parseToInt(since);
             }
             else {
-                sinceResolved = this.parseToInt(untilParam - 86400000);
+                sinceResolved = untilParam - 86400000;
             }
         }
         else if (since !== undefined) {
@@ -1147,7 +1147,7 @@ export default class p2b extends Exchange {
         else {
             const now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt(now - 86400000);
+            sinceResolved = now - 86400000;
         }
         const market = this.market(symbol);
         const sinceSec = this.parseToInt(sinceResolved / 1000);
@@ -1216,8 +1216,8 @@ export default class p2b extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let until = this.parseToInt(0);
-        let sinceResolved = this.parseToInt(0);
+        let until = 0;
+        let sinceResolved = 0;
         if (untilParam !== undefined) {
             until = this.parseToInt(untilParam);
             if (since !== undefined) {
@@ -1227,7 +1227,7 @@ export default class p2b extends Exchange {
                 sinceResolved = this.parseToInt(since);
             }
             else {
-                sinceResolved = this.parseToInt(untilParam - 86400000);
+                sinceResolved = untilParam - 86400000;
             }
         }
         else if (since !== undefined) {
@@ -1237,7 +1237,7 @@ export default class p2b extends Exchange {
         else {
             const now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt(now - 86400000);
+            sinceResolved = now - 86400000;
         }
         const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);

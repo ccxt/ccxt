@@ -257,14 +257,10 @@ func (this *Bitrue) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 	}
 
 	r1 := <-this.AuthenticateAsync()
@@ -542,7 +538,7 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 			panic(ccxt.ExchangeError(this.Id + " findSwapMarketByWsBaseQuote() market " + symbolId + " has no baseId or quoteId"))
 		}
 		if ccxt.IsEqual(*baseId+*quoteId, wsBaseQuote) {
-			return candidate
+			return this.Market(symbolId)
 		}
 	}
 	return nil
@@ -1013,8 +1009,9 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any = this.Ohlcvs[*symbol][*timeframe]
-	stored.(ccxt.Appender).Append(parsed)
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
@@ -1266,7 +1263,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 		// register before the first await, so a concurrent caller entering
 		// authenticate () while this one is inside the fetch sees the flight
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Bitrue) (ret_ any) {
@@ -1320,7 +1317,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// rethrows to the leader on failure and attaches the handler that
 		// keeps an alone leader's rejection from crashing the process
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

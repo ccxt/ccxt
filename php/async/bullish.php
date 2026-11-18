@@ -1127,11 +1127,11 @@ class bullish extends Exchange {
             Async\await($this->load_markets());
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $paramsExtended = $params;
+        $orderIdParams = array();
         if ($clientOrderId === null) {
-            $paramsExtended = $this->extend(array( 'orderId' => $id ), $params);
+            $orderIdParams['orderId'] = $id;
         }
-        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $paramsExtended));
+        return Async\await($this->fetch_my_trades($symbol, $since, $limit, $this->extend($orderIdParams, $params)));
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1362,7 +1362,7 @@ class bullish extends Exchange {
         if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
             throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
         }
-        $errors = $this->parse_to_int(0);
+        $errors = 0;
         $paramsOmitted = $this->omit($paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1379,7 +1379,7 @@ class bullish extends Exchange {
                 if ($e instanceof RateLimitExceeded) {
                     throw $e; // if we are rate limited, we should not retry and fail fast
                 }
-                $errors = $this->parse_to_int($errors + 1);
+                $errors = $errors + 1;
                 if ($errors > $maxRetries) {
                     throw $e;
                 }

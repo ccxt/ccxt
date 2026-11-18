@@ -37,7 +37,7 @@ export default class xt extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapAndFutureMarkets(params?: Dict): Promise<Market[]>;
-    parseMarkets(markets: any): List;
+    parseMarkets(markets: List): List;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -483,7 +483,7 @@ export default class xt extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name xt#fetchOpenInterest

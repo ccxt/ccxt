@@ -1102,7 +1102,7 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($tickers); $i++) {
             $rawTicker = $this->extend(array(
                 'date' => $date,
-            ), $this->safe_value($tickers, $i));
+            ), $this->safe_dict($tickers, $i));
             $ticker = $this->parse_ticker($rawTicker);
             $symbol = $ticker['symbol'];
             if ($symbol !== null) {
@@ -1183,13 +1183,11 @@ class digifinex extends Exchange {
         //
         $date = $this->safe_integer($response, 'date');
         $tickers = $this->safe_list($response, 'ticker', array());
-        $data = $this->safe_dict($response, 'data', array());
         $firstTicker = $this->safe_dict($tickers, 0, array());
-        $result = $data;
         if (!$this->safe_bool($market, 'swap', false)) {
-            $result = $this->extend(array( 'date' => $date ), $firstTicker);
+            return $this->parse_ticker($this->extend(array( 'date' => $date ), $firstTicker), $market);
         }
-        return $this->parse_ticker($result, $market);
+        return $this->parse_ticker($this->safe_dict($response, 'data', array()), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1907,11 +1905,9 @@ class digifinex extends Exchange {
             $quantity = null;
             list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             $isMarketBuy = $isMarketOrder && ($side === 'buy');
-            $keysToOmit = null;
+            $keysToOmit = array( 'postOnly' );
             if ($isMarketBuy) {
-                $keysToOmit = array( 'cost', 'postOnly' );
-            } else {
-                $keysToOmit = array( 'postOnly' );
+                $keysToOmit[] = 'cost';
             }
             $paramsRequest = $this->omit($paramsRequiresPrice, $keysToOmit);
             if ($isMarketBuy) {
@@ -3384,7 +3380,7 @@ class digifinex extends Exchange {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        $rows = $this->safe_list($response, 'positions');
+        $rows = $this->safe_list($response, 'positions', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
@@ -3593,7 +3589,7 @@ class digifinex extends Exchange {
         return $this->fetch_funding_rate($symbol, $params);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",

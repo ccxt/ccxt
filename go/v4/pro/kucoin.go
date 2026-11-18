@@ -850,8 +850,8 @@ func (this *Kucoin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			return nil
 		}
 	} else {
-		var marketIds any = this.MarketIds(symbolsNormalized)
-		var symbolsTopic string = *method + ":" + ccxt.Join(marketIds, ",")
+		var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
+		var symbolsTopic string = *method + ":" + strings.Join(marketIds, ",")
 
 		r3 := <-this.SubscribeMultipleAsync(url, messageHashes, symbolsTopic, topics, query)
 		if r3.Err != nil {
@@ -1320,13 +1320,13 @@ func (this *Kucoin) HandleBidAsk(client any, message map[string]any) {
 	//   }
 	// }
 	//
-	var parsedTicker any = this.ParseWsBidAsk(message)
+	var parsedTicker map[string]any = this.ParseWsBidAsk(message)
 	var symbol string = *this.SafeString(parsedTicker, "symbol", "")
 	this.Bidsasks[symbol] = ccxt.TickerFromMap(parsedTicker)
 	var messageHash string = "bidask@" + symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var topic *string = this.SafeString(ticker, "topic")
@@ -1616,9 +1616,9 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[symbol][*timeframe]
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1633,7 +1633,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 		baseVolumeIndex = 6 // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
 	}
 	var parsed []any = []any{this.SafeTimestamp(candles, 0), this.SafeNumber(candles, 1), this.SafeNumber(candles, 3), this.SafeNumber(candles, 4), this.SafeNumber(candles, 2), this.SafeNumber(candles, baseVolumeIndex)}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
@@ -1666,9 +1666,9 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[symbol][*timeframe]
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1678,7 +1678,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 		}
 	}
 	var parsed []any = []any{this.SafeIntegerProduct(data, "O", 1000), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -1789,7 +1789,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 
 	r1 := <-this.NegotiateAsync(false, isFuturesMethod)
 	if r1.Err != nil {
@@ -1802,7 +1802,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	if isFuturesMethod != nil && *isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic string = channelName + ccxt.Join(marketIds, ",")
+	var topic string = channelName + strings.Join(marketIds, ",")
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trades:"+symbol)
@@ -1854,7 +1854,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
 
@@ -1869,7 +1869,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	if isFuturesMethod != nil && *isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic string = channelName + ccxt.Join(marketIds, ",")
+	var topic string = channelName + strings.Join(marketIds, ",")
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
@@ -2022,7 +2022,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var trade any = this.ParseWsUtaTrade(data, market)
+	var trade map[string]any = this.ParseWsUtaTrade(data, market)
 	var symbol string = *this.SafeString(trade, "symbol", "")
 	var messageHash string = "uta:trades:" + symbol
 	if !(this.Trades[symbol] != nil) {
@@ -2034,7 +2034,7 @@ func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
 	cache.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
-func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsUtaTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	// trades
 	//     {
 	//         "E": "20745928670070784",
@@ -2294,7 +2294,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
 
@@ -2321,7 +2321,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 			method = ccxt.Add(method, "Depth"+ccxt.ToString(limit))
 		}
 	}
-	var topic any = ccxt.Add(ccxt.Add(method, ":"), ccxt.Join(marketIds, ","))
+	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
 	var messageHashes []any = []any{}
 	var subscriptionHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -2384,7 +2384,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
 
@@ -2411,7 +2411,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 			method = ccxt.Add(method, "Depth"+ccxt.ToString(limit))
 		}
 	}
-	var topic any = ccxt.Add(ccxt.Add(method, ":"), ccxt.Join(marketIds, ","))
+	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
 	var messageHashes []any = []any{}
 	var subscriptionHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -2524,7 +2524,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 			}
-			ccxt.AppendToArray(orderbook.GetCache(), data)
+			orderbook.AppendCache(data)
 			return
 		} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 			return
@@ -2583,7 +2583,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, utaParams)
 			}
-			ccxt.AppendToArray(orderbook.GetCache(), data)
+			orderbook.AppendCache(data)
 			return
 		} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 			return
@@ -2640,9 +2640,9 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 		}
 		var value []any = []any{price, quantity}
 		if typeVar == "bids" {
-			storedBids.(ccxt.IOrderBookSide).StoreArray(value)
+			storedBids.StoreArray(value)
 		} else {
-			storedAsks.(ccxt.IOrderBookSide).StoreArray(value)
+			storedAsks.StoreArray(value)
 		}
 	} else if !ccxt.IsEqual(changes, nil) {
 		var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
@@ -3433,7 +3433,7 @@ func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
-	var trade any = this.ParseWsUtaTrade(data, market)
+	var trade map[string]any = this.ParseWsUtaTrade(data, market)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -3690,8 +3690,8 @@ func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
@@ -3791,7 +3791,7 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		var used *string = this.SafeString2(data, "hold", "holdBalance")
-		var isolatedPosMargin any = this.OmitZero(this.SafeString(data, "isolatedPosMargin"))
+		var isolatedPosMargin *string = this.OmitZero(this.SafeString(data, "isolatedPosMargin"))
 		if isolatedPosMargin != nil {
 			used = ccxt.Precise.StringAdd(used, isolatedPosMargin)
 		}
@@ -3895,8 +3895,8 @@ func (this *Kucoin) watchPositionBody(ch chan ccxt.AsyncResult[ccxt.Position], o
 	var messageHash string = "position:" + *this.SafeString(market, "symbol", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionCache(client, symbol)
-	var fetchPositionSnapshot any = this.HandleOption("watchPosition", "fetchPositionSnapshot", true)
-	var awaitPositionSnapshot any = this.HandleOption("watchPosition", "awaitPositionSnapshot", true)
+	var fetchPositionSnapshot bool = this.HandleOption("watchPosition", "fetchPositionSnapshot", true) == true
+	var awaitPositionSnapshot bool = this.HandleOption("watchPosition", "awaitPositionSnapshot", true) == true
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (ccxt.IsEqual(currentPosition, nil)) {
 
@@ -3990,9 +3990,9 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	url := r2.Value
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, utaOption)
-	var fetchPositionSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	var cache any = this.Positions
+	var fetchPositionSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
+	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionSnapshot == true) && (awaitPositionSnapshot == true) && (cache == nil) {
 
 		r3 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -4037,8 +4037,7 @@ func (this *Kucoin) GetCurrentPosition(symbol any) any {
 	if this.Positions == nil {
 		return nil
 	}
-	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
-	var symbolCache map[string]any = ccxt.SafeMapTyped(cache, symbol)
+	var symbolCache map[string]any = ccxt.SafeMapTyped(this.Positions.(*ccxt.ArrayCache).Hashmap, symbol)
 	var values []any = nil
 	if symbolCache != nil {
 		values = make([]any, 0, len(symbolCache))
@@ -4052,7 +4051,7 @@ func (this *Kucoin) SetPositionsCache(client any, uta any) {
 	if !(this.IsEmpty(this.Positions)) {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -4080,24 +4079,24 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolById()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
 	return nil
 }
 func (this *Kucoin) SetPositionCache(client any, symbol any) {
-	var fetchPositionSnapshot any = this.HandleOption("watchPosition", "fetchPositionSnapshot", false)
+	var fetchPositionSnapshot bool = this.HandleOption("watchPosition", "fetchPositionSnapshot", false) == true
 	if fetchPositionSnapshot == true {
 		var messageHash any = ccxt.Add("fetchPositionSnapshot:", symbol)
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
@@ -4124,12 +4123,12 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		position = ccxt.StructBox(r.Value, ccxt.PositionToMap)
 	}
 	this.Positions = ccxt.NewArrayCacheBySymbolById()
-	var cache any = this.Positions
-	cache.(ccxt.Appender).Append(position)
+	var cache ccxt.WsArrayCache = this.Positions
+	cache.Append(position)
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(position, ccxt.Add("position:", symbol))
 	}
 	return nil
@@ -4231,7 +4230,7 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	var parts []string = strings.Split(topic, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "")
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var messageHash string = "position:" + *symbol
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
@@ -4250,7 +4249,10 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 		}
 	}
 	var position map[string]any = this.Extend(currentPosition, newPosition)
-	cache.(ccxt.Appender).Append(position)
+	// the cache exists once watchPosition(s) set it up
+	if cache != nil {
+		cache.Append(position)
+	}
 	client.(ccxt.ClientInterface).Resolve(position, messageHash)
 }
 func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
@@ -4285,7 +4287,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "d", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
 	var newPosition map[string]any = this.ParseWsUtaPosition(data)
 	var keys []string = nil
@@ -4302,7 +4304,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 		}
 	}
 	var position map[string]any = this.Extend(currentPosition, newPosition)
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	var messageHash string = "positions"
 	var symbolMessageHash string = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)
@@ -4485,15 +4487,15 @@ func (this *Kucoin) HandleUtaFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(message, "d", map[string]any{})
-	var fundingRate any = this.ParseWsFundingRate(data)
+	var fundingRate map[string]any = this.ParseWsFundingRate(data)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	if symbol != nil {
-		ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+		this.FundingRates[*symbol] = fundingRate
 	}
 	var messageHash string = "fundingRate:" + *this.SafeString(fundingRate, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Kucoin) ParseWsFundingRate(data map[string]any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsFundingRate(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "s": "ETHUSDTM",

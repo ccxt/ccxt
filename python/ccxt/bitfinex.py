@@ -1111,7 +1111,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def convert_derivatives_id(self, currency: dict, type: str) -> Str:
+    def convert_derivatives_id(self, currency: Currency, type: str) -> Str:
         # there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         # {
         #   "id": "fUSTF0",
@@ -1942,7 +1942,7 @@ class bitfinex(Exchange, ImplicitAPI):
             }
         paramsOmitted = self.omit(params, ['cid', 'clientOrderId']) if (cid is not None) else params
         response = self.privatePostAuthWOrderCancel(self.extend(request, paramsOmitted))
-        order = self.safe_value(response, 4)
+        order = self.safe_list(response, 4)
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
@@ -3192,7 +3192,7 @@ class bitfinex(Exchange, ImplicitAPI):
             reversedArray.append(valueAtIndex)
         return reversedArray
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #       [
         #          "tBTCF0:USTF0",

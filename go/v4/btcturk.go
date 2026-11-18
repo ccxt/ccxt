@@ -935,12 +935,12 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
 		var seconds int64 = this.ParseTimeframe(timeframe)
-		var limitCount int64 = func() int64 {
-			if limit == nil {
-				return 100
-			}
-			return min(*limit, 11000)
-		}()
+		var limitCount int64
+		if limit == nil {
+			limitCount = 100
+		} else {
+			limitCount = min(*limit, 11000)
+		}
 		var limitSeconds int64 = this.ParseToInt(seconds * (limitCount - 1))
 		if since != nil {
 			var sinceSeconds int64 = this.ParseToInt(float64(*since) / 1000)
@@ -958,7 +958,6 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-
 	//
 	//    {
 	//        "s": "ok",
@@ -994,11 +993,29 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//        ]
 	//    }
 	//
-	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(response, market, timeframe, since, limitResolved))}
+	var timestamp []any = SafeListTyped(response, "t")
+	var high []any = SafeListTyped(response, "h")
+	var open []any = SafeListTyped(response, "o")
+	var low []any = SafeListTyped(response, "l")
+	var close []any = SafeListTyped(response, "c")
+	var volume []any = SafeListTyped(response, "v")
+	var rows []any = []any{}
+	for i := 0; i < len(timestamp); i++ {
+		rows = append(rows, map[string]any{
+			"timestamp": this.SafeInteger(timestamp, i),
+			"high":      this.SafeNumber(high, i),
+			"open":      this.SafeNumber(open, i),
+			"low":       this.SafeNumber(low, i),
+			"close":     this.SafeNumber(close, i),
+			"volume":    this.SafeNumber(volume, i),
+		})
+	}
+
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limitResolved))}
 	return nil
 }
 func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timeframe string = GetArgString(optionalArgs, 1, "1m")
 	_ = timeframe
@@ -1008,23 +1025,10 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 4, false)
 	_ = tail
+	var rows []any = this.ToArray(ohlcvs)
 	var results []any = []any{}
-	var timestamp []any = SafeListTyped(ohlcvs, "t")
-	var high []any = SafeListTyped(ohlcvs, "h")
-	var open []any = SafeListTyped(ohlcvs, "o")
-	var low []any = SafeListTyped(ohlcvs, "l")
-	var close []any = SafeListTyped(ohlcvs, "c")
-	var volume []any = SafeListTyped(ohlcvs, "v")
-	for i := 0; i < len(timestamp); i++ {
-		var ohlcv map[string]any = map[string]any{
-			"timestamp": this.SafeInteger(timestamp, i),
-			"high":      this.SafeNumber(high, i),
-			"open":      this.SafeNumber(open, i),
-			"low":       this.SafeNumber(low, i),
-			"close":     this.SafeNumber(close, i),
-			"volume":    this.SafeNumber(volume, i),
-		}
-		results = append(results, OHLCVToList(this.ParseOHLCV(ohlcv, market)))
+	for i := 0; i < len(rows); i++ {
+		results = append(results, OHLCVToList(this.ParseOHLCV(this.SafeDict(rows, i, map[string]any{}), market)))
 	}
 	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)
@@ -1099,12 +1103,12 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcturk) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Btcturk) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

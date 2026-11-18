@@ -115,7 +115,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, IDictionary<string, object> orderParams, double? amount, object price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, IDictionary<string, object> orderParams, double? amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -325,17 +325,17 @@ public partial class kraken : ccxt.kraken
             }
         }
         bool isCreateOrder = ((method == "createOrderWs"));
-        object paramsCreate = paramsPostOnly;
+        IDictionary<string, object> paramsCreate = paramsPostOnly;
         if (isCreateOrder)
         {
             paramsCreate = this.omit(paramsPostOnly, new List<object>() {"reduceOnly", "timeInForce"});
         }
-        object paramsPreset = paramsCreate;
+        IDictionary<string, object> paramsPreset = paramsCreate;
         if (isCreateOrder && (isPresetStopLoss || isPresetTakeProfit))
         {
             paramsPreset = this.omit(paramsCreate, new List<object>() {"stopLoss", "takeProfit"});
         }
-        object paramsOmitted = this.omit(paramsPreset, new List<object>() {"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPreset, new List<object>() {"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"});
         request["params"] = orderParams;
         return new List<object>() {request, paramsOmitted};
     }
@@ -353,7 +353,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -428,7 +428,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -462,7 +462,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol != null))
@@ -495,7 +495,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol != null))
@@ -545,7 +545,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol != null))
@@ -760,7 +760,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -837,7 +837,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -854,7 +854,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
@@ -877,7 +877,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
@@ -892,7 +892,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -926,7 +926,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
@@ -942,7 +942,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requiredParams = new Dictionary<string, object>() {};
@@ -974,7 +974,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1015,7 +1015,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1039,11 +1039,11 @@ public partial class kraken : ccxt.kraken
         return await this.watch(url, unsubMessageHash, request, unsubMessageHash);
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, IDictionary<string, object> parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        object markets = await base.loadMarkets(reload, parameters);
+        IDictionary<string, object> markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> marketsByWsName = this.safeDict(this.options, "marketsByWsName");
         if (((marketsByWsName == null)) || reload == true)
         {
@@ -1062,7 +1062,7 @@ public partial class kraken : ccxt.kraken
             }
             this.options["marketsByWsName"] = marketsByWsName;
         }
-        return ((IDictionary<string, object>)((object)(markets)));
+        return markets;
     }
 
     public override object ping(WebSocketClient client)
@@ -1450,10 +1450,10 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["snap_trades"] = true;
+        parameters["snap_trades"] = true;
         return ccxt.BaseExchange.ToTradeList(await this.watchPrivate("myTrades", symbol, since, limit, parameters));
     }
 
@@ -1520,7 +1520,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1596,7 +1596,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] maximum number of orderic to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new Dictionary<string, object>() {             { "snap_orders", true },         })));
@@ -1800,7 +1800,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -455,7 +455,7 @@ class latoken extends latoken$1["default"] {
         const result = [];
         const rawMarkets = this.toArray(response);
         for (let i = 0; i < rawMarkets.length; i++) {
-            const market = this.safeValue(rawMarkets, i);
+            const market = this.safeDict(rawMarkets, i);
             const id = this.safeString(market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString(market, 'baseCurrency');
@@ -596,7 +596,7 @@ class latoken extends latoken$1["default"] {
         const rawCurrencies = this.toArray(response);
         const merged = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = this.safeValue(rawCurrencies, i);
+            const rawCurrency = this.safeDict(rawCurrencies, i);
             const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
             const bindings = this.safeList(bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;

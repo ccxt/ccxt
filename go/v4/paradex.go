@@ -872,7 +872,7 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "results")
+	var data []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
 	return nil
@@ -1007,12 +1007,12 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	var takerFee *float64 = this.ParseNumber("0.0003")
 	var makerFee *float64 = this.ParseNumber("-0.00005")
 	if isOption {
-		var optionTypeSuffix string = func() string {
-			if optionType != nil && *optionType == "CALL" {
-				return "C"
-			}
-			return "P"
-		}()
+		var optionTypeSuffix string
+		if optionType != nil && *optionType == "CALL" {
+			optionTypeSuffix = "C"
+		} else {
+			optionTypeSuffix = "P"
+		}
 		var deliveryValue string = ""
 		if expiry == nil || *expiry != 0 {
 			deliveryValue = this.Yymmdd(expiry) + "-"
@@ -1321,12 +1321,12 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var hasEnd bool = (func() bool { _, ok := request["end_at"]; return ok }())
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, []any{"price"})
 	// exchange has undocumented limit slightly above, but 1000 is reliable limit
-	var limitResolved any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 1000) {
-			return 1000
-		}
-		return limit
-	}()
+	var limitResolved int64
+	if (limit == nil) || (limit != nil && *limit > 1000) {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	var windowLength int64 = this.ParseToInt(duration * (this.ParseToInt(limitResolved) + 1) * 1000)
 	if since != nil {
 		requestUntil["start_at"] = *since
@@ -1845,7 +1845,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = mathMin(limit, 1000)
+		request["page_size"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_at"] = since
@@ -2368,11 +2368,11 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var side *string = this.SafeStringLower(order, "side")
-	var average any = this.OmitZero(this.SafeString(order, "avg_fill_price"))
-	var remaining any = this.OmitZero(this.SafeString(order, "remaining_size"))
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "trigger_price"))
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var average *string = this.OmitZero(this.SafeString(order, "avg_fill_price"))
+	var remaining *string = this.OmitZero(this.SafeString(order, "remaining_size"))
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "trigger_price"))
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
 	if orderType != nil {
 		if strings.Index(*orderType, "STOP_LOSS") >= 0 {
 			stopLossPrice = triggerPrice
@@ -3008,12 +3008,12 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Paradex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Paradex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Paradex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3071,12 +3071,12 @@ func (this *Paradex) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Paradex) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3097,7 +3097,7 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var hasOrderIds bool = IsArray(ids)
+	var hasOrderIds bool = (ids != nil)
 	var hasClientOrderIds bool = (clientOrderIds != nil)
 	if !hasOrderIds && !hasClientOrderIds {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter"))
@@ -4099,7 +4099,7 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	}
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		if (allKinds != nil && *allKinds) || (this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "DEPOSIT") {
 			deposits = append(deposits, row)
 		}
@@ -4214,7 +4214,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	}
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		if (allKinds != nil && *allKinds) || (this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "WITHDRAWAL") {
 			deposits = append(deposits, row)
 		}
@@ -5008,7 +5008,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = mathMin(limit, 5000)
+		request["page_size"] = min(*limit, 5000)
 	} else {
 		request["page_size"] = 100
 	}
@@ -5120,7 +5120,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = mathMin(limit, 5000) // api maximum 5000
+		request["page_size"] = min(*limit, 5000) // api maximum 5000
 	} else {
 		request["page_size"] = 1000 // max is 5000
 	}

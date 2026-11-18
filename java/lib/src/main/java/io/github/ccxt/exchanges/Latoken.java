@@ -552,7 +552,7 @@ public class Latoken extends LatokenApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -594,21 +594,21 @@ public class Latoken extends LatokenApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currencies = (Map<String, Object>) this.cachedCurrenciesForLoadOrEmpty();
+            Map<String, Object> currencies = this.cachedCurrenciesForLoadOrEmpty();
             Map<String,Object> currenciesById = this.indexBy(currencies, "id");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+            for (var i = 0; i < rawMarkets.size(); i++)
             {
-                Object market = this.safeValue(rawMarkets, i);
+                Map<String, Object> market = this.safeDict(rawMarkets, i, null);
                 String id = this.safeString(market, "id");
                 // the exchange shows them inverted
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
-                Map<String, Object> baseCurrency = (Map<String, Object>) this.safeDict(currenciesById, baseId, (Object) null);
-                Map<String, Object> quoteCurrency = (Map<String, Object>) this.safeDict(currenciesById, quoteId, (Object) null);
-                Map<String, Object> baseCurrencyInfo = (Map<String, Object>) this.safeDict(baseCurrency, "info", (Object) null);
-                Map<String, Object> quoteCurrencyInfo = (Map<String, Object>) this.safeDict(quoteCurrency, "info", (Object) null);
+                Map<String, Object> baseCurrency = this.safeDict(currenciesById, baseId, null);
+                Map<String, Object> quoteCurrency = this.safeDict(currenciesById, quoteId, null);
+                Map<String, Object> baseCurrencyInfo = this.safeDict(baseCurrency, "info", null);
+                Map<String, Object> quoteCurrencyInfo = this.safeDict(quoteCurrency, "info", null);
                 if (!java.util.Objects.equals(baseCurrencyInfo, null) && !java.util.Objects.equals(quoteCurrencyInfo, null))
                 {
                     String base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"), (Map<String, Object>) null);
@@ -749,12 +749,12 @@ public class Latoken extends LatokenApi
             Map<String,Object> bindingsById = this.indexBy(bindingsResponse, "id");
             List<Object> rawCurrencies = this.toArray(response);
             List<Object> merged = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rawCurrencies).size(); i++)
+            for (var i = 0; i < rawCurrencies.size(); i++)
             {
-                Object rawCurrency = this.safeValue(rawCurrencies, i);
-                Map<String, Object> bindingEntry = (Map<String, Object>) this.safeDict(bindingsById, this.safeString(rawCurrency, "id"), (Object) null);
-                List<Object> bindings = (List<Object>) this.safeList(bindingEntry, "bindings", (Object) null);
-                Object mergedCurrency = rawCurrency;
+                Map<String, Object> rawCurrency = this.safeDict(rawCurrencies, i, null);
+                Map<String, Object> bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, "id"), null);
+                List<Object> bindings = this.safeList(bindingEntry, "bindings", null);
+                Map<String, Object> mergedCurrency = rawCurrency;
                 if (!java.util.Objects.equals(bindings, null))
                 {
                     HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -775,9 +775,9 @@ public class Latoken extends LatokenApi
         String code = this.safeCurrencyCode(tag, (Map<String, Object>) null);
         String currencyType = this.safeString(currency, "type");
         Boolean isCrypto = (java.util.Objects.equals(currencyType, "CURRENCY_TYPE_CRYPTO") || java.util.Objects.equals(currencyType, "CURRENCY_TYPE_IEO"));
-        List<Object> bindings = (List<Object>) this.safeList(currency, "bindings", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bindings = this.safeList(currency, "bindings", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)bindings).size(); i++)
+        for (var i = 0; i < bindings.size(); i++)
         {
             Object binding = (bindings == null || i < 0 || i >= bindings.size() ? null : bindings.get(i));
             String networkId = this.safeString(binding, "providerName");
@@ -882,15 +882,15 @@ public class Latoken extends LatokenApi
                 put( "timestamp", null );
                 put( "datetime", null );
             }};
-            Map<String, Object> types = (Map<String, Object>) this.safeDict(this.options, "types", new HashMap<String, Object>() {{}});
+            Map<String, Object> types = this.safeDict(this.options, "types", new HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
             Map<String,Object> balancesByType = this.groupBy(response, "type");
-            List<Object> balances = (List<Object>) this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(balances, 0, (Object) null);
+            List<Object> balances = this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstBalance = this.safeDict(balances, 0, null);
             Long maxTimestamp = this.safeInteger(firstBalance, "timestamp");
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            for (var i = 0; i < balances.size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+                Map<String, Object> balance = this.safeDict(balances, i, null);
                 String currencyId = this.safeString(balance, "currency");
                 Long timestamp = this.safeInteger(balance, "timestamp");
                 if (!java.util.Objects.equals(timestamp, null))
@@ -969,11 +969,11 @@ public class Latoken extends LatokenApi
             // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
             // for over half an hour - such a level is a deleted level their
             // aggregation failed to drop, so it is removed here
-            List<Object> rawAsks = (List<Object>) this.safeList(response, "ask", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rawBids = (List<Object>) this.safeList(response, "bid", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawAsks = this.safeList(response, "ask", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBids = this.safeList(response, "bid", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
+            for (var i = 0; i < rawAsks.size(); i++)
             {
                 Object askEntry = (rawAsks == null || i < 0 || i >= rawAsks.size() ? null : rawAsks.get(i));
                 String askQuantity = this.safeString(askEntry, "quantity");
@@ -982,7 +982,7 @@ public class Latoken extends LatokenApi
                     ((List<Object>)asks).add(askEntry);
                 }
             }
-            for (var i = 0; i < ((List<?>)rawBids).size(); i++)
+            for (var i = 0; i < rawBids.size(); i++)
             {
                 Object bidEntry = (rawBids == null || i < 0 || i >= rawBids.size() ? null : rawBids.get(i));
                 String bidQuantity = this.safeString(bidEntry, "quantity");
@@ -1330,7 +1330,7 @@ public class Latoken extends LatokenApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTradingFee", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchTradingFee", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "fetchPrivateTradingFee");
             String method = this.safeString(parameters, "method", defaultMethod);
             Map<String, Object> paramsOmitted = this.omit(parameters, "method");
@@ -1575,7 +1575,7 @@ public class Latoken extends LatokenApi
         if (!java.util.Objects.equals(orderSide, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderSide).split(java.util.regex.Pattern.quote("_"))));
-            Integer partsLength = ((List<?>)parts).size();
+            Integer partsLength = parts.size();
             side = this.safeStringLower(parts, (((long) partsLength) - 1L));
         }
         String type = this.parseOrderType(this.safeString(order, "type"));
@@ -2067,7 +2067,7 @@ public class Latoken extends LatokenApi
             {
                 currency = this.currency((String) (code));
             }
-            List<Object> content = (List<Object>) this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
+            List<Object> content = this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(content, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2214,7 +2214,7 @@ public class Latoken extends LatokenApi
             //         "hasContent": true
             //     }
             //
-            List<Object> transfers = (List<Object>) this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transfers = this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 

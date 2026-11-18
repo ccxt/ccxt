@@ -1865,7 +1865,7 @@ class aster extends Exchange {
         return $this->parse_tickers($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // fundingRate
         //
@@ -1994,7 +1994,7 @@ class aster extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_funding_rates($response, $symbolsNormalized);
+        return $this->parse_funding_rates($this->to_array($response), $symbolsNormalized);
     }
 
     public function fetch_funding_intervals(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2387,7 +2387,6 @@ class aster extends Exchange {
         //            "orderListId": "-1"
         //        }
         //
-        $info = $order;
         $positionSide = $this->safe_string($order, 'positionSide');
         $defaultType = 'spot';
         if ($positionSide !== null) {
@@ -2402,7 +2401,7 @@ class aster extends Exchange {
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $triggerPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
-            'info' => $info,
+            'info' => $order,
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'symbol' => $this->safe_symbol($marketId, $marketResolved),
@@ -3135,7 +3134,12 @@ class aster extends Exchange {
         if ($clientOrderIdList !== null) {
             $request['origClientOrderIdList'] = $clientOrderIdList;
         } else {
-            $request['orderIdList'] = $ids;
+            // the api takes LONG[] order ids
+            $orderIdList = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $orderIdList[] = $this->parse_to_numeric($ids[$i]);
+            }
+            $request['orderIdList'] = $orderIdList;
         }
         if ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->fapiPrivateDeleteV3BatchOrders($this->extend($request, $params)));

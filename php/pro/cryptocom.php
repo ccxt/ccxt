@@ -85,6 +85,10 @@ class cryptocom extends \ccxt\async\cryptocom {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -97,10 +101,14 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @param {int} [$params->bookUpdateFrequency] Book update interval in ms. Allowed values => 100 for snapshot subscription 10 for delta subscription
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
         /**
          * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -112,7 +120,7 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @param {int} [$params->bookUpdateFrequency] Book update interval in ms. Allowed values => 100 for snapshot subscription 10 for delta subscription
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -142,7 +150,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         if (($limit !== null) && ($limit !== 0)) {
             $limitResolved = $limit;
         }
-        $topicParams = $this->safe_value($params, 'params');
+        $topicParams = $this->safe_dict($params, 'params');
         if ($topicParams === null) {
             $params['params'] = array();
         }
@@ -190,7 +198,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $subMessageHashes = array();
         $messageHashes = array();
         $limit = $this->safe_integer($params, 'limit', 50);
-        $topicParams = $this->safe_value($params, 'params');
+        $topicParams = $this->safe_dict($params, 'params');
         if ($topicParams === null) {
             $params['params'] = array();
         }
@@ -221,7 +229,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
+            $this->handle_delta($bookside, $this->safe_list($deltas, $i));
         }
     }
 
@@ -320,6 +328,10 @@ class cryptocom extends \ccxt\async\cryptocom {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -331,10 +343,14 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function un_watch_trades(string $symbol, $params = array()) {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -344,7 +360,7 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -457,7 +473,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $parsedTrades = $this->parse_trades($data, $market);
         for ($j = 0; $j < count($parsedTrades); $j++) {
-            $stored->append($this->safe_value($parsedTrades, $j));
+            $stored->append($this->safe_dict($parsedTrades, $j));
         }
         $channelReplaced = str_replace('.' . $marketId, '', $channel);
         $client->resolve($stored, $symbolSpecificMessageHash);
@@ -1374,8 +1390,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             ),
             'nonce' => $id,
         );
-        $message = $this->deep_extend($request, $params);
-        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
     }
 
     public function un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtend = array()) {
@@ -1400,8 +1415,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'subMessageHashes' => $subMessageHashes,
             'messageHashes' => $messageHashes,
         );
-        $message = $this->deep_extend($request, $params);
-        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtend)));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $this->extend($subscription, $subExtend)));
     }
 
     public function watch_private_request(float $nonce, $params = array()) {

@@ -410,7 +410,7 @@ public class P2b extends P2bApi
             //        ]
             //    }
             //
-            List<Object> markets = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -427,7 +427,7 @@ public class P2b extends P2bApi
         {
             return null;
         }
-        Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits", (Object) null);
+        Map<String, Object> limits = this.safeDict(market, "limits", null);
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -525,7 +525,7 @@ public class P2b extends P2bApi
             //        current_time: '1699252644.487566'
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTickers(result, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -574,7 +574,7 @@ public class P2b extends P2bApi
             //        current_time: '1699252958.859391'
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
@@ -696,7 +696,7 @@ public class P2b extends P2bApi
             //        "current_time": 1698733470.469274
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(response, "current_time", 1000);
             return this.parseOrderBook(result, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
@@ -757,7 +757,7 @@ public class P2b extends P2bApi
             //        current_time: '1699255571.413828'
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -888,7 +888,7 @@ public class P2b extends P2bApi
             //        current_time: '1699256375.030494'
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -946,7 +946,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
@@ -970,10 +970,10 @@ public class P2b extends P2bApi
             put( "info", response );
         }};
         List<String> keys = new ArrayList<String>(response.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, currencyId, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, currencyId, null);
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
@@ -1042,7 +1042,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -1099,7 +1099,7 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
             return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -1166,7 +1166,7 @@ public class P2b extends P2bApi
             //        ]
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1228,8 +1228,8 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> records = (List<Object>) this.safeList(result, "records", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> records = this.safeList(result, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(records, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1265,8 +1265,8 @@ public class P2b extends P2bApi
             }
             Long untilParam = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            Long until = this.parseToInt(0);
-            Long sinceResolved = this.parseToInt(0);
+            Long until = 0L;
+            Long sinceResolved = 0L;
             if (!java.util.Objects.equals(untilParam, null))
             {
                 until = this.parseToInt(untilParam);
@@ -1279,7 +1279,7 @@ public class P2b extends P2bApi
                     sinceResolved = this.parseToInt(since);
                 } else
                 {
-                    sinceResolved = this.parseToInt((untilParam - 86400000L));
+                    sinceResolved = (untilParam - 86400000L);
                 }
             } else if (!java.util.Objects.equals(since, null))
             {
@@ -1289,7 +1289,7 @@ public class P2b extends P2bApi
             {
                 Long now = this.milliseconds();
                 until = this.parseToInt(now);
-                sinceResolved = this.parseToInt((now - 86400000L));
+                sinceResolved = (now - 86400000L);
             }
             Map<String, Object> market = this.market(symbol);
             Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
@@ -1330,8 +1330,8 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> deals = (List<Object>) this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> deals = this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(deals, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1368,8 +1368,8 @@ public class P2b extends P2bApi
             {
                 market = this.market(symbol);
             }
-            Long until = this.parseToInt(0);
-            Long sinceResolved = this.parseToInt(0);
+            Long until = 0L;
+            Long sinceResolved = 0L;
             if (!java.util.Objects.equals(untilParam, null))
             {
                 until = this.parseToInt(untilParam);
@@ -1382,7 +1382,7 @@ public class P2b extends P2bApi
                     sinceResolved = this.parseToInt(since);
                 } else
                 {
-                    sinceResolved = this.parseToInt((untilParam - 86400000L));
+                    sinceResolved = (untilParam - 86400000L);
                 }
             } else if (!java.util.Objects.equals(since, null))
             {
@@ -1392,7 +1392,7 @@ public class P2b extends P2bApi
             {
                 Long now = this.milliseconds();
                 until = this.parseToInt(now);
-                sinceResolved = this.parseToInt((now - 86400000L));
+                sinceResolved = (now - 86400000L);
             }
             Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
             Long untilSec = this.parseToInt((((double) until) / ((double) 1000)));
@@ -1435,10 +1435,10 @@ public class P2b extends P2bApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             List<String> keys = new ArrayList<String>(result.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object marketOrders = (result == null || marketId == null ? null : result.get(marketId));

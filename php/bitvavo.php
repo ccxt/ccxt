@@ -474,7 +474,7 @@ class bitvavo extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         $defaultFees = $this->safe_dict($this->fees, 'trading', array());
         $feesByCategory = $this->safe_dict($this->fees, 'byCategory', array());
@@ -2751,6 +2751,6 @@ class bitvavo extends Exchange {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }
-        return $this->safe_value($config, 'cost', 1);
+        return $this->safe_integer($config, 'cost', 1);
     }
 }

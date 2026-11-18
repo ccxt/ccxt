@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::myokx::MyokxCore;
+use super::myokx::Myokx;
 use crate::exchange::ExchangeRuntime;
 
-impl MyokxCore {
+impl Myokx {
     /// Auto-generated wrapper for the `publicGetMarketTickers` implicit endpoint.
     pub async fn public_get_market_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_tickers".into()), optional_args).await

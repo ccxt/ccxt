@@ -1938,7 +1938,7 @@ export default class dydx extends Exchange {
         const account = await this.fetchDydxAccount();
         const usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), '1000000'));
         let payload = undefined;
-        let signingPayload = undefined;
+        let signingPayload = {};
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {

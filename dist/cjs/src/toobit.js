@@ -2727,9 +2727,8 @@ class toobit extends toobit$1["default"] {
         // }
         //
         const result = {};
-        const entry = response;
-        const marketResolved = this.safeMarket(this.safeString(entry, 'symbol'), market);
-        const fee = this.parseTradingFee(entry, marketResolved);
+        const marketResolved = this.safeMarket(this.safeString(response, 'symbol'), market);
+        const fee = this.parseTradingFee(response, marketResolved);
         result[marketResolved['symbol']] = fee;
         return result;
     }

@@ -76,7 +76,7 @@ class modetrade extends \ccxt\async\modetrade {
         ));
     }
 
-    public function request_id(string $url): float {
+    public function request_id(string $url): int {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -687,13 +687,12 @@ class modetrade extends \ccxt\async\modetrade {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $ts = (string) $this->nonce();
-            $auth = $ts;
             $secret = $this->secret;
             if (mb_strpos($this->secret, 'ed25519:') !== false) {
                 $parts = explode('ed25519:', $this->secret);
                 $secret = $parts[1];
             }
-            $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
+            $signature = $this->eddsa($this->encode($ts), $this->base58_to_binary($secret), 'ed25519');
             $request = array(
                 'event' => $event,
                 'params' => array(

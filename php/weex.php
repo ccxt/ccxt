@@ -1234,7 +1234,7 @@ class weex extends Exchange {
         }
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $rawTicker = $this->safe_value($response, $i);
+            $rawTicker = $this->safe_dict($response, $i, array());
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             $marketId = $this->safe_string($rawTicker, 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
@@ -1635,7 +1635,7 @@ class weex extends Exchange {
                 if ($limit !== null && $limit !== null && $limit !== 0) {
                     $historyLimit = $this->parse_to_int(min($limit, $maxHistoricalLimit));
                 }
-                $timeDelta = $this->parse_to_int($historyLimit * $duration);
+                $timeDelta = $historyLimit * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;
@@ -1791,7 +1791,7 @@ class weex extends Exchange {
             $tradeMarketType = 'swap';
         }
         $marketResolved = $this->safe_market(($market === null) ? $tradeMarketId : null, $market, null, $tradeMarketType);
-        $isSpot = null;
+        $isSpot = false;
         if ($market === null) {
             $isSpot = $tradeMarketType === 'spot';
         } else {
@@ -1923,7 +1923,7 @@ class weex extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
         $timestamp = $this->safe_integer($contract, 'time');

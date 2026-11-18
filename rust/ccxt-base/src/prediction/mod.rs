@@ -37,3 +37,52 @@ pub mod predictfun_api;
 pub mod sxbet;
 #[cfg(feature = "prediction-sxbet")]
 pub mod sxbet_api;
+
+#[cfg(feature = "prediction-binance")]
+pub use binance::Binance;
+#[cfg(feature = "prediction-hyperliquid")]
+pub use hyperliquid::Hyperliquid;
+#[cfg(feature = "prediction-kalshi")]
+pub use kalshi::Kalshi;
+#[cfg(feature = "prediction-limitless")]
+pub use limitless::Limitless;
+#[cfg(feature = "prediction-myriad")]
+pub use myriad::Myriad;
+#[cfg(feature = "prediction-opinion")]
+pub use opinion::Opinion;
+#[cfg(feature = "prediction-polymarket")]
+pub use polymarket::Polymarket;
+#[cfg(feature = "prediction-predictfun")]
+pub use predictfun::Predictfun;
+#[cfg(feature = "prediction-sxbet")]
+pub use sxbet::Sxbet;
+
+/// Build the venue named `id` and run `visitor` on it; `None` for an id not compiled in.
+pub async fn with_exchange<V: crate::prediction_exchange::PredictionVisitor>(id: &str, config: Option<crate::Value>, visitor: V) -> Option<V::Output> {
+    match id {
+        #[cfg(feature = "prediction-binance")]
+        "binance" => Some(visitor.visit(binance::Binance::new(config)).await),
+        #[cfg(feature = "prediction-hyperliquid")]
+        "hyperliquid" => Some(visitor.visit(hyperliquid::Hyperliquid::new(config)).await),
+        #[cfg(feature = "prediction-kalshi")]
+        "kalshi" => Some(visitor.visit(kalshi::Kalshi::new(config)).await),
+        #[cfg(feature = "prediction-limitless")]
+        "limitless" => Some(visitor.visit(limitless::Limitless::new(config)).await),
+        #[cfg(feature = "prediction-myriad")]
+        "myriad" => Some(visitor.visit(myriad::Myriad::new(config)).await),
+        #[cfg(feature = "prediction-opinion")]
+        "opinion" => Some(visitor.visit(opinion::Opinion::new(config)).await),
+        #[cfg(feature = "prediction-polymarket")]
+        "polymarket" => Some(visitor.visit(polymarket::Polymarket::new(config)).await),
+        #[cfg(feature = "prediction-predictfun")]
+        "predictfun" => Some(visitor.visit(predictfun::Predictfun::new(config)).await),
+        #[cfg(feature = "prediction-sxbet")]
+        "sxbet" => Some(visitor.visit(sxbet::Sxbet::new(config)).await),
+        _ => None,
+    }
+}
+
+/// [`with_exchange`] with the typed [`crate::Config`] builder.
+pub async fn with_exchange_config<V: crate::prediction_exchange::PredictionVisitor>(id: &str, config: crate::Config, visitor: V) -> Option<V::Output> {
+    with_exchange(id, config.into_option(), visitor).await
+}
