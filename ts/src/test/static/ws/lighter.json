@@ -91,6 +91,121 @@
                 "parsedResponse": true,
                 "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, investigate separately"
             }
+        ],
+        "watchTrades": [
+            {
+                "description": "each watchTrades resolution returns only the trades that are new since the previous call",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "url": "wss://mainnet.zklighter.elliot.ai/stream",
+                "messages": [
+                    {
+                        "channel": "trade:0",
+                        "liquidation_trades": [],
+                        "nonce": 1,
+                        "trades": [
+                            {
+                                "trade_id": 1001,
+                                "type": "trade",
+                                "market_id": 0,
+                                "size": "0.01",
+                                "price": "3000.00",
+                                "usd_amount": "30.00",
+                                "is_maker_ask": false,
+                                "timestamp": 1763623734215
+                            }
+                        ],
+                        "type": "subscribed/trade"
+                    },
+                    {
+                        "channel": "trade:0",
+                        "liquidation_trades": [],
+                        "nonce": 2,
+                        "trades": [
+                            {
+                                "trade_id": 1002,
+                                "type": "trade",
+                                "market_id": 0,
+                                "size": "0.01",
+                                "price": "3001.00",
+                                "usd_amount": "30.00",
+                                "is_maker_ask": false,
+                                "timestamp": 1763623735215
+                            }
+                        ],
+                        "type": "update/trade"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "channel": "trade/0"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "trade_id": 1001,
+                                "type": "trade",
+                                "market_id": 0,
+                                "size": "0.01",
+                                "price": "3000.00",
+                                "usd_amount": "30.00",
+                                "is_maker_ask": false,
+                                "timestamp": 1763623734215
+                            },
+                            "id": "1001",
+                            "order": null,
+                            "timestamp": 1763623734215,
+                            "datetime": "2025-11-20T07:28:54.215Z",
+                            "symbol": "ETH/USDC:USDC",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 3000.0,
+                            "amount": 0.01,
+                            "cost": 30.0,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "trade_id": 1002,
+                                "type": "trade",
+                                "market_id": 0,
+                                "size": "0.01",
+                                "price": "3001.00",
+                                "usd_amount": "30.00",
+                                "is_maker_ask": false,
+                                "timestamp": 1763623735215
+                            },
+                            "id": "1002",
+                            "order": null,
+                            "timestamp": 1763623735215,
+                            "datetime": "2025-11-20T07:28:55.215Z",
+                            "symbol": "ETH/USDC:USDC",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 3001.0,
+                            "amount": 0.01,
+                            "cost": 30.0,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
         ]
     }
 }
