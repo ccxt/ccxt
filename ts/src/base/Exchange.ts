@@ -5776,14 +5776,11 @@ export class BaseExchange {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
             }
-            return symbols;
+            return undefined;
         }
         const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
-            if (!allowEmpty) {
-                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
-            }
-            return symbols;
+        if ((symbolsLength === 0) && !allowEmpty) {
+            throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
         }
         const result: string[] = [];
         let marketType: Str = undefined;
