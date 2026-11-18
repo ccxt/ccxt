@@ -1044,6 +1044,7 @@ impl KrakenCore {
         m.insert(":IInsufficient funds".to_string(), Value::Str("InsufficientFunds".into()));
         m.insert(":Cancel pending".to_string(), Value::Str("CancelPending".into()));
         m.insert(":Rate limit exceeded".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("trading restricted for".to_string(), Value::Str("RestrictedLocation".into()));
     m
 }));
     m
