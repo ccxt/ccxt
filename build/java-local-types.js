@@ -3763,12 +3763,15 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
 function feedsFetchOrderBookSymbol (printer, n) {
     const call = n.parent;
     if (call === undefined || !ts.isCallExpression (call) || call.arguments.indexOf (n) !== 0
-        || !isThisCall (call) || String (call.expression.name.text) !== 'fetchOrderBook') {
+        || !isThisCall (call) || ![ 'fetchOrderBook', 'fetchRestOrderBookSafe' ].includes (String (call.expression.name.text))) {
         return false;
     }
     try {
         const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
-        return declaration !== undefined && ts.isMethodDeclaration (declaration) && declaration.parameters.length === 3;
+        // fetchRestOrderBookSafe has no wrapper overload: its one (Object, Long, Map) base declaration binds a String
+        const restSafe = String (call.expression.name.text) === 'fetchRestOrderBookSafe';
+        return declaration !== undefined && ts.isMethodDeclaration (declaration) && declaration.parameters.length === 3
+            && (!restSafe || BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName));
     } catch (e) {
         return false;
     }
@@ -6553,7 +6556,7 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
         if (!isString && !isList && isClassThrowArgument (n)) {
             return false; // `throw new X((String)x)` casts the argument
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope) && !(isString && feedsFetchOrderBookSymbol (printer, n))) {
             return false; // the typed wrapper overload would win once the box is a String
         }
     }
@@ -26536,6 +26539,9 @@ function j3NonNull (printer, node, env, depth) {
         if (declaration === undefined || !j3Unwritten (printer, checker, declaration, symbol)) {
             return false;
         }
+        if (j8DereferencedBefore (printer, checker, value, symbol)) {
+            return true;
+        }
         if (ts.isVariableDeclaration (declaration) && declaration.initializer !== undefined
             && j3NonNull (printer, declaration.initializer, env, depth + 1)) {
             return true;
@@ -26605,6 +26611,28 @@ function j3NonNull (printer, node, env, depth) {
 }
 
 const J6_NEW_OBJECT_CALLS = new Set ([ 'orderBook', 'safeTicker' ]);
+
+// an earlier statement of an enclosing block calls a member on the unwritten ws-typed binding (`ob.reset (x);`):
+// Java throws there on null, so every later read in the same function sees a non-null value
+function j8DereferencedBefore (printer, checker, node, symbol) {
+    for (let current = node; current.parent !== undefined && !ts.isFunctionLike (current); current = current.parent) {
+        if (!ts.isBlock (current.parent)) {
+            continue;
+        }
+        for (const sibling of current.parent.statements) {
+            if (sibling === current) {
+                break;
+            }
+            const call = ts.isExpressionStatement (sibling) ? sibling.expression : undefined;
+            const receiver = call !== undefined && ts.isCallExpression (call) && ts.isPropertyAccessExpression (call.expression) ? call.expression.expression : undefined;
+            if (receiver !== undefined && ts.isIdentifier (receiver) && checker.getSymbolAtLocation (receiver) === symbol
+                && WS_RECEIVER_METHODS.has (call.expression.name.text) && WS_TYPES.has (String (printer.javaDeclaredTypeOf (receiver) ?? '').trim ())) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 // a base method no indexed class outside ts/src/base declares (calls from classes the dispatch index cannot chain)
 function j7BaseUnoverridden (checker, call) {
