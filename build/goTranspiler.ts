@@ -12707,7 +12707,9 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))), baseFile.stdlibImports)));
+            // padHexAddress / shortenSlug (: string, no venue override) answer a Go string on every return path
+            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ] };
+            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -15469,7 +15471,7 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
 // ===== native `+` for Add chains over proven Go strings =====
 // Add(a, b) -> a + b only when every leaf is a non-nil Go string (literal, never-redeclared `string` local/param,
 // ToString(..), string fields, base method returning `string`); any other leaf keeps Add.
-function goAddStringMethods (): Set<string> { return new Set ([ 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]); }
+function goAddStringMethods (): Set<string> { return new Set ([ 'HashString', 'IntToBase16', 'Remove0xPrefix', 'PadHexAddress', 'ShortenSlug', 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]); }
 // the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
 function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ]); }
 
@@ -15587,7 +15589,31 @@ function goAddOverriddenMethods (fileMasked: string): Set<string> {
     return overridden;
 }
 
+// `func (this *R) M(..) any` -> `string` when its returns are exactly the listed (proven string) lines; else unchanged
+function goRetypeStringReturns (content: string, receiver: string, methods: { [name: string]: string[] }): string {
+    for (const [ name, returns ] of Object.entries (methods)) {
+        const head = new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(([^)\\n]*)\\) any \\{$', 'm').exec (content);
+        if (head === null) { continue; }
+        const open = head.index + head[0].length - 1;
+        const close = goMatchingCloseText (content, open);
+        const found = (content.slice (open, close).match (/^[ \t]*return\b.*$/gm) ?? []).map ((r) => r.trim ());
+        if ((close < 0) || (found.length !== returns.length) || found.some ((r, i) => r !== returns[i])) { continue; }
+        content = content.slice (0, head.index) + head[0].replace (/ any \{$/, ' string {') + content.slice (head.index + head[0].length);
+    }
+    return content;
+}
+
+// `this.Hash(x, h, "hex"|"base64")` answers a string: the HashString twin (go/v4/exchange_crypto.go) declares it
+function goHashTextDigest (content: string): string {
+    return content.replace (/(?<![\w.])this\.Hash\(/g, (m: string, at: number) => {
+        const close = goMatchingCloseText (content, at + m.length - 1);
+        const boxUse = /:=\s*$/.test (content.slice (Math.max (0, at - 8), at)) || content.startsWith ('.(', close + 1);
+        return ((close > 0) && !boxUse && /, "(hex|base64)"$/.test (content.slice (at, close))) ? 'this.HashString(' : m;
+    });
+}
+
 function goNativeStringAdds (content: string): string {
+    content = goHashTextDigest (content);
     if (content.indexOf ('Add(') < 0) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = goAddOverriddenMethods (fileMasked);
@@ -15698,6 +15724,9 @@ function goNativeStringAddSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar s string = "a"\n\treturn Add(s, "b") == nil\n').indexOf ('Add(s, "b") == nil') >= 0, 'nil compare keeps Add');
     ok (f ('\treturn Add(Add(market["id"], ":"), "b")\n').indexOf ('Add(Add(market["id"], ":"), "b")') >= 0, 'map read keeps Add');
     ok (f ('\treturn Add(x, Add(":", "b"))\n').indexOf ('Add(x, ":" + "b")') >= 0, 'inner proven chain converts alone');
+    ok (f ('\treturn Add("0x", this.Hash(m, Keccak, "hex"))\n').indexOf ('return "0x" + this.HashString(m, Keccak, "hex")') >= 0, 'text-digest Hash goes native');
+    ok (f ('\treturn Add("0x", this.Hash(m, Keccak, "binary"))\n').indexOf ('Add("0x", this.Hash(m, Keccak, "binary"))') >= 0, 'binary Hash keeps Add');
+    ok (f ('\treturn Add("0x", this.Hash(m, Keccak, d))\n').indexOf ('Add("0x", this.Hash(m, Keccak, d))') >= 0, 'unknown digest keeps Add');
     ok (goNativeStringAdds ('package ccxt\n\nfunc (this *X) Json(o any) any {\n\treturn nil\n}\n\nfunc (this *X) f() any {\n\treturn Add("a", this.Json(1))\n}\n').indexOf ('Add("a", this.Json(1))') >= 0, 'overridden method keeps Add');
 }
 

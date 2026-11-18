@@ -111,7 +111,31 @@ func (this *BaseExchange) Hash(request2 any, hash func() string, args ...any) an
 	return Hash(request2, hash, digest2)
 }
 
+// HashString is Hash for a text digest ("hex" or "base64"), which is always a string
+func (this *BaseExchange) HashString(request2 any, hash func() string, digest string) string {
+	return hashDigestText(hashSignature(request2, hash), digest)
+}
+
 func Hash(request2 any, hash func() string, digest2 any) any {
+	digest := "hex"
+	if digest2 != nil {
+		digest = derefScalar(digest2).(string)
+	}
+	signature := hashSignature(request2, hash)
+	if digest == "binary" {
+		return signature
+	}
+	return hashDigestText(signature, digest)
+}
+
+func hashDigestText(signature []byte, digest string) string {
+	if digest == "hex" {
+		return hex.EncodeToString(signature)
+	}
+	return base64.StdEncoding.EncodeToString(signature)
+}
+
+func hashSignature(request2 any, hash func() string) []byte {
 	var request string
 	switch v := request2.(type) {
 	case string:
@@ -119,10 +143,6 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 	}
 
 	algorithm := hash()
-	digest := "hex"
-	if digest2 != nil {
-		digest = derefScalar(digest2).(string)
-	}
 
 	var signature []byte
 	switch algorithm {
@@ -141,14 +161,7 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 	case "sha3":
 		signature = signKeccak(request)
 	}
-
-	if digest == "binary" {
-		return signature
-	}
-	if digest == "hex" {
-		return hex.EncodeToString(signature)
-	}
-	return base64.StdEncoding.EncodeToString(signature)
+	return signature
 }
 
 func signSHA256(data string) []byte {
