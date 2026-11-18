@@ -3451,7 +3451,18 @@ class NewTranspiler {
         return null;
     }
 
+    // `object x = ((alias != null)) ? alias : <int literal>;` read as `? (object)alias :`: the
+    // conditional stays `object`, so both arms keep their exact boxes (Int64 / null, Int32 literal)
+    coreArgShadowLimitArmWrite (line: string, alias: string): string | null {
+        const m = new RegExp ('^(\\s*object \\w+ = \\(\\(' + alias + ' != null\\)\\) \\? )' + alias + '( : -?\\d+;\\s*)$').exec (line);
+        return (m === null) ? null : m[1] + '(object)' + alias + m[2];
+    }
+
     coreArgShadowLimitCastWrite (line: string, alias: string, targetType: string): string | null {
+        const arm = this.coreArgShadowLimitArmWrite (line, alias);
+        if (arm !== null) {
+            return arm;
+        }
         const m = new RegExp ('^(\\s*)' + alias + '\\s*(\\?\\?=|=)\\s*(.*?)\\s*;(\\s*(?://.*)?)$').exec (line);
         if (m === null) {
             return null;
@@ -3518,6 +3529,15 @@ class NewTranspiler {
                             limitCasts.push (k);
                             continue;
                         }
+                    }
+                    if (limitWrites && this.coreArgShadowLimitArmWrite (bodyLines[k], alias) !== null) {
+                        limitCasts.push (k);
+                        continue;
+                    }
+                    // csharpTypedSubtractMultiply negates a guarded identity copy of an Int64? parameter natively
+                    if (limitWrites && targetType === 'Int64?' && /prefixUnaryNeg\(ref $/.test (line.slice (0, at)) && /^\s*return\b/.test (line)) {
+                        reads += 1;
+                        continue;
                     }
                     return false;
                 }
@@ -7879,7 +7899,8 @@ function isNonNullGuarded (masked: string[], start: number, line: number, col: n
         const close = csharpClosingParen (masked[k - 1], open);
         if (close === undefined) continue;
         const cond = masked[k - 1].slice (open + 1, close);
-        if (cond.includes ('||')) continue;
+        // a `||` nested inside another conjunct cannot undo the conjunct that proves `name` non-null
+        if (topLevelSplit (csharpStripParens (cond), '||').length > 1) continue;
         if (!topLevelSplit (csharpStripParens (cond), '&&').some ((c) => conjunctProvesNonNull (c, name))) continue;
         const blockEnd = csharpBlockEnd (masked, k, masked.length);
         let written = false;
@@ -8011,8 +8032,10 @@ export function csharpCounterAndGuardedMath (content: string): string {
             if (site === null) continue;
             const name = site[1];
             const decls = declarations ().filter ((d) => d.name === name);
-            if ((decls.length !== 1) || (decls[0].type !== 'object') || (decls[0].line >= i)) continue;
+            if ((decls.length !== 1) || (decls[0].line >= i)) continue;
             const decl = decls[0];
+            // an identity copy already retyped to its parameter's type negates the same value
+            if ((decl.type !== 'object') && ((decl.type !== 'Int64?') || (params[decl.value] !== 'Int64?'))) continue;
             const uses = occurrences (name).filter ((k) => k !== decl.line && k !== i);
             const tail = masked[i].slice (site.index + site[0].length);
             const after = uses.some ((k) => k > i) || new RegExp ('(?<![\\w.])' + name + '(?![\\w])').test (tail);
@@ -8075,6 +8098,7 @@ export function counterAndGuardedMathSelfTest (): string[] {
     check ('copy read earlier in a loop keeps helper', '        object amountVar = amount;\n        while (true)\n        {\n            object y = amountVar;\n            object x = this.g(prefixUnaryNeg(ref amountVar));\n        }', 'prefixUnaryNeg(ref amountVar)');
     check ('copy read after the site keeps helper', '        object amountVar = amount;\n        object x = this.g(prefixUnaryNeg(ref amountVar));\n        return amountVar;', 'prefixUnaryNeg(ref amountVar)');
     check ('guarded Int64? param copy', '        object limitVar = limit;\n        if ((limitVar != null))\n        {\n            return this.g(prefixUnaryNeg(ref limitVar));\n        }\n        return null;', 'return this.g((-limit));');
+    check ('guarded retyped Int64? param copy', '        Int64? limitVar = limit;\n        if ((limitVar != null))\n        {\n            return this.g(prefixUnaryNeg(ref limitVar));\n        }\n        return null;', 'return this.g((-limit));');
     check ('unguarded Int64? param copy keeps helper', '        object limitVar = limit;\n        return this.g(prefixUnaryNeg(ref limitVar));', 'prefixUnaryNeg(ref limitVar)');
     check ('defaulted safeInteger local', '        object d = this.safeInteger(this.options, "k", 6);\n        string s = this.numberToString(prefixUnaryNeg(ref d));', 'string s = this.numberToString((-d));');
     check ('defaulted safeInteger local retyped', '        object d = this.safeInteger(this.options, "k", 6);\n        string s = this.numberToString(prefixUnaryNeg(ref d));', 'Int64? d = this.safeInteger(');

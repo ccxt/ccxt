@@ -19400,7 +19400,7 @@ function integerLiteralArithmeticLiteral (node) {
 // a later write the consumers normalise the same way: a non-null int / Int64 expression (`xs.length`)
 function integerLiteralArithmeticWrite (csharp, node) {
     const kind = nativeArithmeticOperandKind (csharp, node);
-    return (kind === 'int') || (kind === 'Int64');
+    return (kind === 'int') || (kind === 'Int64') || (nativeIntegralMinMaxArmType (csharp, node) === 'Int64');
 }
 
 function integerLiteralArithmeticLocal (csharp, declaration, context) {
@@ -19434,6 +19434,10 @@ function integerLiteralArithmeticLocal (csharp, declaration, context) {
             operand = operand.parent;
         }
         const consumer = operand.parent;
+        // a request-field write prints the same digits for the Int32 / Int64 box
+        if (minMaxRequestFieldValue (operand)) {
+            continue;
+        }
         if ((consumer?.kind !== ts.SyntaxKind.BinaryExpression) || !INTEGER_LITERAL_LOCAL_CONSUMERS.includes (consumer.operatorToken.kind)) {
             return undefined;
         }

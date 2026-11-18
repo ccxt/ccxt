@@ -1476,7 +1476,7 @@ public partial class bithumb : Exchange
             Dictionary<string, object> requestParams = this.omit(paramsGeneration, new List<object>() {"until", "paginate"});
             request["market"] = this.getGen2MarketId(market);
             // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
-            object count = 200;
+            Int64 count = 200;
             if ((limit != null))
             {
                 count = Math.Min(limit.Value, 200);
@@ -1487,7 +1487,7 @@ public partial class bithumb : Exchange
             }
             // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
             // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
-            object to = null;
+            Int64? to = null;
             if ((until != null))
             {
                 to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
@@ -1495,13 +1495,13 @@ public partial class bithumb : Exchange
             if ((since != null))
             {
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object sinceEnd = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, count));
-                if (((to == null)) || (isLessThan(sinceEnd, to)))
+                Int64 sinceEnd = this.sum(since, (duration * count));
+                if (((to == null)) || ((sinceEnd < to)))
                 {
                     to = sinceEnd;
                 }
             }
-            if (!(to == null))
+            if ((to != null))
             {
                 request["to"] = this.ymdhms(this.sum(to, 32400000), " ");
             }
