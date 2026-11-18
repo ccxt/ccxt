@@ -4205,13 +4205,14 @@ function rustTypedListAndOmitBranches (content: string): string {
         `self${parent ?? ''}.omit_t(${arg}, if (${c}) { ${k} } else { Value::Null }, &[])`);
 }
 
-// A `&str` / `Option<&str>` parameter copied to `Value` (`let mut x: Value = x.into();`) whose every later read is
-// `x.as_str()`, `x.as_str().unwrap_or_default()`, a by-value `x.clone()` or an Option's `x ==/!= Value::Null` keeps the borrow: the copy held
-// exactly `Value::Str(x)` / `Null`, so each read answers the same from the parameter itself.
+// A `&str` / i64 / f64 / bool parameter (or its Option) copied to `Value` (`let mut x: Value = x.into();`) whose every read is a
+// typed accessor, an Option's null test or a re-box (`Value::from(x)`, also behind `&`) keeps the parameter: the copy held exactly
+// `Str` / `Int` / `Float` / `Bool` / `Null` of it, so each read answers the same.
 function rustStrParamCopyDrop (content: string): string {
     const bindRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \2\.into\(\);\n/gm;
-    const masked = maskText (content);
+    const masked = maskText (content).replace (/\/\*[\s\S]*?\*\//g, (c) => c.replace (/[^\n]/g, ' '));
     const edits: Array<{ start: number, end: number, text: string }> = [];
+    const acc: Record<string, string> = { '&str': 'str', i64: 'i64', f64: 'f64', bool: 'bool' };
     let m: RegExpExecArray | null;
     while ((m = bindRe.exec (masked)) !== null) {
         const name = m[2];
@@ -4223,7 +4224,7 @@ function rustStrParamCopyDrop (content: string): string {
         }
         const sig = masked.slice (head, masked.indexOf ('\n', head));
         if (!/\bfn \w+(?:<[^>]*>)?\(.*\{$/.test (sig)) continue;
-        const typeM = new RegExp ('[(,] ?' + name + ': (&str|Option<&str>)[,)]').exec (sig);
+        const typeM = new RegExp ('[(,] ?' + name + ': (&str|i64|f64|bool|Option<(?:&str|i64|f64)>)[,)]').exec (sig);
         const ptype = typeM === null ? undefined : typeM[1];
         if (ptype === undefined) continue;
         const bodyStart = m.index + m[0].length;
@@ -4241,17 +4242,19 @@ function rustStrParamCopyDrop (content: string): string {
         while (ok && (u = useRe.exec (body)) !== null) {
             const after = body.slice (u.index + name.length);
             const at = bodyStart + u.index;
-            const opt = ptype === 'Option<&str>';
+            const opt = ptype.startsWith ('Option<');
+            const kind = acc[opt ? ptype.slice (7, -1) : ptype];
+            const asAcc = new RegExp ('^\\.as_' + kind + '\\(\\)');
             // a re-box widens its line: keep the copy rather than push a line past 400 chars
             if (body.lastIndexOf ('\n', u.index) < 0 ? false : (body.indexOf ('\n', u.index) < 0 ? body.length : body.indexOf ('\n', u.index)) - body.lastIndexOf ('\n', u.index) > 386) { ok = false; break; }
             let r: RegExpExecArray | null;
             // a whole argument or element re-boxes from the borrow, the same `Str` / `Null` the copy held
-            if (/(?:\(|\[|, )$/.test (body.slice (Math.max (0, u.index - 2), u.index)) && /^[,);\]]/.test (after)) local.push ({ start: at, end: at + name.length, text: `Value::from(${name})` });
-            else if ((r = /^\.as_str\(\)\.unwrap_or_default\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? `${name}.unwrap_or_default()` : name });
-            else if (!opt && (r = /^\.as_str\(\) ([=!]=) Some\(("(?:[^"\\\n]|\\.)*")\)/.exec (content.slice (at + name.length))) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name} ${r[1]} ${r[2]}` });
+            if (/(?:\(|\[|, |\(&|\[&|, &)$/.test (body.slice (Math.max (0, u.index - 3), u.index)) && /^[,);\]]/.test (after)) local.push ({ start: at, end: at + name.length, text: `Value::from(${name})` });
+            else if (kind === 'str' && (r = /^\.as_str\(\)\.unwrap_or_default\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? `${name}.unwrap_or_default()` : name });
+            else if (!opt && kind === 'str' && (r = /^\.as_str\(\) ([=!]=) Some\(("(?:[^"\\\n]|\\.)*")\)/.exec (content.slice (at + name.length))) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name} ${r[1]} ${r[2]}` });
             // a by-value copy re-boxes from the borrow: `Value::from` builds the same `Str` / `Null`
             else if (body[u.index - 1] !== '&' && (r = /^\.clone\(\)(?=[,);\].])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `Value::from(${name})` });
-            else if ((r = /^\.as_str\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? name : `Some(${name})` });
+            else if ((r = asAcc.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? name : `Some(${name})` });
             else if (opt && body[u.index - 1] !== '&' && (r = /^ ([=!])= Value::Null(?![\w:(])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name}.${r[1] === '=' ? 'is_none' : 'is_some'}()` });
             else ok = false;
         }
