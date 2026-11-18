@@ -821,6 +821,8 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // an object literal, so base virtual and every override print one type (the stub has no
     // return path at all); every caller reads one borrow-rate row.
     'parseBorrowRate': 'Dictionary<string, object>',
+    // parseMarginMode: base `throw` stub plus venue overrides that each return one object literal
+    'parseMarginMode': 'Dictionary<string, object>',
     'parseCurrencyCustom': 'Dictionary<string, object>', 'parseDepositMethodId': 'Dictionary<string, object>', 'parseDepositWithdrawFees': 'Dictionary<string, object>', 'parseDustTrade': 'Dictionary<string, object>',
     'parseFeeTiers': 'Dictionary<string, object>', 'parseLedgerComment': 'Dictionary<string, object>', 'parseLeverages': 'Dictionary<string, object>', 'parseMarginLoan': 'Dictionary<string, object>',
     'parseMarginModes': 'Dictionary<string, object>', 'parseMarketToEvent': 'Dictionary<string, object>', 'parseNetworks': 'Dictionary<string, object>', 'parseOptionChain': 'Dictionary<string, object>',
