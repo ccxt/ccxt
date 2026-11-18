@@ -181,7 +181,7 @@ export default class jupiter extends Exchange {
         const required = [ 'buildCurveByMarketCapParam', 'antiSniping', 'fee', 'tokenName', 'tokenSymbol', 'tokenImageContentType', 'creator' ];
         for (let i = 0; i < required.length; i++) {
             const key = required[i];
-            if (params[key] === undefined) {
+            if (!(key in params)) {
                 throw new ArgumentsRequired (this.id + ' createPool() requires params.' + key);
             }
         }
@@ -234,6 +234,17 @@ export default class jupiter extends Exchange {
      */
     override async fetchPoolMintAddresses (id: string, params: Dict = {}): Promise<Dict> {
         const response = await this.studioPublicGetDbcPoolAddressesMint (this.extend ({ 'mint': id }, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "dammv2PoolAddress": "5mdmkFmtBdzkTTmVzwvg8PUQeq91Y33KLcWrkjLJxjXR",
+        //             "dbcPoolAddress": "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F",
+        //             "configKey": "A9mKpkyvSSoTY2iMUG4bzABZ2GAupu9kxdpxKnuTuwMd",
+        //             "ctoPdaAccount": null
+        //         }
+        //     }
+        //
         const data = this.safeDict (response, 'data', response);
         return this.parsePoolMintAddresses (this.extend ({ 'mint': id }, data));
     }
@@ -252,6 +263,12 @@ export default class jupiter extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchPoolFees() requires a DBC pool id');
         }
         const response = await this.studioPublicPostDbcFee (this.extend ({ 'poolAddress': poolId }, params));
+        //
+        //     {
+        //         "unclaimed": "658163",
+        //         "total": "658163"
+        //     }
+        //
         return [ this.parsePoolFee (response, poolId, 'creator') ];
     }
 
@@ -275,11 +292,17 @@ export default class jupiter extends Exchange {
         if ((ownerWallet === undefined) || (maxQuoteAmount === undefined)) {
             throw new ArgumentsRequired (this.id + ' collectFees() requires params.ownerWallet and params.maxQuoteAmount');
         }
-        return await this.studioPublicPostDbcFeeCreateTx (this.extend (this.omit (params, [ 'ownerWallet', 'maxQuoteAmount' ]), {
+        const response = await this.studioPublicPostDbcFeeCreateTx (this.extend (this.omit (params, [ 'ownerWallet', 'maxQuoteAmount' ]), {
             'ownerWallet': ownerWallet,
             'poolAddress': poolId,
             'maxQuoteAmount': maxQuoteAmount,
         }));
+        //
+        //     {
+        //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAYMEXh1ZC8+o3wkM9ulpvp76eGBbpQo..."
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -318,6 +341,54 @@ export default class jupiter extends Exchange {
         const results: Dict[] = [];
         if (type !== 'borrow') {
             const response = await this.lendPublicGetEarnTokens ();
+            //
+            //     [
+            //         {
+            //             "id": 9,
+            //             "address": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+            //             "name": "jupiter  lend JupUSD",
+            //             "symbol": "jlJupUSD",
+            //             "uiSymbol": "JUICED",
+            //             "decimals": 6,
+            //             "assetAddress": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+            //             "asset": {
+            //                 "address": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+            //                 "chainId": "solana",
+            //                 "name": "Jupiter USD",
+            //                 "symbol": "JupUSD",
+            //                 "uiSymbol": "JupUSD",
+            //                 "decimals": 6,
+            //                 "logoUrl": "https://coin-images.coingecko.com/coins/images/70636/large/icon.png?1767003505",
+            //                 "price": "0.998502728034",
+            //                 "coingeckoId": "jupusd",
+            //                 "updatedAt": "2026-11-17T20:36:07.000+00:00"
+            //             },
+            //             "totalAssets": "42193568871669",
+            //             "totalSupply": "40249000247575",
+            //             "convertToShares": "953913",
+            //             "convertToAssets": "1048313",
+            //             "rewardsRate": "150",
+            //             "supplyRate": "561",
+            //             "totalRate": "711",
+            //             "rebalanceDifference": "-776162678460",
+            //             "liquiditySupplyData": {
+            //                 "modeWithInterest": true,
+            //                 "supply": "41771091791719",
+            //                 "withdrawalLimit": "20885545895860",
+            //                 "lastUpdateTimestamp": "1794947833",
+            //                 "expandPercent": "5000",
+            //                 "expandDuration": "21600",
+            //                 "baseWithdrawalLimit": "10286954797530",
+            //                 "withdrawableUntilLimit": "20885545895859",
+            //                 "withdrawable": "3386179896417",
+            //                 "decayAmount": "963429559",
+            //                 "decayEndTimestamp": "1794949366"
+            //             },
+            //             "rewards": [],
+            //             "metadata": {}
+            //         }
+            //     ]
+            //
             const tokens = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
             for (let i = 0; i < tokens.length; i++) {
                 const token = tokens[i] as Dict;
@@ -337,6 +408,54 @@ export default class jupiter extends Exchange {
         }
         if (type !== 'earn') {
             const response = await this.lendPublicGetBorrowVaults (request);
+            //
+            //     [
+            //         {
+            //             "id": 1,
+            //             "address": "nMzVs8GiXMVUENEwkev7JZfDcCENmz18ScheeVRdnb1",
+            //             "type": 0,
+            //             "supplyToken": {
+            //                 "address": "So11111111111111111111111111111111111111112",
+            //                 "chainId": "solana",
+            //                 "name": "Wrapped SOL",
+            //                 "symbol": "WSOL",
+            //                 "uiSymbol": "SOL",
+            //                 "decimals": 9,
+            //                 "logoUrl": "https://coin-images.coingecko.com/coins/images/21629/large/solana.jpg?1696520989",
+            //                 "price": "73.001437444494",
+            //                 "coingeckoId": "wrapped-solana",
+            //                 "updatedAt": "2026-11-17T20:45:09.000+00:00"
+            //             },
+            //             "borrowToken": {
+            //                 "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            //                 "chainId": "solana",
+            //                 "name": "USD Coin",
+            //                 "symbol": "USDC",
+            //                 "uiSymbol": "USDC",
+            //                 "decimals": 6,
+            //                 "logoUrl": "https://coin-images.coingecko.com/coins/images/6319/large/USDC.png?1769615602",
+            //                 "price": "0.999591168415",
+            //                 "coingeckoId": "usd-coin",
+            //                 "updatedAt": "2026-11-17T20:45:09.000+00:00"
+            //             },
+            //             "totalSupply": "1837535197342354",
+            //             "totalBorrow": "68811930886183",
+            //             "borrowFee": "0",
+            //             "collateralFactor": "800",
+            //             "liquidationThreshold": "850",
+            //             "liquidationMaxLimit": "900",
+            //             "liquidationPenalty": "100",
+            //             "supplyRate": "360",
+            //             "borrowRate": "496",
+            //             "minimumBorrowing": "1066456",
+            //             "totalPositions": 10922,
+            //             "oracle": "6uU9EvKL1rSTyw3ZqKz4hMNEB4NBCo3D3rg3n13fymHm",
+            //             "rewards": [],
+            //             "metadata": { "maxLeverage": false, "nativeStake": false, "pegged": false, "hidden": false }
+            //         },
+            //         ...
+            //     ]
+            //
             const vaults = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
             for (let i = 0; i < vaults.length; i++) {
                 const vault = vaults[i] as Dict;
@@ -391,6 +510,48 @@ export default class jupiter extends Exchange {
             response = await this.lendPublicGetBorrowPositions (request);
         } else {
             response = await this.lendPublicGetEarnPositions (request);
+            //
+            //     [
+            //         {
+            //             "token": {
+            //                 "id": 6,
+            //                 "address": "j14XLJZSVMcUYpAfajdZRpnfHUpJieZHS4aPektLWvh",
+            //                 "name": "jupiter  lend USDS",
+            //                 "symbol": "jlUSDS",
+            //                 "uiSymbol": "jlUSDS",
+            //                 "decimals": 6,
+            //                 "assetAddress": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+            //                 "asset": {
+            //                     "address": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+            //                     "chainId": "solana",
+            //                     "name": "USDS",
+            //                     "symbol": "USDS",
+            //                     "uiSymbol": "USDS",
+            //                     "decimals": 6,
+            //                     "logoUrl": "https://coin-images.coingecko.com/coins/images/39926/large/usds.webp?1726666683",
+            //                     "price": "0.999928369413",
+            //                     "coingeckoId": "usds",
+            //                     "updatedAt": "2026-11-17T20:36:07.000+00:00"
+            //                 },
+            //                 "totalAssets": "2249270503394",
+            //                 "totalSupply": "2097175151701",
+            //                 "convertToShares": "932380",
+            //                 "convertToAssets": "1072524",
+            //                 "rewardsRate": "0",
+            //                 "supplyRate": "373",
+            //                 "totalRate": "373",
+            //                 "rewards": [],
+            //                 "metadata": {}
+            //             },
+            //             "ownerAddress": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+            //             "shares": "0",
+            //             "underlyingAssets": "0",
+            //             "underlyingBalance": "0",
+            //             "allowance": "0"
+            //         },
+            //         ...
+            //     ]
+            //
         }
         const positions = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
         const result: Dict[] = [];
@@ -612,6 +773,30 @@ export default class jupiter extends Exchange {
             throw new ArgumentsRequired (this.id + ' ' + operation + ' requires params.signer');
         }
         const response = await this.lendPublicGetEarnTokens ();
+        //
+        //     [
+        //         {
+        //             "id": 9,
+        //             "address": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+        //             "name": "jupiter  lend JupUSD",
+        //             "symbol": "jlJupUSD",
+        //             "uiSymbol": "JUICED",
+        //             "decimals": 6,
+        //             "assetAddress": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+        //             "asset": { "address": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD", "name": "Jupiter USD", "symbol": "JupUSD", "decimals": 6, "price": "0.998502728034" },
+        //             "totalAssets": "42193568871669",
+        //             "totalSupply": "40249000247575",
+        //             "convertToShares": "953913",
+        //             "convertToAssets": "1048313",
+        //             "rewardsRate": "150",
+        //             "supplyRate": "561",
+        //             "totalRate": "711",
+        //             "rewards": [],
+        //             "metadata": {}
+        //         },
+        //         ...
+        //     ]
+        //
         const tokens = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
         let decimals: Int = undefined;
         for (let i = 0; i < tokens.length; i++) {
@@ -634,9 +819,21 @@ export default class jupiter extends Exchange {
         request['signer'] = signer;
         request['amount'] = baseAmount;
         if (operation === 'deposit') {
-            return await this.lendPublicPostEarnDeposit (request);
+            const depositResponse = await this.lendPublicPostEarnDeposit (request);
+            //
+            //     {
+            //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAkSXP/2uuAU1U1WGPBWBlDrYCLLke..."
+            //     }
+            //
+            return depositResponse;
         }
-        return await this.lendPublicPostEarnWithdraw (request);
+        const withdrawResponse = await this.lendPublicPostEarnWithdraw (request);
+        //
+        //     {
+        //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAkTXP/2uuAU1U1WGPBWBlDrYCLLke..."
+        //     }
+        //
+        return withdrawResponse;
     }
 
     /**
@@ -662,6 +859,31 @@ export default class jupiter extends Exchange {
             vaultRequest['rpcUrl'] = rpcUrl;
         }
         const response = await this.lendPublicGetBorrowVaults (vaultRequest);
+        //
+        //     [
+        //         {
+        //             "id": 1,
+        //             "address": "nMzVs8GiXMVUENEwkev7JZfDcCENmz18ScheeVRdnb1",
+        //             "type": 0,
+        //             "supplyToken": { "address": "So11111111111111111111111111111111111111112", "name": "Wrapped SOL", "symbol": "WSOL", "decimals": 9, "price": "73.001437444494" },
+        //             "borrowToken": { "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "name": "USD Coin", "symbol": "USDC", "decimals": 6, "price": "0.999591168415" },
+        //             "totalSupply": "1837535197342354",
+        //             "totalBorrow": "68811930886183",
+        //             "borrowFee": "0",
+        //             "collateralFactor": "800",
+        //             "liquidationThreshold": "850",
+        //             "liquidationMaxLimit": "900",
+        //             "liquidationPenalty": "100",
+        //             "supplyRate": "360",
+        //             "borrowRate": "496",
+        //             "minimumBorrowing": "1066456",
+        //             "totalPositions": 10922,
+        //             "rewards": [],
+        //             "metadata": { "maxLeverage": false, "nativeStake": false, "pegged": false, "hidden": false }
+        //         },
+        //         ...
+        //     ]
+        //
         const vaults = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
         let selectedVault: Dict = {};
         for (let i = 0; i < vaults.length; i++) {
@@ -706,7 +928,14 @@ export default class jupiter extends Exchange {
         if (this.safeBool (params, 'instructions')) {
             return await this.lendPublicPostBorrowOperateInstructions (request);
         }
-        return await this.lendPublicPostBorrowOperate (request);
+        const operateResponse = await this.lendPublicPostBorrowOperate (request);
+        //
+        //     {
+        //         "nftId": 10923,
+        //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAGD1z/9rrgFNVNVhjwVgZQ62Aiy5Hv..."
+        //     }
+        //
+        return operateResponse;
     }
 
     /**
@@ -715,7 +944,7 @@ export default class jupiter extends Exchange {
      * @param {int} decimals token decimal precision
      * @returns {string} amount in base units
      */
-    toBaseUnits (amount: Num, decimals: number): string {
+    toBaseUnits (amount: Num, decimals: int): string {
         const amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, decimals, DECIMAL_PLACES);
         const baseUnits = Precise.stringDiv (amountString, this.parsePrecision (this.numberToString (decimals)));
         if (baseUnits === undefined) {
@@ -730,6 +959,20 @@ export default class jupiter extends Exchange {
      * @returns {object} common liquidity pool structure
      */
     parseLiquidityPool (pool: Dict): Dict {
+        //
+        //     {
+        //         "id": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+        //         "type": "earn",
+        //         "currency": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+        //         "shareToken": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+        //         "symbol": "jlJupUSD",
+        //         "name": "jupiter  lend JupUSD",
+        //         "supplyRate": 561,
+        //         "rewardsRate": 150,
+        //         "totalRate": 711,
+        //         "info": { ... }
+        //     }
+        //
         const info = this.safeDict (pool, 'info', pool);
         const poolId = this.safeString (pool, 'poolId', this.safeString (pool, 'id'));
         return this.extend (pool, {
@@ -760,6 +1003,18 @@ export default class jupiter extends Exchange {
      * @returns {object} common liquidity position structure
      */
     parseLiquidity (position: Dict): Dict {
+        //
+        //     {
+        //         "id": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+        //         "poolId": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+        //         "type": "earn",
+        //         "owner": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+        //         "shares": 0,
+        //         "amount": 0,
+        //         "currency": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+        //         "info": { ... }
+        //     }
+        //
         const info = this.safeDict (position, 'info', position);
         return this.extend (position, {
             'id': this.safeString (position, 'id'),
@@ -786,8 +1041,14 @@ export default class jupiter extends Exchange {
      * @returns {object} common pool fee structure
      */
     parsePoolFee (fee: Dict, poolId: string, type: string): Dict {
+        //
+        //     {
+        //         "unclaimed": "658163",
+        //         "total": "658163"
+        //     }
+        //
         const info = this.safeDict (fee, 'info', fee);
-        const amount = this.safeNumber2 (fee, 'unclaimedAmount', 'unclaimedFee');
+        const amount = this.safeNumberN (fee, [ 'unclaimedAmount', 'unclaimedFee', 'unclaimed' ]);
         return this.extend (fee, {
             'id': this.safeString (fee, 'id', poolId),
             'poolId': this.safeString (fee, 'poolId', poolId),
@@ -796,7 +1057,7 @@ export default class jupiter extends Exchange {
             'currency': this.safeString2 (fee, 'currency', 'quoteMint'),
             'amount': amount,
             'unclaimedAmount': amount,
-            'totalAmount': this.safeNumber2 (fee, 'totalAmount', 'totalFee'),
+            'totalAmount': this.safeNumberN (fee, [ 'totalAmount', 'totalFee', 'total' ]),
             'info': info,
         });
     }
@@ -807,6 +1068,15 @@ export default class jupiter extends Exchange {
      * @returns {object} common pool-address structure retaining venue-specific addresses
      */
     parsePoolMintAddresses (addresses: Dict): Dict {
+        //
+        //     {
+        //         "mint": "FAvY2SSpxzLYWaBAgkGUJdZMJaXLt2sQpSYN6yd9jups",
+        //         "dammv2PoolAddress": "5mdmkFmtBdzkTTmVzwvg8PUQeq91Y33KLcWrkjLJxjXR",
+        //         "dbcPoolAddress": "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F",
+        //         "configKey": "A9mKpkyvSSoTY2iMUG4bzABZ2GAupu9kxdpxKnuTuwMd",
+        //         "ctoPdaAccount": null
+        //     }
+        //
         const info = this.safeDict (addresses, 'info', addresses);
         const poolId = this.safeString (addresses, 'poolId', this.safeString (addresses, 'id', this.safeString (addresses, 'dbcPool')));
         return this.extend (addresses, {
@@ -852,14 +1122,73 @@ export default class jupiter extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchCurrencies() requires a query parameter');
         }
         const response = await this.publicGetTokensV2Search (params);
+        //
+        //     [
+        //         {
+        //             "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //             "name": "Jupiter",
+        //             "symbol": "JUP",
+        //             "icon": "https://static.datapi.jup.ag/token-icons/12254fdd34fa9a0ad62075bd3872df61e28584f9519fe00c744b71b514d4c3d7.webp",
+        //             "decimals": 6,
+        //             "twitter": "https://twitter.com/JupiterExchange",
+        //             "website": "https://jup.ag",
+        //             "dev": "JUPhop9E8ZfdJ5FNHhxQt4uAih822Vs4QpqsWcewFbq",
+        //             "circSupply": 3319369204.37,
+        //             "totalSupply": 6861485665.049689,
+        //             "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "holderCount": 836147,
+        //             "fdv": 1718979923.724669,
+        //             "mcap": 831587982.586077,
+        //             "usdPrice": 0.2505259076005401,
+        //             "priceBlockId": 470669855,
+        //             "liquidity": 5368776.959425455,
+        //             "stats5m": { ... },
+        //             "stats1h": { ... },
+        //             "stats6h": { ... },
+        //             "stats24h": {
+        //                 "priceChange": 1.7188930297745795,
+        //                 "holderChange": -0.01171905362662856,
+        //                 "liquidityChange": 9.196443752699885,
+        //                 "volumeChange": 31.520334120280364,
+        //                 "buyVolume": 4806235.974102063,
+        //                 "sellVolume": 4672746.109049833,
+        //                 "buyOrganicVolume": 560843.9283383372,
+        //                 "sellOrganicVolume": 441984.90324390715,
+        //                 "numBuys": 91253,
+        //                 "numSells": 90950,
+        //                 "numTraders": 18792,
+        //                 "numOrganicBuyers": 217,
+        //                 "numNetBuyers": 1734
+        //             },
+        //             "firstPool": {
+        //                 "id": "2pspvjWWaf3dNgt3jsgSzFCNvMGPb7t8FrEYvLGjvcCe",
+        //                 "createdAt": "2024-01-29T17:33:29Z"
+        //             },
+        //             "audit": {
+        //                 "mintAuthorityDisabled": true,
+        //                 "freezeAuthorityDisabled": true,
+        //                 "topHoldersPercentage": 14.829274454604887,
+        //                 "devMints": 1
+        //             },
+        //             "organicScore": 96.7835220873601,
+        //             "organicScoreLabel": "high",
+        //             "isVerified": true,
+        //             "tags": [ "birdeye-trending" ],
+        //             "createdAt": "2024-06-07T10:56:42.584Z",
+        //             "updatedAt": "2026-11-17T20:36:34.196403656Z"
+        //         },
+        //         ...
+        //     ]
+        //
         const tokens = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         const result: Currencies = {};
         for (let i = 0; i < tokens.length; i++) {
             const currency = this.parseCurrency (tokens[i]);
             const code = currency['code'];
-            if (result[code] === undefined) {
+            const existing = this.safeDict (result, code);
+            if (existing === undefined) {
                 result[code] = currency;
-            } else if (result[code]['id'] !== currency['id']) {
+            } else if (existing['id'] !== currency['id']) {
                 const suffix = currency['id'].slice (-4);
                 currency['code'] = code + '-' + suffix;
                 result[currency['code']] = currency;
@@ -902,6 +1231,13 @@ export default class jupiter extends Exchange {
      * @returns {object} a market structure
      */
     override parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //         "baseCurrency": { "info": { ... }, "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", "code": "JUP", "name": "Jupiter", "active": true, "type": "token", "precision": 6 },
+        //         "quoteCurrency": { "info": { ... }, "id": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "code": "USDC", "name": "USD Coin", "active": true, "type": "token", "precision": 6 }
+        //     }
+        //
         const baseCurrency = this.safeDict (market, 'baseCurrency') as CurrencyInterface;
         const quoteCurrency = this.safeDict (market, 'quoteCurrency') as CurrencyInterface;
         const base = this.safeString (baseCurrency, 'code');
@@ -957,6 +1293,39 @@ export default class jupiter extends Exchange {
      * @returns {object} a currency structure
      */
     override parseCurrency (currency: Dict): CurrencyInterface {
+        //
+        //     {
+        //         "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //         "name": "Jupiter",
+        //         "symbol": "JUP",
+        //         "icon": "https://static.datapi.jup.ag/token-icons/12254fdd34fa9a0ad62075bd3872df61e28584f9519fe00c744b71b514d4c3d7.webp",
+        //         "decimals": 6,
+        //         "twitter": "https://twitter.com/JupiterExchange",
+        //         "website": "https://jup.ag",
+        //         "dev": "JUPhop9E8ZfdJ5FNHhxQt4uAih822Vs4QpqsWcewFbq",
+        //         "circSupply": 3319369204.37,
+        //         "totalSupply": 6861485665.049689,
+        //         "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //         "holderCount": 836147,
+        //         "fdv": 1718979923.724669,
+        //         "mcap": 831587982.586077,
+        //         "usdPrice": 0.2505259076005401,
+        //         "priceBlockId": 470669855,
+        //         "liquidity": 5368776.959425455,
+        //         "stats5m": { ... },
+        //         "stats1h": { ... },
+        //         "stats6h": { ... },
+        //         "stats24h": { ... },
+        //         "firstPool": { "id": "2pspvjWWaf3dNgt3jsgSzFCNvMGPb7t8FrEYvLGjvcCe", "createdAt": "2024-01-29T17:33:29Z" },
+        //         "audit": { "mintAuthorityDisabled": true, "freezeAuthorityDisabled": true, "topHoldersPercentage": 14.829274454604887, "devMints": 1 },
+        //         "organicScore": 96.7835220873601,
+        //         "organicScoreLabel": "high",
+        //         "isVerified": true,
+        //         "tags": [ "birdeye-trending" ],
+        //         "createdAt": "2024-06-07T10:56:42.584Z",
+        //         "updatedAt": "2026-11-17T20:36:34.196403656Z"
+        //     }
+        //
         const id = this.safeString2 (currency, 'id', 'address');
         const code = this.safeString (currency, 'symbol', id);
         const decimals = this.safeInteger (currency, 'decimals');
@@ -993,7 +1362,14 @@ export default class jupiter extends Exchange {
         const request: Dict = this.omit (params, [ 'type' ]);
         request['walletPubkey'] = walletPubkey;
         request['type'] = this.safeString (params, 'type', 'message');
-        return await this.triggerPublicPostAuthChallenge (request);
+        const response = await this.triggerPublicPostAuthChallenge (request);
+        //
+        //     {
+        //         "type": "message",
+        //         "challenge": "Sign this message to authenticate with Jupiter that you are the owner of 7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2.\n\nThis challenge expires at 2026-11-17T20:44:10.345Z with the nonce of 01a1eb3c-2709-71db-acd5-6816e5d6571b."
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1245,20 +1621,62 @@ export default class jupiter extends Exchange {
     /**
      * @method
      * @name jupiter#fetchTicker
-     * @description fetches the USD price and 24-hour change for a Solana token
+     * @description fetches the USD price and 24-hour change for a Solana token, or the cross price for a token pair
      * @see https://developers.jup.ag/docs/api-reference/price
-     * @param {string} symbol currency code or Solana token mint address
+     * @param {string} symbol currency code, Solana token mint address, or a BASE/QUOTE pair of either
      * @param {object} [params] exchange-specific parameters
      * @param {string} [params.mint] token mint address when it cannot be resolved from symbol
-     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure) with a synthetic USD quote
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        let currency = this.safeDict (this.currencies, symbol) as CurrencyInterface;
+        const parts = symbol.split ('/');
+        const partsLength = parts.length;
+        let baseCode = symbol;
+        let quoteCode: Str = undefined;
+        if (partsLength === 2) {
+            baseCode = parts[0];
+            if (parts[1] !== 'USD') {
+                quoteCode = parts[1];
+            }
+        }
+        if (quoteCode !== undefined) {
+            // the price API only quotes USD, so a pair resolves as a cross of both legs
+            const baseCurrency = await this.lookupJupiterCurrency (baseCode);
+            const quoteCurrency = await this.lookupJupiterCurrency (quoteCode);
+            const baseMint = baseCurrency['id'];
+            const quoteMint = quoteCurrency['id'];
+            if (baseMint === quoteMint) {
+                throw new BadSymbol (this.id + ' fetchTicker() base and quote must be different tokens');
+            }
+            const crossQuery = this.omit (params, [ 'mint' ]);
+            crossQuery['ids'] = baseMint + ',' + quoteMint;
+            const crossResponse = await this.publicGetPriceV3 (crossQuery);
+            const baseData = this.safeDict (crossResponse, baseMint);
+            const quoteData = this.safeDict (crossResponse, quoteMint);
+            if ((baseData === undefined) || (quoteData === undefined)) {
+                throw new ExchangeError (this.id + ' fetchTicker() returned no price for ' + baseMint + ' or ' + quoteMint);
+            }
+            const baseUsd = this.safeString (baseData, 'usdPrice');
+            const quoteUsd = this.safeString (quoteData, 'usdPrice');
+            const last = Precise.stringDiv (baseUsd, quoteUsd);
+            const basePercentage = this.safeString (baseData, 'priceChange24h');
+            const quotePercentage = this.safeString (quoteData, 'priceChange24h');
+            let percentage = undefined;
+            if ((basePercentage !== undefined) && (quotePercentage !== undefined)) {
+                const baseRatio = Precise.stringAdd ('1', Precise.stringDiv (basePercentage, '100'));
+                const quoteRatio = Precise.stringAdd ('1', Precise.stringDiv (quotePercentage, '100'));
+                percentage = Precise.stringMul (Precise.stringSub (Precise.stringDiv (baseRatio, quoteRatio), '1'), '100');
+            }
+            const crossTicker = this.extend (crossResponse, { 'symbol': baseCurrency['code'] + '/' + quoteCurrency['code'], 'last': last, 'percentage': percentage });
+            const parsedCross = this.parseTicker (crossTicker);
+            return parsedCross;
+        }
+        let currency = this.safeDict (this.currencies, baseCode) as CurrencyInterface;
         const mintOverride = this.safeString (params, 'mint');
         if (currency === undefined && mintOverride === undefined) {
-            currency = await this.lookupJupiterCurrency (symbol);
+            currency = await this.lookupJupiterCurrency (baseCode);
         }
-        let defaultMint = symbol;
+        let defaultMint = baseCode;
         if (currency !== undefined) {
             defaultMint = currency['id'];
         }
@@ -1266,11 +1684,31 @@ export default class jupiter extends Exchange {
         const query = this.omit (params, [ 'mint' ]);
         query['ids'] = mint;
         const response = await this.publicGetPriceV3 (query);
+        //
+        //      {
+        //         "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN": {
+        //             "createdAt": "2024-06-07T10:56:42.584Z",
+        //             "liquidity": 5356892.119796345,
+        //             "usdPrice": 0.24871252368558808,
+        //             "blockId": 470400865,
+        //             "decimals": 6,
+        //             "priceChange24h": -5.129214208806516
+        //         },
+        //         "So11111111111111111111111111111111111111112": {
+        //             "createdAt": "2024-06-05T08:55:25.527Z",
+        //             "liquidity": 779975943.4173653,
+        //             "usdPrice": 72.61530184750472,
+        //             "blockId": 470400869,
+        //             "decimals": 9,
+        //             "priceChange24h": 1.1782703766204228
+        //         }
+        //     }
+        //
         const tickerData = this.safeDict (response, mint);
         if (tickerData === undefined) {
             throw new ExchangeError (this.id + ' fetchTicker() returned no price for ' + mint);
         }
-        const code = (currency === undefined) ? symbol : currency['code'];
+        const code = (currency === undefined) ? baseCode : currency['code'];
         const ticker = this.extend (tickerData, { 'symbol': code + '/USD' });
         const parsed = this.parseTicker (ticker);
         return parsed;
@@ -1283,6 +1721,17 @@ export default class jupiter extends Exchange {
      * @returns {object} a ticker structure
      */
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "SOL/USD",
+        //         "createdAt": "2024-06-05T08:55:25.527Z",
+        //         "liquidity": 779975943.4173653,
+        //         "usdPrice": 72.61530184750472,
+        //         "blockId": 470400869,
+        //         "decimals": 9,
+        //         "priceChange24h": 1.1782703766204228
+        //     }
+        //
         let defaultSymbol = undefined;
         if (market !== undefined) {
             defaultSymbol = market['symbol'];
@@ -1291,8 +1740,8 @@ export default class jupiter extends Exchange {
         const parsed = this.safeTicker ({
             'info': ticker,
             'symbol': symbol,
-            'last': this.safeString (ticker, 'usdPrice'),
-            'percentage': this.safeString (ticker, 'priceChange24h'),
+            'last': this.safeString2 (ticker, 'usdPrice', 'last'),
+            'percentage': this.safeString2 (ticker, 'priceChange24h', 'percentage'),
         });
         return parsed;
     }
@@ -1315,7 +1764,54 @@ export default class jupiter extends Exchange {
         if (inputMint === undefined || outputMint === undefined || amount === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchSwapInstructions() requires inputMint, outputMint, and amount in token base units');
         }
-        return await this.publicGetSwapV2Build (params);
+        const response = await this.publicGetSwapV2Build (params);
+        //
+        //     {
+        //         "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //         "outputMint": "So11111111111111111111111111111111111111112",
+        //         "inAmount": "1000000",
+        //         "outAmount": "3428125",
+        //         "otherAmountThreshold": "3410985",
+        //         "swapMode": "ExactIn",
+        //         "slippageBps": 50,
+        //         "priceImpactPct": "0",
+        //         "routePlan": [
+        //             {
+        //                 "percent": 100,
+        //                 "bps": 10000,
+        //                 "swapInfo": {
+        //                     "ammKey": "Et6HnPjetV8AzmxNAfzKJ6ax5VM82ZB7phY465Ns5iZW",
+        //                     "label": "ZeroFi",
+        //                     "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //                     "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                     "inAmount": "1000000",
+        //                     "outAmount": "251017"
+        //                 }
+        //             },
+        //             ...
+        //         ],
+        //         "computeBudgetInstructions": [ { "programId": "ComputeBudget111111111111111111111111111111", "accounts": [], "data": "A8EWAAAAAAAA" }, ... ],
+        //         "setupInstructions": [ { "programId": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", "accounts": [ ... ], "data": "AQ==" }, ... ],
+        //         "swapInstruction": { "programId": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4", "accounts": [ ... ], "data": "0ZhTk3z+2OkGQEIPAAAAAAAdTzQAAAAAADIAAAAAAAUAAADDECcAAREAiQMBAhoQJwIFEQCHIwEELwAAECcEBQ==" },
+        //         "cleanupInstruction": { "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "accounts": [ ... ], "data": "CQ==" },
+        //         "otherInstructions": [],
+        //         "tipInstruction": null,
+        //         "addressesByLookupTableAddress": {
+        //             "8j7WQ4zBQPw7HwtUo97BGgPhZk4E8Ggnt33HwncZHdci": [ "8exuywH7jW6AXBAb9f878uddLpPHjJFtNTxjZCjW4L3J", ... ],
+        //             ...
+        //         },
+        //         "blockhashWithMetadata": {
+        //             "blockhash": [ 71, ... ],
+        //             "lastValidBlockHeight": 448685171,
+        //             "fetchedAt": {
+        //                 "secs_since_epoch": 1794947863,
+        //                 "nanos_since_epoch": 334993875
+        //             }
+        //         },
+        //         "transactionVersion": 0
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1356,7 +1852,7 @@ export default class jupiter extends Exchange {
         if (rawAmount === undefined) {
             throw new InvalidOrder (this.id + ' fetchConvertQuote() could not convert the input amount to token base units');
         }
-        if (rawAmount.indexOf ('.') !== -1) {
+        if (rawAmount.indexOf ('.') >= 0) {
             throw new InvalidOrder (this.id + ' fetchConvertQuote() amount has more decimal places than the input token supports');
         }
         const query = this.omit (params, [ 'inputMint', 'outputMint', 'fromDecimals', 'toDecimals' ]);
@@ -1364,6 +1860,59 @@ export default class jupiter extends Exchange {
         query['outputMint'] = outputMint;
         query['amount'] = rawAmount;
         const response = await this.publicGetSwapV2Order (query);
+        //
+        //     {
+        //         "swapMode": "ExactIn",
+        //         "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //         "outputMint": "So11111111111111111111111111111111111111112",
+        //         "inAmount": "1000000",
+        //         "outAmount": "3430477",
+        //         "otherAmountThreshold": "3430477",
+        //         "slippageBps": 0,
+        //         "priceImpactPct": "0.002415178085089822",
+        //         "priceImpact": 0.2415178085089822,
+        //         "routePlan": [
+        //             {
+        //                 "percent": 100,
+        //                 "bps": 10000,
+        //                 "usdValue": 0.25113097228232417,
+        //                 "swapInfo": {
+        //                     "ammKey": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+        //                     "label": "OKX DEX Router",
+        //                     "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //                     "outputMint": "So11111111111111111111111111111111111111112",
+        //                     "inAmount": "1000000",
+        //                     "outAmount": "3430477"
+        //                 }
+        //             }
+        //         ],
+        //         "feeMint": "So11111111111111111111111111111111111111112",
+        //         "feeBps": 10,
+        //         "platformFee": {
+        //             "feeBps": 10,
+        //             "feeMint": "So11111111111111111111111111111111111111112"
+        //         },
+        //         "signatureFeeLamports": 0,
+        //         "signatureFeePayer": null,
+        //         "prioritizationFeeLamports": 0,
+        //         "prioritizationFeePayer": null,
+        //         "rentFeeLamports": 0,
+        //         "rentFeePayer": null,
+        //         "swapType": "aggregator",
+        //         "router": "okx",
+        //         "guaranteedPrice": false,
+        //         "transaction": null,
+        //         "gasless": false,
+        //         "jitOptimized": false,
+        //         "requestId": "01a1eb3a-47c3-723d-95ba-f5d6411bb350",
+        //         "taker": null,
+        //         "inUsdValue": 0.2505259076005401,
+        //         "outUsdValue": 0.25113097228232417,
+        //         "swapUsdValue": 0.25113097228232417,
+        //         "mode": "ultra",
+        //         "totalTime": 188
+        //     }
+        //
         const inAmount = this.safeString (response, 'inAmount');
         const outAmount = this.safeString (response, 'outAmount');
         if (inAmount === undefined || outAmount === undefined) {
@@ -1461,8 +2010,9 @@ export default class jupiter extends Exchange {
             return cached;
         }
         const currencies = await this.fetchCurrencies ({ 'query': code });
-        if (currencies[code] !== undefined) {
-            return currencies[code];
+        const matched = this.safeDict (currencies, code) as CurrencyInterface;
+        if (matched !== undefined) {
+            return matched;
         }
         const codes = Object.keys (currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -1475,8 +2025,9 @@ export default class jupiter extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const url = this.urls['api'][api[0]] + '/' + path;
-        const requestUrl = (method === 'GET' && Object.keys (params).length > 0) ? url + '?' + this.urlencode (params) : url;
+        const url = this.urls['api'][api[0]] + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        const requestUrl = (method === 'GET' && Object.keys (query).length > 0) ? url + '?' + this.urlencode (query) : url;
         const requestHeaders: Dict = {
             'Accept': 'application/json',
         };
@@ -1496,10 +2047,10 @@ export default class jupiter extends Exchange {
                 const eol = '\r\n';
                 requestHeaders['Content-Type'] = 'multipart/form-data; boundary=' + boundary;
                 let multipartBody = '';
-                const bodyKeys = Object.keys (params);
+                const bodyKeys = Object.keys (query);
                 for (let i = 0; i < bodyKeys.length; i++) {
                     const bodyKey = bodyKeys[i];
-                    const fieldValue = params[bodyKey];
+                    const fieldValue = query[bodyKey];
                     if (fieldValue === undefined || fieldValue === null) {
                         continue;
                     }
@@ -1513,7 +2064,7 @@ export default class jupiter extends Exchange {
                 requestBody = multipartBody;
             } else {
                 requestHeaders['Content-Type'] = 'application/json';
-                requestBody = this.json (params);
+                requestBody = this.json (query);
             }
         }
         return {

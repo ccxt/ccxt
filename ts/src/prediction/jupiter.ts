@@ -129,6 +129,70 @@ export default class jupiter extends Exchange {
         } else {
             response = await this.publicGetEvents (request);
         }
+        //
+        // publicGetEventsId ({ 'id': 'POLY-1273034', 'includeMarkets': true })
+        //
+        //     {
+        //         "eventId": "POLY-1273034",
+        //         "isActive": true,
+        //         "isLive": false,
+        //         "category": "economics",
+        //         "subcategory": "",
+        //         "tags": [ "economics", "economy", "politics", "trump", "finance", "fed-rates", "fed", "fomc", ... ],
+        //         "metadata": {
+        //             "slug": "fed-decision-in-april-2027",
+        //             "title": "Fed Decision in April?",
+        //             "isLive": false,
+        //             "series": "polymarket",
+        //             "eventId": "POLY-1273034",
+        //             "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+        //             "subtitle": "",
+        //             "closeTime": "2027-04-28T23:59:00Z"
+        //         },
+        //         "volumeUsd": "85679000000",
+        //         "volume24hr": "2418000000",
+        //         "beginAt": null,
+        //         "closeCondition": "This market will close and expire after a winner is declared.",
+        //         "rulesPdf": "",
+        //         "markets": [
+        //             {
+        //                 "provider": "polymarket",
+        //                 "marketId": "POLY-6353937",
+        //                 "status": "open",
+        //                 "result": null,
+        //                 "marketResultPubkey": null,
+        //                 "title": "No change",
+        //                 "openTime": 1793210502,
+        //                 "closeTime": 1808956740,
+        //                 "isTeamMarket": false,
+        //                 "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. ...",
+        //                 "rulesSecondary": "",
+        //                 "resolveAt": null,
+        //                 "pricing": {
+        //                     "buyYesPriceUsd": 600000,
+        //                     "sellYesPriceUsd": 580000,
+        //                     "sellNoPriceUsd": 400000,
+        //                     "buyNoPriceUsd": 420000,
+        //                     "volume": 18584
+        //                 },
+        //                 "imageUrl": null,
+        //                 "team": null,
+        //                 "outcomes": [ "Yes", "No" ],
+        //                 "clobTokenIds": [ "92199856198491275974466415643782357799240104314088671664656875045136906216387", "76119921629324516080602677397464024765019421580812939146552092343123569009356" ],
+        //                 "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+        //                 "comboStatus": "disabled",
+        //                 "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+        //                 "sportsMarketType": null,
+        //                 "sportsLine": null,
+        //                 "periodType": null,
+        //                 "periodNumber": null,
+        //                 "gameNumber": null
+        //             },
+        //             ...
+        //         ],
+        //         "sportsMarketGroups": []
+        //     }
+        //
         let rows: any[] = [];
         if (Array.isArray (response)) {
             rows = response;
@@ -162,6 +226,68 @@ export default class jupiter extends Exchange {
      */
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const response = await this.publicGetEventsId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "eventId": "POLY-1273034",
+        //         "isActive": true,
+        //         "isLive": false,
+        //         "category": "economics",
+        //         "subcategory": "",
+        //         "tags": [ "economics", "economy", "politics", "trump", "finance", "fed-rates", "fed", "fomc", ... ],
+        //         "metadata": {
+        //             "slug": "fed-decision-in-april-2027",
+        //             "title": "Fed Decision in April?",
+        //             "isLive": false,
+        //             "series": "polymarket",
+        //             "eventId": "POLY-1273034",
+        //             "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+        //             "subtitle": "",
+        //             "closeTime": "2027-04-28T23:59:00Z"
+        //         },
+        //         "volumeUsd": "85679000000",
+        //         "volume24hr": "2418000000",
+        //         "beginAt": null,
+        //         "closeCondition": "This market will close and expire after a winner is declared.",
+        //         "rulesPdf": "",
+        //         "markets": [
+        //             {
+        //                 "provider": "polymarket",
+        //                 "marketId": "POLY-6353937",
+        //                 "status": "open",
+        //                 "result": null,
+        //                 "marketResultPubkey": null,
+        //                 "title": "No change",
+        //                 "openTime": 1793210502,
+        //                 "closeTime": 1808956740,
+        //                 "isTeamMarket": false,
+        //                 "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. ...",
+        //                 "rulesSecondary": "",
+        //                 "resolveAt": null,
+        //                 "pricing": {
+        //                     "buyYesPriceUsd": 600000,
+        //                     "sellYesPriceUsd": 580000,
+        //                     "sellNoPriceUsd": 400000,
+        //                     "buyNoPriceUsd": 420000,
+        //                     "volume": 18584
+        //                 },
+        //                 "imageUrl": null,
+        //                 "team": null,
+        //                 "outcomes": [ "Yes", "No" ],
+        //                 "clobTokenIds": [ "92199856198491275974466415643782357799240104314088671664656875045136906216387", "76119921629324516080602677397464024765019421580812939146552092343123569009356" ],
+        //                 "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+        //                 "comboStatus": "disabled",
+        //                 "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+        //                 "sportsMarketType": null,
+        //                 "sportsLine": null,
+        //                 "periodType": null,
+        //                 "periodNumber": null,
+        //                 "gameNumber": null
+        //             },
+        //             ...
+        //         ],
+        //         "sportsMarketGroups": []
+        //     }
+        //
         const raw = this.safeDict (response, 'data', response);
         const event = this.parseJupiterEvent (raw);
         this.indexEventOutcomes (event);
@@ -180,6 +306,46 @@ export default class jupiter extends Exchange {
      */
     async fetchEventMarkets (eventId: string, params: Dict = {}): Promise<PredictionMarket[]> {
         const response = await this.publicGetEventsEventIdMarkets (this.extend ({ 'eventId': eventId }, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "provider": "polymarket",
+        //                 "marketId": "POLY-6353937",
+        //                 "status": "open",
+        //                 "result": null,
+        //                 "marketResultPubkey": null,
+        //                 "title": "No change",
+        //                 "openTime": 1793210502,
+        //                 "closeTime": 1808956740,
+        //                 "isTeamMarket": false,
+        //                 "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. ...",
+        //                 "rulesSecondary": "",
+        //                 "resolveAt": null,
+        //                 "pricing": {
+        //                     "buyYesPriceUsd": 600000,
+        //                     "sellYesPriceUsd": 580000,
+        //                     "sellNoPriceUsd": 400000,
+        //                     "buyNoPriceUsd": 420000,
+        //                     "volume": 18584
+        //                 },
+        //                 "imageUrl": null,
+        //                 "team": null,
+        //                 "outcomes": [ "Yes", "No" ],
+        //                 "clobTokenIds": [ "92199856198491275974466415643782357799240104314088671664656875045136906216387", "76119921629324516080602677397464024765019421580812939146552092343123569009356" ],
+        //                 "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+        //                 "comboStatus": "disabled",
+        //                 "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+        //                 "sportsMarketType": null,
+        //                 "sportsLine": null,
+        //                 "periodType": null,
+        //                 "periodNumber": null,
+        //                 "gameNumber": null
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
         const raw = this.safeDict (response, 'data', response);
         const rows = Array.isArray (raw) ? raw : this.safeList (raw, 'markets', this.safeList (raw, 'data', []));
         const event = this.parseJupiterEvent ({ 'eventId': eventId, 'markets': rows });
@@ -199,6 +365,42 @@ export default class jupiter extends Exchange {
      */
     async fetchEventMarket (eventId: string, marketId: string, params: Dict = {}): Promise<PredictionMarket> {
         const response = await this.publicGetEventsEventIdMarketsMarketId (this.extend ({ 'eventId': eventId, 'marketId': marketId }, params));
+        //
+        //     {
+        //         "provider": "polymarket",
+        //         "marketId": "POLY-6353937",
+        //         "status": "open",
+        //         "result": null,
+        //         "marketResultPubkey": null,
+        //         "title": "No change",
+        //         "openTime": 1793210502,
+        //         "closeTime": 1808956740,
+        //         "isTeamMarket": false,
+        //         "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. ...",
+        //         "rulesSecondary": "",
+        //         "resolveAt": null,
+        //         "pricing": {
+        //             "buyYesPriceUsd": 600000,
+        //             "sellYesPriceUsd": 580000,
+        //             "sellNoPriceUsd": 400000,
+        //             "buyNoPriceUsd": 420000,
+        //             "volume": 18584
+        //         },
+        //         "imageUrl": null,
+        //         "team": null,
+        //         "outcomes": [ "Yes", "No" ],
+        //         "clobTokenIds": [ "92199856198491275974466415643782357799240104314088671664656875045136906216387", "76119921629324516080602677397464024765019421580812939146552092343123569009356" ],
+        //         "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+        //         "comboStatus": "disabled",
+        //         "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+        //         "sportsMarketType": null,
+        //         "sportsLine": null,
+        //         "periodType": null,
+        //         "periodNumber": null,
+        //         "gameNumber": null,
+        //         "eventId": "POLY-1273034"
+        //     }
+        //
         const raw = this.safeDict (response, 'data', response);
         const marketData = this.safeDict (raw, 'market', raw);
         const event = this.parseJupiterEvent ({ 'eventId': eventId, 'markets': [ marketData ] });
@@ -270,6 +472,22 @@ export default class jupiter extends Exchange {
      */
     async fetchPredictionProfile (ownerPubkey: string, params: Dict = {}): Promise<Dict> {
         const response = await this.publicGetProfilesOwnerPubkey (this.extend ({ 'ownerPubkey': ownerPubkey }, params));
+        //
+        //     {
+        //         "ownerPubkey": "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d",
+        //         "realizedPnlUsd": "77609182079",
+        //         "totalVolumeUsd": "61201646610",
+        //         "predictionsCount": "414",
+        //         "correctPredictions": "282",
+        //         "wrongPredictions": "132",
+        //         "trades": "414",
+        //         "wins": "282",
+        //         "totalActiveContracts": "0",
+        //         "totalActiveContractsMicro": "0",
+        //         "totalActiveContractsDecimal": "0",
+        //         "totalPositionsValueUsd": "0"
+        //     }
+        //
         return this.safeDict (response, 'data', response);
     }
 
@@ -297,6 +515,39 @@ export default class jupiter extends Exchange {
      */
     async fetchPredictionLeaderboards (params: Dict = {}): Promise<Dict[]> {
         const response = await this.publicGetLeaderboards (params);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "ownerPubkey": "ArmhM8HaamfqKGWQn2nT9qrT1QD5RGUEdPKqHZi3ft6Z",
+        //                 "realizedPnlUsd": "201665862280",
+        //                 "totalVolumeUsd": "313927064940",
+        //                 "predictionsCount": 1,
+        //                 "correctPredictions": 1,
+        //                 "wrongPredictions": 0,
+        //                 "winRatePct": "100.00",
+        //                 "period": "all_time",
+        //                 "periodStart": null,
+        //                 "periodEnd": null
+        //             },
+        //             ...
+        //         ],
+        //         "summary": {
+        //             "all_time": {
+        //                 "totalVolumeUsd": "65239451405269",
+        //                 "predictionsCount": 558864
+        //             },
+        //             "weekly": {
+        //                 "totalVolumeUsd": "306015109005",
+        //                 "predictionsCount": 1868
+        //             },
+        //             "monthly": {
+        //                 "totalVolumeUsd": "3791279754440",
+        //                 "predictionsCount": 27666
+        //             }
+        //         }
+        //     }
+        //
         return this.safeList (response, 'data', this.safeList (response, 'leaderboards', []));
     }
 
@@ -310,6 +561,28 @@ export default class jupiter extends Exchange {
      */
     async fetchPredictionVaultInfo (params: Dict = {}): Promise<Dict> {
         const response = await this.publicGetVaultInfo (params);
+        //
+        //     {
+        //         "pubkey": "BrTCoKzZoh7waCM3h2MuJKan8fX2A574gedorgPRC3HJ",
+        //         "data": {
+        //             "settlementMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //             "currentContracts": "180677000000",
+        //             "currentOpenOrders": "0",
+        //             "globalMaxContracts": "1035000000000",
+        //             "positionMaxContracts": "50000000000",
+        //             "positionMaxOrders": "1",
+        //             "settlementDelaySeconds": "0",
+        //             "depositsDisabled": "false",
+        //             "withdrawalsDisabled": "false",
+        //             "protocolFeeBps": "0",
+        //             "bump": "255",
+        //             "tradingDisabled": "false",
+        //             "unitVersion": "1",
+        //             "feesAccruedUsd": "0"
+        //         },
+        //         "vaultBalance": "524.558475"
+        //     }
+        //
         return this.safeDict (response, 'data', response);
     }
 
@@ -329,6 +602,22 @@ export default class jupiter extends Exchange {
         const request = this.omit (params, [ 'marketId' ]);
         request['marketId'] = marketId;
         const response = await this.publicGetForecast (request);
+        //
+        //     {
+        //         "forecast_history": [
+        //             {
+        //                 "market_ticker": "POLY-6353937",
+        //                 "event_ticker": "POLY-1273034",
+        //                 "raw_numerical_forecast": 65.5,
+        //                 "numerical_forecast": 65.5,
+        //                 "formatted_forecast": "65.50%",
+        //                 "end_period_ts": 1794344431,
+        //                 "period_interval": 5
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
         return this.safeDict (response, 'data', response);
     }
 
@@ -356,6 +645,58 @@ export default class jupiter extends Exchange {
             request['limit'] = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 50));
             request['includeMarkets'] = true;
             const response = await this.publicGetEvents (request);
+            //
+            //     {
+            //         "data": [
+            //             {
+            //                 "eventId": "POLY-1374448",
+            //                 "isActive": true,
+            //                 "isLive": false,
+            //                 "category": "tech",
+            //                 "subcategory": "",
+            //                 "tags": [ "tech" ],
+            //                 "metadata": {
+            //                     "slug": "jensen-huang-rejoins-nvidia-byptptpt",
+            //                     "title": "Jensen Huang rejoins NVIDIA by...?",
+            //                     "isLive": false,
+            //                     "series": "polymarket",
+            //                     "eventId": "POLY-1374448",
+            //                     "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-jensen-huang-be-richest-person-on-december-31-iU8eWlv0KU_b.jpg",
+            //                     "subtitle": "",
+            //                     "closeTime": "2028-01-01T04:59:00Z"
+            //                 },
+            //                 "volumeUsd": "4580281000000",
+            //                 "volume24hr": "1836532000000",
+            //                 "beginAt": null,
+            //                 "closeCondition": "This market will close and expire after a winner is declared.",
+            //                 "rulesPdf": "",
+            //                 "markets": [
+            //                     {
+            //                         "provider": "polymarket",
+            //                         "marketId": "POLY-6998286",
+            //                         "status": "open",
+            //                         "result": null,
+            //                         "title": "December 31, 2027",
+            //                         "openTime": 1794518229,
+            //                         "closeTime": 1830315540,
+            //                         "pricing": {
+            //                             "buyYesPriceUsd": 360000,
+            //                             "sellYesPriceUsd": 350000,
+            //                             "sellNoPriceUsd": 640000,
+            //                             "buyNoPriceUsd": 650000,
+            //                             "volume": 305288
+            //                         },
+            //                         "outcomes": [ "Yes", "No" ],
+            //                         "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+            //                         ...
+            //                     },
+            //                     ...
+            //                 ]
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
             let rows: any[] = [];
             if (Array.isArray (response)) {
                 rows = response;
@@ -394,8 +735,45 @@ export default class jupiter extends Exchange {
             throw new BadSymbol (this.id + ' fetchTicker() could not resolve market id for ' + outcome);
         }
         const response = await this.publicGetMarketsMarketId (this.extend ({ 'marketId': marketId }, params));
+        //
+        //     {
+        //         "provider": "polymarket",
+        //         "marketId": "POLY-6353937",
+        //         "status": "open",
+        //         "result": null,
+        //         "marketResultPubkey": null,
+        //         "title": "No change",
+        //         "openTime": 1793210502,
+        //         "closeTime": 1808956740,
+        //         "isTeamMarket": false,
+        //         "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. ...",
+        //         "rulesSecondary": "",
+        //         "resolveAt": null,
+        //         "pricing": {
+        //             "buyYesPriceUsd": 600000,
+        //             "sellYesPriceUsd": 580000,
+        //             "sellNoPriceUsd": 400000,
+        //             "buyNoPriceUsd": 420000,
+        //             "volume": 18584
+        //         },
+        //         "imageUrl": null,
+        //         "team": null,
+        //         "outcomes": [ "Yes", "No" ],
+        //         "clobTokenIds": [ "92199856198491275974466415643782357799240104314088671664656875045136906216387", "76119921629324516080602677397464024765019421580812939146552092343123569009356" ],
+        //         "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+        //         "comboStatus": "disabled",
+        //         "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+        //         "sportsMarketType": null,
+        //         "sportsLine": null,
+        //         "periodType": null,
+        //         "periodNumber": null,
+        //         "gameNumber": null,
+        //         "eventId": "POLY-1273034"
+        //     }
+        //
         const raw = this.safeDict (response, 'data', response);
-        const isYes = this.safeString (outcomeMarket, 'outcome', '').endsWith (':YES');
+        const outcomeHandle = this.safeString (outcomeMarket, 'outcome', '');
+        const isYes = outcomeHandle.endsWith (':YES');
         const pricing = this.safeDict (raw, 'pricing', raw);
         const priceKey = (isYes) ? 'buyYesPriceUsd' : 'buyNoPriceUsd';
         const price = this.safeNumber (pricing, priceKey);
@@ -421,6 +799,11 @@ export default class jupiter extends Exchange {
      */
     override async fetchStatus (params: Dict = {}): Promise<Status> {
         const response = await this.publicGetTradingStatus (params);
+        //
+        //     {
+        //         "trading_active": true
+        //     }
+        //
         const raw = this.safeDict (response, 'data', response);
         const active = this.safeBool (raw, 'trading_active');
         return {
@@ -451,6 +834,14 @@ export default class jupiter extends Exchange {
         const request = this.omit (params, [ 'limit' ]);
         request['marketId'] = marketId;
         const response = await this.publicGetOrderbookMarketId (request);
+        //
+        //     {
+        //         "yes": [ [ 1, 1141573.22 ], [ 2, 156094.75 ], [ 3, 42180.96 ], [ 4, 75365.78 ], [ 5, 28374.98 ], ... ],
+        //         "no": [ [ 1, 1126574.6 ], [ 2, 114150.13 ], [ 3, 40249.98 ], [ 4, 78811.14 ], [ 5, 29570.13 ], ... ],
+        //         "yes_dollars": [ [ "0.0100", 1141573.22 ], [ "0.0200", 156094.75 ], [ "0.0300", 42180.96 ], ... ],
+        //         "no_dollars": [ [ "0.0100", 1126574.6 ], [ "0.0200", 114150.13 ], [ "0.0300", 40249.98 ], ... ]
+        //     }
+        //
         const raw = this.safeDict (response, 'data', response);
         const outcomeHandle = this.safeString (outcomeMarket, 'outcome', '');
         let side = 'no';
@@ -520,8 +911,40 @@ export default class jupiter extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTrades (request);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "id": "order-5048570",
+        //                 "ownerPubkey": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R",
+        //                 "marketId": "POLY-6674178-0",
+        //                 "message": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R bought Yes for Over at $0.84 ($97.26)",
+        //                 "timestamp": 1794949239,
+        //                 "action": "buy",
+        //                 "side": "yes",
+        //                 "eventTitle": "Wales vs. Portugal - More Markets",
+        //                 "marketTitle": "Over",
+        //                 "amountUsd": "97263599",
+        //                 "priceUsd": "839999",
+        //                 "eventImageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/soccer-leagues/unl.png",
+        //                 "eventId": "POLY-1313366",
+        //                 "isTeamMarket": true,
+        //                 "marketOptions": [ { "label": "O 4.5", "buyYes": true } ]
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
         const rows = this.safeList (response, 'data', []);
-        return this.parsePredictionTrades (rows, outcomeMarket, since, limit);
+        // the trades endpoint returns a global feed and ignores the marketId filter, so drop foreign markets here
+        const filtered: Dict[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i] as Dict;
+            if (this.safeString (row, 'marketId') === marketId) {
+                filtered.push (row);
+            }
+        }
+        return this.parsePredictionTrades (filtered, outcomeMarket, since, limit);
     }
 
     /**
@@ -547,6 +970,58 @@ export default class jupiter extends Exchange {
             request['end'] = limit;
         }
         const response = await this.publicGetHistory (request);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "id": 1257717,
+        //                 "eventType": "order_closed",
+        //                 "signature": "5Ckpg3fB7YE83hKVDBerFMjZTDU6ArTsJkZJk3aw5X84YgJUG2DmwYZdcUvCSPE3Nk5reiEyB1dCxHbZhcVGSGyk",
+        //                 "slot": "417542920",
+        //                 "timestamp": 1777901989,
+        //                 "orderPubkey": "4NJqSjU5quEFJWFgKJ3ii6WMMvaauCwXuN1L68425hXM",
+        //                 "positionPubkey": "GTQLdnWgBYbHj2dRtticRzRUKZeYyCz7aELM21pcgM1G",
+        //                 "marketId": "POLY-2148276-1",
+        //                 "ownerPubkey": "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d",
+        //                 "keeperPubkey": "",
+        //                 "externalOrderId": "a0666159cfe24acaa1876203f215a493",
+        //                 "orderId": "",
+        //                 "isBuy": true,
+        //                 "isYes": true,
+        //                 "contracts": "94",
+        //                 "contractsMicro": "94000000",
+        //                 "contractsDecimal": "94",
+        //                 "filledContracts": "0",
+        //                 "filledContractsMicro": "0",
+        //                 "filledContractsDecimal": "0",
+        //                 "contractsSettled": "0",
+        //                 "maxFillPriceUsd": "827978",
+        //                 "avgFillPriceUsd": "0",
+        //                 "maxBuyPriceUsd": "830000",
+        //                 "minSellPriceUsd": null,
+        //                 "depositAmountUsd": "0",
+        //                 "totalCostUsd": "0",
+        //                 "feeUsd": null,
+        //                 "grossProceedsUsd": "0",
+        //                 "netProceedsUsd": "0",
+        //                 "transferAmountToken": "82118313",
+        //                 "realizedPnl": null,
+        //                 "payoutAmountUsd": "0",
+        //                 "status": null,
+        //                 "eventId": "POLY-444660",
+        //                 "marketMetadata": { "marketId": "POLY-2148276-1", "eventId": "POLY-444660", "provider": "polymarket", "title": "Down", "status": "yes", "result": "yes", "closeTime": 1777902000, "openTime": 1777815827, ... },
+        //                 "eventMetadata": { "eventId": "POLY-444660", "title": "Ethereum Up or Down - May 4, 9:35AM-9:40AM ET", "category": "crypto", "subcategory": "eth", "closeTime": 1777902000, ... }
+        //             },
+        //             ...
+        //         ],
+        //         "pagination": {
+        //             "start": 0,
+        //             "end": 5,
+        //             "total": 4015,
+        //             "hasNext": true
+        //         }
+        //     }
+        //
         const rows = this.safeList (response, 'data', []);
         const filled: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -619,7 +1094,8 @@ export default class jupiter extends Exchange {
         if (amount <= 0) {
             throw new InvalidOrder (this.id + ' createOrder() amount must be positive');
         }
-        const isYes = this.safeString (outcomeMarket, 'outcome', '').endsWith (':YES');
+        const outcomeHandle = this.safeString (outcomeMarket, 'outcome', '');
+        const isYes = outcomeHandle.endsWith (':YES');
         const request: Dict = {
             'ownerPubkey': ownerPubkey,
             'marketId': marketId,
@@ -630,6 +1106,56 @@ export default class jupiter extends Exchange {
             'depositMint': depositMint,
         };
         const response = await this.publicPostOrders (request);
+        //
+        //     {
+        //         "transaction": "AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABd170i6swHn7hrtv8OGyqjmCeShqNz...",
+        //         "txMeta": {
+        //             "blockhash": "57ZFeNYJXuUbQSCQFKs2GhhnKQhMiSQKHauyrtXBgniS",
+        //             "lastValidBlockHeight": 448694219
+        //         },
+        //         "externalOrderId": "b4ea9950786d45bbb0a12602f9093b28",
+        //         "requiredSigners": [ "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R" ],
+        //         "isGasless": false,
+        //         "order": {
+        //             "orderPubkey": "U2a4XFhy8msMinkKYjHie2c1QVkbbAWCEKEyVP9Xpff",
+        //             "orderAtaPubkey": "AN7CU4PWNQsXnGehTGnxxv2XdSL9RZn26bgtWRkX3VxL",
+        //             "userPubkey": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R",
+        //             "marketId": "POLY-6353937",
+        //             "marketIdHash": "4223ac940daa3d98bd73735f0104dee3",
+        //             "positionPubkey": "7uSBoexS5AvPj6UN1ZP4eUjFjjKHoP7zVozbHghMEJec",
+        //             "isBuy": true,
+        //             "isYes": true,
+        //             "contracts": "11",
+        //             "contractsMicro": "11200000",
+        //             "contractsDecimal": "11.2",
+        //             "newContracts": "11",
+        //             "newContractsMicro": "11200000",
+        //             "newContractsDecimal": "11.2",
+        //             "maxBuyPriceUsd": "600000",
+        //             "minSellPriceUsd": null,
+        //             "slippageBps": 0,
+        //             "maxSlippageBps": null,
+        //             "externalOrderId": "b4ea9950786d45bbb0a12602f9093b28",
+        //             "orderCostUsd": "6995634",
+        //             "newAvgPriceUsd": "600000",
+        //             "newSizeUsd": "6720000",
+        //             "newPayoutUsd": "11200000",
+        //             "payoutUsd": "11200000",
+        //             "estimatedProtocolFeeUsd": "0",
+        //             "estimatedVenueFeeUsd": "268800",
+        //             "estimatedIntegratorFeeUsd": "0",
+        //             "estimatedTotalFeeUsd": "268800",
+        //             "clientOrderId": "b4ea9950786d45bbb0a12602f9093b28"
+        //         },
+        //         "clientOrderId": "b4ea9950786d45bbb0a12602f9093b28",
+        //         "execution": {
+        //             "endpoint": "/api/v1/execute",
+        //             "context": {
+        //                 "type": "create_order"
+        //             }
+        //         }
+        //     }
+        //
         const rawOrder = this.safeDict (response, 'order', {});
         const id = this.safeString (rawOrder, 'orderPubkey');
         const timestamp = this.milliseconds ();
@@ -722,6 +1248,30 @@ export default class jupiter extends Exchange {
      */
     async fetchPredictionOrderStatus (orderPubkey: string, params: Dict = {}): Promise<Dict> {
         const response = await this.publicGetOrdersStatusOrderPubkey (this.extend ({ 'orderPubkey': orderPubkey }, params));
+        //
+        //     {
+        //         "orderPubkey": "4NJqSjU5quEFJWFgKJ3ii6WMMvaauCwXuN1L68425hXM",
+        //         "status": "failed",
+        //         "latestEventType": "order_closed",
+        //         "latestSignature": "5Ckpg3fB7YE83hKVDBerFMjZTDU6ArTsJkZJk3aw5X84YgJUG2DmwYZdcUvCSPE3Nk5reiEyB1dCxHbZhcVGSGyk",
+        //         "externalOrderId": "a0666159cfe24acaa1876203f215a493",
+        //         "clientOrderId": "a0666159cfe24acaa1876203f215a493",
+        //         "orderId": "",
+        //         "history": [
+        //             {
+        //                 "eventType": "order_created",
+        //                 "status": "created",
+        //                 "rawStatus": "",
+        //                 "timestamp": 1777901979,
+        //                 "signature": "4XZG7XxQ2dZpnn6EHVWh1mWgksvp21jqfrnBKeg1acsx1tizdpQUYnSMjH5v39Ubd49v5QBo8Lh1mqixd5WAjBV8",
+        //                 "externalOrderId": "a0666159cfe24acaa1876203f215a493",
+        //                 "clientOrderId": "a0666159cfe24acaa1876203f215a493",
+        //                 "orderId": ""
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
         return this.safeDict (response, 'data', response);
     }
 
@@ -745,13 +1295,24 @@ export default class jupiter extends Exchange {
         request['ownerPubkey'] = ownerPubkey;
         const start = this.safeInteger (request, 'start', 0);
         if (limit !== undefined && this.safeInteger (request, 'end') === undefined) {
-            request['end'] = start + limit;
+            request['end'] = this.sum (start, limit);
         }
         if (outcome !== undefined) {
             const outcomeMarket = await this.loadOutcome (outcome);
             request['marketId'] = this.safeString (outcomeMarket, 'marketId');
         }
         const response = await this.publicGetOrders (request);
+        //
+        //     {
+        //         "data": [],
+        //         "pagination": {
+        //             "start": 0,
+        //             "end": 0,
+        //             "total": 0,
+        //             "hasNext": false
+        //         }
+        //     }
+        //
         const rows = this.safeList (response, 'data', []);
         const orders = this.parsePredictionOrders (rows);
         return this.filterByOutcomeSinceLimit (orders, outcome, since, limit) as PredictionOrder[];
@@ -806,6 +1367,65 @@ export default class jupiter extends Exchange {
         const request = this.omit (params, [ 'ownerPubkey' ]);
         request['ownerPubkey'] = ownerPubkey;
         const response = await this.publicGetPositions (request);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "pubkey": "9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+        //                 "owner": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //                 "market": "2Keiu1EstdmTrwYwXKLQ5WeXYQzCgt6zVixjRyAYW6xu",
+        //                 "marketId": "POLY-6964609-0",
+        //                 "marketIdHash": "40390948b69a0a67f99cdfa4d66220b6",
+        //                 "isYes": true,
+        //                 "contracts": "5",
+        //                 "contractsMicro": "5440000",
+        //                 "contractsDecimal": "5.44",
+        //                 "totalCostUsd": "4841599",
+        //                 "openOrders": 0,
+        //                 "feesPaidUsd": "123660",
+        //                 "realizedPnlUsd": 0,
+        //                 "claimed": false,
+        //                 "claimedUsd": "0",
+        //                 "openedAt": 1794949004,
+        //                 "updatedAt": 1794949004,
+        //                 "bump": 253,
+        //                 "ownerPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //                 "eventId": "POLY-1364543",
+        //                 "sizeUsd": "4841599",
+        //                 "valueUsd": "3264000",
+        //                 "avgPriceUsd": "889999",
+        //                 "markPriceUsd": "600000",
+        //                 "maxSlippageBps": 2500,
+        //                 "pnlUsd": "-1577599",
+        //                 "pnlUsdPercent": -32.58,
+        //                 "pnlUsdAfterFees": "-1701259",
+        //                 "pnlUsdAfterFeesPercent": -34.26,
+        //                 "eventMetadata": { "eventId": "POLY-1364543", "title": "Barcelona vs. Paris Basketball", "category": "sports", "subcategory": "euroleague", "closeTime": 1794943800, ... },
+        //                 "marketMetadata": { "marketId": "POLY-6964609-0", "eventId": "POLY-1364543", "provider": "polymarket", "title": "Barcelona", "status": "open", "result": null, ... },
+        //                 "claimable": false,
+        //                 "claimableAt": null,
+        //                 "payoutUsd": "5440000",
+        //                 "settlementDate": 1794943800,
+        //                 "sellPriceUsd": "600000",
+        //                 "integratorFeeUsd": "0",
+        //                 "source": "program"
+        //             },
+        //             ...
+        //         ],
+        //         "pagination": {
+        //             "start": 0,
+        //             "end": 2,
+        //             "total": 2,
+        //             "hasNext": false
+        //         },
+        //         "summary": {
+        //             "activePositionsCount": 2,
+        //             "liveEventsCount": 0,
+        //             "nextEventStartTime": null,
+        //             "nextEvent": null
+        //         }
+        //     }
+        //
         const rows = this.safeList (response, 'data', []);
         const results: PredictionPosition[] = [];
         let requested: Dict | undefined = undefined;
@@ -837,6 +1457,48 @@ export default class jupiter extends Exchange {
     async fetchPositionById (positionPubkey: string, params: Dict = {}): Promise<PredictionPosition> {
         const request = this.extend ({ 'positionPubkey': positionPubkey }, params);
         const response = await this.publicGetPositionsPositionPubkey (request);
+        //
+        //     {
+        //         "pubkey": "9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+        //         "owner": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //         "market": "2Keiu1EstdmTrwYwXKLQ5WeXYQzCgt6zVixjRyAYW6xu",
+        //         "marketId": "POLY-6964609-0",
+        //         "marketIdHash": "40390948b69a0a67f99cdfa4d66220b6",
+        //         "isYes": true,
+        //         "contracts": "5",
+        //         "contractsMicro": "5440000",
+        //         "contractsDecimal": "5.44",
+        //         "totalCostUsd": "4841599",
+        //         "openOrders": 0,
+        //         "feesPaidUsd": "123660",
+        //         "realizedPnlUsd": 0,
+        //         "claimed": false,
+        //         "claimedUsd": "0",
+        //         "openedAt": 1794949004,
+        //         "updatedAt": 1794949004,
+        //         "bump": 253,
+        //         "ownerPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //         "eventId": "POLY-1364543",
+        //         "sizeUsd": "4841599",
+        //         "valueUsd": "3644800",
+        //         "avgPriceUsd": "889999",
+        //         "markPriceUsd": "670000",
+        //         "maxSlippageBps": 2500,
+        //         "pnlUsd": "-1196799",
+        //         "pnlUsdPercent": -24.71,
+        //         "pnlUsdAfterFees": "-1320459",
+        //         "pnlUsdAfterFeesPercent": -26.59,
+        //         "eventMetadata": { "eventId": "POLY-1364543", "title": "Barcelona vs. Paris Basketball", "category": "sports", "subcategory": "euroleague", "closeTime": 1794943800, ... },
+        //         "marketMetadata": { "marketId": "POLY-6964609-0", "eventId": "POLY-1364543", "provider": "polymarket", "title": "Barcelona", "status": "open", "result": null, ... },
+        //         "claimable": false,
+        //         "claimableAt": null,
+        //         "payoutUsd": "5440000",
+        //         "settlementDate": 1794943800,
+        //         "sellPriceUsd": "670000",
+        //         "integratorFeeUsd": "0",
+        //         "source": "program"
+        //     }
+        //
         const rawData = this.safeDict (response, 'data', response);
         const raw = this.safeDict (rawData, 'position', rawData);
         return this.parseJupiterPosition (raw);
@@ -876,7 +1538,58 @@ export default class jupiter extends Exchange {
         }
         const request = this.omit (params, [ 'ownerPubkey' ]);
         request['ownerPubkey'] = ownerPubkey;
-        return await this.publicDeletePositionsPositionPubkey (this.extend ({ 'positionPubkey': positionId }, request));
+        const response = await this.publicDeletePositionsPositionPubkey (this.extend ({ 'positionPubkey': positionId }, request));
+        //
+        //     {
+        //         "transaction": "AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACxqFAwo8fABtEeN/p8XLgjnaSN/jOK...",
+        //         "txMeta": {
+        //             "blockhash": "JC6kyyi7sFiqJuWxLopo912d5A3mW5ku2m8NKrjYAjiU",
+        //             "lastValidBlockHeight": 448694797
+        //         },
+        //         "externalOrderId": "ee228f74aba14215b6c9360189e01055",
+        //         "requiredSigners": [ "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM" ],
+        //         "isGasless": false,
+        //         "order": {
+        //             "orderPubkey": "2MQWKXuMdw4DGNMtBxe41oM7VAX8zdaKLyJUr46vhPoU",
+        //             "orderAtaPubkey": "GJCZFQFjb5AzHeJnWq5Ui7b2vGW958jmqKswVJXXfaRQ",
+        //             "userPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //             "marketId": "POLY-6964609-0",
+        //             "marketIdHash": "40390948b69a0a67f99cdfa4d66220b6",
+        //             "positionPubkey": "9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+        //             "isBuy": false,
+        //             "isYes": true,
+        //             "contracts": "5",
+        //             "contractsMicro": "5440000",
+        //             "contractsDecimal": "5.44",
+        //             "newContracts": "0",
+        //             "newContractsMicro": "0",
+        //             "newContractsDecimal": "0",
+        //             "maxBuyPriceUsd": null,
+        //             "minSellPriceUsd": "530000",
+        //             "slippageBps": 0,
+        //             "maxSlippageBps": 2500,
+        //             "externalOrderId": "ee228f74aba14215b6c9360189e01055",
+        //             "orderCostUsd": "0",
+        //             "newAvgPriceUsd": "0",
+        //             "newSizeUsd": "0",
+        //             "newPayoutUsd": "0",
+        //             "payoutUsd": "5440000",
+        //             "estimatedProtocolFeeUsd": "0",
+        //             "estimatedVenueFeeUsd": "133280",
+        //             "estimatedIntegratorFeeUsd": "0",
+        //             "estimatedTotalFeeUsd": "133280",
+        //             "clientOrderId": "ee228f74aba14215b6c9360189e01055"
+        //         },
+        //         "clientOrderId": "ee228f74aba14215b6c9360189e01055",
+        //         "execution": {
+        //             "endpoint": "/api/v1/execute",
+        //             "context": {
+        //                 "type": "create_order"
+        //             }
+        //         }
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -896,7 +1609,53 @@ export default class jupiter extends Exchange {
         }
         const request = this.omit (params, [ 'ownerPubkey' ]);
         request['ownerPubkey'] = ownerPubkey;
-        return await this.publicDeletePositions (request);
+        const response = await this.publicDeletePositions (request);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "transaction": "AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //                 "txMeta": {
+        //                     "blockhash": "AYXT9Ueauo41RbaSLjq2tqD8BtbCVxLszWQtMDvrA66M",
+        //                     "lastValidBlockHeight": 448694840
+        //                 },
+        //                 "externalOrderId": "c2d6055277aa4fbf8f7a90bdb5008a40",
+        //                 "requiredSigners": [ "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM" ],
+        //                 "isGasless": false,
+        //                 "order": {
+        //                     "orderPubkey": "4iE3fMD43Liq5WqvPtTaqz25bqz5bgYuo7KpYui9vjdi",
+        //                     "orderAtaPubkey": "2xbX7Dyh5jXZd6RfPnakJjRzeivaAxJtCy41niyJJp5S",
+        //                     "userPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //                     "marketId": "POLY-6964606-1",
+        //                     "marketIdHash": "2bde28fc94d78e94a1e7ae681dce89fa",
+        //                     "positionPubkey": "8HnGuj3d8U6YJpXi8ffg3UnAXu1JASEQtg9spCbEteTz",
+        //                     "isBuy": false,
+        //                     "isYes": true,
+        //                     "contracts": "6",
+        //                     "contractsMicro": "6600000",
+        //                     "contractsDecimal": "6.6",
+        //                     "newContracts": "0",
+        //                     "minSellPriceUsd": "630000",
+        //                     "maxSlippageBps": 2500,
+        //                     "externalOrderId": "c2d6055277aa4fbf8f7a90bdb5008a40",
+        //                     "payoutUsd": "6600000",
+        //                     "estimatedVenueFeeUsd": "156120",
+        //                     "estimatedTotalFeeUsd": "156120",
+        //                     "clientOrderId": "c2d6055277aa4fbf8f7a90bdb5008a40"
+        //                 },
+        //                 "clientOrderId": "c2d6055277aa4fbf8f7a90bdb5008a40",
+        //                 "execution": {
+        //                     "endpoint": "/api/v1/execute",
+        //                     "context": {
+        //                         "type": "create_order"
+        //                     }
+        //                 }
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -924,6 +1683,45 @@ export default class jupiter extends Exchange {
      * @returns {object} normalized prediction position
      */
     parseJupiterPosition (raw: Dict): PredictionPosition {
+        //
+        //     {
+        //         "pubkey": "9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+        //         "owner": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //         "market": "2Keiu1EstdmTrwYwXKLQ5WeXYQzCgt6zVixjRyAYW6xu",
+        //         "marketId": "POLY-6964609-0",
+        //         "marketIdHash": "40390948b69a0a67f99cdfa4d66220b6",
+        //         "isYes": true,
+        //         "contracts": "5",
+        //         "contractsMicro": "5440000",
+        //         "contractsDecimal": "5.44",
+        //         "totalCostUsd": "4841599",
+        //         "openOrders": 0,
+        //         "feesPaidUsd": "123660",
+        //         "realizedPnlUsd": 0,
+        //         "claimed": false,
+        //         "claimedUsd": "0",
+        //         "openedAt": 1794949004,
+        //         "updatedAt": 1794949004,
+        //         "ownerPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+        //         "eventId": "POLY-1364543",
+        //         "sizeUsd": "4841599",
+        //         "valueUsd": "3264000",
+        //         "avgPriceUsd": "889999",
+        //         "markPriceUsd": "600000",
+        //         "maxSlippageBps": 2500,
+        //         "pnlUsd": "-1577599",
+        //         "pnlUsdPercent": -32.58,
+        //         "eventMetadata": { "eventId": "POLY-1364543", "title": "Barcelona vs. Paris Basketball", "category": "sports", ... },
+        //         "marketMetadata": { "marketId": "POLY-6964609-0", "eventId": "POLY-1364543", "provider": "polymarket", "title": "Barcelona", "status": "open", "result": null, ... },
+        //         "claimable": false,
+        //         "claimableAt": null,
+        //         "payoutUsd": "5440000",
+        //         "settlementDate": 1794943800,
+        //         "sellPriceUsd": "600000",
+        //         "integratorFeeUsd": "0",
+        //         "source": "program"
+        //     }
+        //
         const marketId = this.safeString (raw, 'marketId', '');
         const label = (this.safeBool (raw, 'isYes', false)) ? 'YES' : 'NO';
         const averagePrice = this.safeNumber (raw, 'avgPriceUsd');
@@ -976,6 +1774,61 @@ export default class jupiter extends Exchange {
      * @returns {object} parsed prediction event and nested markets
      */
     parseJupiterEvent (raw: Dict): PredictionEvent {
+        //
+        //     {
+        //         "eventId": "POLY-1273034",
+        //         "isActive": true,
+        //         "isLive": false,
+        //         "category": "economics",
+        //         "subcategory": "",
+        //         "tags": [ "economics", "economy", "politics", "trump", "finance", "fed-rates", "fed", "fomc", ... ],
+        //         "metadata": {
+        //             "slug": "fed-decision-in-april-2027",
+        //             "title": "Fed Decision in April?",
+        //             "isLive": false,
+        //             "series": "polymarket",
+        //             "eventId": "POLY-1273034",
+        //             "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+        //             "subtitle": "",
+        //             "closeTime": "2027-04-28T23:59:00Z"
+        //         },
+        //         "volumeUsd": "85679000000",
+        //         "volume24hr": "2418000000",
+        //         "beginAt": null,
+        //         "closeCondition": "This market will close and expire after a winner is declared.",
+        //         "rulesPdf": "",
+        //         "markets": [
+        //             {
+        //                 "provider": "polymarket",
+        //                 "marketId": "POLY-6353937",
+        //                 "status": "open",
+        //                 "result": null,
+        //                 "marketResultPubkey": null,
+        //                 "title": "No change",
+        //                 "openTime": 1793210502,
+        //                 "closeTime": 1808956740,
+        //                 "isTeamMarket": false,
+        //                 "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. ...",
+        //                 "rulesSecondary": "",
+        //                 "resolveAt": null,
+        //                 "pricing": {
+        //                     "buyYesPriceUsd": 600000,
+        //                     "sellYesPriceUsd": 580000,
+        //                     "sellNoPriceUsd": 400000,
+        //                     "buyNoPriceUsd": 420000,
+        //                     "volume": 18584
+        //                 },
+        //                 "imageUrl": null,
+        //                 "team": null,
+        //                 "outcomes": [ "Yes", "No" ],
+        //                 "marketOptions": [ { "label": "Yes", "buyYes": true }, { "label": "No", "buyYes": false } ],
+        //                 ...
+        //             },
+        //             ...
+        //         ],
+        //         "sportsMarketGroups": []
+        //     }
+        //
         const id = this.safeString2 (raw, 'eventId', 'id');
         if (id === undefined) {
             throw new ExchangeError (this.id + ' event response is missing eventId');
@@ -1196,6 +2049,58 @@ export default class jupiter extends Exchange {
      * @returns {object} normalized prediction trade structure
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+        //
+        // publicGetTrades (global feed)
+        //
+        //     {
+        //         "id": "order-5048570",
+        //         "ownerPubkey": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R",
+        //         "marketId": "POLY-6674178-0",
+        //         "message": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R bought Yes for Over at $0.84 ($97.26)",
+        //         "timestamp": 1794949239,
+        //         "action": "buy",
+        //         "side": "yes",
+        //         "eventTitle": "Wales vs. Portugal - More Markets",
+        //         "marketTitle": "Over",
+        //         "amountUsd": "97263599",
+        //         "priceUsd": "839999",
+        //         "eventImageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/soccer-leagues/unl.png",
+        //         "eventId": "POLY-1313366",
+        //         "isTeamMarket": true,
+        //         "marketOptions": [ { "label": "O 4.5", "buyYes": true } ]
+        //     }
+        //
+        // publicGetHistory (account history, eventType order_filled)
+        //
+        //     {
+        //         "id": 1257717,
+        //         "eventType": "order_closed",
+        //         "signature": "5Ckpg3fB7YE83hKVDBerFMjZTDU6ArTsJkZJk3aw5X84YgJUG2DmwYZdcUvCSPE3Nk5reiEyB1dCxHbZhcVGSGyk",
+        //         "slot": "417542920",
+        //         "timestamp": 1777901989,
+        //         "orderPubkey": "4NJqSjU5quEFJWFgKJ3ii6WMMvaauCwXuN1L68425hXM",
+        //         "positionPubkey": "GTQLdnWgBYbHj2dRtticRzRUKZeYyCz7aELM21pcgM1G",
+        //         "marketId": "POLY-2148276-1",
+        //         "ownerPubkey": "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d",
+        //         "isBuy": true,
+        //         "isYes": true,
+        //         "contracts": "94",
+        //         "contractsMicro": "94000000",
+        //         "contractsDecimal": "94",
+        //         "filledContracts": "0",
+        //         "maxFillPriceUsd": "827978",
+        //         "avgFillPriceUsd": "0",
+        //         "maxBuyPriceUsd": "830000",
+        //         "minSellPriceUsd": null,
+        //         "depositAmountUsd": "0",
+        //         "totalCostUsd": "0",
+        //         "feeUsd": null,
+        //         "status": null,
+        //         "eventId": "POLY-444660",
+        //         "marketMetadata": { "marketId": "POLY-2148276-1", "eventId": "POLY-444660", "provider": "polymarket", "title": "Down", "status": "yes", "result": "yes", ... },
+        //         "eventMetadata": { "eventId": "POLY-444660", "title": "Ethereum Up or Down - May 4, 9:35AM-9:40AM ET", "category": "crypto", "subcategory": "eth", ... }
+        //     }
+        //
         const timestampSeconds = this.safeInteger (trade, 'timestamp');
         const timestamp = this.parseJupiterTimestamp (timestampSeconds);
         const priceUsd = this.safeNumber2 (trade, 'priceUsd', 'avgFillPriceUsd');
@@ -1207,7 +2112,8 @@ export default class jupiter extends Exchange {
             amount = cost / price;
         }
         const marketId = this.safeString (trade, 'marketId', this.safeString (market, 'marketId'));
-        const isYes = this.safeBool (trade, 'isYes', this.safeString (trade, 'side', '').toLowerCase () === 'yes');
+        const sideString = this.safeString (trade, 'side', '');
+        const isYes = this.safeBool (trade, 'isYes', sideString.toLowerCase () === 'yes');
         let defaultSide = 'sell';
         if (this.safeBool (trade, 'isBuy', true)) {
             defaultSide = 'buy';
@@ -1256,8 +2162,12 @@ export default class jupiter extends Exchange {
      * @returns {object[]} normalized price and amount pairs
      */
     parsePredictionBookSide (levels: any[], limit: Int = undefined): [Num, Num][] {
+        //
+        //     [ [ "0.0100", 1141573.22 ], [ "0.0200", 156094.75 ], [ "0.0300", 42180.96 ], [ "0.0400", 75365.78 ], [ "0.0500", 28374.98 ], ... ]
+        //
         const result: [Num, Num][] = [];
-        const levelsLength = (limit === undefined) ? levels.length : Math.min (levels.length, limit);
+        const levelsCount = levels.length;
+        const levelsLength = (limit === undefined) ? levelsCount : Math.min (levelsCount, limit);
         for (let i = 0; i < levelsLength; i++) {
             const level = levels[i];
             let price: Num = undefined;

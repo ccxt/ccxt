@@ -1,0 +1,56 @@
+{
+    "JUP": {
+        "info": {
+            "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+            "name": "Jupiter",
+            "symbol": "JUP",
+            "decimals": 6,
+            "isVerified": true,
+            "createdAt": "2024-06-07T10:56:42.584Z"
+        },
+        "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        "code": "JUP",
+        "name": "Jupiter",
+        "active": true,
+        "type": "token",
+        "precision": 6,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "SOL": {
+        "info": {
+            "id": "So11111111111111111111111111111111111111112",
+            "name": "Wrapped SOL",
+            "symbol": "SOL",
+            "decimals": 9,
+            "isVerified": true,
+            "createdAt": "2024-06-05T08:55:25.527Z"
+        },
+        "id": "So11111111111111111111111111111111111111112",
+        "code": "SOL",
+        "name": "Wrapped SOL",
+        "active": true,
+        "type": "token",
+        "precision": 9,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    }
+}
