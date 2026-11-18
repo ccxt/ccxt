@@ -4873,18 +4873,19 @@ export class BaseExchange {
                 tradesLength = trades.length;
             }
             if (isArray && (tradesLength > 0)) {
+                const headTrade: Dict = trades[0];
                 // move properties that are defined in trades up into the order
                 if (parseSymbol) {
-                    orderDict['symbol'] = trades[0]['symbol'];
+                    orderDict['symbol'] = headTrade['symbol'];
                 }
                 if (parseSide) {
-                    orderDict['side'] = trades[0]['side'];
+                    orderDict['side'] = headTrade['side'];
                 }
                 if (this.safeString (orderDict, 'type') === undefined) {
-                    orderDict['type'] = trades[0]['type'];
+                    orderDict['type'] = headTrade['type'];
                 }
                 if (this.safeString (orderDict, 'id') === undefined) {
-                    orderDict['id'] = trades[0]['order'];
+                    orderDict['id'] = headTrade['order'];
                 }
                 if (parseFilled) {
                     filled = '0';
