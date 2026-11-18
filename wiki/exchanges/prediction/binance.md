@@ -32,7 +32,6 @@ on-chain vendors (predict.fun on BNB Chain) behind its standard signed SAPI — 
 including market data, requires apiKey/secret credentials
 
 
-
 ```javascript
 binance.binance ()
 ```

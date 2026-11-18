@@ -31,7 +31,7 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             $now = $exchange->milliseconds();
-            if (($success === true) && ($response !== null)) {
+            if (($success) && ($response !== null)) {
                 assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return a dictionary. ' . $exchange->json($response));
                 test_ticker($exchange, $skipped_properties, $method, $response, $symbol);
                 if (($now - $start_time) > $max_idle_time) {

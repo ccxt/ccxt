@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class TestSafeTicker extends BaseTest
 {
-        public Object preciseEqualStr(Exchange exchange, Object result, Object key, Object expected)
+        public Object preciseEqualStr(Exchange exchange, Object result, String key, String expected)
         {
             return Precise.stringEq(exchange.safeString(result, key), expected);
         }

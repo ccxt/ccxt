@@ -364,12 +364,14 @@ class bithumb extends bithumb$1["default"] {
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
-                // Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                // Keep this conservative to reduce requests while staying below URL-length limits.
-                'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
+                // Bithumb v2 ticker endpoint rejects more than 200 ids in `markets`
+                'fetchTickersGeneration2MaxMarketIdsPerRequest': 200,
                 'createMarketBuyOrderRequiresPrice': true,
                 'quoteCurrencies': {
                     'KRW': {
@@ -405,15 +407,21 @@ class bithumb extends bithumb$1["default"] {
     }
     amountToPrecision(symbol, amount) {
         const market = this.market(symbol);
-        return this.decimalToPrecision(amount, number.TRUNCATE, market['precision']['amount'], number.DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeValue(market['precision'], 'amount'), number.DECIMAL_PLACES);
     }
     getGen2MarketId(market) {
         const marketId = this.safeString(market, 'id');
         if ((marketId !== undefined) && (marketId.indexOf('-') >= 0)) {
             return marketId;
         }
-        const quoteId = this.safeString2(market, 'quoteId', 'quote');
-        const baseId = this.safeString2(market, 'baseId', 'base');
+        let quoteId = this.safeString(market, 'quoteId');
+        if (quoteId === undefined) {
+            quoteId = this.safeString(market, 'quote', '');
+        }
+        let baseId = this.safeString(market, 'baseId');
+        if (baseId === undefined) {
+            baseId = this.safeString(market, 'base', '');
+        }
         return quoteId + '-' + baseId;
     }
     /**
@@ -558,7 +566,6 @@ class bithumb extends bithumb$1["default"] {
             const results = await Promise.all(promises);
             for (let i = 0; i < quotes.length; i++) {
                 const quote = quotes[i];
-                const quoteId = quote;
                 const response = this.safeDict(results, i);
                 const data = this.safeDict(response, 'data', {});
                 const extension = this.safeDict(quoteCurrencies, quote, {});
@@ -587,7 +594,7 @@ class bithumb extends bithumb$1["default"] {
                         'quote': quote,
                         'settle': undefined,
                         'baseId': currencyId,
-                        'quoteId': quoteId,
+                        'quoteId': quote,
                         'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
@@ -632,7 +639,7 @@ class bithumb extends bithumb$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // generation 1
         //
@@ -666,7 +673,7 @@ class bithumb extends bithumb$1["default"] {
                 const code = codes[i];
                 const account = this.account();
                 const currency = this.currency(code);
-                const lowerCurrencyId = this.safeStringLower(currency, 'id');
+                const lowerCurrencyId = this.safeStringLower(currency, 'id', '');
                 account['total'] = this.safeString(balances, 'total_' + lowerCurrencyId);
                 account['used'] = this.safeString(balances, 'in_use_' + lowerCurrencyId);
                 account['free'] = this.safeString(balances, 'available_' + lowerCurrencyId);
@@ -736,7 +743,7 @@ class bithumb extends bithumb$1["default"] {
             //     }
             //
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -926,18 +933,7 @@ class bithumb extends bithumb$1["default"] {
         const marketId = this.safeString(ticker, 'market');
         const symbol = this.safeSymbol(marketId, market);
         const close = this.safeString2(ticker, 'closing_price', 'trade_price');
-        let change = this.safeString2(ticker, 'signed_change_price', 'change_price');
-        let percentage = this.safeString2(ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString(ticker, 'opening_price');
-        const nonZeroOpen = this.omitZero(open);
-        if ((marketId !== undefined) && (nonZeroOpen !== undefined) && (close !== undefined)) {
-            const computedChange = Precise["default"].stringSub(close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if ((change !== undefined) && Precise["default"].stringEq(change, '0') && !Precise["default"].stringEq(computedChange, '0')) {
-                change = computedChange;
-                percentage = undefined;
-            }
-        }
         let high = this.safeString2(ticker, 'max_price', 'high_price');
         let low = this.safeString2(ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -962,8 +958,9 @@ class bithumb extends bithumb$1["default"] {
             'close': close,
             'last': close,
             'previousClose': this.safeString(ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString2(ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -992,7 +989,10 @@ class bithumb extends bithumb$1["default"] {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             const marketIds = [];
-            const symbolsForMarketIds = (symbols === undefined) ? this.symbols : symbols;
+            let symbolsForMarketIds = this.symbols;
+            if (symbols !== undefined) {
+                symbolsForMarketIds = symbols;
+            }
             const symbolsForMarketIdsLength = symbolsForMarketIds.length;
             for (let i = 0; i < symbolsForMarketIdsLength; i++) {
                 const market = this.market(symbolsForMarketIds[i]);
@@ -1004,27 +1004,19 @@ class bithumb extends bithumb$1["default"] {
             }
             const marketIdsChunks = [];
             const promises = [];
-            if (symbols !== undefined) {
-                request['markets'] = marketIds.join(',');
-                marketIdsChunks.push(marketIds);
-                promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-            }
-            else {
-                let maxMarketIdsPerRequest = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
-                if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
-                    maxMarketIdsPerRequest = 300;
-                }
-                let marketIdsChunk = [];
-                for (let i = 0; i < marketIdsLength; i++) {
-                    marketIdsChunk.push(marketIds[i]);
-                    const marketIdsChunkLength = marketIdsChunk.length;
-                    const isLastMarketId = (i === (marketIdsLength - 1));
-                    if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
-                        marketIdsChunks.push(marketIdsChunk);
-                        request['markets'] = marketIdsChunk.join(',');
-                        promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                        marketIdsChunk = [];
-                    }
+            // the exchange rejects more than 200 market ids per request
+            const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
+            const maxMarketIdsPerRequest = this.parseToInt(((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let marketIdsChunk = [];
+            for (let i = 0; i < marketIdsLength; i++) {
+                marketIdsChunk.push(marketIds[i]);
+                const marketIdsChunkLength = marketIdsChunk.length;
+                const isLastMarketId = (i === (marketIdsLength - 1));
+                if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
+                    marketIdsChunks.push(marketIdsChunk);
+                    request['markets'] = marketIdsChunk.join(',');
+                    promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
+                    marketIdsChunk = [];
                 }
             }
             //
@@ -1062,14 +1054,14 @@ class bithumb extends bithumb$1["default"] {
             const responses = await Promise.all(promises);
             const responsesLength = responses.length;
             for (let i = 0; i < responsesLength; i++) {
-                let response = responses[i];
-                if (this.isDictionary(response) && ('data' in response) && (response['data'] !== undefined)) {
-                    response = response['data'];
+                let response = this.safeValue(responses, i);
+                if (this.isDictionary(response) && (this.safeValue(response, 'data') !== undefined)) {
+                    response = this.safeValue(response, 'data');
                 }
                 let expectedMarketId = undefined;
-                const marketIdsChunk = this.safeList(marketIdsChunks, i, []);
-                const firstMarketId = this.safeString(marketIdsChunk, 0);
-                if ((firstMarketId !== undefined) && (this.safeString(marketIdsChunk, 1) === undefined)) {
+                const requestedMarketIds = this.safeList(marketIdsChunks, i, []);
+                const firstMarketId = this.safeString(requestedMarketIds, 0);
+                if ((firstMarketId !== undefined) && (this.safeString(requestedMarketIds, 1) === undefined)) {
                     expectedMarketId = firstMarketId;
                 }
                 let tickers = [];
@@ -1164,7 +1156,7 @@ class bithumb extends bithumb$1["default"] {
                     const currencyId = currencyIds[j];
                     const ticker = data[currencyId];
                     const base = this.safeCurrencyCode(currencyId);
-                    if ((base === undefined) || (quote === undefined)) {
+                    if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
@@ -1320,6 +1312,8 @@ class bithumb extends bithumb$1["default"] {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1332,18 +1326,45 @@ class bithumb extends bithumb$1["default"] {
         let response = undefined;
         let data = [];
         if (generation === 2) {
+            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            if (paginate) {
+                return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
+            }
+            const until = this.safeInteger(paramsGeneration, 'until');
+            const requestParams = this.omit(paramsGeneration, ['until', 'paginate']);
             request['market'] = this.getGen2MarketId(market);
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            let count = 200;
             if (limit !== undefined) {
-                request['count'] = limit;
+                count = Math.min(limit, 200);
+            }
+            if ((limit !== undefined) || (since !== undefined) || (until !== undefined)) {
+                request['count'] = count;
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            let to = undefined;
+            if (until !== undefined) {
+                to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if (since !== undefined) {
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const sinceEnd = this.sum(since, duration * count);
+                if ((to === undefined) || (sinceEnd < to)) {
+                    to = sinceEnd;
+                }
+            }
+            if (to !== undefined) {
+                request['to'] = this.ymdhms(this.sum(to, 32400000), ' ');
             }
             if (timeframe === '1d') {
-                response = await this.publicGetV1CandlesDays(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesDays(this.extend(request, requestParams));
             }
             else if (timeframe === '1w') {
-                response = await this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesWeeks(this.extend(request, requestParams));
             }
             else if (timeframe === '1M') {
-                response = await this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMonths(this.extend(request, requestParams));
             }
             else {
                 const timeframeInteger = this.safeInteger(this.timeframes, timeframe);
@@ -1351,7 +1372,7 @@ class bithumb extends bithumb$1["default"] {
                     throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe);
                 }
                 request['unit'] = timeframeInteger;
-                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams));
             }
             //
             //     [
@@ -1475,26 +1496,33 @@ class bithumb extends bithumb$1["default"] {
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        let timestamp = this.safeInteger(trade, 'timestamp');
-        const isGenerationTwo = (timestamp !== undefined);
+        const generationTwoTimestamp = this.safeInteger(trade, 'timestamp');
+        let timestamp = generationTwoTimestamp;
+        const isGenerationTwo = (generationTwoTimestamp !== undefined);
         const transactionDatetime = this.safeString(trade, 'transaction_date');
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split(' ');
             const numParts = parts.length;
             if (numParts > 1) {
                 const transactionDate = parts[0];
-                let transactionTime = parts[1];
-                if (transactionTime.length < 8) {
-                    transactionTime = '0' + transactionTime;
+                const rawTransactionTime = this.safeString(parts, 1, '');
+                let transactionTime = rawTransactionTime;
+                if (rawTransactionTime.length < 8) {
+                    transactionTime = '0' + rawTransactionTime;
                 }
-                timestamp = this.parse8601(transactionDate + ' ' + transactionTime);
+                const kstTimestamp = this.parse8601(transactionDate + ' ' + transactionTime);
+                timestamp = kstTimestamp;
+                if ((kstTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = kstTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
             else {
-                timestamp = this.safeIntegerProduct(trade, 'transaction_date', 0.001);
+                const productTimestamp = this.safeIntegerProduct(trade, 'transaction_date', 0.001);
+                timestamp = productTimestamp;
+                if ((productTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = productTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
-        }
-        if ((timestamp !== undefined) && (!isGenerationTwo)) {
-            timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         const type = undefined;
         let side = this.safeStringLower2(trade, 'ask_bid', 'type');
@@ -1511,10 +1539,8 @@ class bithumb extends bithumb$1["default"] {
         const marketId = this.safeString(trade, 'market');
         const marketResolved = this.safeMarket(marketId, market);
         const priceString = this.safeString2(trade, 'price', 'trade_price');
-        let amountString = this.safeString(trade, 'trade_volume');
-        if (amountString === undefined) {
-            amountString = this.fixCommaNumber(this.safeString2(trade, 'units_traded', 'units'));
-        }
+        const tradeVolume = this.safeString(trade, 'trade_volume');
+        const amountString = (tradeVolume === undefined) ? this.fixCommaNumber(this.safeString2(trade, 'units_traded', 'units')) : tradeVolume;
         const costString = this.safeString(trade, 'total');
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
@@ -1636,7 +1662,7 @@ class bithumb extends bithumb$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
@@ -1658,8 +1684,8 @@ class bithumb extends bithumb$1["default"] {
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
         const request = {
             'batch_orders': ordersRequests,
         };
@@ -1738,21 +1764,16 @@ class bithumb extends bithumb$1["default"] {
             if (side === 'buy') {
                 typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                let cost = this.safeString(paramsOrder, 'cost');
+                const costParam = this.safeString(paramsOrder, 'cost');
                 const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(this.omit(paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 paramsOrder = paramsRequiresPrice;
+                const amountString = this.numberToString(amount);
+                let cost = (costParam === undefined) ? amountString : costParam;
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
-                    else {
-                        const amountString = this.numberToString(amount);
-                        const priceString = this.numberToString(price);
-                        cost = Precise["default"].stringMul(amountString, priceString);
-                    }
-                }
-                else {
-                    cost = (cost === undefined) ? this.numberToString(amount) : cost;
+                    cost = Precise["default"].stringMul(amountString, this.numberToString(price));
                 }
                 request['price'] = this.priceToPrecision(symbol, cost);
             }
@@ -1873,8 +1894,7 @@ class bithumb extends bithumb$1["default"] {
         if (generation !== 2) {
             throw new errors.BadRequest(this.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
-        paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, paramsGeneration);
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(paramsGeneration, { 'createMarketBuyOrderRequiresPrice': false }));
     }
     /**
      * @method
@@ -2028,9 +2048,8 @@ class bithumb extends bithumb$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
             }
-            const marketDefined = market;
-            const base = this.safeString(marketDefined, 'base');
-            const quote = this.safeString(marketDefined, 'quote');
+            const base = this.safeString(market, 'base');
+            const quote = this.safeString(market, 'quote');
             if ((base === undefined) || (quote === undefined)) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a market with defined base and quote');
             }
@@ -2339,13 +2358,7 @@ class bithumb extends bithumb$1["default"] {
         let response = undefined;
         if (generation === 2) {
             const twap = this.safeBool(paramsGeneration, 'twap', false);
-            if (twap) {
-                paramsGeneration['state'] = 'progress';
-            }
-            else {
-                paramsGeneration['state'] = 'wait';
-            }
-            const orders = await this.fetchOrders(symbol, since, limit, paramsGeneration);
+            const orders = await this.fetchOrders(symbol, since, limit, this.extend(paramsGeneration, { 'state': twap ? 'progress' : 'wait' }));
             return this.filterBySinceLimit(orders, since, limit);
         }
         else {
@@ -2596,9 +2609,8 @@ class bithumb extends bithumb$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            const marketDefined = market;
-            const base = this.safeString(marketDefined, 'base');
-            const quote = this.safeString(marketDefined, 'quote');
+            const base = this.safeString(market, 'base');
+            const quote = this.safeString(market, 'quote');
             if ((base === undefined) || (quote === undefined)) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a market with defined base and quote');
             }
@@ -2679,9 +2691,9 @@ class bithumb extends bithumb$1["default"] {
     }
     async cancelUnifiedOrder(order, params = {}) {
         const request = {
-            'side': order['side'],
+            'side': this.safeString(order, 'side'),
         };
-        return await this.cancelOrder(order['id'], order['symbol'], this.extend(request, params));
+        return await this.cancelOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), this.extend(request, params));
     }
     /**
      * @method
@@ -2693,8 +2705,8 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2709,13 +2721,14 @@ class bithumb extends bithumb$1["default"] {
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'withdraw', 'generation', 2);
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, paramsGeneration);
-        this.checkAddress(address);
+        const tagWithdrawTag = this.safeString(paramsGeneration, 'tag');
+        const paramsWithdrawTag = this.omit(paramsGeneration, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         const network = this.safeString2(paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit(paramsWithdrawTag, 'network');
         const currency = this.currency(code);
@@ -2730,7 +2743,7 @@ class bithumb extends bithumb$1["default"] {
         if (requiresDestination) {
             const destination = this.safeString2(paramsNetwork, 'destination', 'secondary_address');
             if ((tagWithdrawTag === undefined) && (destination === undefined)) {
-                throw new errors.ArgumentsRequired(this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+                throw new errors.ArgumentsRequired(this.id + ' ' + code + ' withdraw() requires a tag or an extra destination param');
             }
             else if (tagWithdrawTag !== undefined) {
                 destinationRequest = tagWithdrawTag;
@@ -2756,7 +2769,7 @@ class bithumb extends bithumb$1["default"] {
                 }
                 request['address'] = address;
                 request['currency'] = currency['id'];
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId(network, code);
                 request['amount'] = this.numberToString(amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
@@ -2788,7 +2801,7 @@ class bithumb extends bithumb$1["default"] {
             request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId(network, code);
             }
             if (destinationRequest !== undefined) {
                 request['destination'] = destinationRequest;
@@ -2853,7 +2866,7 @@ class bithumb extends bithumb$1["default"] {
             'txid': this.safeString(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'net_type'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -3182,7 +3195,7 @@ class bithumb extends bithumb$1["default"] {
         if (network === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId(network, code);
         const response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3222,7 +3235,7 @@ class bithumb extends bithumb$1["default"] {
         if (network === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId(network, code);
         const response = await this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3286,7 +3299,7 @@ class bithumb extends bithumb$1["default"] {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString(response, 'net_type'),
+            'network': this.networkIdToCode(this.safeString(response, 'net_type'), code),
             'address': address,
             'tag': this.safeString(response, 'secondary_address'),
         };
@@ -3310,7 +3323,7 @@ class bithumb extends bithumb$1["default"] {
         let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = query[key];
+            const value = this.safeValue(query, key);
             if (Array.isArray(value)) {
                 const encodedKey = this.encodeURIComponent(key) + '[]';
                 for (let j = 0; j < value.length; j++) {
@@ -3337,11 +3350,12 @@ class bithumb extends bithumb$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = undefined;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = {};
         let requestBody = undefined;
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3350,12 +3364,12 @@ class bithumb extends bithumb$1["default"] {
         const queryKeys = Object.keys(query);
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
-        if (api === 'public') {
+        if (apiName === 'public') {
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };
             if (hasQuery) {
-                url += '?' + this.urlencode(query);
+                url = this.implodeHostname(apiUrl) + endpoint + '?' + this.urlencode(query);
             }
         }
         else {
@@ -3371,7 +3385,7 @@ class bithumb extends bithumb$1["default"] {
                     'nonce': this.uuid(),
                     'timestamp': this.milliseconds(),
                 };
-                let auth = undefined;
+                let auth = '';
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     requestHeaders['Content-Type'] = 'application/json';
                     if (hasQuery) {
@@ -3381,26 +3395,25 @@ class bithumb extends bithumb$1["default"] {
                 }
                 else if (hasQuery) {
                     auth = this.urlencodeWithArrayBrackets(query);
-                    url += '?' + auth;
+                    url = this.implodeHostname(apiUrl) + endpoint + '?' + auth;
                 }
                 if (hasQuery) {
-                    const authString = (auth === undefined) ? '' : auth;
-                    request['query_hash'] = this.hash(this.encode(authString), sha2_js.sha512);
+                    request['query_hash'] = this.hash(this.encode(auth), sha2_js.sha512);
                     request['query_hash_alg'] = 'SHA512';
                 }
                 const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
                 requestHeaders['Authorization'] = 'Bearer ' + token;
             }
             else {
-                requestBody = this.urlencode(this.extend({
+                const encodedBody = this.urlencode(this.extend({
                     'endpoint': endpoint,
                 }, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                const bodyParts = requestBody.split('%20');
+                const bodyParts = encodedBody.split('%20');
                 requestBody = bodyParts.join('+');
-                const nonce = this.nonce().toString();
-                const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);
+                const nonce = this.numberToString(this.nonce());
+                const authPayload = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
+                const signature = this.hmac(this.encode(authPayload), this.encode(this.secret), sha2_js.sha512);
                 const signature64 = this.stringToBase64(signature);
                 requestHeaders = {
                     'Accept': 'application/json',
@@ -3412,11 +3425,9 @@ class bithumb extends bithumb$1["default"] {
                 };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3437,26 +3448,24 @@ class bithumb extends bithumb$1["default"] {
             }
             throw new errors.ExchangeError(feedback);
         }
-        if ('status' in response) {
-            // generation 1:
-            //
-            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            //
-            const status = this.safeString(response, 'status');
+        // generation 1:
+        //
+        //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+        //
+        const status = this.safeString(response, 'status');
+        if (status !== undefined) {
             const message = this.safeString(response, 'message');
-            if (status !== undefined) {
-                if (status === '0000') {
-                    return undefined; // no error
-                }
-                else if (message === '거래 진행중인 내역이 존재하지 않습니다.') {
-                    // https://github.com/ccxt/ccxt/issues/9017
-                    return undefined; // no error
-                }
-                const feedback = this.id + ' ' + message;
-                this.throwExactlyMatchedException(this.exceptions, status, feedback);
-                this.throwExactlyMatchedException(this.exceptions, message, feedback);
-                throw new errors.ExchangeError(feedback);
+            if (status === '0000') {
+                return undefined; // no error
             }
+            else if (message === '거래 진행중인 내역이 존재하지 않습니다.') {
+                // https://github.com/ccxt/ccxt/issues/9017
+                return undefined; // no error
+            }
+            const feedback = this.id + ' ' + message;
+            this.throwExactlyMatchedException(this.exceptions, status, feedback);
+            this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

@@ -1,12 +1,12 @@
 import Exchange from '../abstract/prediction/sxbet.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 /**
  * @class sxbet
  * @augments Exchange
  */
 export default class sxbet extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name sxbet#fetchMarkets
@@ -26,7 +26,7 @@ export default class sxbet extends Exchange {
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    fetchRawMarketsPaged(extra?: Dict, userLimit?: Int): Promise<any[]>;
+    fetchRawMarketsPaged(extra?: Dict, userLimit?: Int): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -36,7 +36,7 @@ export default class sxbet extends Exchange {
      * @param {string} sportXeventId the fixture id to keep
      * @returns {object[]} the raw markets of that fixture only
      */
-    filterRawMarketsByFixture(rawMarkets: any[], sportXeventId: string): any[];
+    filterRawMarketsByFixture(rawMarkets: Dict[], sportXeventId: string): Dict[];
     /**
      * @ignore
      * @method
@@ -92,7 +92,7 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent(fixtureId: string, rawMarkets: any[]): any;
+    parseEvent(fixtureId: string, rawMarkets: Dict[]): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -149,7 +149,7 @@ export default class sxbet extends Exchange {
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    hexToInt(hex: string): number;
+    hexToInt(hex: string): int;
     /**
      * @ignore
      * @method
@@ -406,7 +406,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    fetchSxbetBestOdds(marketHashes: string[], params?: Dict): Promise<any[]>;
+    fetchSxbetBestOdds(marketHashes: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -467,7 +467,8 @@ export default class sxbet extends Exchange {
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
     parseSxbetV3BookSides(snapshot: Dict, isOutcomeOne: boolean): Dict;
-    requestId(url: Str): number;
+    setWsOption(group: string, key: string, value: Str | Dict): void;
+    requestId(url: Str): int;
     /**
      * @ignore
      * @method
@@ -490,8 +491,9 @@ export default class sxbet extends Exchange {
     connectSxbetCentrifugo(url: Str): Promise<any>;
     pong(client: Client, message?: any): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
-    handleMessage(client: Client, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name sxbet#watchOrderBook
@@ -572,21 +574,19 @@ export default class sxbet extends Exchange {
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     handleOrder(client: Client, rows: any[]): void;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

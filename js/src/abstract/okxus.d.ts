@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import _okx from '../okx.js';
-interface okx {
+declare abstract class okx extends _okx {
     publicGetMarketTickers(params?: {}): Promise<Dict>;
     publicGetMarketTicker(params?: {}): Promise<Dict>;
     publicGetMarketBooks(params?: {}): Promise<Dict>;
@@ -59,6 +59,7 @@ interface okx {
     publicGetPublicVipInterestRateLoanQuota(params?: {}): Promise<Dict>;
     publicGetPublicMmInstrumentTypes(params?: {}): Promise<Dict>;
     publicGetPublicDeltaHedgeCurrencies(params?: {}): Promise<Dict>;
+    publicGetPublicCorporateActions(params?: {}): Promise<Dict>;
     publicGetRubikStatTradingDataSupportCoin(params?: {}): Promise<Dict>;
     publicGetRubikStatContractsOpenInterestHistory(params?: {}): Promise<Dict>;
     publicGetRubikStatTakerVolume(params?: {}): Promise<Dict>;
@@ -471,7 +472,5 @@ interface okx {
     privatePostBrokerDmaSubaccountApikey(params?: {}): Promise<Dict>;
     privatePostBrokerDmaTrades(params?: {}): Promise<Dict>;
     privatePostBrokerFdRebatePerOrders(params?: {}): Promise<Dict>;
-}
-declare abstract class okx extends _okx {
 }
 export default okx;

@@ -34,12 +34,11 @@
                     "USDT",
                     5,
                     "0x0000000000000000000000000000000000000000",
-                    null,
                     {
-                        "network": "ARBITRUM",
-                        "fee": 1.01
+                      "network": "ARBITRUM",
+                      "fee": 1.01
                     }
-                ],
+                  ],
                 "output": "asset=USDT&receiver=0x0000000000000000000000000000000000000000&userNonce=1776362282719000&chainId=42161&fee=1.01&amount=5&userSignature=0x51e0b4a4045605524f7141def1c27a35273194e4ac79011f27a4fa6e070b2b5636ed422323e67bf48c3ed325ed85f0acf1734e4c04bac2d0f1bd39fde6e9a8451c&nonce=1776362282755000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0x69a7fdfe7d6f9ed8310c93963dc7e4ae8c073a46530f5b2850a4d7a38c1cc74304dd6b660c02b4f615039c88b4a26df671f39922d6f74a4f8cb4db495306af621b"
             }
         ],
@@ -568,7 +567,7 @@
                 "method": "fetchOpenOrder",
                 "url": "https://fapi.asterdex.com/fapi/v3/openOrder?symbol=BTCUSDT&orderId=1917641&nonce=1776857192869000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0x4b9d85d5bada87b970f1b4944135aff80da58407860dd59a83da60dfe3395c912d49c7bdfe56f90ea556a87083a5de517908d6b70be319d0163e03eceb0896631b",
                 "input": [
-                    1917641,
+                    "1917641",
                     "BTC/USDT:USDT"
                 ]
             }
@@ -769,7 +768,7 @@
                 "url": "https://fapi.asterdex.com/fapi/v3/batchOrders",
                 "input": [
                     [
-                        17338441758
+                        "17338441758"
                     ],
                     "ETH/USDT:USDT"
                 ],

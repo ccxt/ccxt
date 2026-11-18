@@ -9,7 +9,7 @@ from ccxt.abstract.bybiteu import ImplicitAPI
 
 class bybiteu(bybit, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bybiteu, self).describe(), {
             'id': 'bybiteu',
             'name': 'Bybit EU',

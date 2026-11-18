@@ -40,7 +40,7 @@ async function testWatchOHLCVForSymbols(exchange, skippedProperties, symbol) {
             success = false;
         }
         now = exchange.milliseconds();
-        if ((success === true) && (response !== undefined)) {
+        if ((success) && (response !== undefined)) {
             const assertionMessage = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosenTimeframeKey + ' | ' + exchange.json(response);
             assert(exchange.isDictionary(response), 'Response must be a dictionary. ' + assertionMessage);
             assert(symbol in response, 'Response should contain the symbol as key. ' + assertionMessage);

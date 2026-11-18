@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class coinspot(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -238,7 +238,7 @@ class coinspot(Exchange, ImplicitAPI):
                 'DRK': 'DASH',
             },
             'options': {
-                'fetchBalance': 'private_post_my_balances',
+                'fetchBalance': 'privatePostMyBalances',
             },
             'features': {
                 'spot': {
@@ -291,15 +291,17 @@ class coinspot(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
-            for i in range(0, len(balances)):
-                currencies = balances[i]
-                currencyIds = list(currencies.keys())
-                for j in range(0, len(currencyIds)):
-                    currencyId = currencyIds[j]
+            rows = self.to_array(balances)
+            numRows = len(rows)
+            for i in range(0, numRows):
+                currencies = self.safe_dict(rows, i, {})
+                currencyIdsList = list(currencies.keys())
+                for j in range(0, len(currencyIdsList)):
+                    currencyId = currencyIdsList[j]
                     balance = self.safe_dict(currencies, currencyId)
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
@@ -307,9 +309,9 @@ class coinspot(Exchange, ImplicitAPI):
                     if code is not None:
                         result[code] = account
         else:
-            currencyIds = list(balances.keys())
-            for i in range(0, len(currencyIds)):
-                currencyId = currencyIds[i]
+            currencyIdsMap = list(balances.keys())
+            for i in range(0, len(currencyIdsMap)):
+                currencyId = currencyIdsMap[i]
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balances, currencyId)
@@ -328,7 +330,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        method = self.safe_string(self.options, 'fetchBalance', 'privatePostMyBalances')
         response = None
         if (method == 'private_post_ro_my_balances') or (method == 'privatePostRoMyBalances'):
             response = self.privatePostRoMyBalances(params)
@@ -475,7 +477,7 @@ class coinspot(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 symbol = market['symbol']
                 ticker = prices[id]
                 result[symbol] = self.parse_ticker(ticker, market)
@@ -706,7 +708,7 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
@@ -715,20 +717,22 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
-        isVersionedApi = isinstance(api, list)
-        version = api[0] if isVersionedApi else None
-        accessType = api[1] if isVersionedApi else api
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
+        apiLength = len(api)
+        isVersionedApi = apiLength > 1
+        accessType = api[0]
+        if isVersionedApi:
+            accessType = api[1]
         endpoint = '/' + self.implode_params(path, params)
         fullPath = endpoint
-        if version is not None:
-            fullPath = '/' + version + endpoint
+        if isVersionedApi:
+            fullPath = '/' + api[0] + endpoint
         apiUrl = self.safe_string(self.urls['api'], accessType)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

@@ -33,17 +33,6 @@ public class CryptomusApi extends Exchange
     }
 
     /**
-     * Calls the publicGetV2UserApiExchangeMarketPrice endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicGetV2UserApiExchangeMarketPrice (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetV2UserApiExchangeMarketPrice", optionalArgs);
-    }
-
-    /**
      * Calls the publicGetV2UserApiExchangeMarketsPrice endpoint.
      *
      * @param optionalArgs the request parameters
@@ -74,17 +63,6 @@ public class CryptomusApi extends Exchange
     public CompletableFuture<Map<String, Object>>  publicGetV1ExchangeMarketOrderBookCurrencyPair (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV1ExchangeMarketOrderBookCurrencyPair", optionalArgs);
-    }
-
-    /**
-     * Calls the publicGetV1ExchangeMarketTickers endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicGetV1ExchangeMarketTickers (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetV1ExchangeMarketTickers", optionalArgs);
     }
 
     /**

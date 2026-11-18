@@ -114,8 +114,13 @@ TESTS = []
 def test(name):
     def register(function):
         TESTS.append((name, function))
+        # run only through test_order_router, never collected by pytest on its own
+        function.__test__ = False
         return function
     return register
+
+
+test.__test__ = False
 
 
 # ---------------------------------------------------------------------------
@@ -1356,6 +1361,20 @@ def test_request_id_header():
     router_, session = stubbed(200, json.dumps({'hops': []}), {}, config)
     router_.fetch_route('USDT', 'BTC', {'amountIn': 10, 'requestId': 'x' * 201})
     assert 'x-request-id' not in session.calls[0]['headers']
+
+
+@test('userAgent is sent as User-Agent only when configured')
+def test_user_agent_header():
+    # the default must leave the HTTP client's own User-Agent alone, never send a blank one
+    router_, session = stubbed(200, json.dumps({'hops': []}), {}, {'baseUrl': 'https://example.test/api'})
+    assert router_.user_agent == ''
+    router_.fetch_route('USDT', 'BTC', {'amountIn': 10})
+    assert 'User-Agent' not in session.calls[0]['headers']
+    config = {'baseUrl': 'https://example.test/api', 'userAgent': 'ccxt-mcp/1.0.0 (ccxt 4.0.0)'}
+    router_, session = stubbed(200, json.dumps({'hops': []}), {}, config)
+    assert router_.user_agent == 'ccxt-mcp/1.0.0 (ccxt 4.0.0)'
+    router_.fetch_route('USDT', 'BTC', {'amountIn': 10})
+    assert session.calls[0]['headers']['User-Agent'] == 'ccxt-mcp/1.0.0 (ccxt 4.0.0)'
 
 
 # ---------------------------------------------------------------------------

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::backpack::BackpackCore;
+use super::backpack::Backpack;
 use crate::exchange::ExchangeRuntime;
 
-impl BackpackCore {
+impl Backpack {
     /// Auto-generated wrapper for the `publicGetApiV1Assets` implicit endpoint.
     pub async fn public_get_api_v1_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_api_v1_assets".into()), optional_args).await
@@ -80,6 +80,21 @@ impl BackpackCore {
     /// Auto-generated wrapper for the `publicGetApiV1MarketHolidays` implicit endpoint.
     pub async fn public_get_api_v1_market_holidays(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_api_v1_market_holidays".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetApiV1StockSessions` implicit endpoint.
+    pub async fn public_get_api_v1_stock_sessions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_api_v1_stock_sessions".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetApiV1StockHolidays` implicit endpoint.
+    pub async fn public_get_api_v1_stock_holidays(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_api_v1_stock_holidays".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetApiV1StockIndicativeQuote` implicit endpoint.
+    pub async fn public_get_api_v1_stock_indicative_quote(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_api_v1_stock_indicative_quote".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Securities` implicit endpoint.
@@ -325,11 +340,6 @@ impl BackpackCore {
     /// Auto-generated wrapper for the `privatePostApiV1RfqAccept` implicit endpoint.
     pub async fn private_post_api_v1_rfq_accept(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v1_rfq_accept".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostApiV1RfqRefresh` implicit endpoint.
-    pub async fn private_post_api_v1_rfq_refresh(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_rfq_refresh".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqCancel` implicit endpoint.

@@ -24,7 +24,7 @@ public class TestWatchOHLCV extends BaseTest {
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
+        Assert(timeframeKeys.size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
@@ -43,7 +43,7 @@ public class TestWatchOHLCV extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(since), Long.valueOf(limit), new HashMap<String, Object>() {{}}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
@@ -57,12 +57,12 @@ public class TestWatchOHLCV extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
-                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
+                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (symbol), now);
                 }
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {

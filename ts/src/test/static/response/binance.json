@@ -3011,7 +3011,7 @@
                         "fee": 0.0000089,
                         "fees": {
                             "BEP20": 0.0000089,
-                            "ETH": 0.0001,
+                            "ERC20": 0.0001,
                             "ARBITRUM": 0.00002,
                             "BASE": 0.00005,
                             "MANTA": 0.00001,
@@ -3069,7 +3069,7 @@
                                     }
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "info": {
                                     "network": "ETH",
                                     "coin": "ETH",
@@ -3099,7 +3099,7 @@
                                     "contractAddressUrl": "https://etherscan.io/address/"
                                 },
                                 "id": "ETH",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -4278,8 +4278,8 @@
                     },
                     "id": "2672907",
                     "clientOrderId": "x-TKT5PX2Fc0ccf4c20afe486783218b",
-                    "timestamp": -1,
-                    "datetime": null,
+                    "timestamp": 1758618616599,
+                    "datetime": "2025-09-23T09:10:16.599Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": 1758618616599,
                     "symbol": "ETH/USDT",
@@ -5897,7 +5897,7 @@
                 "description": "swap open order",
                 "method": "fetchOpenOrder",
                 "input": [
-                    664082074,
+                    "664082074",
                     "LTC/USDT:USDT"
                 ],
                 "httpResponse": {
@@ -6132,6 +6132,7 @@
                         "unrealizedPnl": 0.51106678,
                         "leverage": null,
                         "liquidationPrice": 64846.9875379,
+                        "positionMargin": null,
                         "collateral": 25.72470371,
                         "notional": 607.52416678,
                         "markPrice": 67502.68519858,
@@ -6215,6 +6216,7 @@
                         "unrealizedPnl": 1.2267,
                         "leverage": null,
                         "liquidationPrice": 64846.78939917,
+                        "positionMargin": null,
                         "collateral": 25.72647982,
                         "notional": 608.2398,
                         "markPrice": 67582.2,
@@ -6398,6 +6400,7 @@
                         "marginRatio": 0.5689,
                         "liquidationPrice": null,
                         "markPrice": null,
+                        "positionMargin": null,
                         "collateral": 4.27203287,
                         "marginMode": "cross",
                         "side": "long",
@@ -6480,6 +6483,7 @@
                         "unrealizedPnl": 0.00004318,
                         "leverage": 20,
                         "liquidationPrice": 72491.16879818,
+                        "positionMargin": null,
                         "collateral": 0.00023156,
                         "notional": 0.00439662,
                         "markPrice": 68234.2,
@@ -6583,6 +6587,7 @@
                         "marginRatio": null,
                         "liquidationPrice": null,
                         "markPrice": null,
+                        "positionMargin": null,
                         "collateral": 4950.15882401,
                         "marginMode": "cross",
                         "side": null,
@@ -7748,6 +7753,94 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "deterministic pagination walks forward by step - 1 per window (1h x 1000 entries), so with until = since + 2 * step - 2 it makes exactly two requests and the second starts at since + 3599999999; the windows are told apart by their startTime fragment and both must be in the result",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1706630400000,
+                    null,
+                    {
+                        "paginate": true,
+                        "until": 1713830399998
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "startTime=1706630400000": [
+                        [
+                            1706630400000,
+                            "43519.34000000",
+                            "43936.00000000",
+                            "43171.00000000",
+                            "43488.71000000",
+                            "20.55495000",
+                            1706633999999,
+                            "891428.42858070",
+                            3743,
+                            "10.91428000",
+                            "473782.95739920",
+                            "0"
+                        ],
+                        [
+                            1706634000000,
+                            "43488.71000000",
+                            "43832.08000000",
+                            "43084.00000000",
+                            "43374.80000000",
+                            "21.80865000",
+                            1706637599999,
+                            "946546.04941680",
+                            4365,
+                            "11.70274000",
+                            "508392.74777040",
+                            "0"
+                        ]
+                    ],
+                    "startTime=1710230399999": [
+                        [
+                            1710230400000,
+                            "71471.00000000",
+                            "71740.00000000",
+                            "71200.00000000",
+                            "71500.10000000",
+                            "12.50000000",
+                            1710233999999,
+                            "893387.50000000",
+                            2100,
+                            "6.25000000",
+                            "446693.75000000",
+                            "0"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1706630400000,
+                        43519.34,
+                        43936,
+                        43171,
+                        43488.71,
+                        20.55495
+                    ],
+                    [
+                        1706634000000,
+                        43488.71,
+                        43832.08,
+                        43084,
+                        43374.8,
+                        21.80865
+                    ],
+                    [
+                        1710230400000,
+                        71471,
+                        71740,
+                        71200,
+                        71500.1,
+                        12.5
+                    ]
+                ]
+            },
+            {
                 "description": "Spot OHLCV with since and limit",
                 "method": "fetchOHLCV",
                 "input": [
@@ -8279,6 +8372,173 @@
                         "datetime": "2024-02-09T08:00:00.000Z",
                         "id": "8082457372019390060",
                         "amount": -0.04618913
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned fundingTime values, so a contract with 4h funding gets all 6 settlements of the day; with a fixed 8h step the 24h window starting at 1792368000000 gets only its first 3 rows and 12:00-20:00 are dropped",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ENA/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792454400000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "endTime=1792454400000": [
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792411200007,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18687163",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792425600003,
+                            "fundingRate": "0.00004018",
+                            "markPrice": "0.18789000",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792440000000,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18566839",
+                            "rateType": "Regular"
+                        }
+                    ],
+                    "endTime=1792411200006": [
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792368000000,
+                            "fundingRate": "-0.00000762",
+                            "markPrice": "0.18826501",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792382400000,
+                            "fundingRate": "0.00002949",
+                            "markPrice": "0.18930908",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792396800004,
+                            "fundingRate": "0.00003988",
+                            "markPrice": "0.19059000",
+                            "rateType": "Regular"
+                        }
+                    ],
+                    "startTime=1792368000000": [
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792368000000,
+                            "fundingRate": "-0.00000762",
+                            "markPrice": "0.18826501",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792382400000,
+                            "fundingRate": "0.00002949",
+                            "markPrice": "0.18930908",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792396800004,
+                            "fundingRate": "0.00003988",
+                            "markPrice": "0.19059000",
+                            "rateType": "Regular"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792368000000,
+                            "fundingRate": "-0.00000762",
+                            "markPrice": "0.18826501",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": -0.00000762,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792382400000,
+                            "fundingRate": "0.00002949",
+                            "markPrice": "0.18930908",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00002949,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792396800004,
+                            "fundingRate": "0.00003988",
+                            "markPrice": "0.19059000",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00003988,
+                        "timestamp": 1792396800004,
+                        "datetime": "2026-10-19T08:00:00.004Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792411200007,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18687163",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792411200007,
+                        "datetime": "2026-10-19T12:00:00.007Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792425600003,
+                            "fundingRate": "0.00004018",
+                            "markPrice": "0.18789000",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00004018,
+                        "timestamp": 1792425600003,
+                        "datetime": "2026-10-19T16:00:00.003Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792440000000,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18566839",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792440000000,
+                        "datetime": "2026-10-19T20:00:00.000Z"
                     }
                 ]
             }
@@ -9491,6 +9751,115 @@
         ],
         "fetchTrades": [
             {
+                "description": "forward paginate stops once until is reached",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1710327600000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationDirection": "forward",
+                        "paginationCalls": 2,
+                        "until": 1710327700000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "startTime=1710327600000": [
+                        {
+                            "a": "2913537567",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537567",
+                            "l": "2913537567",
+                            "T": "1710327661939",
+                            "m": false,
+                            "M": true
+                        },
+                        {
+                            "a": "2913537568",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537568",
+                            "l": "2913537568",
+                            "T": "1710327699999",
+                            "m": false,
+                            "M": true
+                        }
+                    ],
+                    "startTime=1710327700000": [
+                        {
+                            "a": "2913537569",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537569",
+                            "l": "2913537569",
+                            "T": "1710327705000",
+                            "m": false,
+                            "M": true
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": "2913537567",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537567",
+                            "l": "2913537567",
+                            "T": "1710327661939",
+                            "m": false,
+                            "M": true
+                        },
+                        "timestamp": 1710327661939,
+                        "datetime": "2024-03-13T11:01:01.939Z",
+                        "symbol": "BTC/USDT",
+                        "id": "2913537567",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.7,
+                        "amount": 0.00109,
+                        "cost": 79.830183,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "a": "2913537568",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537568",
+                            "l": "2913537568",
+                            "T": "1710327699999",
+                            "m": false,
+                            "M": true
+                        },
+                        "timestamp": 1710327699999,
+                        "datetime": "2024-03-13T11:01:39.999Z",
+                        "symbol": "BTC/USDT",
+                        "id": "2913537568",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.7,
+                        "amount": 0.00109,
+                        "cost": 79.830183,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
                 "description": "public spot trades",
                 "method": "fetchTrades",
                 "input": [
@@ -10064,7 +10433,6 @@
                     "USDT",
                     10.34332,
                     "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
-                    null,
                     {
                         "network": "TRC20"
                     }

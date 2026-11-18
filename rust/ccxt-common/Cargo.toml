@@ -1,0 +1,45 @@
+[package]
+name = "ccxt-common"
+version = "4.5.93"
+edition = "2021"
+description = "CCXT: CryptoCurrency eXchange Trading Library (Rust) – core engine runtime"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt-common"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt_common"
+path = "src/lib.rs"
+
+[features]
+default = []
+engine = []
+
+[dependencies]
+reqwest = { version = "0.12", features = ["rustls-tls", "socks", "gzip"], default-features = false }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net", "io-util"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+hmac = "0.12"
+sha2 = "0.10"
+sha1 = "0.10"
+md-5 = "0.10"
+sha3 = "0.10"
+k256 = { version = "0.13", features = ["ecdsa"] }
+rsa = { version = "0.9", features = ["sha2"] }
+base64 = "0.22"
+url = "2"
+num-bigint = "0.4"
+num-traits = "0.2"
+chrono = "0.4"
+futures = "0.3"
+indexmap = { version = "2", features = ["serde"] }
+ed25519-dalek = "2"
+tokio-tungstenite = { version = "0.24", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
+flate2 = "1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net", "io-util", "test-util"] }

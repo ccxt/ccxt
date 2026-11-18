@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from './abstract/binanceus.js';
 import type { Endpoint, Dict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'binanceus',
             'name': 'Binance US',

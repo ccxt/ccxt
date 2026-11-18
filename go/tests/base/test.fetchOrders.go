@@ -15,11 +15,14 @@ func testFetchOrdersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	defer ReturnPanicError(ch)
 	var method string = "fetchOrders"
 
-	r := <-exchange.FetchOrdersAsync(symbol)
+	r := <-exchange.(ccxt.IFetchOrders).FetchOrdersAsync(symbol)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	orders := r.Value
+	var orders any = nil
+	if r.Value != nil {
+		orders = ccxt.OrdersToList(r.Value)
+	}
 	Assert(IsArray(orders), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(orders)))
 	AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
 	var now int64 = exchange.Milliseconds()

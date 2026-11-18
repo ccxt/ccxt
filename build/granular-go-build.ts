@@ -147,7 +147,7 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 \texchangeId = strings.ToLower(exchangeId)
 \tswitch exchangeId {
 \tcase "exchange":
-\t\titf := NewExchangeTyped(nil)
+\t\titf := &Exchange{}
 \t\treturn itf
 ${caseStatements ? caseStatements + '\n' : ''}\tdefault:
 \t\treturn nil

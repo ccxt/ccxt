@@ -10,6 +10,22 @@ namespace ccxt;
 // public partial class BaseExchange
 // {
 
+// string constants for options["defaultType"] / options["defaultSubType"] (TS DefaultType / DefaultSubType)
+public static class DefaultType
+{
+    public const string Spot = "spot";
+    public const string Margin = "margin";
+    public const string Option = "option";
+    public const string Swap = "swap";
+    public const string Future = "future";
+}
+
+public static class DefaultSubType
+{
+    public const string Linear = "linear";
+    public const string Inverse = "inverse";
+}
+
 class Helper
 {
     // safeOrder() / safeTrade() always attach a `fees` list next to the single `fee`.
@@ -215,12 +231,12 @@ public struct Market
     public string? quoteId;
     public bool? active;
     public string? type;
-    public bool? spot;
+    public bool spot;
     public bool? margin;
-    public bool? swap;
-    public bool? future;
-    public bool? option;
-    public bool? contract;
+    public bool swap;
+    public bool future;
+    public bool option;
+    public bool contract;
     public string? settle;
     public string? settleId;
     public double? contractSize;
@@ -267,12 +283,12 @@ public struct Market
         quoteId = Exchange.SafeString(market, "quoteId");
         active = market.ContainsKey("active") && market["active"] != null ? (bool)market["active"] : null;
         type = Exchange.SafeString(market, "type");
-        spot = market.ContainsKey("spot") && market["spot"] != null ? (bool)market["spot"] : null;
+        spot = Exchange.SafeBool(market, "spot", false) == true;
         margin = market.ContainsKey("margin") && market["margin"] != null ? (bool)market["margin"] : null;
-        swap = market.ContainsKey("swap") && market["swap"] != null ? (bool)market["swap"] : null;
-        future = market.ContainsKey("future") && market["future"] != null ? (bool)market["future"] : null;
-        option = market.ContainsKey("option") && market["option"] != null ? (bool)market["option"] : null;
-        contract = market.ContainsKey("contract") && market["contract"] != null ? (bool)market["contract"] : null;
+        swap = Exchange.SafeBool(market, "swap", false) == true;
+        future = Exchange.SafeBool(market, "future", false) == true;
+        option = Exchange.SafeBool(market, "option", false) == true;
+        contract = Exchange.SafeBool(market, "contract", false) == true;
         settle = Exchange.SafeString(market, "settle");
         settleId = Exchange.SafeString(market, "settleId");
         contractSize = Exchange.SafeFloat(market, "contractSize");
@@ -802,6 +818,31 @@ public struct OrderBook
         var orderbook = (IDictionary<string, object>)orderbook2;
         bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
         asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
+        symbol = Exchange.SafeString(orderbook, "symbol");
+        timestamp = Exchange.SafeInteger(orderbook, "timestamp");
+        datetime = Exchange.SafeString(orderbook, "datetime");
+        nonce = Exchange.SafeInteger(orderbook, "nonce");
+        info = Helper.GetInfo(orderbook);
+    }
+}
+
+public struct OrderBookL3
+{
+    // each row is [ price (double), amount (double), orderId (string) ]
+    public List<List<object>>? bids;
+    public List<List<object>>? asks;
+
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public Int64? nonce;
+    // the raw exchange response, when the parser kept one
+    public Dictionary<string, object>? info;
+    public OrderBookL3(object orderbook2)
+    {
+        var orderbook = (IDictionary<string, object>)orderbook2;
+        bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).ToList()).ToList() : null;
+        asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).ToList()).ToList() : null;
         symbol = Exchange.SafeString(orderbook, "symbol");
         timestamp = Exchange.SafeInteger(orderbook, "timestamp");
         datetime = Exchange.SafeString(orderbook, "datetime");
@@ -1459,6 +1500,7 @@ public struct Position
     public bool? isolated;
     public double? exitPrice;
 
+    public double? positionMargin;
     public Position(object position)
     {
         symbol = Exchange.SafeString(position, "symbol");
@@ -1491,6 +1533,7 @@ public struct Position
         stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         isolated = Exchange.SafeValue(position, "isolated") != null ? (bool)Exchange.SafeValue(position, "isolated") : null;
         exitPrice = Exchange.SafeFloat(position, "exitPrice");
+        positionMargin = Exchange.SafeFloat(position, "positionMargin");
     }
 
 }
@@ -1920,12 +1963,12 @@ public struct MarketInterface
     public string? quoteId;
     public bool? active;
     public string? type;
-    public bool? spot;
+    public bool spot;
     public bool? margin;
-    public bool? swap;
-    public bool? future;
-    public bool? option;
-    public bool? contract;
+    public bool swap;
+    public bool future;
+    public bool option;
+    public bool contract;
     public string settle;
     public string settleId;
     public double? contractSize;
@@ -1978,12 +2021,12 @@ public struct MarketInterface
         quoteId = Exchange.SafeString(market, "quoteId");
         active = Exchange.SafeValue(market, "active") != null ? (bool)Exchange.SafeValue(market, "active") : null;
         type = Exchange.SafeString(market, "type");
-        spot = Exchange.SafeValue(market, "spot") != null ? (bool)Exchange.SafeValue(market, "spot") : null;
+        spot = Exchange.SafeBool(market, "spot", false) == true;
         margin = Exchange.SafeValue(market, "margin") != null ? (bool)Exchange.SafeValue(market, "margin") : null;
-        swap = Exchange.SafeValue(market, "swap") != null ? (bool)Exchange.SafeValue(market, "swap") : null;
-        future = Exchange.SafeValue(market, "future") != null ? (bool)Exchange.SafeValue(market, "future") : null;
-        option = Exchange.SafeValue(market, "option") != null ? (bool)Exchange.SafeValue(market, "option") : null;
-        contract = Exchange.SafeValue(market, "contract") != null ? (bool)Exchange.SafeValue(market, "contract") : null;
+        swap = Exchange.SafeBool(market, "swap", false) == true;
+        future = Exchange.SafeBool(market, "future", false) == true;
+        option = Exchange.SafeBool(market, "option", false) == true;
+        contract = Exchange.SafeBool(market, "contract", false) == true;
         settle = Exchange.SafeString(market, "settle");
         settleId = Exchange.SafeString(market, "settleId");
         contractSize = Exchange.SafeFloat(market, "contractSize");

@@ -60,7 +60,11 @@ func testWatchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				response = (UnWrapType(r.Value))
+				var rValueBox any = nil
+				if r.Value != nil {
+					rValueBox = ccxt.LiquidationsToList(r.Value)
+				}
+				response = (UnWrapType(rValueBox))
 				PanicOnError(response)
 				now = DateNow()
 				var isArray bool = IsArray(response)

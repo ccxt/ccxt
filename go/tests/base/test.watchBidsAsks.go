@@ -73,10 +73,10 @@ func testWatchBidsAsksHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				if r.Value == nil {
+				if ccxt.StructAbsent(r.Value) {
 					response = nil
 				} else {
-					response = r.Value
+					response = ccxt.StructBox(r.Value, ccxt.TickerMapToMap)
 				}
 				return nil
 			}()
@@ -88,7 +88,7 @@ func testWatchBidsAsksHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 			ch <- ccxt.AsyncResult[any]{Value: false}
 			return nil
 		}
-		if success == true {
+		if success {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 			var values []any = ObjectValues(response)
 			var checkedSymbol any = nil
@@ -97,15 +97,10 @@ func testWatchBidsAsksHelperBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 			for i := 0; i < len(values); i++ {
-				var ticker any = func() any {
-					if i >= 0 && i < len(values) {
-						return DerefScalar(values[i])
-					}
-					return nil
-				}()
+				var ticker any = values[i]
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}
-			if IsGreaterThan((now - startTime), maxIdleTime) {
+			if (now - startTime) > int64(maxIdleTime) {
 				idle = true
 			}
 		}

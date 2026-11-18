@@ -158,9 +158,9 @@ public class BitflyerApi extends Exchange
      * Calls the privateGetGetbalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetGetbalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetGetbalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetGetbalance", optionalArgs);
     }

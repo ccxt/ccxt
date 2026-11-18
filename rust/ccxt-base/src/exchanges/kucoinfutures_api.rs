@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::kucoinfutures::KucoinfuturesCore;
+use super::kucoinfutures::Kucoinfutures;
 use crate::exchange::ExchangeRuntime;
 
-impl KucoinfuturesCore {
+impl Kucoinfutures {
     /// Auto-generated wrapper for the `publicGetCurrencies` implicit endpoint.
     pub async fn public_get_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_currencies".into()), optional_args).await
@@ -1640,6 +1640,11 @@ impl KucoinfuturesCore {
     /// Auto-generated wrapper for the `utaV2GetMarketFundingRate` implicit endpoint.
     pub async fn uta_v2_get_market_funding_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("uta_v2_get_market_funding_rate".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `utaV2GetMarketOrderbook` implicit endpoint.
+    pub async fn uta_v2_get_market_orderbook(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("uta_v2_get_market_orderbook".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetMarketOrderbook` implicit endpoint.

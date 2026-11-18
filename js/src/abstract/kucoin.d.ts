@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetCurrencies(params?: {}): Promise<Dict>;
     publicGetCurrenciesCurrency(params?: {}): Promise<Dict>;
     publicGetSymbols(params?: {}): Promise<Dict>;
@@ -327,6 +327,7 @@ interface Exchange {
     utaGetUserMyIp(params?: {}): Promise<Dict>;
     utaGetMarketFiatPrice(params?: {}): Promise<Dict>;
     utaV2GetMarketFundingRate(params?: {}): Promise<Dict>;
+    utaV2GetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetMarketOrderbook(params?: {}): Promise<Dict>;
     utaPrivateGetAccountBalance(params?: {}): Promise<Dict>;
     utaPrivateGetAccountTransferQuota(params?: {}): Promise<Dict>;
@@ -362,7 +363,5 @@ interface Exchange {
     utaPrivatePostSubAccountCanTransferOut(params?: {}): Promise<Dict>;
     utaPrivatePostDcpSet(params?: {}): Promise<Dict>;
     utaPrivatePostAccountModeAccountModifyLeverageMarginCross(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     sapiGetCopyTradingFuturesUserStatus(params?: {}): Promise<Dict>;
     sapiGetCopyTradingFuturesLeadSymbol(params?: {}): Promise<Dict>;
     sapiGetSystemStatus(params?: {}): Promise<Dict>;
@@ -114,6 +114,7 @@ interface Exchange {
     sapiGetSubAccountUniversalTransfer(params?: {}): Promise<Dict>;
     sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(params?: {}): Promise<Dict>;
     sapiGetSubAccountTransactionStatistics(params?: {}): Promise<Dict>;
+    sapiGetSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiGetSubAccountSubAccountApiIpRestriction(params?: {}): Promise<Dict>;
     sapiGetManagedSubaccountAsset(params?: {}): Promise<List>;
     sapiGetManagedSubaccountAccountSnapshot(params?: {}): Promise<Dict>;
@@ -295,6 +296,8 @@ interface Exchange {
     sapiPostMarginMaxLeverage(params?: {}): Promise<Dict>;
     sapiPostBnbBurn(params?: {}): Promise<Dict>;
     sapiPostSubAccountVirtualSubAccount(params?: {}): Promise<Dict>;
+    sapiPostSubAccountSubAccountApi(params?: {}): Promise<Dict>;
+    sapiPostSubAccountSubAccountApiPermission(params?: {}): Promise<Dict>;
     sapiPostSubAccountMarginTransfer(params?: {}): Promise<Dict>;
     sapiPostSubAccountMarginEnable(params?: {}): Promise<Dict>;
     sapiPostSubAccountFuturesEnable(params?: {}): Promise<Dict>;
@@ -417,6 +420,7 @@ interface Exchange {
     sapiDeleteBrokerSubAccountApiIpRestrictionIpList(params?: {}): Promise<Dict>;
     sapiDeleteAlgoSpotOrder(params?: {}): Promise<Dict>;
     sapiDeleteAlgoFuturesOrder(params?: {}): Promise<Dict>;
+    sapiDeleteSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params?: {}): Promise<Dict>;
     sapiV2GetEthStakingAccount(params?: {}): Promise<Dict>;
     sapiV2GetSubAccountFuturesAccount(params?: {}): Promise<Dict>;
@@ -430,6 +434,7 @@ interface Exchange {
     sapiV2GetLoanFlexibleCollateralData(params?: {}): Promise<Dict>;
     sapiV2GetPortfolioAccount(params?: {}): Promise<Dict>;
     sapiV2PostEthStakingEthStake(params?: {}): Promise<Dict>;
+    sapiV2PostSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiV2PostSubAccountSubAccountApiIpRestriction(params?: {}): Promise<Dict>;
     sapiV2PostLoanFlexibleBorrow(params?: {}): Promise<Dict>;
     sapiV2PostLoanFlexibleRepay(params?: {}): Promise<Dict>;
@@ -826,7 +831,5 @@ interface Exchange {
     papiDeleteMarginOrderList(params?: {}): Promise<Dict>;
     papiDeleteListenKey(params?: {}): Promise<Dict>;
     papiV2GetUmAccount(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -925,6 +925,7 @@
                         "leverage": null,
                         "unrealizedPnl": null,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 4105.33,
                         "markPrice": null,
@@ -1001,16 +1002,17 @@
                         "leverage": 75,
                         "unrealizedPnl": null,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 0.18408,
                         "markPrice": null,
                         "liquidationPrice": 1e-05,
                         "marginMode": "cross",
                         "hedged": true,
-                        "maintenanceMargin": 0.049088,
+                        "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMargin": 0.049088,
+                        "initialMarginPercentage": 0.013333333333333332,
                         "marginRatio": null,
                         "lastUpdateTimestamp": 1760709419000,
                         "lastPrice": null,
@@ -1374,7 +1376,7 @@
                 "description": "Fetch open order",
                 "method": "fetchOpenOrder",
                 "input": [
-                    1001441400627435,
+                    "1001441400627435",
                     "ETH/USDT"
                 ],
                 "httpResponse": {
@@ -1502,7 +1504,7 @@
                 "description": "Fetch closed order",
                 "method": "fetchClosedOrder",
                 "input": [
-                    1001441398400348,
+                    "1001441398400348",
                     "ETH/USDT"
                 ],
                 "httpResponse": {

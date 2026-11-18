@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class btcbox(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btcbox, self).describe(), {
             'id': 'btcbox',
             'name': 'BtcBox',
@@ -378,13 +378,13 @@ class btcbox(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
-            currencyId = currency['id']
+            currencyId = self.safe_string(currency, 'id', '')
             free = currencyId + '_balance'
             if free in response:
                 account = self.account()
@@ -613,7 +613,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             # TODO: complete list
             'part': 'open',  # partially or not at all executed
@@ -738,13 +738,12 @@ class btcbox(Exchange, ImplicitAPI):
         #      },
         # ]
         #
-        orders = self.parse_orders(response, market, since, limit)
         # status (open/closed/canceled) is undefined
         # btcbox does not return status, but we know it's 'open' as we queried for open orders
+        extra = {}
         if type == 'open':
-            for i in range(0, len(orders)):
-                orders[i]['status'] = 'open'
-        return orders
+            extra['status'] = 'open'
+        return self.parse_orders(response, market, since, limit, extra)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -774,22 +773,23 @@ class btcbox(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_type('open', symbol, since, limit, params)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.version + '/' + path
-        if api == 'public':
+        if apiName == 'public':
             if len(params) > 0:
-                url += '?' + self.urlencode(params)
-        elif api == 'webApi':
-            url = self.urls['www'] + '/' + path
+                url = apiUrl + '/' + self.version + '/' + path + '?' + self.urlencode(params)
+        elif apiName == 'webApi':
+            url = self.safe_string(self.urls, 'www', '') + '/' + path
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             query = self.extend({
                 'key': self.apiKey,
                 'nonce': nonce,
@@ -802,28 +802,28 @@ class btcbox(Exchange, ImplicitAPI):
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
-        if httpCode >= 400:
+        if code >= 400:
             return None  # resort to defaultErrorHandler
         result = self.safe_bool(response, 'result')
-        if result is None or result is True:
+        if result is None or result:
             return None  # either public API (no error codes expected) or success
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         feedback = self.id + ' ' + body
-        self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+        self.throw_exactly_matched_exception(self.exceptions, codeError, feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        response = self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        response = self.fetch2(path, api, method, params, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
-            response = self.strip(response)
-            if not self.is_json_encoded_object(response):
-                raise ExchangeError(self.id + ' ' + response)
-            response = json.loads(response)
+            strippedResponse = self.strip(response)
+            if not self.is_json_encoded_object(strippedResponse):
+                raise ExchangeError(self.id + ' ' + strippedResponse)
+            response = json.loads(strippedResponse)
         return response

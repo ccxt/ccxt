@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::btse::BtseCore;
+use super::btse::Btse;
 use crate::exchange::ExchangeRuntime;
 
-impl BtseCore {
+impl Btse {
     /// Auto-generated wrapper for the `publicGetSpotApiV33MarketSummary` implicit endpoint.
     pub async fn public_get_spot_api_v33_market_summary(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_api_v33_market_summary".into()), optional_args).await

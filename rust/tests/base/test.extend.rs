@@ -198,7 +198,7 @@ fn tbfeCheckExtended(mut extended: Value, mut hasSub: Value) {
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("e".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other1".into())).as_str() == Some("x")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other2".into())).as_str() == Some("y")))));
-    if is_true(&hasSub) {
+    if hasSub.as_bool() == Some(true) {
         assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&extended, &Value::Str("sub".into()))))));
     }
 }

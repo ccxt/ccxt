@@ -47,17 +47,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-trait"
-version = "0.1.89"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -190,17 +179,24 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.85"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.85"
+version = "4.5.92"
 dependencies = [
- "async-trait",
+ "ccxt-common",
+ "futures",
+ "indexmap",
+]
+
+[[package]]
+name = "ccxt-common"
+version = "4.5.92"
+dependencies = [
  "base64",
  "chrono",
  "ed25519-dalek",
@@ -233,7 +229,6 @@ dependencies = [
 name = "ccxt-examples"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "ccxt",
  "ccxt-prediction",
  "ccxt-pro",
@@ -244,17 +239,15 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.85"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.85"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
  "futures",
  "indexmap",
@@ -1614,9 +1607,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.40"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef86cd5876211988985292b91c96a8f2d298df24e75989a43a3c73f2d4d8168b"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "once_cell",
  "ring",
@@ -1638,9 +1631,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.13"
+version = "0.103.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61c429a8649f110dddef65e2a5ad240f747e85f7758a6bccc7e5777bd33f756e"
+checksum = "f3c3cf1d8b1e7d4927e2d154c3fcb02979afb9939629c62cd9048d4f07b60ac2"
 dependencies = [
  "ring",
  "rustls-pki-types",
@@ -1806,9 +1799,9 @@ dependencies = [
 
 [[package]]
 name = "simd-adler32"
-version = "0.3.10"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+checksum = "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
 
 [[package]]
 name = "simdutf8"

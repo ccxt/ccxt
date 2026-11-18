@@ -29,6 +29,7 @@ public partial class testMainClass : BaseTest
                 { "marginRatio", true },
                 { "liquidationPrice", true },
                 { "markPrice", true },
+                { "positionMargin", true },
                 { "collateral", true },
                 { "percentage", true },
             }, skippedProperties);
@@ -51,12 +52,13 @@ public partial class testMainClass : BaseTest
             { "marginRatio", exchange.parseNumber("1.234") },
             { "liquidationPrice", exchange.parseNumber("1.234") },
             { "markPrice", exchange.parseNumber("1.234") },
+            { "positionMargin", exchange.parseNumber("1.234") },
             { "collateral", exchange.parseNumber("1.234") },
             { "marginMode", "cross" },
             { "side", "long" },
             { "percentage", exchange.parseNumber("1.234") },
         };
-        List<object> emptyotAllowedFor = new List<object>() {"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"};
+        List<object> emptyotAllowedFor = new List<object>() {"positionMargin", "liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
@@ -76,6 +78,86 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", "0");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "markPrice", "0");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "collateral", "0");
+        // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
+        string? marginMode = exchange.safeString(entry, "marginMode");
+        if (marginMode == "isolated")
+        {
+            object logText = testSharedMethods.logTemplate(exchange, method, entry);
+            string? side = exchange.safeString(entry, "side");
+            string? entryPriceString = exchange.safeString(entry, "entryPrice");
+            string? liquidationPriceString = exchange.safeString(entry, "liquidationPrice");
+            string? contractsString = exchange.safeString(entry, "contracts");
+            string? contractSizeString = exchange.safeString(entry, "contractSize");
+            string? maintenanceMarginString = exchange.safeString(entry, "maintenanceMargin");
+            string? collateralString = exchange.safeString(entry, "collateral");
+            string? initialMarginString = exchange.safeString(entry, "initialMargin");
+            string? unrealizedPnlString = exchange.safeString(entry, "unrealizedPnl");
+            if (((entryPriceString != null)) && ((liquidationPriceString != null)) && Precise.stringGt(entryPriceString, "0") && Precise.stringGt(liquidationPriceString, "0"))
+            {
+                if (side == "long")
+                {
+                    testSharedMethods.assertLess(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString);
+                } else if (side == "short")
+                {
+                    testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString);
+                }
+            }
+            string? marginString = exchange.safeString(entry, "positionMargin");
+            if (((marginString != null)) && ((collateralString != null)) && ((unrealizedPnlString != null)))
+            {
+                // collateral is margin + unrealizedPnl
+                string? expectedCollateral = Precise.stringAdd(marginString, unrealizedPnlString);
+                string? collateralDiff = Precise.stringAbs(Precise.stringSub(collateralString, expectedCollateral));
+                string? collateralTolerance = Precise.stringMul(Precise.stringAbs(marginString), "0.05");
+                assert(Precise.stringLe(collateralDiff, collateralTolerance), ("collateral should equal margin + unrealizedPnl" + (logText)));
+            }
+            string? entryMarginString = marginString;
+            if (((entryMarginString == null)) && ((collateralString != null)))
+            {
+                if (((unrealizedPnlString != null)) && !Precise.stringEq(collateralString, initialMarginString))
+                {
+                    entryMarginString = Precise.stringSub(collateralString, unrealizedPnlString);
+                } else
+                {
+                    entryMarginString = collateralString;
+                }
+            } else if (((entryMarginString == null)) && ((initialMarginString != null)))
+            {
+                entryMarginString = initialMarginString;
+            }
+            bool hasEntryMargin = ((entryMarginString != null)) && Precise.stringGt(entryMarginString, "0");
+            bool hasEntryPrice = ((entryPriceString != null)) && Precise.stringGt(entryPriceString, "0");
+            bool hasLiqPrice = ((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0");
+            bool hasContracts = ((contractsString != null)) && Precise.stringGt(contractsString, "0");
+            bool hasContractSize = ((contractSizeString != null)) && Precise.stringGt(contractSizeString, "0");
+            bool hasMm = ((maintenanceMarginString != null)) && Precise.stringGt(maintenanceMarginString, "0");
+            if (hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm)
+            {
+                object symbolForMarket = ((symbol != null)) ? symbol : exchange.safeString(entry, "symbol");
+                IDictionary<string, object> market = null;
+                if (((symbolForMarket != null)) && (!isEqual(exchange.markets, null)) && (inOp(exchange.markets, symbolForMarket)))
+                {
+                    market = exchange.market(symbolForMarket);
+                }
+                bool isInverse = ((market != null)) && isTrue(exchange.safeBool(market, "inverse", false));
+                string? priceDiff = null;
+                if (isInverse)
+                {
+                    string? invEntry = Precise.stringDiv("1", entryPriceString);
+                    string? invLiq = Precise.stringDiv("1", liquidationPriceString);
+                    priceDiff = Precise.stringAbs(Precise.stringSub(invEntry, invLiq));
+                } else
+                {
+                    priceDiff = Precise.stringAbs(Precise.stringSub(entryPriceString, liquidationPriceString));
+                }
+                string? lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                string? calculatedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                assert(Precise.stringGt(calculatedMm, "0"), ((("isolated position remaining collateral at liquidationPrice (" + calculatedMm) + ") should be greater than 0") + (logText)));
+                string? mmDiff = Precise.stringAbs(Precise.stringSub(calculatedMm, maintenanceMarginString));
+                string? maxTolerance = Precise.stringMul(entryMarginString, "0.05");
+                assert(Precise.stringLe(mmDiff, maxTolerance), ((((("isolated position maintenanceMargin (" + maintenanceMarginString) + ") does not match remaining collateral at liquidationPrice (") + calculatedMm) + ")") + (logText)));
+            }
+        }
     }
 
 }

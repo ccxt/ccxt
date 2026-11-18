@@ -308,9 +308,8 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
         // via live_lookup. It's ~250 flags and the per-assert
         // `exchange.clone()` in the validators made cloning it the
         // dominant cost of large-collection loops (fetchTickers/markets).
-        for k in ["api", "urls", "fees", "timeframes", "exceptions",
-                  "features", "precision", "limits", "has"] {
-            m.shift_remove(k);
+        for k in ccxt::value::LIVE_SNAPSHOT_STRIPPED_KEYS {
+            m.shift_remove(*k);
         }
         return Value::Map(m);
     }
@@ -438,7 +437,36 @@ pub fn rejectPendingWsFutures(_exchange: Value, url: Value) -> Value {
 pub fn preloadWsMessages(_exchange: Value, url: Value, messages: Value) -> Value {
     let u = ws_url(&url);
     if let Value::Arr(a) = &messages {
-        for m in a.iter() { ccxt::pro::ws_client::mock_inject(&u, m.clone()); }
+        for m in a.iter() { ccxt::pro::ws_client::mock_inject(&u, binary_frame(m)); }
+    }
+    Value::Null
+}
+
+/// A fixture frame given as `{ "binary": "<base16>" }` is a binary frame (e.g.
+/// SBE): preload its bytes, as `injectWsMessages` does in the other languages.
+fn binary_frame(m: &Value) -> Value {
+    if let Value::Dict(d) = m {
+        if let Some(Value::Str(h)) = d.get("binary") {
+            return Value::from(with_base(|e| e.base16_to_binary(Value::Str(h.clone()), &[])));
+        }
+    }
+    m.clone()
+}
+
+/// Replays every frame still queued on the mock transport straight into the
+/// venue's `handle_message`. The parsedResponse harness otherwise drains leftovers
+/// by calling the method again, which is right for watch* (the re-watch only
+/// re-reads) but wrong for unWatch*: each call re-sends the unsubscribe and the
+/// sentMessages assertion counts it (kraken acks a multi-symbol unsubscribe once
+/// per symbol, so its fixture holds more acks than the one that resolves the call).
+pub async fn drainWsMessages(exchange: &mut Value, url: Value) -> Value {
+    let u = ws_url(&url);
+    let client = ccxt::pro::ws_client::client_value(&u);
+    let mut guard = 0;
+    while let Some(msg) = ccxt::pro::ws_client::mock_pop_message(&u) {
+        crate::live_dispatch::dispatch(exchange, "handleMessage", vec![client.clone(), msg]).await;
+        guard += 1;
+        if guard >= 500 { break; }
     }
     Value::Null
 }
@@ -496,6 +524,8 @@ use ccxt::exchange::BaseCore;
 // Base ops (safe_bool/safe_dict/parse_to_int/…) are ExchangeBase trait methods
 // now (review #1: static dispatch), so the throwaway instance is a BaseCore.
 use ccxt::exchange_generated::ExchangeBase;
+// the readers take the container like the base ones: a `Value` by value, a map / list / `&Value` lent
+use ccxt::value::KeyRead;
 
 // One throwaway `Exchange` per thread for the ExchangeOps stub forwarders.
 // `Exchange::new(None)` allocates ~10 large `Value::Map` defaults
@@ -513,25 +543,27 @@ fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut BaseCore) -> R {
 }
 
 pub trait ExchangeOps {
-    fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_string(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_bool(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_dict(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_list(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_value(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_string(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_bool(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_dict(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_list(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn is_empty_string(&self, value: Value) -> Value;
     fn json(&self, v: Value) -> Value;
-    fn in_array(&self, needle: Value, haystack: Value) -> Value;
+    fn in_array(&self, needle: Value, haystack: Value) -> bool;
     fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
     fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
-    fn number_to_string(&self, n: Value) -> Value;
-    fn precision_from_string(&self, s: Value) -> Value;
+    fn number_to_string(&self, n: Value) -> Option<String>;
+    fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> ccxt::value::Bytes;
+    fn precision_from_string(&self, s: Value) -> i64;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn parse_to_int(&self, n: Value) -> Value;
+    fn parse_to_int(&self, n: Value) -> Option<i64>;
     fn parse_to_numeric(&self, n: Value) -> Value;
+    fn is_round_number(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
     fn convert_to_safe_dictionary(&self, v: Value) -> Value;
     fn market(&self, symbol: Value) -> Value;
@@ -539,20 +571,24 @@ pub trait ExchangeOps {
     fn extend_exchange_options(&mut self, options: Value) -> Value;
     fn check_required_credentials(&self, optional_args: &[Value]) -> Value;
     fn parse_number(&self, n: Value, optional_args: &[Value]) -> Value;
-    fn safe_number(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_integer(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_string_n(&self, d: Value, keys: Value, optional_args: &[Value]) -> Value;
+    fn safe_number(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_integer(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_string_n(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Value;
+    /// `Option<String>` twins of `safe_string` / `safe_string_n` (the base `_opt` readers: same lookup and
+    /// default rules, `None` where the boxed reader yields `Null`).
+    fn safe_string_opt(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Option<String>;
+    fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Option<String>;
     fn omit(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value;
-    fn omit_zero(&self, s: Value) -> Value;
+    fn omit_zero(&self, s: Value) -> Option<String>;
     fn array_concat(&self, a: Value, b: Value) -> Value;
     /// Reflects `exchange.setProperty(exchange, key, value)` from TS —
     /// the receiver and first arg are the same Value, hence the
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
     fn get_fetch_cache(&mut self) -> Value;
-    fn parse_timeframe(&self, tf: Value) -> Value;
+    fn parse_timeframe(&self, tf: Value) -> i64;
     fn iso8601(&self, ts: Value) -> Value;
-    fn milliseconds(&self) -> Value;
+    fn milliseconds(&self) -> i64;
     fn get_ccxt_version(&self) -> Value;
     fn safeString(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
     fn exception_message(&self, e: Value) -> Value;
@@ -563,25 +599,27 @@ pub trait ExchangeOps {
 }
 
 impl ExchangeOps for Value {
-    fn safe_value(&self, obj: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
-    fn safe_string(&self, obj: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
-    fn safe_bool(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_bool(d, key, o)) }
-    fn safe_dict(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_dict(d, key, o)) }
-    fn safe_list(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_list(d, key, o)) }
+    fn safe_value(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
+    fn safe_string(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
+    fn safe_bool(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_bool(d, key, o)) }
+    fn safe_dict(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_dict(d, key, o)) }
+    fn safe_list(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_list(d, key, o)) }
     fn is_empty_string(&self, value: Value) -> Value { with_base(|e| e.is_empty_string(value)) }
     fn json(&self, v: Value) -> Value { with_base(|e| e.json(v)) }
-    fn in_array(&self, needle: Value, haystack: Value) -> Value { with_base(|e| e.in_array(needle, haystack)) }
+    fn in_array(&self, needle: Value, haystack: Value) -> bool { with_base(|e| e.in_array(needle, haystack)) }
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
     fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
-    fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
-    fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
+    fn number_to_string(&self, n: Value) -> Option<String> { with_base(|e| e.number_to_string(n)) }
+    fn base16_to_binary(&self, s: Value, o: &[Value]) -> ccxt::value::Bytes { with_base(|e| e.base16_to_binary(s, o)) }
+    fn precision_from_string(&self, s: Value) -> i64 { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
-    fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
+    fn parse_to_int(&self, n: Value) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
     fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
+    fn is_round_number(&self, n: Value) -> Value { with_base(|e| e.is_round_number(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }
     /// `market(symbol)` — look the unified symbol up in this exchange
@@ -615,15 +653,17 @@ impl ExchangeOps for Value {
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
     fn parse_number(&self, n: Value, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
-    fn safe_number(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
-    fn safe_integer(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
-    fn safe_string_n(&self, d: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
+    fn safe_number(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
+    fn safe_integer(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
+    fn safe_string_n(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
+    fn safe_string_opt(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
+    fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_n_opt(d, keys, o)) }
     fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
-    fn omit_zero(&self, s: Value)                -> Value { with_base(|e| e.omit_zero(s)) }
+    fn omit_zero(&self, s: Value)                -> Option<String> { with_base(|e| e.omit_zero(s)) }
     fn array_concat(&self, a: Value, b: Value)   -> Value { with_base(|e| e.array_concat(a, b)) }
-    fn parse_timeframe(&self, tf: Value)         -> Value { with_base(|e| e.parse_timeframe(tf)) }
+    fn parse_timeframe(&self, tf: Value)         -> i64 { with_base(|e| e.parse_timeframe(tf)) }
     fn iso8601(&self, ts: Value)                 -> Value { with_base(|e| e.iso8601(ts)) }
-    fn milliseconds(&self)                        -> Value { with_base(|e| e.milliseconds()) }
+    fn milliseconds(&self)                        -> i64 { with_base(|e| e.milliseconds()) }
     fn get_ccxt_version(&self)                     -> Value { with_base(|e| e.get_ccxt_version()) }
     /// Set a field on the exchange Value-map by key. The
     /// transpiled tests use this to inject precision/markets/etc.

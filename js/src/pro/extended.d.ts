@@ -2,7 +2,7 @@ import extendedRest from '../extended.js';
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class extended extends extendedRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name extended#watchOrderBook
@@ -17,7 +17,7 @@ export default class extended extends extendedRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     watchPrivate(messageHash: string, subscription?: NullableDict): Promise<any>;
     /**
      * @method
@@ -120,7 +120,7 @@ export default class extended extends extendedRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: Dict): void;
-    findSubscription(client: Client, name: string): import("../base/types.js").Dictionary<any> | undefined;
+    findSubscription(client: Client, name: string): NullableDict;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
 }

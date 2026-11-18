@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import _binance from '../binance.js';
-interface binance {
+declare abstract class binance extends _binance {
     sapiGetCopyTradingFuturesUserStatus(params?: {}): Promise<Dict>;
     sapiGetCopyTradingFuturesLeadSymbol(params?: {}): Promise<Dict>;
     sapiGetSystemStatus(params?: {}): Promise<Dict>;
@@ -114,6 +114,7 @@ interface binance {
     sapiGetSubAccountUniversalTransfer(params?: {}): Promise<Dict>;
     sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(params?: {}): Promise<Dict>;
     sapiGetSubAccountTransactionStatistics(params?: {}): Promise<Dict>;
+    sapiGetSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiGetSubAccountSubAccountApiIpRestriction(params?: {}): Promise<Dict>;
     sapiGetManagedSubaccountAsset(params?: {}): Promise<List>;
     sapiGetManagedSubaccountAccountSnapshot(params?: {}): Promise<Dict>;
@@ -326,6 +327,8 @@ interface binance {
     sapiPostMarginMaxLeverage(params?: {}): Promise<Dict>;
     sapiPostBnbBurn(params?: {}): Promise<Dict>;
     sapiPostSubAccountVirtualSubAccount(params?: {}): Promise<Dict>;
+    sapiPostSubAccountSubAccountApi(params?: {}): Promise<Dict>;
+    sapiPostSubAccountSubAccountApiPermission(params?: {}): Promise<Dict>;
     sapiPostSubAccountMarginTransfer(params?: {}): Promise<Dict>;
     sapiPostSubAccountMarginEnable(params?: {}): Promise<Dict>;
     sapiPostSubAccountFuturesEnable(params?: {}): Promise<Dict>;
@@ -459,6 +462,7 @@ interface binance {
     sapiDeleteBrokerSubAccountApiIpRestrictionIpList(params?: {}): Promise<Dict>;
     sapiDeleteAlgoSpotOrder(params?: {}): Promise<Dict>;
     sapiDeleteAlgoFuturesOrder(params?: {}): Promise<Dict>;
+    sapiDeleteSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params?: {}): Promise<Dict>;
     sapiDeleteCustodianCancelOrder(params?: {}): Promise<Dict>;
     sapiDeleteCustodianCancelOrdersBySymbol(params?: {}): Promise<List>;
@@ -477,6 +481,7 @@ interface binance {
     sapiV2GetClAccount(params?: {}): Promise<Dict>;
     sapiV2GetClAlertHistory(params?: {}): Promise<List>;
     sapiV2PostEthStakingEthStake(params?: {}): Promise<Dict>;
+    sapiV2PostSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiV2PostSubAccountSubAccountApiIpRestriction(params?: {}): Promise<Dict>;
     sapiV2PostLoanFlexibleBorrow(params?: {}): Promise<Dict>;
     sapiV2PostLoanFlexibleRepay(params?: {}): Promise<Dict>;
@@ -879,7 +884,5 @@ interface binance {
     papiDeleteMarginOrderList(params?: {}): Promise<Dict>;
     papiDeleteListenKey(params?: {}): Promise<Dict>;
     papiV2GetUmAccount(params?: {}): Promise<Dict>;
-}
-declare abstract class binance extends _binance {
 }
 export default binance;

@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
-	"sync"
 )
 
 func numericSortValue(v any) (float64, bool) {
@@ -172,11 +171,6 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 		for _, item := range v {
 			targetA = append(targetA, item)
 		}
-	case *sync.Map:
-		v.Range(func(_, val any) bool {
-			targetA = append(targetA, val)
-			return true
-		})
 	default:
 		// unsupported type
 		return nil
@@ -223,13 +217,6 @@ func ExtendMap(aa any, bb ...any) map[string]any {
 		for key, value := range a {
 			outDict[key] = value
 		}
-	case *sync.Map:
-		a.Range(func(key, value any) bool {
-			if strKey, ok := key.(string); ok {
-				outDict[strKey] = value
-			}
-			return true
-		})
 	}
 
 	// Handle optional second map (bb[0])
@@ -239,13 +226,6 @@ func ExtendMap(aa any, bb ...any) map[string]any {
 			for key, value := range b {
 				outDict[key] = value
 			}
-		case *sync.Map:
-			b.Range(func(key, value any) bool {
-				if strKey, ok := key.(string); ok {
-					outDict[strKey] = value
-				}
-				return true
-			})
 		}
 	}
 
@@ -282,21 +262,6 @@ func (this *BaseExchange) DeepExtend2(objs ...any) map[string]any {
 func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	var outObj any
 
-	// Helper function to convert *sync.Map to map[string]any
-	convertSyncMap := func(sm *sync.Map) map[string]any {
-		m := make(map[string]any)
-		if sm == nil {
-			return m
-		}
-		sm.Range(func(key, value any) bool {
-			if ks, ok := key.(string); ok {
-				m[ks] = value
-			}
-			return true
-		})
-		return m
-	}
-
 	for _, x := range objs {
 		if derefScalar(x) == nil {
 			continue
@@ -307,8 +272,6 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 		switch v := x.(type) {
 		case map[string]any:
 			dictX = v
-		case *sync.Map:
-			dictX = convertSyncMap(v)
 		default:
 			outObj = x
 			continue
@@ -324,8 +287,8 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 		for k, v2 := range dictX {
 			v1 := outObj.(map[string]any)[k]
 			if derefScalar(v1) != nil && derefScalar(v2) != nil &&
-				(reflect.TypeOf(v1).Kind() == reflect.Map || reflect.TypeOf(v1) == reflect.TypeOf(&sync.Map{})) &&
-				(reflect.TypeOf(v2).Kind() == reflect.Map || reflect.TypeOf(v2) == reflect.TypeOf(&sync.Map{})) {
+				reflect.TypeOf(v1).Kind() == reflect.Map &&
+				reflect.TypeOf(v2).Kind() == reflect.Map {
 
 				// Recursively merge
 				outObj.(map[string]any)[k] = this.DeepExtend(v1, v2)
@@ -425,11 +388,6 @@ func (this *BaseExchange) IndexBy(a any, key any) map[string]any {
 		for _, v := range aMap {
 			targetX = append(targetX, v)
 		}
-	} else if syncMap, ok := a.(*sync.Map); ok {
-		syncMap.Range(func(_, v any) bool {
-			targetX = append(targetX, v)
-			return true
-		})
 	} else {
 		return outDict // Unsupported type
 	}
@@ -442,18 +400,6 @@ func (this *BaseExchange) IndexBy(a any, key any) map[string]any {
 			if val, ok := v[ToString(key)]; ok {
 				outDict[ToString(val)] = v
 			}
-		case *sync.Map:
-			// Handle *sync.Map entries
-			v.Range(func(k, val any) bool {
-				if _, ok := k.(string); ok {
-					if valMap, ok := val.(map[string]any); ok {
-						if keyStr, ok := valMap[ToString(key)].(string); ok {
-							outDict[keyStr] = valMap
-						}
-					}
-				}
-				return true
-			})
 		case []any:
 			// Handle slices of []any
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
@@ -470,55 +416,6 @@ func (this *BaseExchange) IndexBy(a any, key any) map[string]any {
 			// Handle slices of []int
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
 				outDict[fmt.Sprintf("%d", v[idx])] = v
-			}
-		}
-	}
-
-	return outDict
-}
-
-func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
-	outDict := &sync.Map{}
-	var targetX []any
-
-	switch val := a.(type) {
-	case []any:
-		targetX = val
-
-	case map[string]any:
-		for _, v := range val {
-			targetX = append(targetX, v)
-		}
-
-	case *sync.Map:
-		val.Range(func(_, v any) bool {
-			targetX = append(targetX, v)
-			return true
-		})
-
-	default:
-		return outDict // unsupported type
-	}
-
-	for _, elem := range targetX {
-		switch v := elem.(type) {
-		case map[string]any:
-			if val, ok := v[ToString(key)]; ok {
-				outDict.Store(ToString(val), v)
-			}
-		case []any:
-			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
-				if keyStr, ok := v[idx].(string); ok {
-					outDict.Store(keyStr, v)
-				}
-			}
-		case []string:
-			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
-				outDict.Store(v[idx], v)
-			}
-		case []int:
-			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
-				outDict.Store(fmt.Sprintf("%d", v[idx]), v)
 			}
 		}
 	}
@@ -550,10 +447,24 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	return outDict
 }
 
-func (this *BaseExchange) OmitZero(value any) any {
+// OmitZero mirrors TS omitZero (stringNumber: string | undefined): string | undefined. The result is
+// the string itself, or a nil pointer for an absent, empty or numerically zero string. A non-string
+// operand (outside the TS signature) keeps its value as its NumberToString text, and nil when zero.
+func (this *BaseExchange) OmitZero(value any) *string {
 	// Safe* accessors pass typed pointers; the type switch must see the value
 	value = derefScalar(value)
 	switch v := value.(type) {
+	case nil:
+		return nil
+	case string:
+		if v == "" {
+			return nil
+		}
+		// a parsable zero is omitted; an unparsable string is kept as it is
+		if parsed, err := strconv.ParseFloat(v, 64); (err == nil) && (parsed == 0) {
+			return nil
+		}
+		return &v
 	case float64:
 		if v == 0.0 {
 			return nil
@@ -562,18 +473,8 @@ func (this *BaseExchange) OmitZero(value any) any {
 		if v == 0 {
 			return nil
 		}
-	case string:
-		// Attempt to parse the string as a float64
-		parsed, err := strconv.ParseFloat(v, 64)
-		if err == nil {
-			// If parsed value is zero, return nil
-			if parsed == 0 {
-				return nil
-			}
-		}
-		// If parsing fails or value is non-zero, return the original string
 	}
-	return value
+	return this.NumberToString(value)
 }
 
 func (this *BaseExchange) Sum(args ...any) any {

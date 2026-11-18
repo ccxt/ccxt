@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Bybiteu extends BybiteuApi
 {
@@ -21,7 +22,7 @@ public class Bybiteu extends BybiteuApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bybiteu" );

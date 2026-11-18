@@ -186,22 +186,9 @@ func (e *BaseExchange) BinaryConcat(parts ...any) []byte {
 	return result
 }
 
-func (e *BaseExchange) binaryConcatArray(a any) string {
-	// return a.(string) // stub
-	return ""
-}
-
-func (e *BaseExchange) BinaryConcatArray(a any) string {
-	return e.binaryConcatArray(a)
-}
-
 func (e *BaseExchange) numberToBE(n, padding any) string {
 	// return n.(string) // stub
 	return ""
-}
-
-func (e *BaseExchange) NumberToBE(n, padding any) string {
-	return e.numberToBE(n, padding)
 }
 
 func BinaryToHex(buff []byte) string {
@@ -296,7 +283,8 @@ func (e *BaseExchange) Decode(data any) string {
 // }
 
 func (e *BaseExchange) IntToBase16(number any) string {
-	switch v := number.(type) {
+	// a nullable Int (SafeInteger) arrives as *int64
+	switch v := derefScalar(number).(type) {
 	case int:
 		return fmt.Sprintf("%x", int64(v))
 	case int64:

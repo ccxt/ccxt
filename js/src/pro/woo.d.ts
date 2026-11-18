@@ -1,12 +1,12 @@
 import wooRest from '../woo.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class woo extends wooRest {
-    describe(): any;
-    requestId(url: string): number;
+    describe(): Dict;
+    requestId(url: string): int;
     watchPublic(messageHash: string, message: Dict): Promise<any>;
-    unwatchPublic(subHash: string, symbol: Str, topic: string, params?: {}): Promise<any>;
+    unwatchPublic(subHash: string, symbol: Str, topic: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name woo#watchOrderBook
@@ -36,7 +36,7 @@ export default class woo extends wooRest {
     fetchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<void>;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name woo#watchTicker

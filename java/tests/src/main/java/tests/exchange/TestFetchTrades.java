@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchTrades extends BaseTest {
-    public CompletableFuture<Object> testFetchTrades(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchTrades(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -31,7 +31,7 @@ public class TestFetchTrades extends BaseTest {
         Boolean isPublicTrade = true;
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), symbol, now, isPublicTrade);
+            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), (String) (symbol), now, isPublicTrade);
         }
         //
         // test if both sides are being returned
@@ -50,17 +50,17 @@ public class TestFetchTrades extends BaseTest {
         }
         if (!(Helpers.inOp(skippedProperties, "timestampSort")))
         {
-            TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
+            TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), trades);
         }
         if (!(Helpers.inOp(skippedProperties, "side")) && !(Helpers.inOp(skippedProperties, "sideSequence")))
         {
-            (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
+            (helperTestFetchTradesSideSequence(exchange, skippedProperties, (String) (symbol), method, trades)).join();
         }
         return true;
         });
 
     }
-    public CompletableFuture<Object> helperTestFetchTradesSideSequence(BaseExchange exchange, Object skippedProperties, Object symbol, Object method, Object trades)
+    public CompletableFuture<Object> helperTestFetchTradesSideSequence(BaseExchange exchange, Object skippedProperties, String symbol, String method, Object trades)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -103,10 +103,10 @@ public class TestFetchTrades extends BaseTest {
                 Object priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (Boolean.TRUE.equals(priceIncreasing))
                 {
-                    Assert(java.util.Objects.equals(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));
+                    Assert(java.util.Objects.equals(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, (String) (method), pair)));
                 } else if (Boolean.TRUE.equals(priceDecreasing))
                 {
-                    Assert(java.util.Objects.equals(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));
+                    Assert(java.util.Objects.equals(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, (String) (method), pair)));
                 }
             }
             lastPrice = price;

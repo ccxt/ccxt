@@ -825,50 +825,6 @@ public class CoinbaseApi extends Exchange
     }
 
     /**
-     * Calls the v3PrivateGetBrokerageIntxBalancesPortfolioUuid endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  v3PrivateGetBrokerageIntxBalancesPortfolioUuid (Object... optionalArgs)
-    {
-        return this.callAsync ("v3PrivateGetBrokerageIntxBalancesPortfolioUuid", optionalArgs);
-    }
-
-    /**
-     * Calls the v3PrivateGetBrokerageIntxPortfolioPortfolioUuid endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (Object... optionalArgs)
-    {
-        return this.callAsync ("v3PrivateGetBrokerageIntxPortfolioPortfolioUuid", optionalArgs);
-    }
-
-    /**
-     * Calls the v3PrivateGetBrokerageIntxPositionsPortfolioUuid endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  v3PrivateGetBrokerageIntxPositionsPortfolioUuid (Object... optionalArgs)
-    {
-        return this.callAsync ("v3PrivateGetBrokerageIntxPositionsPortfolioUuid", optionalArgs);
-    }
-
-    /**
-     * Calls the v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (Object... optionalArgs)
-    {
-        return this.callAsync ("v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol", optionalArgs);
-    }
-
-    /**
      * Calls the v3PrivateGetBrokeragePaymentMethods endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1020,28 +976,6 @@ public class CoinbaseApi extends Exchange
     public CompletableFuture<Map<String, Object>>  v3PrivatePostBrokerageCfmIntradayMarginSetting (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostBrokerageCfmIntradayMarginSetting", optionalArgs);
-    }
-
-    /**
-     * Calls the v3PrivatePostBrokerageIntxAllocate endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  v3PrivatePostBrokerageIntxAllocate (Object... optionalArgs)
-    {
-        return this.callAsync ("v3PrivatePostBrokerageIntxAllocate", optionalArgs);
-    }
-
-    /**
-     * Calls the v3PrivatePostBrokerageIntxMultiAssetCollateral endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  v3PrivatePostBrokerageIntxMultiAssetCollateral (Object... optionalArgs)
-    {
-        return this.callAsync ("v3PrivatePostBrokerageIntxMultiAssetCollateral", optionalArgs);
     }
 
     /**

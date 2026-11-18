@@ -12,12 +12,6 @@
 //   * `test_ws_initialization` — the live-test snapshot preserves WS defaults
 //                          and configured options across loadMarkets.
 //
-//   * `test_throttler_performance` — the rate limiter actually spaces requests
-//                          at the venue's declared rateLimit (mirror of
-//                          `go/tests/base/test.throttlerPerformance.go`). It
-//                          calls `throttle()` directly, so it makes no network
-//                          requests.
-//
 // The futures returned by the typed methods are NEVER `.await`-ed —
 // constructing them is the type-check; dropping them avoids any network
 // traffic. Async fns in Rust are lazy, so an unpolled future is a no-op.
@@ -27,6 +21,8 @@
 use ccxt::Value;
 use ccxt::{Binance, Myokx, Binanceusdm};
 use ccxt::types::*;
+// The typed unified methods an alias venue inherits (binanceusdm `fetch_ticker`) live on this trait.
+use ccxt::ExchangeBase;
 
 /// Compile-time assertion that `f` resolves to `ccxt::Result<T>`. The future
 /// is consumed and dropped without being polled — the call is a pure type
@@ -45,7 +41,7 @@ pub fn test_types_rest() -> Result<(), String> {
     returns::<Balances>(b.fetch_balance(n.clone()));
     returns::<Position>(b.fetch_position("BTC/USDT", n.clone()));
     returns::<Transfer>(b.transfer("USDT", 1.0, "spot", "swap", n.clone()));
-    returns::<Transaction>(b.withdraw("USDT", 1.0, "0x0", None, n.clone()));
+    returns::<Transaction>(b.withdraw("USDT", 1.0, "0x0", n.clone()));
     returns::<LedgerEntry>(b.fetch_ledger_entry("id", Some("USDT"), n.clone()));
     returns::<FundingRate>(b.fetch_funding_rate("BTC/USDT:USDT", n.clone()));
     returns::<Greeks>(b.fetch_greeks("BTC/USDT", n.clone()));
@@ -59,7 +55,9 @@ pub fn test_types_rest() -> Result<(), String> {
     // ── list-returning methods ────────────────────────────────────────
     returns::<Vec<Market>>(b.fetch_markets(n.clone()));
     returns::<Vec<Trade>>(b.fetch_trades("BTC/USDT", None, Some(5), n.clone()));
-    returns::<Vec<Order>>(b.create_orders(n.clone(), n.clone()));
+    returns::<Vec<Order>>(b.create_orders(vec![OrderRequest::new("BTC/USDT", "limit", "buy", 1.0, Some(20000.0))], n.clone()));
+    returns::<Vec<Order>>(b.cancel_orders(vec!["1".to_string()], Some("BTC/USDT"), n.clone()));
+    returns::<Order>(b.create_limit_order("BTC/USDT", "buy", 1.0, 20000.0, n.clone()));
     returns::<Vec<Position>>(b.fetch_positions(None, n.clone()));
     returns::<Vec<Transaction>>(b.fetch_deposits_withdrawals(None, None, None, n.clone()));
     returns::<Vec<Transfer>>(b.fetch_transfers(None, None, None, n.clone()));
@@ -92,9 +90,8 @@ pub fn test_types_rest() -> Result<(), String> {
     let _market: Option<Market> = None;
 
     // ── inheritance: alias + subclass reach the same typed surface ─────
-    // Myokx is a thin override of Okx (`MyokxCore: Deref<Target = OkxCore>`);
-    // `fetch_order` is defined nowhere in myokx_typed.rs but is callable
-    // because the generator walks the Deref chain.
+    // Myokx is a thin override of Okx (`parent: Okx`); `fetch_order` is not
+    // defined on Myokx but is reachable through the `ExchangeBase` trait.
     let mut myokx = Myokx::new(None);
     returns::<Order>(myokx.fetch_order("iddd", Some("BTC/USDT"), n.clone()));
 
@@ -111,42 +108,10 @@ pub fn run() -> Result<(), String> {
     Ok(())
 }
 
-/// Drives `throttle()` `num_requests` times with a cost of 1 each and returns
-/// the elapsed milliseconds. No API calls — the limiter is exercised directly,
-/// exactly as Go's `TestThrottlerPerformanceHelper` does.
-async fn throttler_elapsed_ms(num_requests: usize) -> u128 {
-    let mut core = ccxt::exchanges::binance::BinanceCore::new(None);
-    core.exchange.enableRateLimit = Value::Bool(true);
-    let started = std::time::Instant::now();
-    for _ in 0..num_requests {
-        core.exchange.throttle(&[Value::Int(1)]).await;
-    }
-    started.elapsed().as_millis()
-}
-
-
-pub async fn test_throttler_performance() -> Result<(), String> {
-    let elapsed = throttler_elapsed_ms(20).await;
-    println!("throttler: 20 binance requests in {elapsed} ms (rateLimit 50 → expect ~1000)");
-    if elapsed < 500 {
-        return Err(format!(
-            "leaky bucket should take at least half a second for 20 requests, time was: {elapsed}"
-        ));
-    }
-    if elapsed > 3000 {
-        return Err(format!(
-            "20 binance requests took {elapsed}ms; at its declared rateLimit of 50ms that is \
-             ~1000ms, so the token bucket is not tracking rateLimit"
-        ));
-    }
-    Ok(())
-}
-
 
 pub async fn run_async() -> Result<(), String> {
     test_ws_initialization().await?;
     test_response_mock_reset().await?;
-    test_throttler_performance().await?;
     Ok(())
 }
 

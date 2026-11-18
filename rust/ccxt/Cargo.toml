@@ -1,6 +1,6 @@
 [package]
 name = "ccxt"
-version = "4.5.85"
+version = "4.5.93"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
 license = "MIT"
@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # Pick venues instead to cut build time and memory by two orders of magnitude:
 #   ccxt = { version = "…", default-features = false, features = ["binance", "kraken"] }
 default = ["all"]
-# BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
+# BEGIN GENERATED FEATURES (emitted by build/rustTranspiler.ts)
 alpaca = ["ccxt-base/alpaca"]
 apex = ["ccxt-base/apex"]
 aster = ["ccxt-base/aster"]
@@ -33,6 +33,7 @@ binanceus = ["ccxt-base/binanceus"]
 binanceusdm = ["ccxt-base/binanceusdm"]
 bingx = ["ccxt-base/bingx"]
 bit2c = ["ccxt-base/bit2c"]
+bit2me = ["ccxt-base/bit2me"]
 bitbank = ["ccxt-base/bitbank"]
 bitbns = ["ccxt-base/bitbns"]
 bitfinex = ["ccxt-base/bitfinex"]
@@ -56,7 +57,6 @@ bullish = ["ccxt-base/bullish"]
 bybit = ["ccxt-base/bybit"]
 bybiteu = ["ccxt-base/bybiteu"]
 bybitid = ["ccxt-base/bybitid"]
-bydfi = ["ccxt-base/bydfi"]
 cex = ["ccxt-base/cex"]
 coinbase = ["ccxt-base/coinbase"]
 coinbaseexchange = ["ccxt-base/coinbaseexchange"]
@@ -113,6 +113,7 @@ paradex = ["ccxt-base/paradex"]
 paymium = ["ccxt-base/paymium"]
 phemex = ["ccxt-base/phemex"]
 poloniex = ["ccxt-base/poloniex"]
+polymarket = ["ccxt-base/polymarket"]
 revolutx = ["ccxt-base/revolutx"]
 tokocrypto = ["ccxt-base/tokocrypto"]
 toobit = ["ccxt-base/toobit"]
@@ -124,21 +125,11 @@ woofipro = ["ccxt-base/woofipro"]
 xt = ["ccxt-base/xt"]
 zaif = ["ccxt-base/zaif"]
 zebpay = ["ccxt-base/zebpay"]
-all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "bydfi", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
+all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bit2me", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "polymarket", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
 # END GENERATED FEATURES
 
 [dependencies]
-# The untyped engine. The per-exchange typed wrappers wrap its REST/prediction
-# Cores and base method surface. Kept a separate crate so no single rustc
-# invocation compiles the whole generated surface at once (CI memory ceiling).
-# This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
-# `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
-ccxt-base = { path = "../ccxt-base", version = "4.5.85", features = ["engine"] }
-
-# The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
-# by build/generateRustWrappers.ts) reference exactly one external crate
-# directly: `#[async_trait::async_trait]` on the `TypedExchange` trait. Every
-# other external type (tokio, serde_json, Decimal, IndexMap, chrono, …) is
-# reached through the `ccxt_base::*` re-exports above, so it is not
-# re-declared here.
-async-trait = "0.1"
+# The engine holding the REST exchanges (`Binance`, …). Kept a separate crate so
+# no single rustc invocation compiles the whole generated surface at once (CI
+# memory ceiling); this crate re-exports it at its root.
+ccxt-base = { path = "../ccxt-base", version = "4.5.93", features = ["engine"] }

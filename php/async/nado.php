@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class nado extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'nado',
             'name' => 'Nado',
@@ -95,11 +95,29 @@ class nado extends Exchange {
                     'public' => array(
                         'get' => array(
                             'symbols' => array( 'cost' => 2 ),
-                            'query' => array( 'cost' => 1 ),
+                            'query' => array(
+                                'cost' => 2,
+                                'byType' => array(
+                                    'status' => 1,
+                                    'contracts' => 1,
+                                    'order' => 1,
+                                    'subaccount_orders' => 2,
+                                    'subaccount_info' => 2,
+                                ),
+                            ),
                             'edge/query' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'query' => array( 'cost' => 1 ),
+                            'query' => array(
+                                'cost' => 2,
+                                'byType' => array(
+                                    'status' => 1,
+                                    'contracts' => 1,
+                                    'order' => 1,
+                                    'subaccount_orders' => 2,
+                                    'subaccount_info' => 2,
+                                ),
+                            ),
                             'edge/query' => array( 'cost' => 1 ),
                         ),
                     ),
@@ -113,23 +131,33 @@ class nado extends Exchange {
                     'public' => array(
                         'get' => array(
                             'assets' => array( 'cost' => 2 ),
-                            'pairs' => array( 'cost' => 1 ),
+                            'pairs' => array( 'cost' => 2 ),
                             'orderbook' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'archive' => array(
                     'post' => array(
-                        '' => array( 'cost' => 1 ),
+                        '' => array(
+                            'cost' => 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery' => array(
+                                'candlesticks' => array( 2, 100 ),
+                                'events' => array( 2, 10 ),
+                                'matches' => array( 2, 10 ),
+                                'orders' => array( 2, 20 ),
+                                'interest_and_funding' => array( 5 ),
+                            ),
+                        ),
                     ),
                 ),
                 'archiveV2' => array(
                     'public' => array(
                         'get' => array(
-                            'tickers' => array( 'cost' => 1 ),
-                            'contracts' => array( 'cost' => 1 ),
-                            'trades' => array( 'cost' => 1 ),
-                            'symbols' => array( 'cost' => 1 ),
+                            'tickers' => array( 'cost' => 2 ),
+                            'contracts' => array( 'cost' => 2 ),
+                            'trades' => array( 'cost' => 4, 'byRows' => array( 2, 50 ) ),
+                            'symbols' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
@@ -179,7 +207,93 @@ class nado extends Exchange {
                 '1w' => 604800,
                 '4w' => 2419200,
             ),
-            'features' => array(),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // the trigger service documents spot product ids, but a spot
+                        // trigger order has not been confirmed against the venue yet
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '1000' => '\\ccxt\\RateLimitExceeded',
@@ -452,8 +566,7 @@ class nado extends Exchange {
         $isTriggerOrder = $isStopOrder || $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopOrder) {
             // the final omit drops triggerDirection from the request
-            $triggerDirectionAndParams = $this->handle_trigger_direction_and_params($paramsRecvWindow);
-            $triggerDirection = $triggerDirectionAndParams[0];
+            $triggerDirection = $this->safe_string($this->handle_trigger_direction_and_params($paramsRecvWindow), 0);
             $directionSuffix = 'below';
             if ($triggerDirection === 'ascending') {
                 $directionSuffix = 'above';
@@ -489,8 +602,9 @@ class nado extends Exchange {
             );
             $placeOrder['trigger'] = $trigger;
         }
-        $appendix = $this->safe_string($paramsRecvWindow, 'appendix');
-        if ($appendix === null) {
+        $rawAppendix = $this->safe_string($paramsRecvWindow, 'appendix');
+        $appendix = $rawAppendix;
+        if ($rawAppendix === null) {
             $appendix = $this->create_order_appendix($isTriggerOrder, $paramsRecvWindow);
         }
         $order['appendix'] = $appendix;
@@ -600,8 +714,9 @@ class nado extends Exchange {
         list($recvWindow, $paramsRecvWindow) = $this->handle_option_integer_and_params($paramsExpiration, 'editOrder', 'recvWindow', 5000);
         $cancelNonce = $this->create_order_nonce($recvWindow);
         $orderNonce = Precise::string_add($cancelNonce, '1');
-        $appendix = $this->safe_string($paramsRecvWindow, 'appendix');
-        if ($appendix === null) {
+        $rawAppendix = $this->safe_string($paramsRecvWindow, 'appendix');
+        $appendix = $rawAppendix;
+        if ($rawAppendix === null) {
             $appendix = $this->create_order_appendix(false, $paramsRecvWindow);
         }
         $requestId = $this->safe_integer($paramsRecvWindow, 'id');
@@ -1003,7 +1118,7 @@ class nado extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $productIds[] = $this->parse_to_int($market['id']);
+            $productIds[] = $this->parse_to_int($this->safe_string($market, 'id'));
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'fetchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
@@ -1015,7 +1130,7 @@ class nado extends Exchange {
         list($recvWindow, $paramsRecvWindow) = $this->handle_option_integer_and_params($paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         $tx = array(
             'sender' => $sender,
-            'recvTime' => $this->number_to_string($this->milliseconds() . $recvWindow),
+            'recvTime' => $this->number_to_string($this->sum($this->milliseconds(), $recvWindow)),
         );
         $request = array(
             'tx' => $tx,
@@ -1184,12 +1299,12 @@ class nado extends Exchange {
             ),
         );
         if ($market !== null) {
-            $ordersRequest['product_ids'] = array( $this->parse_to_int($market['id']) );
+            $ordersRequest['product_ids'] = array( $this->parse_to_int($this->safe_string($market, 'id')) );
+        }
+        if ($limit !== null) {
+            $ordersRequest['limit'] = min($limit, 500);
         }
         list($ordersRequestUntil, $paramsUntil) = $this->handle_until_option('max_time', $ordersRequest, $paramsSubaccount, 0.001);
-        if ($limit !== null) {
-            $ordersRequestUntil['limit'] = min($limit, 500);
-        }
         $request = array(
             'orders' => $ordersRequestUntil,
         );
@@ -1305,12 +1420,12 @@ class nado extends Exchange {
             ),
         );
         if ($market !== null) {
-            $matchesRequest['product_ids'] = array( $this->parse_to_int($market['id']) );
+            $matchesRequest['product_ids'] = array( $this->parse_to_int($this->safe_string($market, 'id')) );
+        }
+        if ($limit !== null) {
+            $matchesRequest['limit'] = min($limit, 500);
         }
         list($matchesRequestUntil, $paramsUntil) = $this->handle_until_option('max_time', $matchesRequest, $paramsSubaccount, 0.001);
-        if ($limit !== null) {
-            $matchesRequestUntil['limit'] = min($limit, 500);
-        }
         $request = array(
             'matches' => $matchesRequestUntil,
         );
@@ -1459,6 +1574,12 @@ class nado extends Exchange {
             $currency = $this->currency($code);
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, $methodName, 'subaccount', 'default');
+        $limitRequest = array(
+            'raw' => 100,
+        );
+        if ($limit !== null) {
+            $limitRequest['raw'] = min($limit, 500);
+        }
         $eventsRequest = array(
             'subaccounts' => array(
                 $this->create_subaccount($this->walletAddress, $subaccount),
@@ -1466,9 +1587,7 @@ class nado extends Exchange {
             'event_types' => array(
                 $eventType,
             ),
-            'limit' => array(
-                'raw' => ($limit === null) ? 100 : min($limit, 500),
-            ),
+            'limit' => $limitRequest,
         );
         if ($currency !== null) {
             $eventsRequest['product_ids'] = array(
@@ -1732,7 +1851,7 @@ class nado extends Exchange {
                 $previousWithdraw = $this->safe_bool($previous, 'can_withdraw', false);
                 $currentDeposit = $this->safe_bool($rawAsset, 'can_deposit', false);
                 $currentWithdraw = $this->safe_bool($rawAsset, 'can_withdraw', false);
-                if (($previousDeposit !== true) && ($previousWithdraw !== true) && (($currentDeposit === true) || ($currentWithdraw === true))) {
+                if ((!$previousDeposit) && (!$previousWithdraw) && (($currentDeposit) || ($currentWithdraw))) {
                     $assetsByCode[$assetCode] = $rawAsset;
                 }
             }
@@ -1768,7 +1887,7 @@ class nado extends Exchange {
             $settle = $contract ? $quote : null;
             $symbol = $base . '/' . $quote;
             if ($contract) {
-                $symbol .= ':' . $settle;
+                $symbol = $base . '/' . $quote . ':' . $quote;
             }
             $tradingStatus = $this->safe_string($market, 'trading_status');
             $active = ($tradingStatus !== 'not_tradable');
@@ -1853,7 +1972,7 @@ class nado extends Exchange {
         $result = array();
         $assets = $this->to_array($response);
         for ($i = 0; $i < count($assets); $i++) {
-            $currency = $assets[$i];
+            $currency = $this->safe_value($assets, $i);
             $parsed = $this->parse_currency($currency);
             $code = $this->safe_string($parsed, 'code');
             if ($code === null) {
@@ -1867,7 +1986,7 @@ class nado extends Exchange {
             } else {
                 $previousDeposit = $this->safe_bool($previous, 'deposit', false);
                 $previousWithdraw = $this->safe_bool($previous, 'withdraw', false);
-                if (($previousDeposit !== true) && ($previousWithdraw !== true) && (($canDeposit === true) || ($canWithdraw === true))) {
+                if ((!$previousDeposit) && (!$previousWithdraw) && (($canDeposit) || ($canWithdraw))) {
                     $result[$code] = $parsed;
                 }
             }
@@ -1926,7 +2045,7 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $tickers = Async\await($this->fetch_tickers(array( $symbolValue ), $params));
         $ticker = $this->safe_dict($tickers, $symbolValue);
         if ($ticker === null) {
@@ -1952,7 +2071,7 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $tickerId = $this->safe_string($market['info'], 'ticker_id');
@@ -2009,18 +2128,22 @@ class nado extends Exchange {
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'fetchFundingHistory', 'subaccount', 'default');
-        $request = array(
-            'interest_and_funding' => array(
-                'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),
-                'product_ids' => array(
-                    $this->parse_to_int($market['id']),
-                ),
-                'limit' => ($limit === null) ? 100 : min($limit, 100),
+        $fundingRequest = array(
+            'subaccount' => $this->create_subaccount($this->walletAddress, $subaccount),
+            'product_ids' => array(
+                $this->parse_to_int($market['id']),
             ),
+            'limit' => 100,
+        );
+        if ($limit !== null) {
+            $fundingRequest['limit'] = min($limit, 100);
+        }
+        $request = array(
+            'interest_and_funding' => $fundingRequest,
         );
         $response = Async\await($this->archivePost($this->deep_extend($request, $paramsSubaccount)));
         //
@@ -2116,7 +2239,7 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $tickerId = $this->safe_string($market['info'], 'ticker_id');
@@ -2306,18 +2429,19 @@ class nado extends Exchange {
         $market = $this->market($symbol);
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
-        $request = array(
-            'candlesticks' => array(
-                'product_id' => $this->parse_to_int($market['id']),
-                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
-            ),
+        $candlesticks = array(
+            'product_id' => $this->parse_to_int($market['id']),
+            'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
         );
         if ($limit !== null) {
-            $request['candlesticks']['limit'] = min($limit, 500);
+            $candlesticks['limit'] = min($limit, 500);
         }
         if ($until !== null) {
-            $request['candlesticks']['max_time'] = $this->parse_to_int($until / 1000);
+            $candlesticks['max_time'] = $this->parse_to_int($until / 1000);
         }
+        $request = array(
+            'candlesticks' => $candlesticks,
+        );
         $response = Async\await($this->archivePost($this->deep_extend($request, $paramsOmitted)));
         //
         //     {
@@ -2411,10 +2535,13 @@ class nado extends Exchange {
                 $side = 'buy';
             }
         }
-        $price = $this->safe_string($trade, 'price');
-        if ($price === null) {
-            $parsedPrice = $this->parse_x18($this->safe_string($order, 'priceX18'));
-            $price = ($parsedPrice === null) ? null : $this->number_to_string($parsedPrice);
+        $tradePrice = $this->safe_string($trade, 'price');
+        $price = $tradePrice;
+        if ($tradePrice === null) {
+            $orderPriceX18 = $this->safe_string($order, 'priceX18');
+            if ($orderPriceX18 !== null) {
+                $price = $this->number_to_string($this->parse_x18($orderPriceX18));
+            }
         }
         $takerOrMaker = null;
         $isTaker = $this->safe_bool($trade, 'is_taker');
@@ -2474,7 +2601,7 @@ class nado extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "product_id": 1,
@@ -2547,7 +2674,7 @@ class nado extends Exchange {
         );
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "product_id": 1,
@@ -2641,7 +2768,7 @@ class nado extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //     {
         //         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -2996,8 +3123,9 @@ class nado extends Exchange {
                     $status = 'canceled';
                 }
             } else {
-                $status = $this->safe_string($order, 'status', 'rejected');
-                if (($status === 'success') || (mb_strpos($status, 'waiting') !== false)) {
+                $rawStatus = $this->safe_string($order, 'status', 'rejected');
+                $status = $rawStatus;
+                if (($rawStatus === 'success') || (mb_strpos($rawStatus, 'waiting') !== false)) {
                     $status = 'open';
                 }
             }
@@ -3030,7 +3158,7 @@ class nado extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_time_in_force(?string $timeInForce) {
+    public function parse_order_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'default' => 'GTC',
             'ioc' => 'IOC',
@@ -3040,14 +3168,14 @@ class nado extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function convert_to_x18(?string $value) {
+    public function convert_to_x18(?string $value): ?string {
         if ($value === null) {
             throw new ArgumentsRequired($this->id . ' convertToX18() requires a value');
         }
         return Precise::string_div(Precise::string_mul($value, '1000000000000000000'), '1', 0);
     }
 
-    public function parse_x18(?string $value) {
+    public function parse_x18(?string $value): ?float {
         if ($value === null) {
             return null;
         }
@@ -3085,23 +3213,23 @@ class nado extends Exchange {
         if ($orderType !== 0) {
             $appendix = Precise::string_add($appendix, Precise::string_mul($this->number_to_string($orderType), '512'));
         }
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             $appendix = Precise::string_add($appendix, '2048');
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if ($buildFee === true) {
+        if ($buildFee) {
             $builder = $this->safe_string($this->options, 'builder', '4500');
             $builderFeeRate = $this->safe_string($this->options, 'feeRate', '10'); // 10 units = 0.01%
             $appendix = Precise::string_add($appendix, Precise::string_mul($builder, '281474976710656')); // 1<<48
             $appendix = Precise::string_add($appendix, Precise::string_mul($builderFeeRate, '274877906944')); // 1<<32
         }
-        if ($isTriggerOrder === true) {
+        if ($isTriggerOrder) {
             $appendix = Precise::string_add($appendix, '4096');
         }
         return $appendix;
     }
 
-    public function create_subaccount(?string $walletAddress, ?string $subaccount = 'default') {
+    public function create_subaccount(?string $walletAddress, ?string $subaccount = 'default'): string {
         if ($walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' createSubaccount() requires walletAddress');
         }
@@ -3122,39 +3250,30 @@ class nado extends Exchange {
     }
 
     private function do_query_contracts($params = array()) {
-        $cachedContracts = $this->safe_dict($this->options, 'gatewayContracts');
-        if ($cachedContracts !== null) {
-            return $cachedContracts;
+        $gatewayContracts = $this->safe_dict($this->options, 'gatewayContracts');
+        if ($gatewayContracts === null) {
+            $request = array(
+                'type' => 'contracts',
+            );
+            $response = Async\await($this->gatewayPublicGetQuery($this->extend($request, $params)));
+            $this->options['gatewayContracts'] = $this->safe_dict($response, 'data', array());
         }
-        $request = array(
-            'type' => 'contracts',
-        );
-        $response = Async\await($this->gatewayPublicGetQuery($this->extend($request, $params)));
-        $data = $this->safe_dict($response, 'data', array());
-        $this->options['gatewayContracts'] = $data;
-        return $data;
+        return $this->safe_dict($this->options, 'gatewayContracts', array());
     }
 
-    public function order_verifying_contract(?int $productId) {
+    public function order_verifying_contract(?int $productId): string {
         return '0x' . $this->pad_hex($this->int_to_base16($productId), 40);
     }
 
-    public function pad_hex(string $value, ?int $length, bool $left = true): string {
-        if ($length === null) {
-            throw new ArgumentsRequired($this->id . ' padHex() requires length');
-        }
+    public function pad_hex(string $value, float $length, bool $left = true): string {
         $zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        $padded = null;
         if ($left) {
-            $padded = ($zeros . $value);
-        } else {
-            $padded = ($value . $zeros);
+            $paddedLeft = $zeros . $value;
+            $start = strlen($paddedLeft) - $this->parse_to_int($length);
+            return mb_substr($paddedLeft, $start, strlen($paddedLeft) - $start);
         }
-        if ($left) {
-            $start = strlen($padded) - $length;
-            return mb_substr($padded, $start, strlen($padded) - $start);
-        }
-        return mb_substr($padded, 0, $length - 0);
+        $paddedRight = $value . $zeros;
+        return mb_substr($paddedRight, 0, $length - 0);
     }
 
     public function sign_order(array $order, ?int $productId, ?string $chainId): string {
@@ -3175,8 +3294,7 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $order);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_cancellation(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
@@ -3195,8 +3313,7 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $cancellation);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_cancellation_products(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
@@ -3214,8 +3331,7 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $cancellation);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_fetch_trigger_orders(array $tx, ?string $chainId, ?string $endpointAddress): string {
@@ -3232,22 +3348,21 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $tx);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
-    public function sign_hash(string $hash, ?string $privateKey) {
+    public function sign_hash(string $hash, ?string $privateKey): string {
         if ($privateKey === null) {
             throw new ArgumentsRequired($this->id . ' signHash() requires privateKey');
         }
-        $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $signature = $this->ecdsa($hash, mb_substr($privateKey, -64), 'secp256k1', null);
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = strtolower($this->int_to_base16($this->sum(27, $signature['v'])));
         return '0x' . $this->pad_hex($r, 64) . $this->pad_hex($s, 64) . $v;
     }
 
-    public function remove_market_suffix(?string $marketId) {
+    public function remove_market_suffix(?string $marketId): ?string {
         if ($marketId === null) {
             return null;
         }
@@ -3257,20 +3372,61 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
+            $queryType = $params['type'];
+            $byType = $config['byType'];
+            if (is_array($byType) && array_key_exists($queryType ?? '', $byType)) {
+                return $byType[$queryType];
+            }
+        }
+        $byQuery = $this->safe_dict($config, 'byQuery');
+        if ($byQuery !== null) {
+            $queryNames = is_array($byQuery) ? array_keys($byQuery) : array();
+            for ($i = 0; $i < count($queryNames); $i++) {
+                $queryName = $queryNames[$i];
+                if (is_array($params) && array_key_exists($queryName ?? '', $params)) {
+                    $weights = $this->safe_list($byQuery, $queryName, array());
+                    $baseWeight = $this->safe_integer($weights, 0, 2);
+                    $rowsPerWeight = $this->safe_integer($weights, 1);
+                    if ($rowsPerWeight === null) {
+                        return $baseWeight;
+                    }
+                    $query = $this->safe_dict($params, $queryName, array());
+                    $rows = $this->safe_integer($query, 'limit', 100); // the archive default page
+                    $nestedLimit = $this->safe_dict($query, 'limit'); // the events query sends { 'raw': 100 }
+                    if ($nestedLimit !== null) {
+                        $rows = $this->safe_integer($nestedLimit, 'raw', 100);
+                    }
+                    return $this->sum($baseWeight, $this->parse_to_int($rows / $rowsPerWeight));
+                }
+            }
+        }
+        $byRows = $this->safe_list($config, 'byRows');
+        if ($byRows !== null) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            $rowsBaseWeight = $this->safe_integer($byRows, 0, 2);
+            $rowsDivisor = $this->safe_integer($byRows, 1, 50);
+            $rowCount = $this->safe_integer($params, 'limit', 100); // the v2 default page
+            return $this->sum($rowsBaseWeight, $this->parse_to_int($rowCount / $rowsDivisor));
+        }
+        return $this->safe_value($config, 'cost', 1);
+    }
+
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $endpoint = $api[0];
-        if (gettype($api) === 'string') {
-            $endpoint = $api;
-        }
         $baseApiUrl = $this->safe_string($this->urls['api'], $endpoint);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $baseApiUrl;
+        $pathSuffix = '';
         if ($path !== '') {
-            $url .= '/' . $this->implode_params($path, $params);
+            $pathSuffix = '/' . $this->implode_params($path, $params);
         }
+        $url = $baseApiUrl . $pathSuffix;
         $query = $this->omit($params, $this->extract_params($path));
         $headersValue = array();
         if (($endpoint === 'gateway') || ($endpoint === 'archive')) {
@@ -3278,17 +3434,17 @@ class nado extends Exchange {
         }
         if ($method === 'GET') {
             if (count($query) > 0) {
-                $url .= '?' . $this->urlencode($query);
+                $url = $baseApiUrl . $pathSuffix . '?' . $this->urlencode($query);
             }
         } else {
             $headersValue['Content-Type'] = 'application/json';
             $requestBody = $this->json($query);
         }
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersValue );
     }
 
-    public function handle_errors(?int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

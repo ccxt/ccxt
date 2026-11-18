@@ -2,7 +2,7 @@ import independentreserveRest from '../independentreserve.js';
 import type { Int, OrderBook, Trade, Dict, Market, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class independentreserve extends independentreserveRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name independentreserve#watchTrades
@@ -29,7 +29,7 @@ export default class independentreserve extends independentreserveRest {
     handleOrderBook(client: Client, message: Dict): void;
     valueToChecksum(value: Num): string;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleHeartbeat(client: Client, message: Dict): Dict;
     handleSubscriptions(client: Client, message: Dict): Dict;
     handleMessage(client: Client, message: Dict): void;

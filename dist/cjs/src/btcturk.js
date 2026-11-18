@@ -721,27 +721,37 @@ class btcturk extends btcturk$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger(params, 'until', this.milliseconds());
-        request['to'] = this.parseToInt((until / 1000));
+        const untilSeconds = this.parseToInt((until / 1000));
+        request['to'] = untilSeconds;
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let limitDefaulted = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitDefaulted = 100; // default value
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            if (limit > 11000) {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
         }
-        const limitResolved = (limitDefaulted !== undefined) ? Math.min(limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
-        if (limitResolved !== undefined) {
+        else if (since === undefined) {
+            limitResolved = 100; // default value
+        }
+        if ((limit !== undefined) || (since === undefined)) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new errors.BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe(timeframe);
-            const limitSeconds = seconds * (limitResolved - 1);
+            const limitCount = (limit === undefined) ? 100 : Math.min(limit, 11000);
+            const limitSeconds = this.parseToInt(seconds * (limitCount - 1));
             if (since !== undefined) {
-                const to = this.parseToInt(since / 1000) + limitSeconds;
-                request['to'] = Math.min(request['to'], to);
+                const sinceSeconds = this.parseToInt(since / 1000);
+                const to = sinceSeconds + limitSeconds;
+                if (to < untilSeconds) {
+                    request['to'] = to;
+                }
             }
             else {
-                request['from'] = this.parseToInt(0 / 1000) - limitSeconds;
+                request['from'] = 0 - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory(this.extend(request, params));
@@ -780,26 +790,30 @@ class btcturk extends btcturk$1["default"] {
         //        ]
         //    }
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limitResolved);
-    }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
-        const results = [];
-        const timestamp = this.safeList(ohlcvs, 't', []);
-        const high = this.safeList(ohlcvs, 'h', []);
-        const open = this.safeList(ohlcvs, 'o', []);
-        const low = this.safeList(ohlcvs, 'l', []);
-        const close = this.safeList(ohlcvs, 'c', []);
-        const volume = this.safeList(ohlcvs, 'v', []);
+        const timestamp = this.safeList(response, 't', []);
+        const high = this.safeList(response, 'h', []);
+        const open = this.safeList(response, 'o', []);
+        const low = this.safeList(response, 'l', []);
+        const close = this.safeList(response, 'c', []);
+        const volume = this.safeList(response, 'v', []);
+        const rows = [];
         for (let i = 0; i < timestamp.length; i++) {
-            const ohlcv = {
+            rows.push({
                 'timestamp': this.safeInteger(timestamp, i),
                 'high': this.safeNumber(high, i),
                 'open': this.safeNumber(open, i),
                 'low': this.safeNumber(low, i),
                 'close': this.safeNumber(close, i),
                 'volume': this.safeNumber(volume, i),
-            };
-            results.push(this.parseOHLCV(ohlcv, market));
+            });
+        }
+        return this.parseOHLCVs(rows, market, timeframe, since, limitResolved);
+    }
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
+        const rows = this.toArray(ohlcvs);
+        const results = [];
+        for (let i = 0; i < rows.length; i++) {
+            results.push(this.parseOHLCV(this.safeDict(rows, i, {}), market));
         }
         const sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
@@ -1070,30 +1084,32 @@ class btcturk extends btcturk$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         if (this.id === 'btctrader') {
             throw new errors.ExchangeError(this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
         const isQueryMethod = (method === 'GET') || (method === 'DELETE');
         if (isQueryMethod) {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            const query = this.urlencode(params);
+            if (query.length > 0) {
+                url += '?' + query;
             }
         }
         let requestBody = undefined;
         if (isQueryMethod) {
-            requestBody = body;
+            requestBody = undefined;
         }
         else {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const secret = this.base64ToBinary(this.secret);
@@ -1105,19 +1121,18 @@ class btcturk extends btcturk$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code', '0');
         const message = this.safeString(response, 'message');
-        let output = message;
-        if (message === undefined) {
-            output = body;
+        let feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            feedback = this.id + ' ' + message;
         }
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + output);
+        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
-            throw new errors.ExchangeError(this.id + ' ' + output);
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

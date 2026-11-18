@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/vmihailenco/msgpack/v5"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/elliottech/lighter-go/client"
@@ -92,6 +91,7 @@ type Cancel struct {
 type CancelMessage struct {
 	Type    string   `json:"type" msgpack:"type"`
 	Cancels []Cancel `json:"cancels" msgpack:"cancels"`
+	F       *bool    `json:"f,omitempty" msgpack:"f,omitempty"` // optional fast flag, must be absent when false
 }
 
 // Transfer
@@ -249,6 +249,7 @@ type CancelByCloidItem struct {
 type CancelByCloidMessage struct {
 	Type    string              `json:"type" msgpack:"type"`
 	Cancels []CancelByCloidItem `json:"cancels" msgpack:"cancels"`
+	F       *bool               `json:"f,omitempty" msgpack:"f,omitempty"` // optional fast flag, must be absent when false
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -275,23 +276,11 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 		Message:     messageData,
 	}
 
-	encodedDomain, err := typedData.HashStruct("EIP712Domain", domain.Map())
+	rawData, err := encodeTypedDataDigest(typedData)
 	if err != nil {
 		return "", err
 	}
-
-	encodedData, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
-	if err != nil {
-		return "", err
-	}
-
-	domainHex := hexutil.Encode(encodedDomain) // comes with 0x, remove
-	domainHex = strings.TrimPrefix(domainHex, "0x")
-	dataHex := hexutil.Encode(encodedData)
-	dataHex = strings.TrimPrefix(dataHex, "0x")
-
-	encodedHex := "1901" + domainHex + dataHex
-	return encodedHex, nil
+	return hex.EncodeToString(rawData), nil
 }
 
 func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
@@ -548,11 +537,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	converted := ConvertInt64ToBigInt(dataObj)
 
 	if this.Id != "hyperliquid" {
-		p, err := msgpack.Marshal(converted)
-		if err != nil {
-			panic(err)
-		}
-		return p
+		return msgpackEncode(converted)
 	}
 
 	typeA := SafeString(converted, "type", "").(string)
@@ -566,12 +551,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(orderMsg)
-
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(orderMsg)
 	case "cancel":
 		var cancelMsg CancelMessage
 
@@ -580,12 +560,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(cancelMsg)
-
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(cancelMsg)
 	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
@@ -594,11 +569,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(withdrawMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(withdrawMsg)
 	case "batchModify":
 		var editMsg EditOrderMessage
 
@@ -607,11 +578,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(editMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(editMsg)
 	case "subAccountTransfer":
 		var subAccountTransferMsg SubAccountTransferMessage
 
@@ -620,11 +587,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(subAccountTransferMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(subAccountTransferMsg)
 	case "createSubAccount":
 		var createSubAccountMsg CreateSubAccountMessage
 
@@ -633,11 +596,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(createSubAccountMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(createSubAccountMsg)
 	case "updateLeverage":
 		var leverageMsg UpdateLeverageMessage
 
@@ -646,11 +605,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(leverageMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(leverageMsg)
 	case "updateIsolatedMargin":
 		var isolatedMarginMsg UpdateIsolatedMarginMessage
 
@@ -659,11 +614,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(isolatedMarginMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(isolatedMarginMsg)
 	case "vaultTransfer":
 		var vaultTransferMsg VaultTransferMessage
 
@@ -672,11 +623,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(vaultTransferMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(vaultTransferMsg)
 	case "reserveRequestWeight":
 		var reserveRequestWeightMsg ReserveRequestWeightMessage
 
@@ -685,11 +632,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(reserveRequestWeightMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(reserveRequestWeightMsg)
 	case "setReferrer":
 		var msg SetReferrerMessage
 
@@ -698,11 +641,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "agentSetAbstraction":
 		var msg AgentSetAbstractionMessage
 
@@ -711,11 +650,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "twapOrder":
 		var msg TwapOrderMessage
 
@@ -724,11 +659,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "twapCancel":
 		var msg TwapCancelMessage
 
@@ -737,11 +668,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "scheduleCancel":
 		var msg ScheduleCancelMessage
 
@@ -750,11 +677,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "createVault":
 		var msg CreateVaultMessage
 
@@ -763,11 +686,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "subAccountSpotTransfer":
 		var msg SubAccountSpotTransferMessage
 
@@ -776,11 +695,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "cancelByCloid":
 		var msg CancelByCloidMessage
 
@@ -789,11 +704,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	}
 	return nil
 }
@@ -853,7 +764,7 @@ func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKe
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
-	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))
+	url := this.ImplodeHostname(this.UrlsApi["public"])
 
 	httpClient := http.NewClient(url)
 
@@ -1438,6 +1349,10 @@ func BuildTypedDataFromJS(primaryType string, domain map[string]any, rawTypes ma
 
 // EncodeTypedData returns the EIP-712 digest "\x19\x01" + domainSeparator + hashStruct(message)
 func (this *BaseExchange) EncodeTypedData(td apitypes.TypedData) ([]byte, error) {
+	return encodeTypedDataDigest(td)
+}
+
+func encodeTypedDataDigest(td apitypes.TypedData) ([]byte, error) {
 	domainSeparator, err := td.HashStruct("EIP712Domain", td.Domain.Map())
 	if err != nil {
 		return []byte{}, err
@@ -1647,6 +1562,9 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value any
 			return []any{}, nil
 		}
 
+		if strs, isStrings := value.([]string); isStrings {
+			value = StringSliceToList(strs)
+		}
 		arr, ok := value.([]any)
 		if !ok {
 			return nil, fmt.Errorf("expected array for %s", typeName)

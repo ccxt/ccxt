@@ -34,8 +34,8 @@ public partial class testMainClass : BaseTest
                 ids[(string)symbol] = getValue(market, "id");
             } else
             {
-                bool isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));
-                assert(!isDifferent, add(add(add(add(add(add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), getValue(ids, symbol)), " "), getValue(market, "id")));
+                bool isDifferent = !isEqual((ids != null && symbol != null && ids.ContainsKey((string)symbol) ? ids[(string)symbol] : null), getValue(market, "id"));
+                assert(!isDifferent, add(add(add(add(add(add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), (ids != null && symbol != null && ids.ContainsKey((string)symbol) ? ids[(string)symbol] : null)), " "), getValue(market, "id")));
             }
         }
         return true;

@@ -6,7 +6,7 @@ import type { OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class hibachi extends Exchange {
-    describe(): any;
+    describe(): Dict;
     getAccountId(): number;
     parseMarket(market: Dict): Market;
     /**
@@ -19,7 +19,7 @@ export default class hibachi extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     hardcodedCurrencies(): Currencies;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name hibachi#fetchBalance
@@ -128,10 +128,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    cancelOrderRequest(id: string): {
-        orderId: string;
-        signature: string;
-    };
+    cancelOrderRequest(id: string): Dict;
     /**
      * @method
      * @name hibachi#cancelOrder
@@ -173,12 +170,12 @@ export default class hibachi extends Exchange {
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
-    nonce(): number;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    nonce(): int;
     signMessage(message: any, privateKey: string): string;
     /**
      * @method
@@ -231,7 +228,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersByStatus(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name hibachi#fetchClosedOrders
@@ -285,8 +282,8 @@ export default class hibachi extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: string, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;

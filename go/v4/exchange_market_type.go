@@ -15,11 +15,11 @@ func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs
 		return SafeStringPtr(GetValue(market, "type")), params
 	}
 	// type from default-argument
-	if !IsEqual(defaultValue, nil) {
+	if derefScalar(defaultValue) != nil {
 		return SafeStringPtr(defaultValue), params
 	}
 	methodOptions := this.SafeDict(this.Options, methodName)
-	if !IsEqual(methodOptions, nil) {
+	if derefScalar(methodOptions) != nil {
 		if IsString(methodOptions) {
 			return SafeStringPtr(methodOptions), params
 		}
@@ -142,16 +142,16 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 		market := this.DerivedExchange.Market(symbolIn)
 		PanicOnError(market)
 		if sameTypeOnly && (marketType != nil) {
-			if !IsEqual(market["type"], marketType) {
+			if derefScalar(market["type"]) != any(*marketType) {
 				panic(BadRequest(Add(Add(Add(Add(this.Id+" symbols must be of the same type, either ", marketType), " or "), market["type"]), ".")))
 			}
 		}
 		if sameSubTypeOnly && (isLinearSubType != nil) {
-			if !IsEqual(market["linear"], isLinearSubType) {
+			if derefScalar(market["linear"]) != any(*isLinearSubType) {
 				panic(BadRequest(this.Id + " symbols must be of the same subType, either linear or inverse."))
 			}
 		}
-		if (typeVar != nil) && !IsEqual(GetValue(market, "type"), typeVar) {
+		if (typeVar != nil) && derefScalar(GetValue(market, "type")) != any(*typeVar) {
 			panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type ", typeVar), ". If the type is incorrect you can change it in options or the params of the request")))
 		}
 		marketType = this.SafeString(market, "type")

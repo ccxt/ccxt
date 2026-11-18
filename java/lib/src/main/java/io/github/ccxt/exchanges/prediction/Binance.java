@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -35,7 +36,7 @@ public class Binance extends BinanceApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "binance" );
@@ -213,40 +214,40 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object queries = (List<Object>)(this.parseSearchQueries(parameters));
-            Integer queriesLength = ((List<?>)queries).size();
+            List<Object> queries = (List<Object>)(this.parseSearchQueries(parameters));
+            Integer queriesLength = queries.size();
             if ((queriesLength != null && queriesLength > 0))
             {
                 Map<String, Object> eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
-                Integer eventsLength = ((List<?>)events).size();
+                Integer eventsLength = events.size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
                 for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
                 {
-                    Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
-                    Integer eventMarketsLength = ((List<?>)eventMarkets).size();
+                    List<Object> eventMarkets = this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList()));
+                    Integer eventMarketsLength = eventMarkets.size();
                     for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                     {
-                        ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
+                        ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                     }
                 }
                 return queryMarkets;
             }
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
-            Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
+            List<Object> rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
-            Integer rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = rawTopics.size();
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
-                Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
                 ((List<Object>)parsedEvents).add(parsedEvent);
-                Object eventMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer eventMarketsLength = ((List<?>)eventMarkets).size();
+                List<Object> eventMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
+                Integer eventMarketsLength = eventMarkets.size();
                 for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
-                    ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
+                    ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                 }
             }
             this.setEvents(parsedEvents);
@@ -265,29 +266,31 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    public CompletableFuture<Object> fetchRawTopics(Object maxTopics, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchRawTopics(Object maxTopics, Map<String, Object> rest)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object maxTopicsResolved = (((java.util.Objects.equals(maxTopics, null)))) ? this.safeInteger(this.options, "maxFetchMarketsLimit", 200) : maxTopics;
-            Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 100);
-            if ((pageLimit != null && pageLimit > 100))
+            Long maxTopicsOption = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
+            Long maxTopicsResolved = this.parseToInt(maxTopicsOption);
+            if (!java.util.Objects.equals(maxTopics, null))
             {
-                pageLimit = 100L;
+                maxTopicsResolved = this.parseToInt(maxTopics);
+            }
+            Long pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
+            Long pageLimit = 100L;
+            if (((pageLimitOption == null || pageLimitOption < 100)))
+            {
+                pageLimit = this.parseToInt(pageLimitOption);
             }
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             Object offset = 0;
             while (true)
             {
-                Object reqLimit = pageLimit;
-                Integer collectedLength = ((List<?>)collected).size();
-                Object remaining = Helpers.subtract(maxTopicsResolved, collectedLength);
-                if (Helpers.isLessThan(remaining, reqLimit))
-                {
-                    reqLimit = remaining;
-                }
-                if (Helpers.isLessThanOrEqual(reqLimit, 0))
+                Integer collectedLength = collected.size();
+                Object remaining = (maxTopicsResolved - ((long) collectedLength));
+                Object reqLimit = (((((pageLimit != null && !(((Number) remaining).doubleValue() >= pageLimit)))))) ? remaining : pageLimit;
+                if ((reqLimit == null || (!(((Number) reqLimit).doubleValue() > 0))))
                 {
                     break;
                 }
@@ -327,14 +330,14 @@ public class Binance extends BinanceApi
                 //         "hasMore": true
                 //     }
                 //
-                Object pageTopics = (List<Object>)(this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList())));
-                Integer pageTopicsLength = ((List<?>)pageTopics).size();
+                List<Object> pageTopics = this.safeList(response, "marketTopics", new ArrayList<Object>(Arrays.asList()));
+                Integer pageTopicsLength = pageTopics.size();
                 for (var i = 0; (pageTopicsLength != null && i < pageTopicsLength); i++)
                 {
-                    ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= ((List<?>)pageTopics).size() ? null : ((List<?>)pageTopics).get(i)));
+                    ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= pageTopics.size() ? null : pageTopics.get(i)));
                 }
                 Boolean hasMore = (Boolean) this.safeBool(response, "hasMore", false);
-                if ((!java.util.Objects.equals(hasMore, true)) || (Helpers.isLessThan(pageTopicsLength, reqLimit)))
+                if ((!Boolean.TRUE.equals(hasMore)) || ((!(pageTopicsLength == null && reqLimit == null) && pageTopicsLength == null || (reqLimit != null && !(pageTopicsLength >= ((Number) reqLimit).doubleValue())))))
                 {
                     break;
                 }
@@ -354,7 +357,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    public CompletableFuture<Object> fetchRawTopicDetail(Object topicId, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchRawTopicDetail(String topicId, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -375,7 +378,7 @@ public class Binance extends BinanceApi
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<Object> completeRawTopics(Object rawTopics)
+    public CompletableFuture<List<Object>> completeRawTopics(Object rawTopics)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -385,14 +388,14 @@ public class Binance extends BinanceApi
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
                 Object rawTopic = (rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i));
-                Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+                List<Object> rawMarkets = this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
+                Integer rawMarketsLength = rawMarkets.size();
                 Boolean hasOutcomes = false;
                 if ((rawMarketsLength != null && rawMarketsLength > 0))
                 {
-                    Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(rawMarkets, 0, new HashMap<String, Object>() {{}});
-                    Object firstOutcomes = (List<Object>)(this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList())));
-                    Integer firstOutcomesLength = ((List<?>)firstOutcomes).size();
+                    Map<String, Object> firstMarket = this.safeDict(rawMarkets, 0, new HashMap<String, Object>() {{}});
+                    List<Object> firstOutcomes = this.safeList(firstMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
+                    Integer firstOutcomesLength = firstOutcomes.size();
                     hasOutcomes = ((firstOutcomesLength != null && firstOutcomesLength > 0));
                 }
                 if (Boolean.TRUE.equals(hasOutcomes))
@@ -403,7 +406,7 @@ public class Binance extends BinanceApi
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
-                        Object detail = (this.fetchRawTopicDetail(topicId, new HashMap<String, Object>() {{}})).join();
+                        Map<String, Object> detail = (this.fetchRawTopicDetail((String) (topicId), new HashMap<String, Object>() {{}})).join();
                         ((List<Object>)result).add(detail);
                     }
                 }
@@ -438,16 +441,16 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!java.util.Objects.equals(allowUnscopedFetchEvents, true))
+            if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
             {
-                this.requireEventQuery(Helpers.toMapArg(parameters));
+                this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             }
-            List<Object> queries = this.parseSearchQueries(Helpers.toMapArg(parameters));
+            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
             // binance has no tag taxonomy — resolve requested tags through the semantic search too
-            List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-            Integer tagsLength = ((List<?>)tags).size();
+            List<Object> tags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+            Integer tagsLength = tags.size();
             List<Object> allQueries = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)queries).size(); i++)
+            for (var i = 0; i < queries.size(); i++)
             {
                 ((List<Object>)allQueries).add((queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
             }
@@ -455,7 +458,7 @@ public class Binance extends BinanceApi
             {
                 ((List<Object>)allQueries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
             }
-            Integer allQueriesLength = ((List<?>)allQueries).size();
+            Integer allQueriesLength = allQueries.size();
             Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             // keys dropped before the client-side pass; a server-side sort also drops its own keys
             List<Object> postOmitKeys = new ArrayList<Object>(Arrays.asList("tags", "l1Category", "l2Category"));
@@ -473,13 +476,13 @@ public class Binance extends BinanceApi
             {
                 this.markets = this.createSafeDictionary();
             }
-            Object rawTopics = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawTopics = new ArrayList<Object>(Arrays.asList());
             if ((allQueriesLength != null && allQueriesLength > 0))
             {
-                rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, Helpers.toMapArg(rest))).join();
+                rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Object detail = (this.fetchRawTopicDetail(eventId, Helpers.toMapArg(rest))).join();
+                Map<String, Object> detail = (this.fetchRawTopicDetail((String) (eventId), ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
                 rawTopics = new ArrayList<Object>(Arrays.asList(detail));
             } else
             {
@@ -513,25 +516,25 @@ public class Binance extends BinanceApi
                         ((List<Object>)postOmitKeys).add("sortBy");
                     }
                 }
-                Object listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
+                List<Object> listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
-            Integer rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = rawTopics.size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
-                Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
                 ((List<Object>)result).add(parsedEvent);
-                Object parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
+                List<Object> parsedMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
+                Integer parsedMarketsLength = parsedMarkets.size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
-                    Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
+                    Object m = (parsedMarkets == null || mi < 0 || mi >= parsedMarkets.size() ? null : parsedMarkets.get(mi));
                     // prediction market rows are keyed by the unified 'market' handle
                     String handle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(handle, null))
                     {
-                        Helpers.addElementToObject(this.markets, handle, m);
+                        ((Map<Object, Object>) (Map<?, ?>) this.markets).put(handle, m);
                     }
                 }
             }
@@ -540,7 +543,7 @@ public class Binance extends BinanceApi
             // binance topics lack, and the query filter would drop semantic-search matches whose
             // title uses different words than the query
             Object postParams = this.omit(paramsOmitted, postOmitKeys);
-            return this.applyEventFetchParams(result, Helpers.toMapArg(postParams), new ArrayList<Object>(Arrays.asList()));
+            return this.applyEventFetchParams(result, ((Map<String, Object>) (switch ((Object) (postParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), new ArrayList<Object>(Arrays.asList()));
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -556,7 +559,7 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -564,13 +567,15 @@ public class Binance extends BinanceApi
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             Integer queriesLength = ((List<?>)queries).size();
-            Object limitResolved = limit;
-            if (java.util.Objects.equals(limit, null))
+            Long limitValue = 20L;
+            if (!java.util.Objects.equals(limit, null))
             {
-                limitResolved = 20;
-            } else if (Helpers.isGreaterThan(limit, 50))
+                limitValue = this.parseToInt(limit);
+            }
+            Long limitResolved = limitValue;
+            if ((limitValue != null && limitValue > 50))
             {
-                limitResolved = 50;
+                limitResolved = 50L;
             }
             for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
@@ -590,10 +595,10 @@ public class Binance extends BinanceApi
                 //         }
                 //     ]
                 //
-                Integer responseLength = ((List<?>)response).size();
+                Integer responseLength = response.size();
                 for (var i = 0; (responseLength != null && i < responseLength); i++)
                 {
-                    Map<String, Object> rawTopic = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+                    Map<String, Object> rawTopic = this.safeDict(response, i, null);
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
@@ -606,9 +611,9 @@ public class Binance extends BinanceApi
                     }
                 }
             }
-            Object capped = collected;
-            Integer collectedLength = ((List<?>)collected).size();
-            if ((!java.util.Objects.equals(limitResolved, null)) && (Helpers.isGreaterThan(collectedLength, limitResolved)))
+            List<Object> capped = collected;
+            Integer collectedLength = collected.size();
+            if ((collectedLength != null && (limitResolved == null || collectedLength > limitResolved)))
             {
                 capped = this.arraySlice(collected, 0, limitResolved);
             }
@@ -634,7 +639,7 @@ public class Binance extends BinanceApi
             List<PredictionEvent> events = (this.fetchEvents(this.extend(new HashMap<String, Object>() {{
                 put( "eventId", id );
             }}, parameters))).join();
-            return this.safeDict(events, 0, (Object) null);
+            return this.safeDict(events, 0, null);
         }).thenApply(PredictionEvent::new);
 
     }
@@ -647,7 +652,7 @@ public class Binance extends BinanceApi
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    public Object parseEvent(Map<String, Object> rawTopic)
+    public Map<String, Object> parseEvent(Map<String, Object> rawTopic)
     {
         //
         //     {
@@ -677,13 +682,13 @@ public class Binance extends BinanceApi
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
+        List<Object> rawMarkets = this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         Boolean anyActive = false;
-        Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+        Integer rawMarketsLength = rawMarkets.size();
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
+            Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), rawTopic);
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -785,13 +790,13 @@ public class Binance extends BinanceApi
         }};
         Double volume = this.safeNumber(rawMarket, "tradeVolume", (Object) null);
         Double liquidity = this.safeNumber(rawMarket, "liquidity", (Object) null);
-        List<Object> rawOutcomes = (List<Object>) this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawOutcomes = this.safeList(rawMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcomeRaw = null;
-        Integer rawOutcomesLength = ((List<?>)rawOutcomes).size();
+        Integer rawOutcomesLength = rawOutcomes.size();
         for (var oi = 0; (rawOutcomesLength != null && oi < rawOutcomesLength); oi++)
         {
-            Map<String, Object> rawOutcome = (Map<String, Object>) this.safeDict(rawOutcomes, oi, (Object) null);
+            Map<String, Object> rawOutcome = this.safeDict(rawOutcomes, oi, null);
             String label = this.safeStringUpper(rawOutcome, "name");
             String tokenId = this.safeString(rawOutcome, "tokenId");
             String outcomeHandle = ((marketSymbol + ":") + label);
@@ -801,8 +806,8 @@ public class Binance extends BinanceApi
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(price, null)))
             {
                 winnerRaw = Precise.stringEq(price, "1");
-                settleFractionRaw = ((Helpers.isTrue((winnerRaw)))) ? 1 : 0;
-                if (Helpers.isTrue(winnerRaw))
+                settleFractionRaw = ((Boolean.TRUE.equals(winnerRaw))) ? 1 : 0;
+                if (Boolean.TRUE.equals(winnerRaw))
                 {
                     resolvedOutcomeRaw = outcomeHandle;
                 }
@@ -924,8 +929,8 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadOutcome((String) (outcome), false)).join();
-            Object outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Binance.this.safeString(info, "marketId") );
             }};
@@ -933,7 +938,7 @@ public class Binance extends BinanceApi
             //
             //     { "marketId": 5567895, "lastTradePrice": "0.52" }
             //
-            return this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
+            return this.parsePredictionTicker(response, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -952,11 +957,10 @@ public class Binance extends BinanceApi
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        Object marketAny = ((Object)market);
-        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
-        Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String outcomeIndex = this.safeString(outcomeInfo, "index");
         Boolean isMirrored = false;
         if (!java.util.Objects.equals(outcomeIndex, null))
@@ -979,31 +983,31 @@ public class Binance extends BinanceApi
                 last = this.parseNumber(lastString);
             }
         }
-        return (Map<String, Object>) (this.safePredictionTicker(Helpers.newMap(
-            "outcome", this.safeString(outcomeObj, "outcome"),
-            "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"),
-            "label", this.safeString(outcomeObj, "label"),
-            "market", this.safeString(outcomeObj, "market"),
-            "timestamp", null,
-            "datetime", null,
-            "high", null,
-            "low", null,
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", null,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", null,
-            "quoteVolume", null,
-            "info", raw
-        ), market));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("outcome", this.safeString(outcomeObj, "outcome"));
+            j39v1.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+            j39v1.put("label", this.safeString(outcomeObj, "label"));
+            j39v1.put("market", this.safeString(outcomeObj, "market"));
+            j39v1.put("timestamp", null);
+            j39v1.put("datetime", null);
+            j39v1.put("high", null);
+            j39v1.put("low", null);
+            j39v1.put("bid", null);
+            j39v1.put("bidVolume", null);
+            j39v1.put("ask", null);
+            j39v1.put("askVolume", null);
+            j39v1.put("vwap", null);
+            j39v1.put("open", null);
+            j39v1.put("close", last);
+            j39v1.put("last", last);
+            j39v1.put("previousClose", null);
+            j39v1.put("change", null);
+            j39v1.put("percentage", null);
+            j39v1.put("average", null);
+            j39v1.put("baseVolume", null);
+            j39v1.put("quoteVolume", null);
+            j39v1.put("info", raw);
+            yield j39v1; } }), market));
     }
 
     /**
@@ -1030,14 +1034,14 @@ public class Binance extends BinanceApi
             Integer outcomesLength = ((List<?>)outcomes).size();
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
-                Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(info, "marketId");
                 if (java.util.Objects.equals(marketId, null))
                 {
                     continue;
                 }
-                Map<String, Object> response = (Map<String, Object>) this.safeDict(responsesByMarketId, marketId, (Object) null);
+                Map<String, Object> response = this.safeDict(responsesByMarketId, marketId, null);
                 if (java.util.Objects.equals(response, null))
                 {
                     Map<String, Object> request = new HashMap<String, Object>();
@@ -1045,7 +1049,7 @@ public class Binance extends BinanceApi
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                     responsesByMarketId.put(marketId, response);
                 }
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), Helpers.toMapArg(((Object)outcomeObj)));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
                 String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                 result.put(symbolKey, ticker);
             }
@@ -1071,7 +1075,7 @@ public class Binance extends BinanceApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "vendor", Binance.this.safeString(info, "vendor", Binance.this.safeString(Binance.this.options, "defaultVendor")) );
                 put( "marketId", Binance.this.safeString(info, "marketId") );
@@ -1089,7 +1093,7 @@ public class Binance extends BinanceApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -1108,7 +1112,7 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "type", "SPOT");
+            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "type", "SPOT");
             String type = typeparamsTypeVariable.first();
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Map<String, Object> response = (this.sapiPrivateGetBalancePaymentOptions(paramsType)).join();
@@ -1126,10 +1130,10 @@ public class Binance extends BinanceApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            List<Object> balances = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            List<Object> balances = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < balances.size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+                Map<String, Object> balance = this.safeDict(balances, i, null);
                 String accountType = this.safeString(balance, "accountType");
                 if (java.util.Objects.equals(accountType, type))
                 {
@@ -1153,7 +1157,7 @@ public class Binance extends BinanceApi
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> outcomeObj)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> outcomeObj)
     {
         //
         // {
@@ -1195,7 +1199,7 @@ public class Binance extends BinanceApi
                 outcomeName = marketId;
             }
             outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
+            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
@@ -1270,7 +1274,7 @@ public class Binance extends BinanceApi
 
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100L);
@@ -1281,19 +1285,19 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
             }
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
+                Map<String, Object> market = this.market(outcomeObj.get("market"));
                 request.put("marketId", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1301,7 +1305,7 @@ public class Binance extends BinanceApi
                 request.put("limit", limit);
             }
             Object wallet = (this.fetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest))).join();
             //
             // {
@@ -1337,7 +1341,7 @@ public class Binance extends BinanceApi
             //     ]
             // }
             //
-            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -1367,7 +1371,7 @@ public class Binance extends BinanceApi
 
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100L);
@@ -1378,14 +1382,14 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
             }
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -1406,7 +1410,7 @@ public class Binance extends BinanceApi
                 request.put("endDate", this.yyyymmdd(until));
             }
             Object wallet = (this.fetchWallet("fetchOrders", paramsOmitted)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -1443,7 +1447,7 @@ public class Binance extends BinanceApi
             //     ]
             // }
             //
-            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -1471,15 +1475,15 @@ public class Binance extends BinanceApi
             {
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Object) null);
+                    String requested = (String) (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
             }
             Object wallet = (this.fetchWallet("fetchPositions", parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
+                put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
             }};
             Map<String, Object> response = (this.sapiPrivateGetPositionList(this.extend(request, parameters))).join();
             //
@@ -1531,17 +1535,17 @@ public class Binance extends BinanceApi
             //     ]
             // }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            Object positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(outcomes, null))
             {
-                return positions;
+                return this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             }
+            List<Object> positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            Integer positionsLength = ((List<?>)positions).size();
+            Integer positionsLength = positions.size();
             for (var i = 0; (positionsLength != null && i < positionsLength); i++)
             {
-                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
+                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String positionOutcome = this.safeString(position, "outcome");
                 if ((!java.util.Objects.equals(positionOutcome, null)) && (requestedOutcomeSymbols.containsKey(positionOutcome)))
                 {
@@ -1568,23 +1572,23 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
+                Map<String, Object> market = this.market(outcomeObj.get("market"));
                 request.put("marketTopicId", Helpers.GetValue(market.get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetPositionFilter(this.extend(request, parameters))).join();
             //
             //
-            List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            Object parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
-            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, Helpers.toStringArg(outcome), (Long) null, (Long) null, false);
-            return this.safeDict(filteredPositions, 0, (Object) null);
+            List<Object> positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
+            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, java.util.Objects.toString(outcome, null), (Long) null, (Long) null, false);
+            return this.safeDict(filteredPositions, 0, null);
         }).thenApply(PredictionPosition::new);
 
     }
@@ -1598,7 +1602,7 @@ public class Binance extends BinanceApi
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> outcomeObj)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> outcomeObj)
     {
         Object outcomeObjResolved = outcomeObj;
         if (java.util.Objects.equals(outcomeObjResolved, null))
@@ -1612,7 +1616,7 @@ public class Binance extends BinanceApi
                 outcomeName = marketId;
             }
             outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
+            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(position, "createdTime");
         Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
@@ -1670,7 +1674,7 @@ public class Binance extends BinanceApi
 
             Boolean paginate = false;
             Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             paginate = paginateparamsPaginateVariable.first();
             paramsPaginate = paginateparamsPaginateVariable.second();
             List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100L);
@@ -1681,16 +1685,16 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
-            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
             {
                 request.put("offset", offSet);
             }
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -1711,7 +1715,7 @@ public class Binance extends BinanceApi
                 request.put("endDate", this.yyyymmdd(until));
             }
             Object wallet = (this.fetchWallet("fetchMyTrades", paramsOmitted)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -1748,8 +1752,8 @@ public class Binance extends BinanceApi
             //     ]
             // }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            Object parsedTrades = this.parsePredictionTrades(trades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> parsedTrades = this.parsePredictionTrades(trades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -1805,7 +1809,7 @@ public class Binance extends BinanceApi
                 outcomeName = marketId;
             }
             outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
+            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");
         String filled = this.safeString(trade, "filledShareQty");
@@ -1852,18 +1856,17 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public CompletableFuture<Object> fetchWallet(Object methodName, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchWallet(String methodName, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedWallet = this.safeDict(this.options, "wallet", (Object) null);
-            if (!java.util.Objects.equals(cachedWallet, null))
+            if (!java.util.Objects.equals(this.safeDict(this.options, "wallet", null), null))
             {
-                return cachedWallet;
+                return this.safeDict(this.options, "wallet", null);
             }
             String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
-            Map<String, Object> response = (this.sapiPrivateGetWalletList()).join();
+            Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();
             //
             // {
             //     "wallets": [
@@ -1875,29 +1878,23 @@ public class Binance extends BinanceApi
             //     ]
             // }
             //
-            List<Object> wallets = (List<Object>) this.safeList(response, "wallets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> wallets = this.safeList(response, "wallets", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(walletAddress, null))
             {
-                cachedWallet = this.safeDict(wallets, 0, (Object) null);
-                Helpers.addElementToObject(this.options, "wallet", cachedWallet);
-                return cachedWallet;
+                this.options.put("wallet", this.safeDict(wallets, 0, null));
+                return this.safeDict(this.options, "wallet", null);
             }
-            Integer walletLength = ((List<?>)wallets).size();
+            Integer walletLength = wallets.size();
             for (var i = 0; (walletLength != null && i < walletLength); i++)
             {
                 String w = this.safeString((wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)), "walletAddress", "");
                 if (java.util.Objects.equals(w, walletAddress))
                 {
-                    cachedWallet = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
-                    break;
+                    this.options.put("wallet", (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i)));
+                    return this.safeDict(this.options, "wallet", null);
                 }
             }
-            if (java.util.Objects.equals(cachedWallet, null))
-            {
-                throw new NotSupported(((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
-            }
-            Helpers.addElementToObject(this.options, "wallet", cachedWallet);
-            return cachedWallet;
+            throw new NotSupported(((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
         });
 
     }
@@ -1915,7 +1912,7 @@ public class Binance extends BinanceApi
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    public CompletableFuture<Object> fetchQuote(Map<String, Object> request, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchQuote(Map<String, Object> request, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1958,7 +1955,7 @@ public class Binance extends BinanceApi
     public String priceToPrecision(Object outcome, Object price)
     {
         Map<String, Object> market = this.market(outcome);
-        Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
+        Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
         {
@@ -1970,7 +1967,7 @@ public class Binance extends BinanceApi
     public String amountToPrecision(Object outcome, Object amount)
     {
         Map<String, Object> market = this.market(outcome);
-        Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);
+        Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);
         Object decimals = 2;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
         {
@@ -2019,7 +2016,7 @@ public class Binance extends BinanceApi
             String cost = this.safeString(parameters, "cost");
             Long slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
             Map<String, Object> commonRequest = new HashMap<String, Object>();
-            commonRequest.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            commonRequest.put("walletAddress", this.safeString(wallet, "walletAddress"));
             commonRequest.put("orderType", typeUpper);
             commonRequest.put("slippageBps", slippageBps);
             String amountStr = this.numberToString(amount);
@@ -2066,41 +2063,41 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
-            Map<String, Object> quoteRequest = this.extend(commonRequest, Helpers.newMap(
-                "tokenId", outcomeObj.get("id"),
-                "side", sideUpper,
-                "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000")
-            ));
-            Object quote = (this.fetchQuote((Map<String, Object>) (quoteRequest), paramsOmitted)).join();
+            Map<String, Object> quoteRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("tokenId", outcomeObj.get("id"));
+                j39v2.put("side", sideUpper);
+                j39v2.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
+                yield j39v2; } }));
+            Map<String, Object> quote = (this.fetchQuote(quoteRequest, paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
-            Map<String, Object> orderRequest = this.extend(commonRequest, Helpers.newMap(
-                "walletId", Helpers.GetValue(wallet, "walletId"),
-                "quoteId", quoteId,
-                "timeInForce", timeInForce,
-                "accountType", accountType
-            ));
-            Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted))).join();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("id", this.safeString(response, "orderId"));
-            mapLiteral6.put("clientOrderId", null);
-            mapLiteral6.put("info", response);
-            mapLiteral6.put("timestamp", null);
-            mapLiteral6.put("datetime", null);
-            mapLiteral6.put("status", null);
-            mapLiteral6.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
-            mapLiteral6.put("outcomeId", this.safeString(outcomeObj, "id"));
-            mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
-            mapLiteral6.put("market", this.safeString(outcomeObj, "market"));
-            mapLiteral6.put("type", type);
-            mapLiteral6.put("side", side);
-            mapLiteral6.put("price", price);
-            mapLiteral6.put("amount", amount);
-            mapLiteral6.put("filled", null);
-            mapLiteral6.put("remaining", null);
-            mapLiteral6.put("cost", null);
-            mapLiteral6.put("fee", null);
-            mapLiteral6.put("trades", new ArrayList<Object>(Arrays.asList()));
-            return this.safePredictionOrder(mapLiteral6, market);
+            mapLiteral6.put("walletId", this.safeString(wallet, "walletId"));
+            mapLiteral6.put("quoteId", quoteId);
+            mapLiteral6.put("timeInForce", timeInForce);
+            mapLiteral6.put("accountType", accountType);
+            Map<String, Object> orderRequest = this.extend(commonRequest, mapLiteral6);
+            Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted))).join();
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("id", this.safeString(response, "orderId"));
+            mapLiteral7.put("clientOrderId", null);
+            mapLiteral7.put("info", response);
+            mapLiteral7.put("timestamp", null);
+            mapLiteral7.put("datetime", null);
+            mapLiteral7.put("status", null);
+            mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
+            mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "id"));
+            mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+            mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+            mapLiteral7.put("type", type);
+            mapLiteral7.put("side", side);
+            mapLiteral7.put("price", price);
+            mapLiteral7.put("amount", amount);
+            mapLiteral7.put("filled", null);
+            mapLiteral7.put("remaining", null);
+            mapLiteral7.put("cost", null);
+            mapLiteral7.put("fee", null);
+            mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
+            return this.safePredictionOrder(mapLiteral7, market);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2145,7 +2142,7 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
             return first;
         }).thenApply(PredictionOrder::new);
 
@@ -2166,7 +2163,7 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -2174,8 +2171,8 @@ public class Binance extends BinanceApi
             }
             Object wallet = (this.fetchWallet("cancelOrders", parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
-                put( "walletId", Helpers.GetValue(wallet, "walletId") );
+                put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
+                put( "walletId", Binance.this.safeString(wallet, "walletId") );
             }};
             // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
             for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -2197,28 +2194,24 @@ public class Binance extends BinanceApi
             //     ]
             // }
             //
-            List<Object> canceledOrders = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
+            List<Object> canceledOrders = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             String outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
-            List<Object> failedOrders = (List<Object>) this.safeList(response, "failed", new ArrayList<Object>(Arrays.asList()));
-            Integer failedOrdersLength = ((List<?>)failedOrders).size();
+            List<Object> failedOrders = this.safeList(response, "failed", new ArrayList<Object>(Arrays.asList()));
+            Integer failedOrdersLength = failedOrders.size();
             if ((failedOrdersLength != null && failedOrdersLength > 0))
             {
-                String failedDetails = "";
+                List<String> failedDetails = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; (failedOrdersLength != null && i < failedOrdersLength); i++)
                 {
-                    Map<String, Object> failedOrder = (Map<String, Object>) this.safeDict(failedOrders, i, (Object) null);
-                    String failedOrderId = this.safeString(failedOrder, "orderId");
-                    String failedReason = this.safeString(failedOrder, "reason");
-                    if (i > 0)
-                    {
-                        failedDetails = (failedDetails + ", ");
-                    }
-                    failedDetails = (((failedDetails + failedOrderId) + ": ") + failedReason);
+                    Map<String, Object> failedOrder = this.safeDict(failedOrders, i, null);
+                    String failedOrderId = this.safeString(failedOrder, "orderId", "");
+                    String failedReason = this.safeString(failedOrder, "reason", "");
+                    failedDetails.add(((failedOrderId + ": ") + failedReason));
                 }
-                throw new OrderNotFound(((this.id + " cancelOrders() failed for ") + failedDetails)) ;
+                throw new OrderNotFound(((this.id + " cancelOrders() failed for ") + String.join(", ", (List<String>)failedDetails))) ;
             }
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Integer canceledOrdersLength = ((List<?>)canceledOrders).size();
+            Integer canceledOrdersLength = canceledOrders.size();
             for (var i = 0; (canceledOrdersLength != null && i < canceledOrdersLength); i++)
             {
                 Object status = (canceledOrders == null || i < 0 || i >= canceledOrders.size() ? null : canceledOrders.get(i));
@@ -2233,14 +2226,14 @@ public class Binance extends BinanceApi
                 order.put("market", this.safeString(outcomeObj, "market"));
                 order.put("timestamp", null);
                 order.put("datetime", null);
-                ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (order), (Object) null));
+                ((List<Object>)orders).add(this.safePredictionOrder(order, (Object) null));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2251,8 +2244,8 @@ public class Binance extends BinanceApi
         {
             String message = this.safeString(response, "msg", "");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;
@@ -2267,15 +2260,13 @@ public class Binance extends BinanceApi
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "sapi") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "sapi") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "sapi"), 0);
-        Object baseUrls = this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("sapi")));
+        String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
+        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)baseUrls.get("sapi")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         this.checkRequiredCredentials(true);
@@ -2295,7 +2286,7 @@ public class Binance extends BinanceApi
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "X-MBX-APIKEY", Binance.this.apiKey );
         }};
-        Object bodyValue = body;
+        String bodyValue = null;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
             url = ((url + "?") + querystring);
@@ -2312,9 +2303,5 @@ public class Binance extends BinanceApi
             h2kMap2.put("headers", headersValue);
             return h2kMap2;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

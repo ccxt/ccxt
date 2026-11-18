@@ -130,7 +130,7 @@ public partial class testMainClass : BaseTest
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             bool? isInverse = exchange.safeBool(market, "inverse", false);
-            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && ((isInverse != true)))
+            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && (isInverse != true))
             {
                 string? baseLow = Precise.stringMul(baseVolume, low);
                 string? baseHigh = Precise.stringMul(baseVolume, high);
@@ -260,7 +260,8 @@ public partial class testMainClass : BaseTest
             string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), ("last price should be within 1% of the bid/ask median price" + (logText)));
+            bool lastPriceIsBetween = Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh);
+            assert(lastPriceIsBetween, ("last price should be within 1% of the bid/ask median price" + (logText)));
         }
         string? percentage = exchange.safeString(entry, "percentage");
         string? change = exchange.safeString(entry, "change");
@@ -281,7 +282,7 @@ public partial class testMainClass : BaseTest
             {
                 // - should be above -100 and (for non-options) below MAX
                 assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + (logText)));
-                if ((isOptionMarket != true))
+                if (isOptionMarket != true)
                 {
                     assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + (logText)));
                 }
@@ -294,7 +295,7 @@ public partial class testMainClass : BaseTest
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + (logText)));
-                if ((isOptionMarket != true))
+                if (isOptionMarket != true)
                 {
                     assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + (logText)));
                 }

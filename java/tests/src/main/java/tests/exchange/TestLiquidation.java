@@ -17,7 +17,7 @@ import java.util.Map;
 
 
 public class TestLiquidation extends BaseTest {
-    public static void testLiquidation(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
+    public static void testLiquidation(BaseExchange exchange, Object skippedProperties, String method, Object entry, String symbol)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -32,14 +32,14 @@ public class TestLiquidation extends BaseTest {
         }};
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "contracts", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "contractSize", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "price", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "baseValue", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "quoteValue", "0");
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
+        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "contracts", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "contractSize", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "price", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "baseValue", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "quoteValue", "0");
         String contracts = exchange.safeString(entry, "contracts");
         String contractSize = exchange.safeString(entry, "contractSize");
         String price = exchange.safeString(entry, "price");
@@ -55,7 +55,7 @@ public class TestLiquidation extends BaseTest {
         // if singular was called, then symbol needs to be Asserted
         if (java.util.Objects.equals(method, "watchLiquidations") || java.util.Objects.equals(method, "fetchLiquidations"))
         {
-            TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
+            TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
         }
     }
 

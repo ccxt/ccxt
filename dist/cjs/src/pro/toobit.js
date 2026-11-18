@@ -20,11 +20,11 @@ class toobit extends toobit$1["default"] {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
-                // 'watchPosition': false,
             },
             'urls': {
                 'api': {
@@ -72,6 +72,30 @@ class toobit extends toobit$1["default"] {
         return {
             'ping': this.milliseconds(),
         };
+    }
+    handleListMessage(client, message) {
+        // private streams
+        const methods = {
+            'trade': this.handleTrades,
+            'kline': this.handleOHLCV,
+            'realtimes': this.handleTickers,
+            'depth': this.handleOrderBookPartialSnapshot,
+            'diffDepth': this.handleOrderBook,
+            'outboundAccountInfo': this.handleBalance,
+            'outboundContractAccountInfo': this.handleBalance,
+            'executionReport': this.handleOrder,
+            'contractExecutionReport': this.handleOrder,
+            'ticketInfo': this.handleMyTrade,
+            'outboundContractPositionInfo': this.handlePositions,
+        };
+        for (let i = 0; i < message.length; i++) {
+            const item = message[i];
+            const event = this.safeString(item, 'e');
+            const method = this.safeValue(methods, event);
+            if (method !== undefined) {
+                method.call(this, client, item);
+            }
+        }
     }
     handleMessage(client, message) {
         //
@@ -137,20 +161,9 @@ class toobit extends toobit$1["default"] {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
+        const method = this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
-        }
-        else {
-            // check private streams
-            for (let i = 0; i < message.length; i++) {
-                const item = message[i];
-                const event = this.safeString(item, 'e');
-                const method2 = (event === undefined) ? undefined : this.safeValue(methods, event);
-                if (method2 !== undefined) {
-                    method2.call(this, client, item);
-                }
-            }
         }
     }
     handleIncomingPong(client, pongTimestamp) {
@@ -167,8 +180,8 @@ class toobit extends toobit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -190,18 +203,15 @@ class toobit extends toobit$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market(symbol);
             messageHashes.push('trade::' + symbol);
-            market['id'];
         }
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request = {
             'symbol': marketIds.join(','),
             'topic': 'trade',
             'event': 'sub',
         };
-        const trades = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        const trades = await this.watchMultiple(this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1', messageHashes, this.extend(request, params), messageHashes);
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -236,18 +246,16 @@ class toobit extends toobit$1["default"] {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new Cache.ArrayCache(limit);
         }
         const stored = this.trades[symbol];
         const data = this.safeList(message, 'data', []);
-        const parsed = this.parseWsTrades(data, market);
-        for (let i = 0; i < parsed.length; i++) {
-            const trade = parsed[i];
-            trade['symbol'] = symbol;
-            stored.append(trade);
+        const parsedTrades = this.arrayConcat(this.parseWsTrades(data, market), []);
+        for (let i = 0; i < parsedTrades.length; i++) {
+            stored.append(parsedTrades[i]);
         }
         const messageHash = 'trade::' + symbol;
         client.resolve(stored, messageHash);
@@ -289,14 +297,14 @@ class toobit extends toobit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
+        const url = this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const messageHashes = [];
         const timeframes = this.safeDict(this.options['ws'], 'timeframes', {});
         const marketIds = [];
         let selectedTimeframe = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
-            const symbolStr = this.safeString(data, 0);
+            const symbolStr = this.safeString(data, 0, '');
             const market = this.market(symbolStr);
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString(data, 1, '1m');
@@ -351,7 +359,7 @@ class toobit extends toobit$1["default"] {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const params = this.safeDict(message, 'params', {});
         const timeframeId = this.safeString(params, 'klineType');
         const timeframe = this.findTimeframe(timeframeId);
@@ -428,18 +436,15 @@ class toobit extends toobit$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market(symbol);
             messageHashes.push('ticker::' + symbol);
-            market['id'];
         }
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request = {
             'symbol': marketIds.join(','),
             'topic': 'realtimes',
             'event': 'sub',
         };
-        const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        const ticker = await this.watchMultiple(this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1', messageHashes, this.extend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
             const tickerSymbol = this.safeString(ticker, 'symbol');
@@ -492,7 +497,7 @@ class toobit extends toobit$1["default"] {
         }
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = data[i];
+            const ticker = this.safeDict(data, i, {});
             const parsed = this.parseWsTicker(ticker);
             const symbol = parsed['symbol'];
             if (symbol !== undefined) {
@@ -501,8 +506,7 @@ class toobit extends toobit$1["default"] {
             if (symbol !== undefined) {
                 newTickers[symbol] = parsed;
             }
-            const messageHash = 'ticker::' + symbol;
-            client.resolve(parsed, messageHash);
+            client.resolve(parsed, 'ticker::' + this.safeString(parsed, 'symbol', ''));
         }
         client.resolve(newTickers, 'tickers');
     }
@@ -522,8 +526,8 @@ class toobit extends toobit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -547,12 +551,10 @@ class toobit extends toobit$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market(symbol);
             messageHashes.push('orderBook::' + symbol + '::' + channel);
-            market['id'];
         }
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
+        const url = this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const request = {
             'symbol': marketIds.join(','),
             'topic': channel,
@@ -584,7 +586,7 @@ class toobit extends toobit$1["default"] {
         //     }
         //
         const isSnapshot = this.safeBool(message, 'f', false);
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             this.setOrderBookSnapshot(client, message, 'diffDepth');
             return;
         }
@@ -757,7 +759,7 @@ class toobit extends toobit$1["default"] {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
+        this.balance[type]['info'] = this.safeList(message, 'B', []);
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
@@ -811,7 +813,7 @@ class toobit extends toobit$1["default"] {
         const symbolValue = this.safeString(market, 'symbol', symbol);
         let messageHash = 'orders';
         if (symbolValue !== undefined) {
-            messageHash = messageHash + ':' + symbolValue;
+            messageHash = 'orders' + ':' + symbolValue;
         }
         const url = this.getUserStreamUrl();
         const orders = await this.watch(url, messageHash, params, messageHash);
@@ -862,7 +864,7 @@ class toobit extends toobit$1["default"] {
         orders.append(order);
         let messageHash = 'orders';
         client.resolve(orders, messageHash);
-        messageHash = 'orders:' + this.safeString(order, 'symbol');
+        messageHash = 'orders:' + this.safeString(order, 'symbol', '');
         client.resolve(orders, messageHash);
     }
     parseWsOrder(order, market = undefined) {
@@ -933,7 +935,7 @@ class toobit extends toobit$1["default"] {
         const symbolValue = this.safeString(market, 'symbol', symbol);
         let messageHash = 'myTrades';
         if (symbolValue !== undefined) {
-            messageHash = messageHash + ':' + symbolValue;
+            messageHash = 'myTrades' + ':' + symbolValue;
         }
         const url = this.getUserStreamUrl();
         const trades = await this.watch(url, messageHash, params, messageHash);
@@ -967,7 +969,7 @@ class toobit extends toobit$1["default"] {
         }
         const trade = this.parseMyTrade(message);
         myTrades.append(trade);
-        let messageHash = 'myTrades:' + trade['symbol'];
+        let messageHash = 'myTrades:' + this.safeString(trade, 'symbol', '');
         client.resolve(myTrades, messageHash);
         messageHash = 'myTrades';
         client.resolve(myTrades, messageHash);
@@ -1016,19 +1018,18 @@ class toobit extends toobit$1["default"] {
         let messageHash = '';
         let symbolsNormalized = symbols;
         if (!this.isEmpty(symbols)) {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (!this.isEmpty(symbols)) {
-            if (symbolsNormalized === undefined) {
+            const marketSymbols = this.marketSymbols(symbols);
+            if (marketSymbols === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbolsNormalized.join(',');
+            symbolsNormalized = marketSymbols;
+            messageHash = '::' + marketSymbols.join(',');
         }
         messageHash = type + ':positions' + messageHash;
         const url = this.getUserStreamUrl();
         const client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
-        const cache = this.safeValue(this.positions, type);
+        const cache = this.safeValue(this.positionsByType, type);
         if (cache === undefined) {
             const snapshot = await client.future(type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
@@ -1040,10 +1041,7 @@ class toobit extends toobit$1["default"] {
         return this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        if (type in this.positions) {
+        if (type in this.positionsByType) {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1055,7 +1053,7 @@ class toobit extends toobit$1["default"] {
             }
         }
         else {
-            this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
+            this.positionsByType[type] = new Cache.ArrayCacheBySymbolBySide();
         }
     }
     async loadPositionsSnapshot(client, messageHash, type) {
@@ -1063,8 +1061,8 @@ class toobit extends toobit$1["default"] {
             'type': type,
         };
         const positions = await this.fetchPositions(undefined, params);
-        this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
-        const cache = this.positions[type];
+        this.positionsByType[type] = new Cache.ArrayCacheBySymbolBySide();
+        const cache = this.positionsByType[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append(position);
@@ -1102,28 +1100,14 @@ class toobit extends toobit$1["default"] {
         // ]
         //
         const accountType = 'swap';
-        if (this.positions === undefined) {
-            this.positions = {};
+        if (!(accountType in this.positionsByType)) {
+            this.positionsByType[accountType] = new Cache.ArrayCacheBySymbolBySide();
         }
-        if (!(accountType in this.positions)) {
-            this.positions[accountType] = new Cache.ArrayCacheBySymbolBySide();
-        }
-        const cache = this.positions[accountType];
+        const cache = this.positionsByType[accountType];
         // handleMessage's fallback dispatches one item at a time
-        let rawPositions = message;
-        if (!Array.isArray(message)) {
-            rawPositions = [message];
-        }
-        const newPositions = [];
-        for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const position = this.parseWsPosition(rawPosition);
-            const timestamp = this.safeInteger(rawPosition, 'E');
-            position['timestamp'] = timestamp;
-            position['datetime'] = this.iso8601(timestamp);
-            newPositions.push(position);
-            cache.append(position);
-        }
+        const position = this.parseWsPosition(message);
+        const newPositions = [position];
+        cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to
@@ -1143,6 +1127,7 @@ class toobit extends toobit$1["default"] {
     }
     parseWsPosition(position, market = undefined) {
         const marketId = this.safeString(position, 's');
+        const timestamp = this.safeInteger(position, 'E');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -1159,8 +1144,8 @@ class toobit extends toobit$1["default"] {
             'markPrice': this.safeString(position, 'mp'),
             'side': this.safeStringLower(position, 'S'),
             'hedged': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'maintenanceMargin': this.safeString(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
@@ -1202,8 +1187,7 @@ class toobit extends toobit$1["default"] {
                     // retry rather than dial .../ws/undefined for 20 minutes
                     throw new errors.AuthenticationError(this.id + ' authenticate() received an empty listenKey');
                 }
-                this.options['ws']['listenKey'] = listenKey;
-                this.options['ws']['lastAuthenticatedTime'] = time;
+                this.setWsOptions({ 'listenKey': listenKey, 'lastAuthenticatedTime': time });
                 this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
@@ -1219,6 +1203,9 @@ class toobit extends toobit$1["default"] {
             await future;
         }
     }
+    setWsOptions(entry) {
+        this.options['ws'] = this.extend(this.safeDict(this.options, 'ws', {}), entry);
+    }
     async keepAliveListenKey(params = {}) {
         const options = this.safeDict(this.options, 'ws', {});
         const listenKey = this.safeString(options, 'listenKey');
@@ -1228,8 +1215,7 @@ class toobit extends toobit$1["default"] {
         }
         try {
             const response = await this.privatePostApiV1UserDataStream(params);
-            this.options['ws']['listenKey'] = this.safeString(response, 'listenKey');
-            this.options['ws']['lastAuthenticatedTime'] = this.milliseconds();
+            this.setWsOptions({ 'listenKey': this.safeString(response, 'listenKey'), 'lastAuthenticatedTime': this.milliseconds() });
         }
         catch (error) {
             const url = this.getUserStreamUrl();
@@ -1239,8 +1225,7 @@ class toobit extends toobit$1["default"] {
                 const messageHash = messageHashes[i];
                 client.reject(error, messageHash);
             }
-            this.options['ws']['listenKey'] = undefined;
-            this.options['ws']['lastAuthenticatedTime'] = 0;
+            this.setWsOptions({ 'listenKey': undefined, 'lastAuthenticatedTime': 0 });
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1248,7 +1233,9 @@ class toobit extends toobit$1["default"] {
         this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
     getUserStreamUrl() {
-        return this.safeString(this.urls['api']['ws'], 'common') + '/api/v1/ws/' + this.safeString(this.options['ws'], 'listenKey');
+        const wsBaseUrl = this.safeString(this.urls['api']['ws'], 'common', '');
+        const listenKey = this.safeString(this.options['ws'], 'listenKey', '');
+        return wsBaseUrl + '/api/v1/ws/' + listenKey;
     }
     handleErrorMessage(client, message) {
         //
@@ -1259,7 +1246,7 @@ class toobit extends toobit$1["default"] {
         //
         const code = this.safeString(message, 'code');
         if (code !== undefined) {
-            const desc = this.safeString(message, 'desc');
+            const desc = this.safeString(message, 'desc', '');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
             const exception = new errors.ExchangeError(msg); // c# fix
             client.reject(exception);

@@ -458,6 +458,7 @@ class whitebit extends whitebit$1["default"] {
                     'limit must be less than or equal to': errors.BadRequest,
                     'The Price should be less than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
                     'The Price should be greater than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'Price must be a multiple of': errors.InvalidOrder, // {"code":1,"errors":{"price":["Price must be a multiple of 0.00001."]},"message":"Validation failed"}
                     'This action is unauthorized': errors.PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step': errors.InvalidOrder, // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -495,10 +496,14 @@ class whitebit extends whitebit$1["default"] {
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -520,22 +525,21 @@ class whitebit extends whitebit$1["default"] {
             return undefined;
         }
         const active = this.safeBool(market, 'tradesEnabled');
-        const isCollateral = this.safeBool(market, 'isCollateral');
+        const isCollateral = this.safeBool(market, 'isCollateral', false);
         const typeId = this.safeString(market, 'type');
         let type = undefined;
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
         const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
-        const margin = (isCollateral === true) && !swap;
+        const margin = isCollateral && !swap;
         let contract = false;
-        const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
             settleId = quoteId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
             type = 'swap';
             contract = true;
             linear = true;
@@ -576,8 +580,8 @@ class whitebit extends whitebit$1["default"] {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
+                'amount': this.safeNumber(market, 'stepSize'),
+                'price': this.safeNumber(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -693,7 +697,7 @@ class whitebit extends whitebit$1["default"] {
         const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
         const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (let j = 0; j < allNetworks.length; j++) {
-            const networkId = allNetworks[j];
+            const networkId = this.safeString(allNetworks, j, '');
             const networkCode = this.networkIdToCode(networkId, code);
             const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
             const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
@@ -917,7 +921,7 @@ class whitebit extends whitebit$1["default"] {
             const entry = currencyIds[i];
             const splitEntry = entry.split(' ');
             const currencyId = splitEntry[0];
-            const feeInfo = response[entry];
+            const feeInfo = this.safeDict(response, entry);
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
                 const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
@@ -925,7 +929,7 @@ class whitebit extends whitebit$1["default"] {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
-                let networkId = this.safeString(splitEntry, 1);
+                const networkId = this.safeString(splitEntry, 1);
                 const withdraw = this.safeDict(feeInfo, 'withdraw');
                 const deposit = this.safeDict(feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber(withdraw, 'fixed');
@@ -940,8 +944,7 @@ class whitebit extends whitebit$1["default"] {
                 };
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
-                    networkId = networkId.slice(1, networkLength - 1);
-                    const networkCode = this.networkIdToCode(networkId, code);
+                    const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
                     if (networkCode !== undefined) {
                         depositWithdrawFees[code]['networks'][networkCode] = {
                             'withdraw': withdrawResult,
@@ -1073,14 +1076,13 @@ class whitebit extends whitebit$1["default"] {
         //
         const result = {};
         // Process all markets from the loaded markets cache
-        const markets = this.markets;
-        if (markets === undefined) {
+        if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        const marketIds = Object.keys(markets);
+        const marketIds = Object.keys(this.markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = markets[marketId];
+            const market = this.safeDict(this.markets, marketId);
             const marketSymbol = this.safeString(market, 'symbol');
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -1088,14 +1090,7 @@ class whitebit extends whitebit$1["default"] {
             const symbol = marketSymbol;
             // Filter by symbols if specified
             if (symbols !== undefined) {
-                let symbolFound = false;
-                for (let j = 0; j < symbols.length; j++) {
-                    if (symbols[j] === symbol) {
-                        symbolFound = true;
-                        break;
-                    }
-                }
-                if (!symbolFound) {
+                if (!this.inArray(symbol, symbols)) {
                     continue; // Skip symbols not in requested list
                 }
             }
@@ -1108,7 +1103,7 @@ class whitebit extends whitebit$1["default"] {
             const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
             const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
             const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
-            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
+            if ((hasAmountLimits) && (hasPriceLimits) && (hasCostLimits)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1145,10 +1140,12 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        const [currenciesData, feesData] = await Promise.all([
+        const responses = await Promise.all([
             this.fetchCurrencies(),
             this.v4PublicGetFee(params),
         ]);
+        const currenciesData = this.safeDict(responses, 0, {});
+        const feesData = this.safeDict(responses, 1, {});
         //
         // Currencies response structure (from fetchCurrencies):
         //     {
@@ -1231,50 +1228,57 @@ class whitebit extends whitebit$1["default"] {
             }
             // Build comprehensive funding limits
             const currencyLimits = this.safeDict(currency, 'limits', {});
-            const limits = {
-                'deposit': {
-                    'min': currencyLimits['deposit']['min'],
-                    'max': currencyLimits['deposit']['max'],
-                },
-                'withdraw': {
-                    'min': currencyLimits['withdraw']['min'],
-                    'max': currencyLimits['withdraw']['max'],
-                },
+            const depositLimits = this.safeDict(currencyLimits, 'deposit', {});
+            const withdrawLimits = this.safeDict(currencyLimits, 'withdraw', {});
+            const depositLimitsResult = {
+                'min': depositLimits['min'],
+                'max': depositLimits['max'],
+            };
+            const withdrawLimitsResult = {
+                'min': withdrawLimits['min'],
+                'max': withdrawLimits['max'],
             };
             // Add fee information if available
             if (feeData !== undefined) {
-                const depositFee = feeData['deposit'];
-                const withdrawFee = feeData['withdraw'];
+                const depositFee = this.safeDict(feeData, 'deposit');
+                const withdrawFee = this.safeDict(feeData, 'withdraw');
                 if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData = {
                         'fixed': this.safeNumber(depositFee, 'fixed'),
                     };
-                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
+                    const depositFlex = this.safeDict(depositFee, 'flex');
+                    if (depositFlex !== undefined) {
                         depositFeeData['flex'] = {
-                            'min': this.safeNumber(depositFee['flex'], 'min_fee'),
-                            'max': this.safeNumber(depositFee['flex'], 'max_fee'),
-                            'percent': this.safeNumber(depositFee['flex'], 'percent'),
+                            'min': this.safeNumber(depositFlex, 'min_fee'),
+                            'max': this.safeNumber(depositFlex, 'max_fee'),
+                            'percent': this.safeNumber(depositFlex, 'percent'),
                         };
                     }
-                    limits['deposit']['fee'] = depositFeeData;
+                    depositLimitsResult['fee'] = depositFeeData;
                 }
                 if ((withdrawFee !== undefined) && (withdrawFee !== null)) {
                     const withdrawFeeData = {
                         'fixed': this.safeNumber(withdrawFee, 'fixed'),
                     };
-                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
+                    const withdrawFlex = this.safeDict(withdrawFee, 'flex');
+                    if (withdrawFlex !== undefined) {
                         withdrawFeeData['flex'] = {
-                            'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
-                            'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
-                            'percent': this.safeNumber(withdrawFee['flex'], 'percent'),
+                            'min': this.safeNumber(withdrawFlex, 'min_fee'),
+                            'max': this.safeNumber(withdrawFlex, 'max_fee'),
+                            'percent': this.safeNumber(withdrawFlex, 'percent'),
                         };
                     }
-                    limits['withdraw']['fee'] = withdrawFeeData;
+                    withdrawLimitsResult['fee'] = withdrawFeeData;
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks'] !== undefined) {
-                limits['networks'] = currency['networks'];
+            const limits = {
+                'deposit': depositLimitsResult,
+                'withdraw': withdrawLimitsResult,
+            };
+            const currencyNetworks = this.safeDict(currency, 'networks');
+            if (currencyNetworks !== undefined) {
+                limits['networks'] = currencyNetworks;
             }
             result[code] = {
                 'info': currency,
@@ -1466,14 +1470,14 @@ class whitebit extends whitebit$1["default"] {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive === true) {
+        if (checkActive) {
             try {
                 const response = await this.v4PrivatePostOrders(this.extend(request, paramsOmitted));
                 // Search for order in active orders response (array format)
                 const orders = this.toArray(response);
                 for (let i = 0; i < orders.length; i++) {
                     const order = orders[i];
-                    const orderId = this.safeString(order, 'orderId');
+                    const orderId = this.safeString(order, 'orderId', '');
                     if (orderId === id) {
                         const marketId = this.safeString(order, 'market');
                         const marketNew = this.safeMarket(marketId, undefined, '_');
@@ -1488,7 +1492,7 @@ class whitebit extends whitebit$1["default"] {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted === true) {
+        if (checkExecuted) {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, paramsOmitted));
                 // Search for order in executed orders response (object format)
@@ -1499,7 +1503,7 @@ class whitebit extends whitebit$1["default"] {
                     const marketOrders = this.safeList(response, marketId, []);
                     for (let j = 0; j < marketOrders.length; j++) {
                         const order = marketOrders[j];
-                        const orderId = this.safeString(order, 'id');
+                        const orderId = this.safeString(order, 'id', '');
                         if (orderId === id) {
                             return this.parseOrder(order, marketNew);
                         }
@@ -1536,7 +1540,7 @@ class whitebit extends whitebit$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                if (market['contract'] !== true) {
+                if (!this.safeBool(market, 'contract', false)) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -1626,7 +1630,7 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            const ticker = this.parseTicker(response[marketId], market);
+            const ticker = this.parseTicker(this.safeValue(response, marketId), market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -1878,6 +1882,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1889,17 +1894,35 @@ class whitebit extends whitebit$1["default"] {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const maxLimit = 1440;
-        const sinceLimit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
-        const limitResolved = (since !== undefined) ? sinceLimit : limit;
-        if (since !== undefined) {
-            const start = this.parseToInt(since / 1000);
-            request['start'] = start;
+        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
+        const limitResolved = (since !== undefined) ? cappedLimit : limit;
+        const until = this.safeInteger(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
+        if ((since !== undefined) || (until !== undefined)) {
+            // the exchange ignores a start alone: it returns the last candles that closed by the end.
+            // It refuses an end past its own clock, which may be behind this one, so an end within a
+            // timeframe of now is left out, and the latest candles it then returns cover the range
+            const duration = this.parseTimeframe(timeframe);
+            let endTime = undefined;
+            if (until !== undefined) {
+                endTime = this.sum(this.parseToInt(until / 1000), duration);
+            }
+            if (since !== undefined) {
+                const start = this.parseToInt(since / 1000);
+                request['start'] = start;
+                const rangeEnd = this.sum(start, duration * cappedLimit);
+                if ((endTime === undefined) || (rangeEnd < endTime)) {
+                    endTime = rangeEnd;
+                }
+            }
+            if ((endTime !== undefined) && (this.sum(endTime, duration) < this.seconds())) {
+                request['end'] = endTime;
+            }
         }
-        if (limitResolved !== undefined) {
-            request['limit'] = Math.min(limitResolved, 1440);
+        if ((since !== undefined) || (until !== undefined) || (limit !== undefined)) {
+            request['limit'] = cappedLimit;
         }
-        const response = await this.v1PublicGetKline(this.extend(request, params));
+        const response = await this.v1PublicGetKline(this.extend(request, paramsOmitted));
         //
         //     {
         //         "success":true,
@@ -2222,7 +2245,7 @@ class whitebit extends whitebit$1["default"] {
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
-            'orderId': parseInt(id),
+            'orderId': this.parseToInt(id),
         };
         const response = await this.v4PrivatePostOrderCancel(this.extend(request, params));
         //
@@ -2319,7 +2342,7 @@ class whitebit extends whitebit$1["default"] {
         const sortedOrders = this.sortBy(allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if (limit !== undefined && sortedOrders.length > limit) {
-            return sortedOrders.slice(0, limit);
+            return this.arraySlice(sortedOrders, 0, limit);
         }
         return sortedOrders;
     }
@@ -2374,7 +2397,7 @@ class whitebit extends whitebit$1["default"] {
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode(id);
-            const balance = response[id];
+            const balance = this.safeValue(response, id);
             if (balance !== undefined && this.isDictionary(balance)) {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'available', 'main_balance');
@@ -2413,8 +2436,7 @@ class whitebit extends whitebit$1["default"] {
             response = await this.v4PrivatePostCollateralAccountBalance(paramsMarketType);
         }
         else {
-            const options = this.safeDict(this.options, 'fetchBalance', {});
-            const defaultAccount = this.safeString(options, 'account');
+            const defaultAccount = this.safeString(this.options['fetchBalance'], 'account');
             const account = this.safeString2(paramsMarketType, 'account', 'type', defaultAccount);
             const paramsOmitted = this.omit(paramsMarketType, ['account', 'type']);
             if (account === 'main' || account === 'funding') {
@@ -2539,7 +2561,7 @@ class whitebit extends whitebit$1["default"] {
         //     }
         //
         const marketIds = Object.keys(response);
-        let results = [];
+        const results = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket(marketId, undefined, '_');
@@ -2549,9 +2571,8 @@ class whitebit extends whitebit$1["default"] {
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
-        results = this.sortBy(results, 'timestamp');
-        results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit);
-        return results;
+        const sorted = this.sortBy(results, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     parseOrderType(type) {
         const types = {
@@ -2639,9 +2660,9 @@ class whitebit extends whitebit$1["default"] {
         const timestamp = this.safeTimestamp2(order, 'ctime', 'timestamp');
         const lastTradeTimestamp = this.safeTimestamp(order, 'ftime');
         const postOnly = this.safeBool(order, 'postOnly');
-        const ioc = this.safeBool(order, 'ioc');
+        const ioc = this.safeBool(order, 'ioc', false);
         let timeInForce = undefined;
-        if (ioc === true) {
+        if (ioc) {
             timeInForce = 'IOC';
         }
         else if (postOnly === true) {
@@ -2697,7 +2718,7 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const request = {
-            'orderId': parseInt(id),
+            'orderId': this.parseToInt(id),
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -2875,7 +2896,7 @@ class whitebit extends whitebit$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             request['amount'] = amount;
-            const uniqueId = this.safeValue(params, 'uniqueId');
+            const uniqueId = this.safeString(params, 'uniqueId');
             if (uniqueId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -3071,9 +3092,8 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const accountsByType = this.safeDict(this.options, 'accountsByType');
-        const fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
-        const toAccountId = this.safeString(accountsByType, toAccount, toAccount);
+        const fromAccountId = this.safeString(this.options['accountsByType'], fromAccount, fromAccount);
+        const toAccountId = this.safeString(this.options['accountsByType'], toAccount, toAccount);
         const amountString = this.currencyToPrecision(code, amount);
         const request = {
             'ticker': currency['id'],
@@ -3111,11 +3131,12 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3125,22 +3146,20 @@ class whitebit extends whitebit$1["default"] {
             'amount': this.currencyToPrecision(code, amount),
             'address': address,
         };
-        let uniqueId = this.safeValue(params, 'uniqueId');
-        if (uniqueId === undefined) {
-            uniqueId = this.uuid22();
-        }
+        const uniqueIdParam = this.safeValue(paramsWithdrawTag, 'uniqueId');
+        const uniqueId = (uniqueIdParam === undefined) ? this.uuid22() : uniqueIdParam;
         request['uniqueId'] = uniqueId;
         if (tag !== undefined) {
             request['memo'] = tag;
         }
         if (this.isFiat(code)) {
-            const provider = this.safeValue(params, 'provider');
+            const provider = this.safeString(paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
         }
-        const response = await this.v4PrivatePostMainAccountWithdraw(this.extend(request, params));
+        const response = await this.v4PrivatePostMainAccountWithdraw(this.extend(request, paramsWithdrawTag));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId
@@ -3192,7 +3211,7 @@ class whitebit extends whitebit$1["default"] {
             'txid': this.safeString(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), this.safeCurrencyCode(currencyId, currencyResolved)),
             'addressFrom': (method === '1') ? address : undefined,
             'address': address,
             'addressTo': (method === '2') ? address : undefined,
@@ -4179,7 +4198,7 @@ class whitebit extends whitebit$1["default"] {
         const maxLimit = 100;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -4191,7 +4210,7 @@ class whitebit extends whitebit$1["default"] {
         if (since !== undefined) {
             request['startDate'] = Math.round(since / 1000);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
@@ -4224,14 +4243,14 @@ class whitebit extends whitebit$1["default"] {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
-        const version = this.safeValue(api, 0);
-        const accessibility = this.safeString(api, 1);
-        const publicHeaders = (headers === undefined) ? {} : headers;
+        const version = api[0];
+        const accessibility = api[1];
+        const publicHeaders = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'][version], accessibility);
+        const apiUrl = this.safeString(this.safeDict(this.urls['api'], version), accessibility);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4261,15 +4280,11 @@ class whitebit extends whitebit$1["default"] {
             };
         }
         const isPrivate = (accessibility === 'private');
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivate) {
             requestBody = privateBody;
         }
-        let requestHeaders = publicHeaders;
-        if (isPrivate) {
-            requestHeaders = privateHeaders;
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (isPrivate) ? privateHeaders : publicHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
@@ -4300,10 +4315,9 @@ class whitebit extends whitebit$1["default"] {
                     const errorKeys = Object.keys(errorObject);
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
-                        const errorKey = errorKeys[0];
+                        const errorKey = this.safeString(errorKeys, 0, '');
                         const errorMessageArray = this.safeList(errorObject, errorKey, []);
-                        const errorMessageLength = errorMessageArray.length;
-                        errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                        errorInfo = this.safeString(errorMessageArray, 0, body);
                     }
                 }
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
@@ -4312,16 +4326,15 @@ class whitebit extends whitebit$1["default"] {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool(response, 'success', true);
-            if (success !== true) {
+            if (!success) {
                 const errMsg = this.safeDict(response, 'message', {});
                 const errKeys = Object.keys(errMsg);
                 const errKeysLength = errKeys.length;
                 let errorInfo = body;
                 if (errKeysLength > 0) {
-                    const errorKey = errKeys[0];
+                    const errorKey = this.safeString(errKeys, 0, '');
                     const errorMessageArray = this.safeList(errMsg, errorKey, []);
-                    const errorMessageLength = errorMessageArray.length;
-                    errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                    errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);

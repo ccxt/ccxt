@@ -14,15 +14,15 @@ pub fn testIo() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut ms: Value = exchange.milliseconds();
-    let mut fileName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".into()), to_string_val(&ms)).into()), Value::Str(".ccxtfile".into())).into());
+    let mut ms: i64 = exchange.milliseconds();
+    let mut fileName: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".into()), Value::Str(format!("{}", ms).into())).into()), ".ccxtfile");
     // upper tmp dir
-    let mut tempDir: Value = exchange.get_temp_dir();
-    assert!(ccxt::runtime::is_true(&(((tempDir != Value::Null) && (tempDir.as_str() != Some(""))))));
-    let mut filePath: Value = Value::Str(format!("{}{}", tempDir, fileName).into()); // '../../../../../../../../../../../../tmp/' + fileName;
+    let mut tempDir: Option<String> = exchange.get_temp_dir().as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(((tempDir.is_some()) && (tempDir.as_deref() != Some(""))))));
+    let mut filePath: String = format!("{}{}", tempDir.as_deref().unwrap_or("null"), fileName); // '../../../../../../../../../../../../tmp/' + fileName;
     let mut fileContent: Value = Value::Str("hello world".into());
-    assert!(ccxt::runtime::is_true(&(exchange.write_file(filePath.clone(), fileContent.clone()))));
-    assert!(ccxt::runtime::is_true(&(exchange.exists_file(filePath.clone()))));
-    let mut readContent: Value = exchange.read_file(filePath.clone());
+    assert!(ccxt::runtime::is_true(&(exchange.write_file(Value::from(filePath.as_str()), fileContent.clone()))));
+    assert!(ccxt::runtime::is_true(&(exchange.exists_file(Value::from(filePath.as_str())))));
+    let mut readContent: Value = exchange.read_file(Value::from(filePath));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&readContent, &fileContent)))));
 }

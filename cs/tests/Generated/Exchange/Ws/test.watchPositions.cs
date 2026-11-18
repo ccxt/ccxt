@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if ((success == true))
+            if (success)
             {
                 if ((response == null))
                 {
@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success2 = false;
             }
-            if ((success2 == true))
+            if (success2)
             {
                 assert(((positionsForSymbols is IList<object>) || (positionsForSymbols.GetType().IsGenericType && positionsForSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode

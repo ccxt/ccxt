@@ -317,6 +317,11 @@ export default class Client {
                     if (this.decompressBinary) {
                         message = message.toString();
                     }
+                    else if (message instanceof ArrayBuffer) {
+                        // browsers deliver binary frames as an ArrayBuffer (binaryType = 'arraybuffer'),
+                        // hand them on as bytes like the node Buffer, which binaryToBase16 accepts
+                        message = new Uint8Array(message);
+                    }
                 }
             }
         }

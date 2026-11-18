@@ -79,12 +79,12 @@ async function vssEverything () {
     // carry a version too — cargo publish rejects a path dependency without
     // one, so these must move together or a release goes out pinned to the
     // previous version.
-    vss ('./rust/ccxt-core/Cargo.toml',       'version = "{version}"',                                        version)
+    vss ('./rust/ccxt-common/Cargo.toml',       'version = "{version}"',                                        version)
     vss ('./rust/ccxt-base/Cargo.toml',       'version = "{version}"',                                        version)
     vss ('./rust/ccxt/Cargo.toml',            'version = "{version}"',                                        version)
     vss ('./rust/ccxt-pro/Cargo.toml',        'version = "{version}"',                                        version)
     vss ('./rust/ccxt-prediction/Cargo.toml', 'version = "{version}"',                                        version)
-    vss ('./rust/ccxt-base/Cargo.toml',       'path = "../ccxt-core", version = "{version}"',                 version)
+    vss ('./rust/ccxt-base/Cargo.toml',       'path = "../ccxt-common", version = "{version}"',                 version)
     vss ('./rust/ccxt/Cargo.toml',            'path = "../ccxt-base", version = "{version}"',                 version)
     vss ('./rust/ccxt-pro/Cargo.toml',        'path = "../ccxt-base", version = "{version}"',                 version)
     vss ('./rust/ccxt-prediction/Cargo.toml', 'path = "../ccxt-base", version = "{version}"',                 version)
@@ -93,6 +93,15 @@ async function vssEverything () {
 
     vss ('./README.md',       "ccxt@{version}", version, true)
     vss ('./wiki/Install.md', "ccxt@{version}", version, true)
+
+    // AI-facing docs pin the release in copy-paste install snippets;
+    // `npm run check-ai-docs` fails if these lag behind package.json
+    for (const doc of [ './llms.txt', './llms-full.txt', './.claude/skills/ccxt-rust/SKILL.md', './.claude/skills/ccxt-java/SKILL.md' ]) {
+        vss (doc, 'io.github.ccxt:ccxt:{version}', version, true)  // Maven / Gradle
+        vss (doc, 'ccxt = "{version}"', version, true)             // Cargo
+        vss (doc, 'ccxt-pro = "{version}"', version, true)
+        vss (doc, 'ccxt-prediction = "{version}"', version, true)
+    }
 
     log.bright.green ('Version single-sourced successfully.')
 }

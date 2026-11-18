@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if ((success == true))
+            if (success)
             {
                 if ((response == null))
                 {

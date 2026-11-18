@@ -14,6 +14,7 @@ import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -39,7 +40,7 @@ public class Lighter extends LighterApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "lighter" );
@@ -137,7 +138,7 @@ public class Lighter extends LighterApi
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
-                put( "fetchTrades", false );
+                put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", false );
                 put( "fetchTransfer", false );
@@ -385,6 +386,7 @@ public class Lighter extends LighterApi
             put( "httpExceptions", new HashMap<String, Object>() {{}} );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
+                    put( "20001", BadRequest.class );
                     put( "21146", ExchangeError.class );
                     put( "21500", ExchangeError.class );
                     put( "21501", ExchangeError.class );
@@ -457,10 +459,12 @@ public class Lighter extends LighterApi
                     put( "21904", InvalidOrder.class );
                     put( "21905", InvalidOrder.class );
                     put( "21906", InvalidOrder.class );
+                    put( "22400", BadRequest.class );
                     put( "23000", RateLimitExceeded.class );
                     put( "23001", RateLimitExceeded.class );
                     put( "23002", RateLimitExceeded.class );
                     put( "23003", RateLimitExceeded.class );
+                    put( "29404", BadRequest.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{}} );
             }} );
@@ -515,13 +519,13 @@ public class Lighter extends LighterApi
         }});
     }
 
-    public CompletableFuture<Object> loadAccount(Object chainId, String privateKey, Object apiKeyIndex, Object accountIndex, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadAccount(Object chainId, String privateKey, String apiKeyIndex, String accountIndex, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.initAuthObject(accountIndex, apiKeyIndex);
-            Map<String, Object> cachedAuths = (Map<String, Object>) this.safeDict(Helpers.GetValue(this.options.get("auths"), accountIndex), apiKeyIndex, (Object) null);
+            this.initAuthObject((String) (accountIndex), (String) (apiKeyIndex));
+            Map<String, Object> cachedAuths = this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accountIndex, new HashMap<String, Object>() {{}}), apiKeyIndex, null);
             Object signer = this.safeValue(cachedAuths, "signer");
             if (!java.util.Objects.equals(signer, null))
             {
@@ -533,7 +537,9 @@ public class Lighter extends LighterApi
             {
                 // load lighter library, and create lighter client
                 signer = (this.loadLighterLibrary(libraryPath, chainId, privateKey, this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), true)).join();
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "signer", signer);
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("signer", signer);
+                this.setAuthEntry((String) (accountIndex), (String) (apiKeyIndex), mapLiteral1);
                 return signer;
             }
             Boolean privateKeyIsSet = (!java.util.Objects.equals(this.privateKey, null)) && (!java.util.Objects.equals(this.privateKey, ""));
@@ -545,7 +551,9 @@ public class Lighter extends LighterApi
                 }
                 // load lighter library without creating lighter client
                 signer = (this.loadLighterLibrary(libraryPath, chainId, "", this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), false)).join();
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "signer", signer);
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("signer", signer);
+                this.setAuthEntry((String) (accountIndex), (String) (apiKeyIndex), mapLiteral2);
                 Object res = (this.changeApiKey(new HashMap<String, Object>() {{}})).join();
                 (this.handleBuilderFeeApproval(this.parseToInt(accountIndex), this.parseToInt(apiKeyIndex))).join();
                 return res;
@@ -555,46 +563,34 @@ public class Lighter extends LighterApi
 
     }
 
-    public void initAuthObject(Object strAccountIndex, Object strApiKeyIndex)
+    public void setAuthEntry(String accIdx, String keyIdx, Map<String, Object> entry)
     {
-        if (!(((Map<?, ?>)this.options).containsKey("auths")))
+        Map<String, Object> updated = new HashMap<String, Object>() {{}};
+        updated.put(keyIdx, this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accIdx, new HashMap<String, Object>() {{}}), keyIdx, new HashMap<String, Object>() {{}}), entry));
+        Map<String, Object> auths = new HashMap<String, Object>() {{}};
+        auths.put(accIdx, this.extend(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accIdx, new HashMap<String, Object>() {{}}), updated));
+        this.options.put("auths", this.extend(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), auths));
+    }
+
+    public void initAuthObject(String strAccountIndex, String strApiKeyIndex)
+    {
+        if (java.util.Objects.equals(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), strAccountIndex, new HashMap<String, Object>() {{}}), strApiKeyIndex, null), null))
         {
-            Helpers.addElementToObject(this.options, "auths", new HashMap<String, Object>() {{}});
-        }
-        if (!(Helpers.inOp(this.options.get("auths"), strAccountIndex)))
-        {
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex, new HashMap<String, Object>() {{}});
-        }
-        if (!(Helpers.inOp(Helpers.GetValue(this.options.get("auths"), strAccountIndex), strApiKeyIndex)))
-        {
-            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex, new HashMap<String, Object>() {{
-    put( "signer", null );
-    put( "lighterPrivateKey", null );
-    put( "deadline", null );
-    put( "token", null );
-}});
+            this.setAuthEntry((String) (strAccountIndex), (String) (strApiKeyIndex), new HashMap<String, Object>() {{
+                put( "signer", null );
+                put( "lighterPrivateKey", null );
+                put( "deadline", null );
+                put( "token", null );
+            }});
         }
     }
 
-    public Object getLighterPrivateKey(Object strAccountIndex, Object strApiKeyIndex)
+    public Object getLighterPrivateKey(String strAccountIndex, String strApiKeyIndex)
     {
-        if (!(((Map<?, ?>)this.options).containsKey("auths")))
-        {
-            return null;
-        }
-        if (!(Helpers.inOp(this.options.get("auths"), strAccountIndex)))
-        {
-            return null;
-        }
-        if (!(Helpers.inOp(Helpers.GetValue(this.options.get("auths"), strAccountIndex), strApiKeyIndex)))
-        {
-            return null;
-        }
-        if (!(Helpers.inOp(Helpers.GetValue(Helpers.GetValue(this.options.get("auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey")))
-        {
-            return null;
-        }
-        return Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options.get("auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey");
+        Map<String, Object> auths = this.safeDict(this.options, "auths", null);
+        Map<String, Object> accountAuths = this.safeDict(auths, strAccountIndex, null);
+        Map<String, Object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex, null);
+        return this.safeString(apiKeyAuths, "lighterPrivateKey");
     }
 
     /**
@@ -612,8 +608,8 @@ public class Lighter extends LighterApi
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "loadAccount", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
-            Object accountIndexAndParams = (this.handleAccountIndex(paramsApiKeyIndex, "loadAccount", "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>)accountIndexAndParams).get(0);
+            List<Object> accountIndexAndParams = (this.handleAccountIndex(paramsApiKeyIndex, "loadAccount", "accountIndex", "account_index", (Object) null)).join();
+            Long accountIndex = (Long) accountIndexAndParams.get(0);
             if (java.util.Objects.equals(accountIndex, null))
             {
                 throw new ArgumentsRequired((this.id + " requires accountIndex or account_index")) ;
@@ -621,34 +617,36 @@ public class Lighter extends LighterApi
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             this.initAuthObject(strAccountIndex, strApiKeyIndex);
-            Object signer = this.safeDict(Helpers.GetValue(Helpers.GetValue(this.options.get("auths"), strAccountIndex), strApiKeyIndex), "signer", (Object) null);
+            Object signer = this.safeDict(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), strAccountIndex, new HashMap<String, Object>() {{}}), strApiKeyIndex, new HashMap<String, Object>() {{}}), "signer", null);
             if (!java.util.Objects.equals(signer, null))
             {
                 return true;
             }
-            signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, new HashMap<String, Object>() {{}})).join();
+            signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, new HashMap<String, Object>() {{}})).join();
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
-            return (!java.util.Objects.equals(signer, null));
-        }).thenApply(res -> (Boolean) res);
+            Boolean loaded = (!java.util.Objects.equals(signer, null));
+            return loaded;
+        });
 
     }
 
-    public Object handleApiKeyIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object defaultValue)
+    public Object handleApiKeyIndex(Object parameters, String methodName1, String optionName1, String optionName2, Object defaultValue)
     {
         List<Object> apiKeyIndexOptionparamsApiKeyIndexVariable = (List<Object>) this.handleOptionAndParams2(parameters, methodName1, optionName1, optionName2, defaultValue);
         var apiKeyIndexOption = ((List<Object>) apiKeyIndexOptionparamsApiKeyIndexVariable).get(0);
         var paramsApiKeyIndex = ((List<Object>) apiKeyIndexOptionparamsApiKeyIndexVariable).get(1);
-        Object apiKeyIndex = apiKeyIndexOption;
-        if ((java.util.Objects.equals(apiKeyIndex, null)) || (Helpers.isLessThan(apiKeyIndex, 4)) || (Helpers.isGreaterThan(apiKeyIndex, 254)))
+        Long apiKeyIndex = this.safeInteger(new ArrayList<Object>(Arrays.asList(apiKeyIndexOption)), 0);
+        if ((!java.util.Objects.equals(apiKeyIndex, null)) && (((apiKeyIndex != null && apiKeyIndex >= 4))) && ((apiKeyIndex == null || apiKeyIndex <= 254)))
         {
-            // apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254;
-            Helpers.addElementToObject(this.options, "apiKeyIndex", apiKeyIndex); // default to a value to avoid overriding other keys
+            return new ArrayList<Object>(Arrays.asList(this.parseToInt(apiKeyIndex), paramsApiKeyIndex));
         }
-        return new ArrayList<Object>(Arrays.asList(this.parseToInt(apiKeyIndex), paramsApiKeyIndex));
+        // apiKeyIndex = this.randNumber (2);
+        Integer defaultApiKeyIndex = 254;
+        this.options.put("apiKeyIndex", defaultApiKeyIndex); // default to a value to avoid overriding other keys
+        return new ArrayList<Object>(Arrays.asList(defaultApiKeyIndex, paramsApiKeyIndex));
     }
 
-    public CompletableFuture<Object> handleAccountIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object defaultValue)
+    public CompletableFuture<List<Object>> handleAccountIndex(Object parameters, String methodName1, String optionName1, String optionName2, Object defaultValue)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -672,9 +670,9 @@ public class Lighter extends LighterApi
                 {
                     throw new ArgumentsRequired((((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + "/") + optionName2) + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
                 }
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("l1_address", walletAddress);
-                Map<String, Object> res = (this.publicGetAccountsByL1Address(mapLiteral1)).join();
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("l1_address", walletAddress);
+                Map<String, Object> res = (this.publicGetAccountsByL1Address(mapLiteral3)).join();
                 //
                 // {
                 //     "code": 200,
@@ -698,16 +696,16 @@ public class Lighter extends LighterApi
                 //     ]
                 // }
                 //
-                List<Object> subAccounts = (List<Object>) this.safeList(res, "sub_accounts", (Object) null);
+                List<Object> subAccounts = this.safeList(res, "sub_accounts", null);
                 if ((subAccounts instanceof List))
                 {
-                    Map<String, Object> account = (Map<String, Object>) this.safeDict(subAccounts, 0, (Object) null);
+                    Map<String, Object> account = this.safeDict(subAccounts, 0, null);
                     if (java.util.Objects.equals(account, null))
                     {
                         throw new ArgumentsRequired((((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + " or ") + optionName2) + " parameter")) ;
                     }
                     accountIndex = account.get("index");
-                    Helpers.addElementToObject(this.options, "accountIndex", accountIndex);
+                    this.options.put("accountIndex", accountIndex);
                 }
             }
             return new ArrayList<Object>(Arrays.asList(this.parseToInt(accountIndex), paramsAccountIndex));
@@ -725,8 +723,8 @@ public class Lighter extends LighterApi
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "nonce", nonce );
                 put( "api_key_index", apiKeyIndex );
@@ -734,7 +732,7 @@ public class Lighter extends LighterApi
             }};
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
             var txTypetxInfoVariable = this.lighterSignCreateSubAccount(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
@@ -747,7 +745,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public Object createAuth(Map<String, Object> parameters)
+    public String createAuth(Map<String, Object> parameters)
     {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         String apiKeyIndex = this.safeString2(parameters, "apiKeyIndex", "api_key_index");
@@ -762,30 +760,35 @@ public class Lighter extends LighterApi
             Object res = this.handleOptionAndParams2(new HashMap<String, Object>() {{}}, "createAuth", "accountIndex", "account_index", (Object) null);
             accountIndex = this.safeString(res, 0);
         }
-        Map<String, Object> auths = (Map<String, Object>) this.safeDict(this.options, "auths", (Object) null);
-        Map<String, Object> accountAuths = (Map<String, Object>) this.safeDict(auths, accountIndex, (Object) null);
-        Map<String, Object> cachedAuth = (Map<String, Object>) this.safeDict(accountAuths, apiKeyIndex, (Object) null);
+        Map<String, Object> auths = this.safeDict(this.options, "auths", null);
+        Map<String, Object> accountAuths = this.safeDict(auths, accountIndex, null);
+        Map<String, Object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex, null);
         Long cachedDeadline = this.safeInteger(cachedAuth, "deadline");
-        if (!java.util.Objects.equals(cachedDeadline, null))
+        Long minimumRemaining = this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60);
+        if ((!java.util.Objects.equals(cachedDeadline, null)) && (!java.util.Objects.equals(minimumRemaining, null)) && (((cachedDeadline - minimumRemaining) >= (this.seconds()))))
         {
-            Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
-            if (Helpers.isGreaterThanOrEqual(cachedDeadline, minimumDeadline))
-            {
-                return this.safeString(cachedAuth, "token");
-            }
+            return this.safeString(cachedAuth, "token");
         }
-        Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
+        Long deadline = (this.seconds() + this.safeInteger(this.options, "authDeadlineExpiry", 28800));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("deadline", deadline);
         request.put("api_key_index", this.parseToInt(apiKeyIndex));
         request.put("account_index", this.parseToInt(accountIndex));
-        Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options.get("auths"), accountIndex), apiKeyIndex), "signer"), request);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "deadline", deadline);
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "token", token);
+        Object signer = this.safeValue(cachedAuth, "signer");
+        if (java.util.Objects.equals(signer, null))
+        {
+            this.checkRequiredCredentials(true);
+            throw new AuthenticationError((this.id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
+        }
+        String token = this.lighterCreateAuthToken(signer, request);
+        this.setAuthEntry((String) (accountIndex), (String) (apiKeyIndex), new HashMap<String, Object>() {{
+            put( "deadline", deadline );
+            put( "token", token );
+        }});
         return token;
     }
 
-    public String pow(Object n, Object m)
+    public String pow(String n, String m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -808,32 +811,32 @@ public class Lighter extends LighterApi
         return r;
     }
 
-    public String hashMessage(Object message)
+    public String hashMessage(String message)
     {
-        Object binaryMessage = this.encode(message);
-        Object binaryMessageLength = this.binaryLength(binaryMessage);
-        Object x19 = this.base16ToBinary("19");
-        Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] binaryMessage = this.encode(message);
+        Integer binaryMessageLength = this.binaryLength(binaryMessage);
+        byte[] x19 = this.base16ToBinary("19");
+        byte[] newline = this.base16ToBinary("0a");
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         this.checkRequiredCredentials(true);
-        Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        String r = (String) signature.get("r");
+        String s = (String) signature.get("s");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
+        return ((("0x" + (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r)) + (s.length() >= 64 ? s.substring(s.length() - 64) : String.format("%" + (64 - s.length()) + "s", "").replace(' ', '0') + s)) + v);
     }
 
-    public String signL1AndPrepareTxInfo(Object txInfo, Object message, Object privateKey)
+    public String signL1AndPrepareTxInfo(String txInfo, String message, String privateKey)
     {
-        String hashMessage = this.hashMessage(message);
-        String signature = this.signHash(hashMessage, privateKey);
-        Object decTxInfo = this.parseJson(txInfo);
-        Helpers.addElementToObject(decTxInfo, "L1Sig", signature);
+        String hashMessage = this.hashMessage((String) (message));
+        String signature = this.signHash(hashMessage, (String) (privateKey));
+        Map<String, Object> decTxInfo = this.extend(new HashMap<String, Object>() {{}}, this.parseJson(txInfo));
+        decTxInfo.put("L1Sig", signature);
         return this.json(decTxInfo);
     }
 
@@ -843,55 +846,56 @@ public class Lighter extends LighterApi
         return BaseExchange.supplyAsync(() -> {
 
             Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
-            if (!java.util.Objects.equals(buildFee, true))
+            if (!Boolean.TRUE.equals(buildFee))
             {
                 return false;
             }
             Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
-            if (java.util.Objects.equals(approvedBuilderFee, true))
+            if (Boolean.TRUE.equals(approvedBuilderFee))
             {
                 return true;
             }
             Boolean standardTier = false;
             try
             {
-                Object isStandardTier = (this.checkIfStandardTier(this.parseToInt(accountIndex))).join();
-                if (Helpers.isTrue(isStandardTier))
+                Boolean isStandardTier = (this.checkIfStandardTier(this.parseToInt(accountIndex))).join();
+                if (Boolean.TRUE.equals(isStandardTier))
                 {
                     standardTier = true;
-                    Helpers.addElementToObject(this.options, "builderFee", false);
+                    this.options.put("builderFee", false);
                 } else
                 {
                     Long builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
                     Long takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
                     Long makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
                     (this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, new HashMap<String, Object>() {{}})).join();
-                    Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                    this.options.put("approvedBuilderFee", true);
                 }
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false);
+                this.options.put("builderFee", false);
             }
             if (Boolean.TRUE.equals(standardTier))
             {
                 return false;
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
-    public CompletableFuture<Object> checkIfStandardTier(Object accountIndex)
+    public CompletableFuture<Boolean> checkIfStandardTier(Object accountIndex)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> tiersForAccountIndexes = (Map<String, Object>) this.safeDict(this.options, "tiersForAccountIndexes", new HashMap<String, Object>() {{}});
-            String accountIndexStr = String.valueOf(accountIndex);
+            Map<String, Object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new HashMap<String, Object>() {{}});
+            String accountIndexStr = this.numberToString(accountIndex);
             Boolean isStandardTier = (Boolean) this.safeBool(tiersForAccountIndexes, accountIndexStr, (Object) null);
             if (!java.util.Objects.equals(isStandardTier, null))
             {
-                return isStandardTier;
+                Boolean cachedIsStandard = (java.util.Objects.equals(isStandardTier, true));
+                return cachedIsStandard;
             }
             Map<String, Object> accountLimits = (this.privateGetAccountLimits(new HashMap<String, Object>() {{
                 put( "account_index", accountIndex );
@@ -914,7 +918,7 @@ public class Lighter extends LighterApi
             String tier = this.safeString(accountLimits, "user_tier");
             Boolean isStandard = (java.util.Objects.equals(tier, "standard"));
             tiersForAccountIndexes.put(accountIndexStr, isStandard);
-            Helpers.addElementToObject(this.options, "tiersForAccountIndexes", tiersForAccountIndexes);
+            this.options.put("tiersForAccountIndexes", tiersForAccountIndexes);
             return isStandard;
         });
 
@@ -927,7 +931,7 @@ public class Lighter extends LighterApi
 
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, parameters)).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, parameters)).join();
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
             }}))).join();
@@ -945,7 +949,7 @@ public class Lighter extends LighterApi
             var txType = ((List<Object>) txTypetxInfomessageToSignVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfomessageToSignVariable).get(1);
             var messageToSign = ((List<Object>) txTypetxInfomessageToSignVariable).get(2);
-            String newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
+            String newTxInfo = this.signL1AndPrepareTxInfo((String) (txInfo), (String) (messageToSign), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", newTxInfo );
@@ -969,7 +973,7 @@ public class Lighter extends LighterApi
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signerNotLoad = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options.get("auths"), strAccountIndex), strApiKeyIndex), "signer");
+            Object signerNotLoad = this.safeValue(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), strAccountIndex, new HashMap<String, Object>() {{}}), strApiKeyIndex, new HashMap<String, Object>() {{}}), "signer");
             var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
             var privateKey = ((List<Object>) privateKeypublicKeyVariable).get(0);
             var publicKey = ((List<Object>) privateKeypublicKeyVariable).get(1);
@@ -983,19 +987,21 @@ public class Lighter extends LighterApi
                 put( "account_index", accountIndex );
             }};
             // create lighter client
-            Object signer = this.lighterCreateClient(signerNotLoad, this.options.get("chainId"), privateKey, apiKeyIndex, accountIndex);
+            Object signer = this.lighterCreateClient(signerNotLoad, this.safeInteger(this.options, "chainId"), privateKey, apiKeyIndex, accountIndex);
             var txTypetxInfomessageToSignVariable = this.lighterSignChangePubkey(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfomessageToSignVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfomessageToSignVariable).get(1);
             var messageToSign = ((List<Object>) txTypetxInfomessageToSignVariable).get(2);
-            String newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
+            String newTxInfo = this.signL1AndPrepareTxInfo((String) (txInfo), (String) (messageToSign), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx_type", txType );
                 put( "tx_info", newTxInfo );
             }};
             (this.publicPostSendTx(request)).join();
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey);
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex), "signer", signer); // reassign signer in go
+            this.setAuthEntry(strAccountIndex, strApiKeyIndex, new HashMap<String, Object>() {{
+                put( "lighterPrivateKey", privateKey );
+                put( "signer", signer );
+            }}); // reassign signer in go
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
             return signer;
         });
@@ -1005,8 +1011,8 @@ public class Lighter extends LighterApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
-        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
+        this.options.put("sandboxMode", enable);
+        this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
     }
 
     public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1034,7 +1040,7 @@ public class Lighter extends LighterApi
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if (java.util.Objects.equals(price, null))
         {
@@ -1067,16 +1073,16 @@ public class Lighter extends LighterApi
         request.put("api_key_index", apiKeyIndex);
         request.put("account_index", this.parseToInt(accountIndex));
         String triggerPrice = this.safeString2(paramsOrderExpiry, "triggerPrice", "stopPrice");
-        Object stopLossPrice = this.safeValue(paramsOrderExpiry, "stopLossPrice", triggerPrice);
-        Object takeProfitPrice = this.safeValue(paramsOrderExpiry, "takeProfitPrice");
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsOrderExpiry, "stopLoss", (Object) null);
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsOrderExpiry, "takeProfit", (Object) null);
+        String stopLossPrice = this.safeString(paramsOrderExpiry, "stopLossPrice", triggerPrice);
+        String takeProfitPrice = this.safeString(paramsOrderExpiry, "takeProfitPrice");
+        Map<String, Object> stopLoss = this.safeDict(paramsOrderExpiry, "stopLoss", null);
+        Map<String, Object> takeProfit = this.safeDict(paramsOrderExpiry, "takeProfit", null);
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         Boolean isConditional = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
         Boolean isMarketOrder = (java.util.Objects.equals(orderType, "MARKET"));
         String timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
-        Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOrderExpiry);
+        Boolean postOnly = this.isPostOnly(isMarketOrder, (Boolean) (null), paramsOrderExpiry);
         Map<String, Object> paramsOmitted = this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
@@ -1114,13 +1120,13 @@ public class Lighter extends LighterApi
                 }
             }
         }
-        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String amountStr = null;
         String priceStr = this.priceToPrecision(symbol, price);
-        String amountScale = this.pow("10", marketInfo.get("size_decimals"));
-        String priceScale = this.pow("10", marketInfo.get("price_decimals"));
+        String amountScale = this.pow("10", (String) (marketInfo.get("size_decimals")));
+        String priceScale = this.pow("10", (String) (marketInfo.get("price_decimals")));
         String triggerPriceStr = "0"; // default is 0
-        Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
+        Integer defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId);
         Map<String, Object> paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
         if (Boolean.TRUE.equals(isConditional))
@@ -1154,23 +1160,24 @@ public class Lighter extends LighterApi
         request.put("order_expiry", orderExpiry);
         request.put("order_type", orderTypeNum);
         request.put("time_in_force", timeInForceNum);
-        request.put("reduce_only", (((java.util.Objects.equals(reduceOnly, true)))) ? 1 : 0);
+        request.put("reduce_only", ((Boolean.TRUE.equals(reduceOnly))) ? 1 : 0);
         request.put("client_order_index", clientOrderId);
         request.put("base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)));
         request.put("avg_execution_price", this.parseToInt(Precise.stringMul(priceStr, priceScale)));
         request.put("trigger_price", this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale)));
         if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
-            request.put("integrator_account_index", this.options.get("integratorAccountIndex"));
-            request.put("integrator_taker_fee", this.options.get("integratorTakerFee"));
-            request.put("integrator_maker_fee", this.options.get("integratorMakerFee"));
+            request.put("integrator_account_index", this.safeInteger(this.options, "integratorAccountIndex"));
+            request.put("integrator_taker_fee", this.safeInteger(this.options, "integratorTakerFee"));
+            request.put("integrator_maker_fee", this.safeInteger(this.options, "integratorMakerFee"));
         }
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)orders).add(this.extend(request, paramsRequest));
+        Map<String, Object> firstOrder = this.extend(request, paramsRequest);
+        ((List<Object>)orders).add(firstOrder);
         if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
             // group order
-            Helpers.addElementToObject((orders == null || 0 >= orders.size() ? null : orders.get(0)), "client_order_index", 0); // client order index should be 0
+            firstOrder.put("client_order_index", 0); // client order index should be 0
             String triggerOrderSide = "";
             if (java.util.Objects.equals(orderSide, "BUY"))
             {
@@ -1188,24 +1195,24 @@ public class Lighter extends LighterApi
             // amount should be 0 for child orders
             if (!java.util.Objects.equals(stopLoss, null))
             {
-                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
-    put( "stopLossPrice", stopLossOrderTriggerPrice );
-    put( "reduceOnly", true );
-}})), 0);
-                Helpers.addElementToObject(orderObj, "client_order_index", 0);
+                Map<String, Object> orderObj = this.safeDict(this.createOrderRequest((String) (symbol), stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
+                    put( "stopLossPrice", stopLossOrderTriggerPrice );
+                    put( "reduceOnly", true );
+                }})), 0, new HashMap<String, Object>() {{}});
+                orderObj.put("client_order_index", 0);
                 ((List<Object>)orders).add(orderObj);
             }
             if (!java.util.Objects.equals(takeProfit, null))
             {
-                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
-    put( "takeProfitPrice", takeProfitOrderTriggerPrice );
-    put( "reduceOnly", true );
-}})), 0);
-                Helpers.addElementToObject(orderObj, "client_order_index", 0);
+                Map<String, Object> orderObj = this.safeDict(this.createOrderRequest((String) (symbol), takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
+                    put( "takeProfitPrice", takeProfitOrderTriggerPrice );
+                    put( "reduceOnly", true );
+                }})), 0, new HashMap<String, Object>() {{}});
+                orderObj.put("client_order_index", 0);
                 ((List<Object>)orders).add(orderObj);
             }
         }
-        return (List<Object>) (orders);
+        return orders;
     }
 
     public CompletableFuture<Long> fetchNonce(Object accountIndex, Object apiKeyIndex, Map<String, Object> parameters)
@@ -1219,12 +1226,12 @@ public class Lighter extends LighterApi
             }
             if (parameters.containsKey("nonce"))
             {
-                return this.safeInteger(parameters, "nonce");
+                return this.parseToInt(this.safeInteger(parameters, "nonce"));
             }
             Long nonceInOptions = this.safeInteger(this.options, "nonce");
             if (!java.util.Objects.equals(nonceInOptions, null))
             {
-                return nonceInOptions;
+                return this.parseToInt(nonceInOptions);
             }
             // avoid skipNonce for l1 operations
             Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchNonce", "skipNonce", true)).get(0);
@@ -1232,16 +1239,16 @@ public class Lighter extends LighterApi
             {
                 return this.milliseconds();
             }
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("account_index", accountIndex);
-            mapLiteral2.put("api_key_index", apiKeyIndex);
-            Map<String, Object> response = (this.publicGetNextNonce(mapLiteral2)).join();
-            return this.safeInteger(response, "nonce");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("account_index", accountIndex);
+            mapLiteral4.put("api_key_index", apiKeyIndex);
+            Map<String, Object> response = (this.publicGetNextNonce(mapLiteral4)).join();
+            return this.parseToInt(this.safeInteger(response, "nonce"));
+        });
 
     }
 
-    public CompletableFuture<Object> signAndCreateOrder(Object method, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> signAndCreateOrder(String method, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1251,30 +1258,43 @@ public class Lighter extends LighterApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             // non-destructively get values from opts/params
-            Object accIndexAndParams = (this.handleAccountIndex(parameters, method, "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>)accIndexAndParams).get(0);
-            Object apiKeyIndexAndParams = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index", (Object) null);
+            List<Object> accIndexAndParams = (this.handleAccountIndex(parameters, method, "accountIndex", "account_index", (Object) null)).join();
+            Long accountIndex = (Long) accIndexAndParams.get(0);
+            List<Object> apiKeyIndexAndParams = (List<Object>) this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>)apiKeyIndexAndParams).get(0);
             // before order-req creation, we need to know account status
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, parameters)).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, parameters)).join();
             try
             {
-                Object isStandardTier = (this.checkIfStandardTier(accountIndex)).join();
-                if (Helpers.isTrue(isStandardTier))
+                Boolean isStandardTier = (this.checkIfStandardTier(accountIndex)).join();
+                if (Boolean.TRUE.equals(isStandardTier))
                 {
-                    Helpers.addElementToObject(this.options, "builderFee", false);
+                    this.options.put("builderFee", false);
                 }
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, "builderFee", false);
+                this.options.put("builderFee", false);
             }
             List<Object> groupingTypeparamsGroupingTypeVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "groupingType", 3L);
             Long groupingType = (Long) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(0);
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
-            Integer totalOrderRequests = ((List<?>)orderRequests).size();
+            Integer totalOrderRequests = orderRequests.size();
+            if ((totalOrderRequests != null && totalOrderRequests > 1))
+            {
+                // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+                // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+                Long groupOrderExpiry = (this.milliseconds() + 2419200000L); // 28 days
+                for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
+                {
+                    if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))
+                    {
+                        Helpers.addElementToObject((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", groupOrderExpiry);
+                    }
+                }
+            }
             Object order = null;
             if ((totalOrderRequests != null && totalOrderRequests > 0))
             {
@@ -1297,14 +1317,14 @@ public class Lighter extends LighterApi
                 Map<String, Object> signingPayload = new HashMap<String, Object>();
                 signingPayload.put("grouping_type", groupingType);
                 signingPayload.put("orders", orderRequests);
-                signingPayload.put("nonce", ((Map<String, Object>)order).get("nonce"));
+                signingPayload.put("nonce", this.safeInteger(order, "nonce"));
                 signingPayload.put("api_key_index", apiKeyIndex);
                 signingPayload.put("account_index", accountIndex);
                 if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
                 {
-                    signingPayload.put("integrator_account_index", ((Map<String, Object>)order).get("integrator_account_index"));
-                    signingPayload.put("integrator_taker_fee", ((Map<String, Object>)order).get("integrator_taker_fee"));
-                    signingPayload.put("integrator_maker_fee", ((Map<String, Object>)order).get("integrator_maker_fee"));
+                    signingPayload.put("integrator_account_index", this.safeInteger(order, "integrator_account_index"));
+                    signingPayload.put("integrator_taker_fee", this.safeInteger(order, "integrator_taker_fee"));
+                    signingPayload.put("integrator_maker_fee", this.safeInteger(order, "integrator_maker_fee"));
                 }
                 var txTypetxInfoVariable = this.lighterSignCreateGroupedOrders(signer, signingPayload);
                 txType = ((List<Object>) txTypetxInfoVariable).get(0);
@@ -1392,16 +1412,16 @@ public class Lighter extends LighterApi
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, "editOrder", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            String amountScale = this.pow("10", marketInfo.get("size_decimals"));
-            String priceScale = this.pow("10", marketInfo.get("price_decimals"));
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            String amountScale = this.pow("10", (String) (marketInfo.get("size_decimals")));
+            String priceScale = this.pow("10", (String) (marketInfo.get("price_decimals")));
             String triggerPrice = this.safeStringN(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
-            Object paramsOmitted = this.omit(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+            Map<String, Object> paramsOmitted = this.omit(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             String amountStr = null;
             String priceStr = this.priceToPrecision(symbol, price);
             String triggerPriceStr = "0"; // default is 0
@@ -1413,7 +1433,7 @@ public class Lighter extends LighterApi
             {
                 amountStr = this.amountToPrecision(symbol, amount);
             }
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsOmitted))).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsOmitted)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>();
             signRaw.put("market_index", this.parseToInt(market.get("id")));
             signRaw.put("index", this.parseToInt(id));
@@ -1425,9 +1445,9 @@ public class Lighter extends LighterApi
             signRaw.put("account_index", accountIndex);
             if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
             {
-                signRaw.put("integrator_account_index", this.options.get("integratorAccountIndex"));
-                signRaw.put("integrator_taker_fee", this.options.get("integratorTakerFee"));
-                signRaw.put("integrator_maker_fee", this.options.get("integratorMakerFee"));
+                signRaw.put("integrator_account_index", this.safeInteger(this.options, "integratorAccountIndex"));
+                signRaw.put("integrator_taker_fee", this.safeInteger(this.options, "integratorTakerFee"));
+                signRaw.put("integrator_maker_fee", this.safeInteger(this.options, "integratorMakerFee"));
             }
             var txTypetxInfoVariable = this.lighterSignModifyOrder(signer, this.extend(signRaw, paramsOmitted));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
@@ -1499,7 +1519,7 @@ public class Lighter extends LighterApi
             //     }
             //
             return this.safeTimestamp(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1597,11 +1617,11 @@ public class Lighter extends LighterApi
             //        ]
             //    }
             //
-            List<Object> spotMarkets = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
-            List<Object> swapMarkets = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapMarkets = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
@@ -1610,10 +1630,12 @@ public class Lighter extends LighterApi
                 {
                     type = "swap";
                 }
-                Object baseId = this.safeString(market, "symbol");
-                if (!java.util.Objects.equals(baseId, null) && (((String)baseId).indexOf("/") != -1))
+                String marketSymbol = this.safeString(market, "symbol");
+                Object baseId = marketSymbol;
+                if (!java.util.Objects.equals(marketSymbol, null) && (((String)marketSymbol).indexOf("/") != -1))
                 {
-                    baseId = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)baseId).split(java.util.regex.Pattern.quote("/")))), 0);
+                    List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)marketSymbol).split(java.util.regex.Pattern.quote("/"))));
+                    baseId = (symbolParts == null || 0 >= symbolParts.size() ? null : symbolParts.get(0));
                 }
                 String quoteId = "USDC";
                 String settleId = (((java.util.Objects.equals(type, "swap")))) ? "USDC" : null;
@@ -1634,37 +1656,37 @@ public class Lighter extends LighterApi
                 Double amountPrecision = (((java.util.Objects.equals(amountDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
                 Double pricePrecision = (((java.util.Objects.equals(priceDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
                 Double quoteMultiplier = this.safeNumber(market, "quote_multiplier", (Object) null);
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", settle,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", settleId,
-                    "type", type,
-                    "spot", java.util.Objects.equals(type, "spot"),
-                    "margin", false,
-                    "swap", java.util.Objects.equals(type, "swap"),
-                    "future", false,
-                    "option", false,
-                    "active", java.util.Objects.equals(this.safeString(market, "status"), "active"),
-                    "contract", java.util.Objects.equals(type, "swap"),
-                    "linear", (((java.util.Objects.equals(type, "swap")))) ? true : null,
-                    "inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null,
-                    "taker", this.safeNumber(market, "taker_fee", (Object) null),
-                    "maker", this.safeNumber(market, "maker_fee", (Object) null),
-                    "contractSize", quoteMultiplier,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", java.util.Objects.equals(type, "spot"));
+                j39v1.put("margin", false);
+                j39v1.put("swap", java.util.Objects.equals(type, "swap"));
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
+                j39v1.put("contract", java.util.Objects.equals(type, "swap"));
+                j39v1.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
+                j39v1.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
+                j39v1.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
+                j39v1.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
+                j39v1.put("contractSize", quoteMultiplier);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1681,10 +1703,10 @@ public class Lighter extends LighterApi
                             put( "min", Lighter.this.safeNumber(market, "min_quote_amount", (Object) null) );
                             put( "max", Lighter.this.safeNumber(market, "order_quote_limit", (Object) null) );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                ));
+                    }});
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -1727,7 +1749,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "asset_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "asset_details", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -1737,7 +1759,7 @@ public class Lighter extends LighterApi
     {
         String id = this.safeString(rawCurrency, "asset_id");
         String code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"), (Map<String, Object>) null);
-        String decimals = this.safeString(rawCurrency, "decimals");
+        String decimals = this.safeString(rawCurrency, "decimals", "");
         Boolean isUSDC = (java.util.Objects.equals(code, "USDC"));
         Double depositMin = null;
         Double withdrawMin = null;
@@ -1746,29 +1768,29 @@ public class Lighter extends LighterApi
             depositMin = this.safeNumber(rawCurrency, "min_transfer_amount", (Object) null);
             withdrawMin = this.safeNumber(rawCurrency, "min_withdrawal_amount", (Object) null);
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("name", code);
-        mapLiteral3.put("code", code);
-        mapLiteral3.put("precision", this.parseNumber(("1e-" + decimals)));
-        mapLiteral3.put("active", true);
-        mapLiteral3.put("fee", null);
-        mapLiteral3.put("networks", new HashMap<String, Object>() {{}});
-        mapLiteral3.put("deposit", isUSDC);
-        mapLiteral3.put("withdraw", isUSDC);
-        mapLiteral3.put("type", "crypto");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("min", depositMin);
-        mapLiteral5.put("max", null);
-        mapLiteral4.put("deposit", mapLiteral5);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("name", code);
+        mapLiteral5.put("code", code);
+        mapLiteral5.put("precision", this.parseNumber(("1e-" + decimals)));
+        mapLiteral5.put("active", true);
+        mapLiteral5.put("fee", null);
+        mapLiteral5.put("networks", new HashMap<String, Object>() {{}});
+        mapLiteral5.put("deposit", isUSDC);
+        mapLiteral5.put("withdraw", isUSDC);
+        mapLiteral5.put("type", "crypto");
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("min", withdrawMin);
-        mapLiteral6.put("max", null);
-        mapLiteral4.put("withdraw", mapLiteral6);
-        mapLiteral3.put("limits", mapLiteral4);
-        mapLiteral3.put("info", rawCurrency);
-        return this.safeCurrencyStructure(mapLiteral3);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("min", depositMin);
+        mapLiteral7.put("max", null);
+        mapLiteral6.put("deposit", mapLiteral7);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("min", withdrawMin);
+        mapLiteral8.put("max", null);
+        mapLiteral6.put("withdraw", mapLiteral8);
+        mapLiteral5.put("limits", mapLiteral6);
+        mapLiteral5.put("info", rawCurrency);
+        return this.safeCurrencyStructure(mapLiteral5);
     }
 
     /**
@@ -1801,7 +1823,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 100));
+                request.put("limit", Math.min(limit, 250));
             }
             Map<String, Object> response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
             //
@@ -2007,10 +2029,10 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> spotTickers = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
-            List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
@@ -2036,8 +2058,8 @@ public class Lighter extends LighterApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
-            List<Object> spotTickers = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
-            List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
@@ -2113,14 +2135,19 @@ public class Lighter extends LighterApi
                 }
             } else
             {
-                endTs = (((!java.util.Objects.equals(until, null)))) ? until : now;
-                Integer defaultLimit = 100;
-                if (!java.util.Objects.equals(limit, null))
+                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                mapLiteral9.put("limit", limit);
+                Long count = this.safeInteger(mapLiteral9, "limit", 100);
+                Long timeframeMs = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))) * 1000L);
+                Long span = (timeframeMs * count);
+                if (!java.util.Objects.equals(until, null))
                 {
-                    startTs = Helpers.subtract(endTs, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))) * 1000L) * limit));
+                    endTs = until;
+                    startTs = (until - span);
                 } else
                 {
-                    startTs = Helpers.subtract(endTs, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))) * 1000L) * ((long) defaultLimit)));
+                    endTs = now;
+                    startTs = (now - span);
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -2152,7 +2179,7 @@ public class Lighter extends LighterApi
             //     ]
             // }
             //
-            List<Object> ohlcvs = (List<Object>) this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2223,9 +2250,9 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "funding_rates", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "funding_rates", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 String exchange = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "exchange");
                 if (java.util.Objects.equals(exchange, "lighter"))
@@ -2240,7 +2267,7 @@ public class Lighter extends LighterApi
 
     /**
      * @method
-     * @name ligher#fetchBalance
+     * @name lighter#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/reference/account-1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2315,21 +2342,21 @@ public class Lighter extends LighterApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
+            List<Object> accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < accounts.size(); i++)
             {
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
+                Map<String, Object> account = this.safeDict(accounts, i, null);
                 if (java.util.Objects.equals(type, "spot"))
                 {
-                    List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; j < ((List<?>)assets).size(); j++)
+                    List<Object> assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
+                    for (var j = 0; j < assets.size(); j++)
                     {
-                        Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, j, (Object) null);
+                        Map<String, Object> asset = this.safeDict(assets, j, null);
                         String codeId = this.safeString(asset, "symbol");
                         String code = this.safeCurrencyCode(codeId, (Map<String, Object>) null);
-                        Object balance = this.safeDict(result, code, this.account());
-                        Helpers.addElementToObject(balance, "total", Precise.stringAdd(((Map<String, Object>)balance).get("total"), this.safeString(asset, "balance")));
-                        Helpers.addElementToObject(balance, "used", Precise.stringAdd(((Map<String, Object>)balance).get("used"), this.safeString(asset, "locked_balance")));
+                        Map<String, Object> balance = this.extend(this.account(), this.safeDict(result, code, new HashMap<String, Object>() {{}}));
+                        balance.put("total", Precise.stringAdd(balance.get("total"), this.safeString(asset, "balance")));
+                        balance.put("used", Precise.stringAdd(balance.get("used"), this.safeString(asset, "locked_balance")));
                         if (!java.util.Objects.equals(code, null))
                         {
                             result.put(code, balance);
@@ -2337,13 +2364,13 @@ public class Lighter extends LighterApi
                     }
                 } else
                 {
-                    Object perpBalance = this.safeDict(result, "USDC", this.account());
+                    Map<String, Object> perpBalance = this.extend(this.account(), this.safeDict(result, "USDC", new HashMap<String, Object>() {{}}));
                     String perpTotal = this.safeString(perpBalance, "total", "0");
                     String perpFree = this.safeString(perpBalance, "free", "0");
                     String perpUSDCTotal = this.safeString(account, "collateral", "0");
                     String perpUSDCFree = this.safeString(account, "available_balance", "0");
-                    Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(perpTotal, perpUSDCTotal));
-                    Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(perpFree, perpUSDCFree));
+                    perpBalance.put("total", Precise.stringAdd(perpTotal, perpUSDCTotal));
+                    perpBalance.put("free", Precise.stringAdd(perpFree, perpUSDCFree));
                     result.put("USDC", perpBalance);
                 }
             }
@@ -2368,7 +2395,7 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Position::new);
 
@@ -2452,12 +2479,12 @@ public class Lighter extends LighterApi
             //     }
             //
             List<Object> allPositions = new ArrayList<Object>(Arrays.asList());
-            List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
+            List<Object> accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < accounts.size(); i++)
             {
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
-                List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)positions).size(); j++)
+                Map<String, Object> account = this.safeDict(accounts, i, null);
+                List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
+                for (var j = 0; j < positions.size(); j++)
                 {
                     ((List<Object>)allPositions).add((positions == null || j < 0 || j >= positions.size() ? null : positions.get(j)));
                 }
@@ -2512,31 +2539,41 @@ public class Lighter extends LighterApi
                 leverage = (((double) 100) / ((double) imf));
             }
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", position);
-        mapLiteral7.put("id", null);
-        mapLiteral7.put("symbol", marketResolved.get("symbol"));
-        mapLiteral7.put("timestamp", null);
-        mapLiteral7.put("datetime", null);
-        mapLiteral7.put("isolated", (java.util.Objects.equals(marginMode, "isolated")));
-        mapLiteral7.put("hedged", null);
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("contracts", this.safeNumber(position, "position", (Object) null));
-        mapLiteral7.put("contractSize", null);
-        mapLiteral7.put("entryPrice", this.safeNumber(position, "avg_entry_price", (Object) null));
-        mapLiteral7.put("markPrice", null);
-        mapLiteral7.put("notional", this.safeNumber(position, "position_value", (Object) null));
-        mapLiteral7.put("leverage", leverage);
-        mapLiteral7.put("collateral", this.safeNumber(position, "allocated_margin", (Object) null));
-        mapLiteral7.put("initialMargin", null);
-        mapLiteral7.put("maintenanceMargin", null);
-        mapLiteral7.put("initialMarginPercentage", null);
-        mapLiteral7.put("maintenanceMarginPercentage", null);
-        mapLiteral7.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral7.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
-        mapLiteral7.put("marginMode", marginMode);
-        mapLiteral7.put("percentage", null);
-        return this.safePosition(mapLiteral7);
+        String contractsString = this.safeString(position, "position");
+        String positionValueString = this.safeString(position, "position_value");
+        String markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber(position, "allocated_margin", (Object) null);
+        }
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("info", position);
+        mapLiteral10.put("id", null);
+        mapLiteral10.put("symbol", marketResolved.get("symbol"));
+        mapLiteral10.put("timestamp", null);
+        mapLiteral10.put("datetime", null);
+        mapLiteral10.put("isolated", (java.util.Objects.equals(marginMode, "isolated")));
+        mapLiteral10.put("hedged", null);
+        mapLiteral10.put("side", side);
+        mapLiteral10.put("contracts", this.parseNumber(contractsString));
+        mapLiteral10.put("contractSize", null);
+        mapLiteral10.put("entryPrice", this.safeNumber(position, "avg_entry_price", (Object) null));
+        mapLiteral10.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral10.put("notional", this.parseNumber(positionValueString));
+        mapLiteral10.put("leverage", leverage);
+        mapLiteral10.put("positionMargin", positionMargin);
+        mapLiteral10.put("collateral", null);
+        mapLiteral10.put("initialMargin", null);
+        mapLiteral10.put("maintenanceMargin", null);
+        mapLiteral10.put("initialMarginPercentage", null);
+        mapLiteral10.put("maintenanceMarginPercentage", null);
+        mapLiteral10.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral10.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral10.put("marginMode", marginMode);
+        mapLiteral10.put("percentage", null);
+        return this.safePosition(mapLiteral10);
     }
 
     /**
@@ -2560,7 +2597,7 @@ public class Lighter extends LighterApi
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "fetchAccounts", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "by", Lighter.this.safeString(paramsAccountIndex, "by", "index") );
                 put( "value", accountIndex );
@@ -2597,8 +2634,8 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
-            return this.parseAccounts(accounts, Helpers.toMapArg(paramsAccountIndex));
+            List<Object> accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+            return this.parseAccounts(accounts, paramsAccountIndex);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
@@ -2671,10 +2708,10 @@ public class Lighter extends LighterApi
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchOpenOrders", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
-            var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
+            Map<String, Object> paramsApiKeyIndex = (Map<String, Object>) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsApiKeyIndex))).join();
+            (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_id", market.get("id") );
@@ -2723,7 +2760,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2759,10 +2796,10 @@ public class Lighter extends LighterApi
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchClosedOrders", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
-            var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
+            Map<String, Object> paramsApiKeyIndex = (Map<String, Object>) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsApiKeyIndex))).join();
+            (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_id", market.get("id") );
@@ -2816,7 +2853,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2864,19 +2901,15 @@ public class Lighter extends LighterApi
         String marketId = this.safeString(order, "market_index");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeTimestamp(order, "timestamp");
-        Object isAsk = this.safeBool(order, "is_ask", (Object) null);
-        if (java.util.Objects.equals(isAsk, null))
-        {
-            Long isAskAsInteger = this.safeInteger(order, "is_ask");
-            if (!java.util.Objects.equals(isAskAsInteger, null))
-            {
-                isAsk = (isAskAsInteger != null && isAskAsInteger == 1);
-            }
-        }
+        Boolean isAsk = (Boolean) this.safeBool(order, "is_ask", (Object) null);
+        Long isAskAsInteger = this.safeInteger(order, "is_ask");
         String side = null;
         if (!java.util.Objects.equals(isAsk, null))
         {
             side = ((Boolean.TRUE.equals(isAsk))) ? "sell" : "buy";
+        } else if (!java.util.Objects.equals(isAskAsInteger, null))
+        {
+            side = ((((isAskAsInteger != null && isAskAsInteger == 1)))) ? "sell" : "buy";
         }
         String type = this.safeString(order, "type");
         if (java.util.Objects.equals(type, null))
@@ -2899,52 +2932,43 @@ public class Lighter extends LighterApi
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        String tif = null;
         Long tifAsInteger = this.safeInteger(order, "time_in_force");
-        if (!java.util.Objects.equals(tifAsInteger, null))
+        String tif = (((!java.util.Objects.equals(tifAsInteger, null)))) ? this.parseOrderTimeInForceInteger(tifAsInteger) : this.safeString(order, "time_in_force");
+        Boolean reduceOnlyAsBool = (Boolean) this.safeBool(order, "reduce_only", (Object) null);
+        Long reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
+        Boolean reduceOnly = reduceOnlyAsBool;
+        if ((java.util.Objects.equals(reduceOnlyAsBool, null)) && (!java.util.Objects.equals(reduceOnlyAsInteger, null)))
         {
-            tif = this.parseOrderTimeInForceInteger(tifAsInteger);
-        } else
-        {
-            tif = this.safeString(order, "time_in_force");
-        }
-        Object reduceOnly = this.safeBool(order, "reduce_only", (Object) null);
-        if (java.util.Objects.equals(reduceOnly, null))
-        {
-            Long reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
-            if (!java.util.Objects.equals(reduceOnlyAsInteger, null))
-            {
-                reduceOnly = (reduceOnlyAsInteger != null && reduceOnlyAsInteger == 1);
-            }
+            reduceOnly = ((reduceOnlyAsInteger != null && reduceOnlyAsInteger == 1));
         }
         String status = this.safeString(order, "status");
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("info", order);
-        mapLiteral8.put("id", this.safeString(order, "order_id"));
-        mapLiteral8.put("clientOrderId", this.omitZero(this.safeString2(order, "client_order_id", "client_order_index")));
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("lastTradeTimestamp", null);
-        mapLiteral8.put("lastUpdateTimestamp", this.safeTimestamp(order, "updated_at"));
-        mapLiteral8.put("symbol", marketResolved.get("symbol"));
-        mapLiteral8.put("type", this.parseOrderType(type));
-        mapLiteral8.put("timeInForce", this.parseOrderTimeInForce(tif));
-        mapLiteral8.put("postOnly", java.util.Objects.equals(tif, "post-only"));
-        mapLiteral8.put("reduceOnly", reduceOnly);
-        mapLiteral8.put("side", side);
-        mapLiteral8.put("price", this.safeString(order, "price"));
-        mapLiteral8.put("triggerPrice", triggerPrice);
-        mapLiteral8.put("stopLossPrice", stopLossPrice);
-        mapLiteral8.put("takeProfitPrice", takeProfitPrice);
-        mapLiteral8.put("amount", this.safeString(order, "initial_base_amount"));
-        mapLiteral8.put("cost", this.safeString(order, "filled_quote_amount"));
-        mapLiteral8.put("average", null);
-        mapLiteral8.put("filled", this.safeString(order, "filled_base_amount"));
-        mapLiteral8.put("remaining", this.safeString(order, "remaining_base_amount"));
-        mapLiteral8.put("status", this.parseOrderStatus(status));
-        mapLiteral8.put("fee", null);
-        mapLiteral8.put("trades", null);
-        return this.safeOrder(mapLiteral8, marketResolved);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", order);
+        mapLiteral11.put("id", this.safeString(order, "order_id"));
+        mapLiteral11.put("clientOrderId", this.omitZero(this.safeString2(order, "client_order_id", "client_order_index")));
+        mapLiteral11.put("timestamp", timestamp);
+        mapLiteral11.put("datetime", this.iso8601(timestamp));
+        mapLiteral11.put("lastTradeTimestamp", null);
+        mapLiteral11.put("lastUpdateTimestamp", this.safeTimestamp(order, "updated_at"));
+        mapLiteral11.put("symbol", marketResolved.get("symbol"));
+        mapLiteral11.put("type", this.parseOrderType(type));
+        mapLiteral11.put("timeInForce", this.parseOrderTimeInForce(tif));
+        mapLiteral11.put("postOnly", java.util.Objects.equals(tif, "post-only"));
+        mapLiteral11.put("reduceOnly", reduceOnly);
+        mapLiteral11.put("side", side);
+        mapLiteral11.put("price", this.safeString(order, "price"));
+        mapLiteral11.put("triggerPrice", triggerPrice);
+        mapLiteral11.put("stopLossPrice", stopLossPrice);
+        mapLiteral11.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral11.put("amount", this.safeString(order, "initial_base_amount"));
+        mapLiteral11.put("cost", this.safeString(order, "filled_quote_amount"));
+        mapLiteral11.put("average", null);
+        mapLiteral11.put("filled", this.safeString(order, "filled_base_amount"));
+        mapLiteral11.put("remaining", this.safeString(order, "remaining_base_amount"));
+        mapLiteral11.put("status", this.parseOrderStatus(status));
+        mapLiteral11.put("fee", null);
+        mapLiteral11.put("trades", null);
+        return this.safeOrder(mapLiteral11, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -3024,7 +3048,7 @@ public class Lighter extends LighterApi
             put( "1", "good-till-time" );
             put( "2", "post-only" );
         }};
-        return this.safeString(timeInForces, String.valueOf(tifInteger));
+        return this.safeString(timeInForces, this.numberToString(tifInteger));
     }
 
     /**
@@ -3062,7 +3086,7 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsToAccountIndex = (Map<String, Object>) ((List<Object>) toAccountIndexparamsToAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)).join();
             Map<String, Object> currency = this.currency((String) (code));
             String currencyCode = (String) currency.get("code");
             if ((!java.util.Objects.equals(currencyCode, "USDC")) && (!java.util.Objects.equals(currencyCode, "ETH")))
@@ -3123,7 +3147,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3138,10 +3162,10 @@ public class Lighter extends LighterApi
             }};
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchTransfers", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
-            var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
+            Map<String, Object> paramsApiKeyIndex = (Map<String, Object>) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsApiKeyIndex))).join();
+            (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -3171,14 +3195,14 @@ public class Lighter extends LighterApi
             //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(rows, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(rows, 0, null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
             {
-                Helpers.addElementToObject((rows == null || 0 >= rows.size() ? null : rows.get(0)), "cursor", cursor);
+                ((Map<String, Object>)(rows == null || 0 >= rows.size() ? null : rows.get(0))).put("cursor", cursor);
             }
-            return this.parseTransfers(rows, currency, since, limit, Helpers.toMapArg(paramsApiKeyIndex));
+            return this.parseTransfers(rows, currency, since, limit, paramsApiKeyIndex);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -3205,8 +3229,8 @@ public class Lighter extends LighterApi
         String currencyId = this.safeString(transfer, "asset_id");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transfer, "timestamp");
-        Map<String, Object> fromAccount = (Map<String, Object>) this.safeDict(transfer, "from", new HashMap<String, Object>() {{}});
-        Map<String, Object> toAccount = (Map<String, Object>) this.safeDict(transfer, "to", new HashMap<String, Object>() {{}});
+        Map<String, Object> fromAccount = this.safeDict(transfer, "from", new HashMap<String, Object>() {{}});
+        Map<String, Object> toAccount = this.safeDict(transfer, "to", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "id", Lighter.this.safeString(transfer, "id") );
             put( "timestamp", timestamp );
@@ -3243,14 +3267,14 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "cursor", "cursor", (Long) null, 50L)).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPaginate), "fetchDeposits", "address", "l1_address", (String) null);
+            Pair<String, Map<String, Object>> addressparamsAddressVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsPaginate), "fetchDeposits", "address", "l1_address", (String) null);
             String address = addressparamsAddressVariable.first();
             Map<String, Object> paramsAddress = addressparamsAddressVariable.second();
             if (java.util.Objects.equals(address, null))
@@ -3265,10 +3289,10 @@ public class Lighter extends LighterApi
             request.put("l1_address", address);
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchDeposits", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
-            var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
+            Map<String, Object> paramsApiKeyIndex = (Map<String, Object>) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsApiKeyIndex))).join();
+            (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -3292,12 +3316,12 @@ public class Lighter extends LighterApi
             //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(data, 0, null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
             {
-                Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "cursor", cursor);
+                ((Map<String, Object>)(data == null || 0 >= data.size() ? null : data.get(0))).put("cursor", cursor);
             }
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3322,7 +3346,7 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3341,10 +3365,10 @@ public class Lighter extends LighterApi
             }};
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchWithdrawals", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
-            var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
+            Map<String, Object> paramsApiKeyIndex = (Map<String, Object>) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsApiKeyIndex))).join();
+            (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -3369,12 +3393,12 @@ public class Lighter extends LighterApi
             //         "cursor": "string"
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "withdraws", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "withdraws", new ArrayList<Object>(Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(data, 0, null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
             {
-                Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "cursor", cursor);
+                ((Map<String, Object>)(data == null || 0 >= data.size() ? null : data.get(0))).put("cursor", cursor);
             }
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -3458,14 +3482,14 @@ public class Lighter extends LighterApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3479,10 +3503,10 @@ public class Lighter extends LighterApi
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, "withdraw", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
             Map<String, Object> currency = this.currency((String) (code));
             String currencyCode = (String) currency.get("code");
             if ((!java.util.Objects.equals(currencyCode, "USDC")) && (!java.util.Objects.equals(currencyCode, "ETH")))
@@ -3492,8 +3516,8 @@ public class Lighter extends LighterApi
             String amountDecimals = (((java.util.Objects.equals(currencyCode, "USDC")))) ? "6" : "8";
             Long amountScaled = this.parseToInt(Precise.stringMul(this.pow("10", amountDecimals), this.currencyToPrecision((String) (code), amount, (String) null)));
             Long routeType = this.safeInteger(paramsAccountIndex, "routeType", 0); // 0: perp, 1: spot
-            Object paramsOmitted = this.omit(paramsAccountIndex, "routeType");
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsOmitted))).join();
+            Map<String, Object> paramsOmitted = this.omit(paramsAccountIndex, "routeType");
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsOmitted)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "asset_index", Lighter.this.parseToInt(currency.get("id")) );
                 put( "route_type", routeType );
@@ -3510,8 +3534,65 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseTransaction(response, (Map<String, Object>) null);
         }).thenApply(Transaction::new);
+
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market_id", market.get("id") );
+                put( "limit", 100 );
+            }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("limit", Math.min(limit, 100));
+            }
+            Map<String, Object> response = (this.publicGetRecentTrades(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": 200,
+            //         "trades": [
+            //             {
+            //                 "trade_id": 35564491385,
+            //                 "type": "trade",
+            //                 "market_id": 0,
+            //                 "size": "0.0003",
+            //                 "price": "2385.57",
+            //                 "usd_amount": "0.715671",
+            //                 "ask_id": 281478054267183,
+            //                 "bid_id": 562946767299880,
+            //                 "ask_account_id": 723632,
+            //                 "bid_account_id": 317087,
+            //                 "is_maker_ask": false,
+            //                 "timestamp": 1792497687525
+            //             }
+            //         ]
+            //     }
+            //
+            List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -3538,7 +3619,7 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3550,10 +3631,10 @@ public class Lighter extends LighterApi
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchMyTrades", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
-            var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
+            Map<String, Object> paramsApiKeyIndex = (Map<String, Object>) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsApiKeyIndex))).join();
+            (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sort_by", "timestamp" );
                 put( "limit", 100 );
@@ -3608,16 +3689,16 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            List<Object> data = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < data.size(); i++)
             {
                 Helpers.addElementToObject((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "account_index", accountIndex);
             }
             String nextCursor = this.safeString(response, "next_cursor");
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(data, 0, null);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(nextCursor, null)))
             {
-                Helpers.addElementToObject((data == null || 0 >= data.size() ? null : data.get(0)), "next_cursor", nextCursor);
+                ((Map<String, Object>)(data == null || 0 >= data.size() ? null : data.get(0))).put("next_cursor", nextCursor);
             }
             return this.parseTrades(data, market, since, limit, paramsUntil);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -3673,27 +3754,32 @@ public class Lighter extends LighterApi
                 orderId = this.safeString(trade, "bid_id");
             }
         }
+        // public trades use Lighter's taker-side convention
+        if ((java.util.Objects.equals(side, null)) && (!java.util.Objects.equals(isMakerAsk, null)))
+        {
+            side = ((Boolean.TRUE.equals(isMakerAsk))) ? "buy" : "sell";
+        }
         String takerOrMaker = null;
         if (!java.util.Objects.equals(side, null) && !java.util.Objects.equals(isMakerAsk, null))
         {
-            Object isMaker = (((java.util.Objects.equals(side, "sell")))) ? isMakerAsk : !Boolean.TRUE.equals(isMakerAsk);
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            Boolean isMaker = (((java.util.Objects.equals(side, "sell")))) ? (java.util.Objects.equals(isMakerAsk, true)) : (java.util.Objects.equals(isMakerAsk, false));
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", trade);
-        mapLiteral9.put("id", this.safeString(trade, "trade_id"));
-        mapLiteral9.put("timestamp", timestamp);
-        mapLiteral9.put("datetime", this.iso8601(timestamp));
-        mapLiteral9.put("symbol", marketResolved.get("symbol"));
-        mapLiteral9.put("order", orderId);
-        mapLiteral9.put("type", this.safeString(trade, "type"));
-        mapLiteral9.put("side", side);
-        mapLiteral9.put("takerOrMaker", takerOrMaker);
-        mapLiteral9.put("price", this.safeString(trade, "price"));
-        mapLiteral9.put("amount", this.safeString(trade, "size"));
-        mapLiteral9.put("cost", this.safeString(trade, "usd_amount"));
-        mapLiteral9.put("fee", null);
-        return this.safeTrade(mapLiteral9, marketResolved);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("info", trade);
+        mapLiteral12.put("id", this.safeString(trade, "trade_id"));
+        mapLiteral12.put("timestamp", timestamp);
+        mapLiteral12.put("datetime", this.iso8601(timestamp));
+        mapLiteral12.put("symbol", marketResolved.get("symbol"));
+        mapLiteral12.put("order", orderId);
+        mapLiteral12.put("type", this.safeString(trade, "type"));
+        mapLiteral12.put("side", side);
+        mapLiteral12.put("takerOrMaker", takerOrMaker);
+        mapLiteral12.put("price", this.safeString(trade, "price"));
+        mapLiteral12.put("amount", this.safeString(trade, "size"));
+        mapLiteral12.put("cost", this.safeString(trade, "usd_amount"));
+        mapLiteral12.put("fee", null);
+        return this.safeTrade(mapLiteral12, marketResolved);
     }
 
     /**
@@ -3717,7 +3803,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "setLeverage", "marginMode", "margin_mode", (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "setLeverage", "marginMode", "margin_mode", (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(marginMode, null))
@@ -3757,12 +3843,12 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires an leverage parameter")) ;
             }
-            return (this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage)).join();
+            return (this.modifyLeverageAndMarginMode(leverage, (String) (marginMode), symbol, paramsLeverage)).join();
         });
 
     }
 
-    public CompletableFuture<Map<String, Object>> modifyLeverageAndMarginMode(Object leverage, Object marginMode, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> modifyLeverageAndMarginMode(Object leverage, String marginMode, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3784,15 +3870,15 @@ public class Lighter extends LighterApi
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, "modifyLeverageAndMarginMode", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
             Map<String, Object> market = this.market(symbol);
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>();
             signRaw.put("market_index", this.parseToInt(market.get("id")));
-            signRaw.put("initial_margin_fraction", this.parseToInt(Helpers.divide(10000, leverage)));
+            signRaw.put("initial_margin_fraction", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(10000, leverage)));
             signRaw.put("margin_mode", (((java.util.Objects.equals(marginMode, "cross")))) ? 0 : 1);
             signRaw.put("nonce", nonce);
             signRaw.put("api_key_index", apiKeyIndex);
@@ -3805,11 +3891,11 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             return (this.publicPostSendTx(request)).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
-    public CompletableFuture<Object> signAndCancelOrder(Object method, String id, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> signAndCancelOrder(String method, String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3827,14 +3913,14 @@ public class Lighter extends LighterApi
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, method, "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             String clientOrderId = this.safeString2(paramsAccountIndex, "client_order_index", "clientOrderId");
-            Object paramsOmitted = this.omit(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("client_order_index", "clientOrderId")));
+            Map<String, Object> paramsOmitted = this.omit(paramsAccountIndex, new ArrayList<Object>(Arrays.asList("client_order_index", "clientOrderId")));
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsOmitted))).join();
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsOmitted))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsOmitted)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsOmitted)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "market_index", Lighter.this.parseToInt(market.get("id")) );
                 put( "nonce", nonce );
@@ -3875,7 +3961,7 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrder", id, symbol, parameters)).join();
+            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrder", (String) (id), symbol, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             Map<String, Object> market = this.market(symbol);
@@ -3889,7 +3975,7 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Object> signAndCancelAllOrders(Object method, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> signAndCancelAllOrders(String method, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3903,11 +3989,11 @@ public class Lighter extends LighterApi
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, method, "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "time_in_force", 0 );
                 put( "time", 0 );
@@ -3973,27 +4059,38 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000)))
+            if (java.util.Objects.equals(timeout, null))
             {
-                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days.")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
+            }
+            Boolean isScheduled = (!(timeout != null && ((Number) timeout).doubleValue() == 0));
+            if (Boolean.TRUE.equals(isScheduled) && (((timeout == null || !(((Number) timeout).doubleValue() >= 300000))) || ((timeout != null && ((Number) timeout).doubleValue() > 1296000000))))
+            {
+                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
             }
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, "cancelAllOrdersAfter", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Map<String, Object> signRaw = new HashMap<String, Object>() {{
-                put( "time_in_force", 1 );
-                put( "time", Helpers.add(Lighter.this.milliseconds(), timeout) );
-                put( "nonce", nonce );
-                put( "api_key_index", apiKeyIndex );
-                put( "account_index", accountIndex );
-            }};
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
+            Integer timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            Object cancelTime = 0;
+            if (Boolean.TRUE.equals(isScheduled))
+            {
+                timeInForce = 1;
+                cancelTime = this.sum(this.milliseconds(), timeout);
+            }
+            Map<String, Object> signRaw = new HashMap<String, Object>();
+            signRaw.put("time_in_force", timeInForce);
+            signRaw.put("time", cancelTime);
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
@@ -4089,12 +4186,12 @@ public class Lighter extends LighterApi
             }
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsApiKeyIndex, "setMargin", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+            Map<String, Object> paramsAccountIndex = (Map<String, Object>) ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
-            Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
             Map<String, Object> market = this.market(symbol);
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
             Map<String, Object> signRaw = new HashMap<String, Object>();
             signRaw.put("market_index", this.parseToInt(market.get("id")));
             signRaw.put("usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount, (String) null))));
@@ -4110,7 +4207,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
-            return this.parseMarginModification((Map<String, Object>) (response), market);
+            return this.parseMarginModification(response, market);
         }).thenApply(MarginModification::new);
 
     }
@@ -4132,10 +4229,11 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object url = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "root"))
+        if (java.util.Objects.equals(apiName, "root"))
         {
             String baseApiUrl = this.safeString(this.urls.get("api"), "public");
             if (java.util.Objects.equals(baseApiUrl, null))
@@ -4145,7 +4243,7 @@ public class Lighter extends LighterApi
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            String baseApiUrl2 = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl2 = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4153,13 +4251,13 @@ public class Lighter extends LighterApi
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Map<String, Object> authHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             authHeaders = new HashMap<String, Object>() {{
-                put( "Authorization", Lighter.this.createAuth(Helpers.toMapArg(parameters)) );
+                put( "Authorization", Lighter.this.createAuth(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))) );
             }};
         }
-        if (Helpers.objectKeys(parameters).size() > 0)
+        if (((List<Object>) switch ((Object)(parameters)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
@@ -4177,13 +4275,13 @@ public class Lighter extends LighterApi
             }
             url = (url + ("?" + this.rawencode(parameters)));
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
                 h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap4.put("body", body);
+                h2kMap4.put("body", null);
                 h2kMap4.put("headers", authHeaders);
                 return h2kMap4;
             }
@@ -4192,17 +4290,13 @@ public class Lighter extends LighterApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
-    }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -4214,13 +4308,13 @@ public class Lighter extends LighterApi
         //         "message": "string"
         //     }
         //
-        String code = this.safeString(response, "code");
-        String message = this.safeString(response, "msg");
-        if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0") && !java.util.Objects.equals(code, "200"))
+        String codeError = this.safeString(response, "code");
+        String message = this.safeString(response, "message");
+        if (!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0") && !java.util.Objects.equals(codeError, "200"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

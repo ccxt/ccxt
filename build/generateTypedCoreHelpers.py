@@ -51,7 +51,7 @@ IDENT = r'@?\w+'
 ASSIGN = r'^(?:this\.)?(?P<f>' + IDENT + r') = '
 
 SCALAR = re.compile(ASSIGN + r'Exchange\.Safe(?P<kind>String|Float|Integer)\(\w+, "(?P<k>[^"]+)"\);$')
-BOOLF = re.compile(ASSIGN + r'Exchange\.SafeBool\(\w+, "(?P<k>[^"]+)"(?:, (?:true|false))?\);$')
+BOOLF = re.compile(ASSIGN + r'Exchange\.SafeBool\(\w+, "(?P<k>[^"]+)"(?:, (?:true|false))?\)(?: == true)?;$')
 BOOLV = re.compile(ASSIGN + r'Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null \? \(bool\)Exchange\.SafeValue\(\w+, "(?P=k)"\) : null;$')
 BOOLC = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\) && (?P=v)\["(?P=k)"\] != null \? \(bool\)(?P=v)\["(?P=k)"\] : null;$')
 INFO = re.compile(ASSIGN + r'Helper\.GetInfo\(\w+\);$')
@@ -103,9 +103,10 @@ SPLAT_KEY = re.compile(
     r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
     r'\s*\}\s*\n\s*\}\s*$', re.M)
 
-# order-book sides: List<List<double>> built from the raw [price, amount] rows
+# order-book sides: List<List<double>> built from the raw [price, amount] rows, or
+# List<List<object>> for mixed rows such as the L3 [price, amount, orderId] entries
 LEVELS = re.compile(ASSIGN + r'\w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(\(IEnumerable<object>\)\w+\["(?P=k)"\]\)'
-                    r'\.Select\(x => \(\(IEnumerable<object>\)x\)\.Select\(y => Convert\.ToDouble\(y\)\)'
+                    r'\.Select\(x => \(\(IEnumerable<object>\)x\)(?:\.Select\(y => Convert\.ToDouble\(y\)\))?'
                     r'\.ToList\(\)\)\.ToList\(\) : null;$')
 
 # `info = <ctorParam>;` keeps the WHOLE source dict, so the struct inverts to it exactly

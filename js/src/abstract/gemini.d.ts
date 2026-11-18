@@ -1,6 +1,6 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     webExchangeGet(params?: {}): Promise<string>;
     webGetRestApi(params?: {}): Promise<string>;
     publicGetV1Symbols(params?: {}): Promise<List>;
@@ -60,7 +60,7 @@ interface Exchange {
     privatePostV1ClearingStatus(params?: {}): Promise<Dict>;
     privatePostV1ClearingCancel(params?: {}): Promise<Dict>;
     privatePostV1ClearingConfirm(params?: {}): Promise<Dict>;
-    privatePostV1Balances(params?: {}): Promise<Dict>;
+    privatePostV1Balances(params?: {}): Promise<List>;
     privatePostV1BalancesStaking(params?: {}): Promise<List>;
     privatePostV1NotionalbalancesCurrency(params?: {}): Promise<List>;
     privatePostV1Transfers(params?: {}): Promise<List>;
@@ -116,7 +116,5 @@ interface Exchange {
     privatePostV2Transfers(params?: {}): Promise<List>;
     privatePostV2WithdrawNetworkTicker(params?: {}): Promise<Dict>;
     privatePostV2WithdrawNetworkTickerFeeEstimate(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

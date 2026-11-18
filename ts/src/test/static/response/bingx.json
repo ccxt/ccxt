@@ -3,6 +3,308 @@
     "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "fetchTradingFee": [
+            {
+                "description": "spot trading fee rates are percentage-based",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "retryable": 0,
+                    "data": {
+                        "takerCommissionRate": 0.001,
+                        "makerCommissionRate": 0.001
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "takerCommissionRate": 0.001,
+                        "makerCommissionRate": 0.001
+                    },
+                    "symbol": "BTC/USDT",
+                    "maker": 0.001,
+                    "taker": 0.001,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            },
+            {
+                "description": "linear trading fee rates are percentage-based",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "commission": {
+                            "takerCommissionRate": 0.0005,
+                            "makerCommissionRate": 0.0002
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "takerCommissionRate": 0.0005,
+                        "makerCommissionRate": 0.0002
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "maker": 0.0002,
+                    "taker": 0.0005,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            },
+            {
+                "description": "inverse trading fee rates are percentage-based",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1790159229410,
+                    "data": {
+                        "takerCommissionRate": "0.0005",
+                        "makerCommissionRate": "0.0002"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "takerCommissionRate": "0.0005",
+                        "makerCommissionRate": "0.0002"
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "maker": 0.0002,
+                    "taker": 0.0005,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Single-network withdrawal fee from live currency metadata",
+                "method": "fetchDepositWithdrawFees",
+                "input": [
+                    [
+                        "ACE"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1790238417118,
+                    "data": [
+                        {
+                            "coin": "ACE",
+                            "name": "ACE",
+                            "networkList": [
+                                {
+                                    "name": "ACE",
+                                    "network": "BEP20",
+                                    "isDefault": true,
+                                    "minConfirm": 10,
+                                    "withdrawEnable": true,
+                                    "depositEnable": true,
+                                    "withdrawFee": "3",
+                                    "withdrawMax": "26838432.63553408",
+                                    "withdrawMin": "3.5",
+                                    "depositMin": "6",
+                                    "withdrawPrecision": 8,
+                                    "depositPrecision": 18,
+                                    "contractAddress": "0xc27a719105a987b4c34116223cae8bd8f4b5def4",
+                                    "needTagOrMemo": "false",
+                                    "displayName": "ACE"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ACE": {
+                        "info": {
+                            "BEP20": {
+                                "info": {
+                                    "name": "ACE",
+                                    "network": "BEP20",
+                                    "isDefault": true,
+                                    "minConfirm": 10,
+                                    "withdrawEnable": true,
+                                    "depositEnable": true,
+                                    "withdrawFee": "3",
+                                    "withdrawMax": "26838432.63553408",
+                                    "withdrawMin": "3.5",
+                                    "depositMin": "6",
+                                    "withdrawPrecision": 8,
+                                    "depositPrecision": 18,
+                                    "contractAddress": "0xc27a719105a987b4c34116223cae8bd8f4b5def4",
+                                    "needTagOrMemo": "false",
+                                    "displayName": "ACE"
+                                },
+                                "id": "BEP20",
+                                "network": "BEP20",
+                                "fee": 3,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3.5,
+                                        "max": 26838432.63553408
+                                    },
+                                    "deposit": {
+                                        "min": 6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null
+                            }
+                        },
+                        "withdraw": {
+                            "fee": 3,
+                            "percentage": false
+                        },
+                        "deposit": {
+                            "fee": null,
+                            "percentage": null
+                        },
+                        "networks": {
+                            "BEP20": {
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                },
+                                "withdraw": {
+                                    "fee": 3,
+                                    "percentage": false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "linear swap bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "book_ticker": {
+                            "symbol": "BTC-USDT",
+                            "bid_price": 82219.6,
+                            "bid_qty": 93.7389,
+                            "ask_price": 82219.7,
+                            "ask_qty": 14.7997,
+                            "lastUpdateId": 744262406,
+                            "time": 1792134368539
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1792134368539,
+                        "datetime": "2026-10-16T07:06:08.539Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 82219.6,
+                        "bidVolume": 93.7389,
+                        "ask": 82219.7,
+                        "askVolume": 14.7997,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "bid_price": 82219.6,
+                            "bid_qty": 93.7389,
+                            "ask_price": 82219.7,
+                            "ask_qty": 14.7997,
+                            "lastUpdateId": 744262406,
+                            "time": 1792134368539
+                        }
+                    }
+                }
+            },
+            {
+                "description": "spot bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1792134367451,
+                    "data": [
+                        {
+                            "time": 1792134367180,
+                            "symbol": "BTC-USDT",
+                            "bidPrice": "82250.03",
+                            "bidQty": "0.006049",
+                            "askPrice": "82250.05",
+                            "askQty": "0.006010"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1792134367180,
+                        "datetime": "2026-10-16T07:06:07.180Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 82250.03,
+                        "bidVolume": 0.006049,
+                        "ask": 82250.05,
+                        "askVolume": 0.00601,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "time": 1792134367180,
+                            "symbol": "BTC-USDT",
+                            "bidPrice": "82250.03",
+                            "bidQty": "0.006049",
+                            "askPrice": "82250.05",
+                            "askQty": "0.006010"
+                        }
+                    }
+                }
+            }
+        ],
         "fetchWithdrawals": [
             {
                 "description": "withdrawal history parses completed and internal flags",
@@ -122,7 +424,7 @@
                         "txid": "0x78b63c8ed0aecd85c118f2dcdc29228f49c82f17f16d7dbeab085140eb30d636",
                         "type": "deposit",
                         "currency": "ETH",
-                        "network": "ETH",
+                        "network": "ERC20",
                         "amount": 0.006,
                         "status": "ok",
                         "timestamp": 1790688190280,
@@ -159,7 +461,7 @@
                         "txid": "0x38f724ef74a4c0fe5c93b6e8f7e225c27ed619d43392b9b757bc9bcdb342daef",
                         "type": "deposit",
                         "currency": "ETH",
-                        "network": "ETH",
+                        "network": "ERC20",
                         "amount": 0.0008,
                         "status": "pending",
                         "timestamp": 1791010370713,
@@ -2606,6 +2908,7 @@
                         "lastUpdateTimestamp": null,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "initialMargin": null,
                         "initialMarginPercentage": null,
@@ -3627,7 +3930,7 @@
                         "status": "closed",
                         "fee": {
                             "currency": "LTC",
-                            "cost": "0.0000679"
+                            "cost": 0.0000679
                         },
                         "trades": [],
                         "fees": [
@@ -3762,7 +4065,7 @@
                         "status": "closed",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.003509"
+                            "cost": 0.003509
                         },
                         "trades": [],
                         "fees": [
@@ -4071,7 +4374,7 @@
                     "USDT": {
                         "free": 193.7609,
                         "used": 1.0602,
-                        "total": 194.8211
+                        "total": 194.8212
                     },
                     "free": {
                         "USDT": 193.7609
@@ -4080,7 +4383,7 @@
                         "USDT": 1.0602
                     },
                     "total": {
-                        "USDT": 194.8211
+                        "USDT": 194.8212
                     }
                 }
             }
@@ -4532,7 +4835,7 @@
                         "status": "open",
                         "fee": {
                             "currency": "LTC",
-                            "cost": "0"
+                            "cost": 0
                         },
                         "trades": [],
                         "fees": [
@@ -5111,6 +5414,76 @@
                 }
             },
             {
+                "description": "spot ticker from the v2 quote/ticker endpoint (numeric values)",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1794568295096,
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "openPrice": 73451.71,
+                            "highPrice": 73457.51,
+                            "lowPrice": 67641.97,
+                            "lastPrice": 69323.36,
+                            "priceChange": -4128.35,
+                            "priceChangePercent": "-5.62%",
+                            "volume": 3169.21,
+                            "quoteVolume": 222786898.89,
+                            "openTime": 1794481895096,
+                            "closeTime": 1794568295096,
+                            "askPrice": 69323.37,
+                            "askQty": 0.001918,
+                            "bidPrice": 69323.35,
+                            "bidQty": 0.002238
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1794568295096,
+                    "datetime": "2026-11-13T11:11:35.096Z",
+                    "high": 73457.51,
+                    "low": 67641.97,
+                    "bid": 69323.35,
+                    "bidVolume": 0.002238,
+                    "ask": 69323.37,
+                    "askVolume": 0.001918,
+                    "vwap": 70297.2977145724,
+                    "open": 73451.71,
+                    "close": 69323.36,
+                    "last": 69323.36,
+                    "previousClose": null,
+                    "change": -4128.35,
+                    "percentage": -5.62,
+                    "average": 71387.53,
+                    "baseVolume": 3169.21,
+                    "quoteVolume": 222786898.89,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "openPrice": 73451.71,
+                        "highPrice": 73457.51,
+                        "lowPrice": 67641.97,
+                        "lastPrice": 69323.36,
+                        "priceChange": -4128.35,
+                        "priceChangePercent": "-5.62%",
+                        "volume": 3169.21,
+                        "quoteVolume": 222786898.89,
+                        "openTime": 1794481895096,
+                        "closeTime": 1794568295096,
+                        "askPrice": 69323.37,
+                        "askQty": 0.001918,
+                        "bidPrice": 69323.35,
+                        "bidQty": 0.002238
+                    }
+                }
+            },
+            {
                 "description": "swap ticker",
                 "method": "fetchTicker",
                 "input": [
@@ -5179,6 +5552,533 @@
                     "bidQty": "1.3346"
                   }
                 }
+            },
+            {
+                "description": "Coin-M BTC ticker volumes use base currency and USD",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1789205377226,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "priceChange": "225.9",
+                            "priceChangePercent": "0.2900%",
+                            "lastPrice": "77295.1",
+                            "lastQty": "4",
+                            "highPrice": "79846.6",
+                            "lowPrice": "75948.0",
+                            "volume": "798047.00",
+                            "quoteVolume": "1029.03",
+                            "openPrice": "77069.2",
+                            "closeTime": "1789205376751",
+                            "bidPrice": "77295.0",
+                            "bidQty": "33",
+                            "askPrice": "77295.8",
+                            "askQty": "155"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1789205376751,
+                    "datetime": "2026-09-12T09:29:36.751Z",
+                    "high": 79846.6,
+                    "low": 75948,
+                    "bid": 77295,
+                    "bidVolume": 33,
+                    "ask": 77295.8,
+                    "askVolume": 155,
+                    "vwap": 77553.32691952615,
+                    "open": 77069.2,
+                    "close": 77295.1,
+                    "last": 77295.1,
+                    "previousClose": null,
+                    "change": 225.9,
+                    "percentage": 0.29,
+                    "average": 77182.1,
+                    "baseVolume": 1029.03,
+                    "quoteVolume": 79804700.0,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "priceChange": "225.9",
+                        "priceChangePercent": "0.2900%",
+                        "lastPrice": "77295.1",
+                        "lastQty": "4",
+                        "highPrice": "79846.6",
+                        "lowPrice": "75948.0",
+                        "volume": "798047.00",
+                        "quoteVolume": "1029.03",
+                        "openPrice": "77069.2",
+                        "closeTime": "1789205376751",
+                        "bidPrice": "77295.0",
+                        "bidQty": "33",
+                        "askPrice": "77295.8",
+                        "askQty": "155"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker missing base turnover",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastQty": "0",
+                            "volume": "2"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": 200,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastQty": "0",
+                        "volume": "2"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker missing contract volume",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastQty": "0",
+                            "quoteVolume": "0.003"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.003,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastQty": "0",
+                        "quoteVolume": "0.003"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker zero volumes",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastQty": "0",
+                            "volume": "0",
+                            "quoteVolume": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0,
+                    "quoteVolume": 0,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastQty": "0",
+                        "volume": "0",
+                        "quoteVolume": "0"
+                    }
+                }
+            },
+            {
+                "description": "Coin-M ticker without contract size (synthetic market)",
+                "method": "fetchTicker",
+                "input": [
+                    "TEST/USD:TEST"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "TEST-USD",
+                            "lastQty": "2",
+                            "lastPrice": "100",
+                            "volume": "2",
+                            "quoteVolume": "0.5"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "TEST/USD:TEST",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 100,
+                    "last": 100,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": 0.5,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "TEST-USD",
+                        "lastQty": "2",
+                        "lastPrice": "100",
+                        "volume": "2",
+                        "quoteVolume": "0.5"
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers from the v2 quote/ticker endpoint",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1794568295928,
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "openPrice": 73451.71,
+                            "highPrice": 73457.51,
+                            "lowPrice": 67641.97,
+                            "lastPrice": 69323.36,
+                            "priceChange": -4128.35,
+                            "priceChangePercent": "-5.62%",
+                            "volume": 3169.21,
+                            "quoteVolume": 222786898.89,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 69323.37,
+                            "askQty": 0.001918,
+                            "bidPrice": 69323.35,
+                            "bidQty": 0.002238
+                        },
+                        {
+                            "symbol": "ETH-USDT",
+                            "openPrice": 2043.84,
+                            "highPrice": 2044.13,
+                            "lowPrice": 1896.7,
+                            "lastPrice": 1953.3,
+                            "priceChange": -90.54,
+                            "priceChangePercent": "-4.43%",
+                            "volume": 36807.67,
+                            "quoteVolume": 72789651.3,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 1953.24,
+                            "askQty": 0.2485,
+                            "bidPrice": 1953.22,
+                            "bidQty": 0.1359
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1794568295927,
+                        "datetime": "2026-11-13T11:11:35.927Z",
+                        "high": 73457.51,
+                        "low": 67641.97,
+                        "bid": 69323.35,
+                        "bidVolume": 0.002238,
+                        "ask": 69323.37,
+                        "askVolume": 0.001918,
+                        "vwap": 70297.2977145724,
+                        "open": 73451.71,
+                        "close": 69323.36,
+                        "last": 69323.36,
+                        "previousClose": null,
+                        "change": -4128.35,
+                        "percentage": -5.62,
+                        "average": 71387.53,
+                        "baseVolume": 3169.21,
+                        "quoteVolume": 222786898.89,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "openPrice": 73451.71,
+                            "highPrice": 73457.51,
+                            "lowPrice": 67641.97,
+                            "lastPrice": 69323.36,
+                            "priceChange": -4128.35,
+                            "priceChangePercent": "-5.62%",
+                            "volume": 3169.21,
+                            "quoteVolume": 222786898.89,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 69323.37,
+                            "askQty": 0.001918,
+                            "bidPrice": 69323.35,
+                            "bidQty": 0.002238
+                        }
+                    },
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": 1794568295927,
+                        "datetime": "2026-11-13T11:11:35.927Z",
+                        "high": 2044.13,
+                        "low": 1896.7,
+                        "bid": 1953.22,
+                        "bidVolume": 0.1359,
+                        "ask": 1953.24,
+                        "askVolume": 0.2485,
+                        "vwap": 1977.5674825382862,
+                        "open": 2043.84,
+                        "close": 1953.3,
+                        "last": 1953.3,
+                        "previousClose": null,
+                        "change": -90.54,
+                        "percentage": -4.43,
+                        "average": 1998.57,
+                        "baseVolume": 36807.67,
+                        "quoteVolume": 72789651.3,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "ETH-USDT",
+                            "openPrice": 2043.84,
+                            "highPrice": 2044.13,
+                            "lowPrice": 1896.7,
+                            "lastPrice": 1953.3,
+                            "priceChange": -90.54,
+                            "priceChangePercent": "-4.43%",
+                            "volume": 36807.67,
+                            "quoteVolume": 72789651.3,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 1953.24,
+                            "askQty": 0.2485,
+                            "bidPrice": 1953.22,
+                            "bidQty": 0.1359
+                        }
+                    }
+                }
+            },
+            {
+                "description": "Coin-M tickers respect different contract sizes",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "SOL/USD:SOL"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "priceChange": "225.9",
+                            "priceChangePercent": "0.2900%",
+                            "lastPrice": "77295.7",
+                            "lastQty": "3",
+                            "highPrice": "79846.6",
+                            "lowPrice": "75948.0",
+                            "volume": "798047.00",
+                            "quoteVolume": "1029.03",
+                            "openPrice": "77069.2",
+                            "closeTime": "1789205377677",
+                            "bidPrice": "77295.0",
+                            "bidQty": "31",
+                            "askPrice": "77295.8",
+                            "askQty": "149"
+                        },
+                        {
+                            "symbol": "SOL-USD",
+                            "priceChange": "2.376",
+                            "priceChangePercent": "2.3900%",
+                            "lastPrice": "101.922",
+                            "lastQty": "11",
+                            "highPrice": "105.680",
+                            "lowPrice": "97.883",
+                            "volume": "769000.00",
+                            "quoteVolume": "75569.34",
+                            "openPrice": "99.527",
+                            "closeTime": "1789205376752",
+                            "bidPrice": "101.902",
+                            "bidQty": "170",
+                            "askPrice": "101.923",
+                            "askQty": "669"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1789205377677,
+                        "datetime": "2026-09-12T09:29:37.677Z",
+                        "high": 79846.6,
+                        "low": 75948,
+                        "bid": 77295,
+                        "bidVolume": 31,
+                        "ask": 77295.8,
+                        "askVolume": 149,
+                        "vwap": 77553.32691952615,
+                        "open": 77069.2,
+                        "close": 77295.7,
+                        "last": 77295.7,
+                        "previousClose": null,
+                        "change": 225.9,
+                        "percentage": 0.29,
+                        "average": 77182.4,
+                        "baseVolume": 1029.03,
+                        "quoteVolume": 79804700.0,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USD",
+                            "priceChange": "225.9",
+                            "priceChangePercent": "0.2900%",
+                            "lastPrice": "77295.7",
+                            "lastQty": "3",
+                            "highPrice": "79846.6",
+                            "lowPrice": "75948.0",
+                            "volume": "798047.00",
+                            "quoteVolume": "1029.03",
+                            "openPrice": "77069.2",
+                            "closeTime": "1789205377677",
+                            "bidPrice": "77295.0",
+                            "bidQty": "31",
+                            "askPrice": "77295.8",
+                            "askQty": "149"
+                        }
+                    },
+                    "SOL/USD:SOL": {
+                        "symbol": "SOL/USD:SOL",
+                        "timestamp": 1789205376752,
+                        "datetime": "2026-09-12T09:29:36.752Z",
+                        "high": 105.68,
+                        "low": 97.883,
+                        "bid": 101.902,
+                        "bidVolume": 170,
+                        "ask": 101.923,
+                        "askVolume": 669,
+                        "vwap": 101.76084639617072,
+                        "open": 99.527,
+                        "close": 101.922,
+                        "last": 101.922,
+                        "previousClose": null,
+                        "change": 2.376,
+                        "percentage": 2.39,
+                        "average": 100.724,
+                        "baseVolume": 75569.34,
+                        "quoteVolume": 7690000.0,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "SOL-USD",
+                            "priceChange": "2.376",
+                            "priceChangePercent": "2.3900%",
+                            "lastPrice": "101.922",
+                            "lastQty": "11",
+                            "highPrice": "105.680",
+                            "lowPrice": "97.883",
+                            "volume": "769000.00",
+                            "quoteVolume": "75569.34",
+                            "openPrice": "99.527",
+                            "closeTime": "1789205376752",
+                            "bidPrice": "101.902",
+                            "bidQty": "170",
+                            "askPrice": "101.923",
+                            "askQty": "669"
+                        }
+                    }
+                }
             }
         ],
         "fetchOHLCV": [
@@ -5220,6 +6120,164 @@
             }
         ],
         "fetchOrder": [
+            {
+                "description": "filled swap order carries a numeric fee cost",
+                "method": "fetchOrder",
+                "input": [
+                    "2111699386270695424",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "order": {
+                            "symbol": "BTC-USDT",
+                            "orderId": "2111699386270695424",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "type": "MARKET",
+                            "origQty": "0.0001",
+                            "price": "81740.0",
+                            "executedQty": "0.0001",
+                            "avgPrice": "81740.0",
+                            "cumQuote": "8",
+                            "stopPrice": "",
+                            "profit": "0.0000",
+                            "commission": "-0.004087",
+                            "status": "FILLED",
+                            "time": "1792303341000",
+                            "updateTime": "1792303341826",
+                            "clientOrderId": "",
+                            "leverage": "20X",
+                            "takeProfit": {
+                                "type": "",
+                                "quantity": "0",
+                                "stopPrice": "0",
+                                "price": "0",
+                                "workingType": "",
+                                "stopGuaranteed": ""
+                            },
+                            "stopLoss": {
+                                "type": "",
+                                "quantity": "0",
+                                "stopPrice": "0",
+                                "price": "0",
+                                "workingType": "",
+                                "stopGuaranteed": ""
+                            },
+                            "advanceAttr": "0",
+                            "positionID": "2111699386291666946",
+                            "takeProfitEntrustPrice": "0",
+                            "stopLossEntrustPrice": "0",
+                            "orderType": "",
+                            "workingType": "MARK_PRICE",
+                            "onlyOnePosition": false,
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "stopGuaranteed": "false",
+                            "triggerOrderId": "0",
+                            "trailingStopRate": "0",
+                            "trailingStopDistance": "0",
+                            "is_twap": false,
+                            "mainOrderId": "",
+                            "priceRate": "",
+                            "actPrice": "",
+                            "closePosition": "false"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "orderId": "2111699386270695424",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "type": "MARKET",
+                        "origQty": "0.0001",
+                        "price": "81740.0",
+                        "executedQty": "0.0001",
+                        "avgPrice": "81740.0",
+                        "cumQuote": "8",
+                        "stopPrice": "",
+                        "profit": "0.0000",
+                        "commission": "-0.004087",
+                        "status": "FILLED",
+                        "time": "1792303341000",
+                        "updateTime": "1792303341826",
+                        "clientOrderId": "",
+                        "leverage": "20X",
+                        "takeProfit": {
+                            "type": "",
+                            "quantity": "0",
+                            "stopPrice": "0",
+                            "price": "0",
+                            "workingType": "",
+                            "stopGuaranteed": ""
+                        },
+                        "stopLoss": {
+                            "type": "",
+                            "quantity": "0",
+                            "stopPrice": "0",
+                            "price": "0",
+                            "workingType": "",
+                            "stopGuaranteed": ""
+                        },
+                        "advanceAttr": "0",
+                        "positionID": "2111699386291666946",
+                        "takeProfitEntrustPrice": "0",
+                        "stopLossEntrustPrice": "0",
+                        "orderType": "",
+                        "workingType": "MARK_PRICE",
+                        "onlyOnePosition": false,
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "stopGuaranteed": "false",
+                        "triggerOrderId": "0",
+                        "trailingStopRate": "0",
+                        "trailingStopDistance": "0",
+                        "is_twap": false,
+                        "mainOrderId": "",
+                        "priceRate": "",
+                        "actPrice": "",
+                        "closePosition": "false"
+                    },
+                    "id": "2111699386270695424",
+                    "clientOrderId": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1792303341000,
+                    "datetime": "2026-10-18T06:02:21.000Z",
+                    "lastTradeTimestamp": 1792303341826,
+                    "lastUpdateTimestamp": 1792303341826,
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 81740,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": 81740,
+                    "cost": 8.174,
+                    "amount": 0.0001,
+                    "filled": 0.0001,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 0.004087
+                    },
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": 0.004087
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
             {
                 "description": "spot conditional take-stop limit order parses as a trigger order",
                 "method": "fetchOrder",
@@ -5294,7 +6352,7 @@
                     "status": "open",
                     "fee": {
                         "currency": "BTC",
-                        "cost": "0"
+                        "cost": 0
                     },
                     "trades": [],
                     "reduceOnly": null,
@@ -5374,7 +6432,7 @@
                     "status": "open",
                     "fee": {
                         "currency": "USDT",
-                        "cost": "0"
+                        "cost": 0
                     },
                     "trades": [],
                     "reduceOnly": null,
@@ -5510,7 +6568,7 @@
                   "status": "closed",
                   "fee": {
                     "currency": "SOL",
-                    "cost": "0.00005475"
+                    "cost": 0.00005475
                   },
                   "trades": [],
                   "reduceOnly": null,
@@ -5649,7 +6707,7 @@
                   "status": "closed",
                   "fee": {
                     "currency": "USDT",
-                    "cost": "0.004186"
+                    "cost": 0.004186
                   },
                   "trades": [],
                   "reduceOnly": true,
@@ -5898,7 +6956,140 @@
                 }
             }
         ],
+        "addMargin": [
+            {
+                "description": "Coin-M add margin with an empty response payload",
+                "method": "addMargin",
+                "input": [
+                    "SOL/USD:SOL",
+                    1,
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1720501467377,
+                    "data": {}
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 0,
+                        "msg": "",
+                        "timestamp": 1720501467377,
+                        "data": {}
+                    },
+                    "symbol": "SOL/USD:SOL",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "SOL",
+                    "status": null,
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
+        ],
         "fetchPositions": [
+            {
+                "description": "linear position carries its open time, hedge flag and pnl ratio",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": [
+                        {
+                            "positionId": "2112192181523660802",
+                            "symbol": "BTC-USDT",
+                            "currency": "USDT",
+                            "positionAmt": "0.0001",
+                            "availableAmt": "0.0001",
+                            "positionSide": "LONG",
+                            "isolated": true,
+                            "avgPrice": "81896.8",
+                            "initialMargin": "0.4095",
+                            "margin": "0.4118",
+                            "leverage": 20,
+                            "unrealizedProfit": "0.0023",
+                            "realisedProfit": "-0.0041",
+                            "liquidationPrice": 78153.7,
+                            "pnlRatio": "0.0056",
+                            "maxMarginReduction": "0.0022",
+                            "riskRate": "0.0895",
+                            "markPrice": "81919.9",
+                            "positionValue": "8.19",
+                            "onlyOnePosition": false,
+                            "createTime": 1792420833365,
+                            "updateTime": 1792420833365,
+                            "minIncreaseMargin": "0.12"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": "2112192181523660802",
+                            "symbol": "BTC-USDT",
+                            "currency": "USDT",
+                            "positionAmt": "0.0001",
+                            "availableAmt": "0.0001",
+                            "positionSide": "LONG",
+                            "isolated": true,
+                            "avgPrice": "81896.8",
+                            "initialMargin": "0.4095",
+                            "margin": "0.4118",
+                            "leverage": 20,
+                            "unrealizedProfit": "0.0023",
+                            "realisedProfit": "-0.0041",
+                            "liquidationPrice": 78153.7,
+                            "pnlRatio": "0.0056",
+                            "maxMarginReduction": "0.0022",
+                            "riskRate": "0.0895",
+                            "markPrice": "81919.9",
+                            "positionValue": "8.19",
+                            "onlyOnePosition": false,
+                            "createTime": 1792420833365,
+                            "updateTime": 1792420833365,
+                            "minIncreaseMargin": "0.12"
+                        },
+                        "id": "2112192181523660802",
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": 8.19,
+                        "marginMode": "isolated",
+                        "liquidationPrice": 78153.7,
+                        "entryPrice": 81896.8,
+                        "unrealizedPnl": 0.0023,
+                        "realizedPnl": -0.0041,
+                        "percentage": 0.56,
+                        "contracts": 0.0001,
+                        "contractSize": 1,
+                        "markPrice": 81919.9,
+                        "lastPrice": null,
+                        "side": "long",
+                        "hedged": true,
+                        "timestamp": 1792420833365,
+                        "datetime": "2026-10-19T14:40:33.365Z",
+                        "lastUpdateTimestamp": 1792420833365,
+                        "maintenanceMargin": 0.03519,
+                        "maintenanceMarginPercentage": 0.004296703296703296,
+                        "collateral": 0.4118,
+                        "initialMargin": 0.4095,
+                        "initialMarginPercentage": 0.05,
+                        "leverage": 20,
+                        "marginRatio": 0.0854,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": 0.4095
+                    }
+                ]
+            },
             {
                 "description": "fetch position",
                 "method": "fetchPositions",
@@ -5971,15 +7162,16 @@
                     "markPrice": 95.62,
                     "lastPrice": null,
                     "side": "long",
-                    "hedged": null,
+                    "hedged": true,
                     "timestamp": null,
                     "datetime": null,
                     "lastUpdateTimestamp": null,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "initialMargin": 1.9128,
-                    "initialMarginPercentage": null,
+                    "initialMarginPercentage": 0.20005020080321284,
                     "leverage": 5,
                     "marginRatio": null,
                     "stopLossPrice": null,
@@ -6039,7 +7231,7 @@
                     },
                     "id": "1813080351385337856",
                     "symbol": "SOL/USD:SOL",
-                    "notional": null,
+                    "notional": 0.06313051602883801,
                     "marginMode": "cross",
                     "liquidationPrice": 23.968303426677032,
                     "entryPrice": 158.63,
@@ -6051,15 +7243,16 @@
                     "markPrice": 158.402,
                     "lastPrice": null,
                     "side": "long",
-                    "hedged": null,
+                    "hedged": true,
                     "timestamp": null,
                     "datetime": null,
                     "lastUpdateTimestamp": 1721107015848,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "initialMargin": 0.00630398,
-                    "initialMarginPercentage": null,
+                    "initialMarginPercentage": 0.099856303996,
                     "leverage": 10,
                     "marginRatio": null,
                     "stopLossPrice": null,
@@ -6186,15 +7379,16 @@
                     "markPrice": null,
                     "lastPrice": null,
                     "side": "long",
-                    "hedged": null,
+                    "hedged": true,
                     "timestamp": 1732693017000,
                     "datetime": "2024-11-27T07:36:57.000Z",
                     "lastUpdateTimestamp": 1733310292000,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "initialMargin": null,
-                    "initialMarginPercentage": null,
+                    "initialMarginPercentage": 0.16666666666666666,
                     "leverage": 6,
                     "marginRatio": null,
                     "stopLossPrice": null,

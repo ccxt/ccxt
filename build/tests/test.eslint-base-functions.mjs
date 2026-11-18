@@ -36,8 +36,8 @@ export async function optionalModule() { try { await import('node:fs'); } catch 
 test('utilities do not change the existing exchange rules', async () => {
     const utility = await eslint.calculateConfigForFile(filePath);
     const exchange = await eslint.calculateConfigForFile('ts/src/bingx.ts');
-    assert.equal(utility.rules['@typescript-eslint/strict-boolean-expressions'], undefined);
-    assert.equal(exchange.rules['@typescript-eslint/strict-boolean-expressions'][0], 2);
+    assert.equal(utility.rules['brace-style'], undefined);
+    assert.equal(exchange.rules['brace-style'][0], 2);
     const pkg = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
     assert.ok(pkg.scripts.lint.includes('"ts/src/base/functions/**/*.ts"'));
 });

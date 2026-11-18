@@ -6,6 +6,228 @@ var PredictionExchange = require('../../base/PredictionExchange.js');
 
 // ----------------------------------------------------------------------------
 class Exchange extends PredictionExchange["default"] {
+    kalshiPublicGetEvents(params = {}) {
+        return this.request('events', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetEventsMultivariate(params = {}) {
+        return this.request('events/multivariate', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetEventsFeeChanges(params = {}) {
+        return this.request('events/fee_changes', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetEventsEventTicker(params = {}) {
+        return this.request('events/{event_ticker}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetEventsEventTickerMetadata(params = {}) {
+        return this.request('events/{event_ticker}/metadata', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSeries(params = {}) {
+        return this.request('series', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSeriesFeeChanges(params = {}) {
+        return this.request('series/fee_changes', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSeriesSeriesTicker(params = {}) {
+        return this.request('series/{series_ticker}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(params = {}) {
+        return this.request('series/{series_ticker}/markets/{ticker}/candlesticks', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks(params = {}) {
+        return this.request('series/{series_ticker}/events/{ticker}/candlesticks', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory(params = {}) {
+        return this.request('series/{series_ticker}/events/{ticker}/forecast_percentile_history', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMarkets(params = {}) {
+        return this.request('markets', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMarketsTrades(params = {}) {
+        return this.request('markets/trades', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMarketsOrderbooks(params = {}) {
+        return this.request('markets/orderbooks', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMarketsCandlesticks(params = {}) {
+        return this.request('markets/candlesticks', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMarketsTicker(params = {}) {
+        return this.request('markets/{ticker}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMarketsTickerOrderbook(params = {}) {
+        return this.request('markets/{ticker}/orderbook', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetExchangeStatus(params = {}) {
+        return this.request('exchange/status', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetExchangeSchedule(params = {}) {
+        return this.request('exchange/schedule', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetExchangeAnnouncements(params = {}) {
+        return this.request('exchange/announcements', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetExchangeUserDataTimestamp(params = {}) {
+        return this.request('exchange/user_data_timestamp', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMilestones(params = {}) {
+        return this.request('milestones', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMilestonesMilestoneId(params = {}) {
+        return this.request('milestones/{milestone_id}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetStructuredTargets(params = {}) {
+        return this.request('structured_targets', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetStructuredTargetsStructuredTargetId(params = {}) {
+        return this.request('structured_targets/{structured_target_id}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSearchFiltersBySport(params = {}) {
+        return this.request('search/filters_by_sport', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetSearchTagsByCategories(params = {}) {
+        return this.request('search/tags_by_categories', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetLiveDataBatch(params = {}) {
+        return this.request('live_data/batch', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetLiveDataMilestoneMilestoneId(params = {}) {
+        return this.request('live_data/milestone/{milestone_id}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetHistoricalMarkets(params = {}) {
+        return this.request('historical/markets', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetHistoricalMarketsTickerCandlesticks(params = {}) {
+        return this.request('historical/markets/{ticker}/candlesticks', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetHistoricalTrades(params = {}) {
+        return this.request('historical/trades', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetHistoricalCutoffTimestamps(params = {}) {
+        return this.request('historical/cutoff_timestamps', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMultivariateEventCollections(params = {}) {
+        return this.request('multivariate_event_collections', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMultivariateEventCollectionsCollectionTicker(params = {}) {
+        return this.request('multivariate_event_collections/{collection_ticker}', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup(params = {}) {
+        return this.request('multivariate_event_collections/{collection_ticker}/lookup', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPublicGetIncentivePrograms(params = {}) {
+        return this.request('incentive_programs', ['kalshi', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioBalance(params = {}) {
+        return this.request('portfolio/balance', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioOrders(params = {}) {
+        return this.request('portfolio/orders', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioOrdersOrderId(params = {}) {
+        return this.request('portfolio/orders/{order_id}', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition(params = {}) {
+        return this.request('portfolio/orders/{order_id}/queue_position', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioOrdersQueuePositions(params = {}) {
+        return this.request('portfolio/orders/queue_positions', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioPositions(params = {}) {
+        return this.request('portfolio/positions', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioFills(params = {}) {
+        return this.request('portfolio/fills', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioSettlements(params = {}) {
+        return this.request('portfolio/settlements', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioDeposits(params = {}) {
+        return this.request('portfolio/deposits', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioWithdrawals(params = {}) {
+        return this.request('portfolio/withdrawals', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioOrderGroups(params = {}) {
+        return this.request('portfolio/order_groups', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioOrderGroupsOrderGroupId(params = {}) {
+        return this.request('portfolio/order_groups/{order_group_id}', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue(params = {}) {
+        return this.request('portfolio/summary/total_resting_order_value', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioSubaccountsBalances(params = {}) {
+        return this.request('portfolio/subaccounts/balances', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioSubaccountsNetting(params = {}) {
+        return this.request('portfolio/subaccounts/netting', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetPortfolioSubaccountsTransfers(params = {}) {
+        return this.request('portfolio/subaccounts/transfers', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetHistoricalFills(params = {}) {
+        return this.request('historical/fills', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivateGetHistoricalOrders(params = {}) {
+        return this.request('historical/orders', ['kalshi', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioOrders(params = {}) {
+        return this.request('portfolio/orders', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioEventsOrders(params = {}) {
+        return this.request('portfolio/events/orders', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioOrdersBatched(params = {}) {
+        return this.request('portfolio/orders/batched', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioOrdersOrderIdAmend(params = {}) {
+        return this.request('portfolio/orders/{order_id}/amend', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioOrdersOrderIdDecrease(params = {}) {
+        return this.request('portfolio/orders/{order_id}/decrease', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioOrderGroupsCreate(params = {}) {
+        return this.request('portfolio/order_groups/create', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioSubaccounts(params = {}) {
+        return this.request('portfolio/subaccounts', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostPortfolioSubaccountsTransfer(params = {}) {
+        return this.request('portfolio/subaccounts/transfer', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePostMultivariateEventCollectionsCollectionTicker(params = {}) {
+        return this.request('multivariate_event_collections/{collection_ticker}', ['kalshi', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset(params = {}) {
+        return this.request('portfolio/order_groups/{order_group_id}/reset', ['kalshi', 'private'], 'PUT', params, { 'cost': 1 });
+    }
+    kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger(params = {}) {
+        return this.request('portfolio/order_groups/{order_group_id}/trigger', ['kalshi', 'private'], 'PUT', params, { 'cost': 1 });
+    }
+    kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit(params = {}) {
+        return this.request('portfolio/order_groups/{order_group_id}/limit', ['kalshi', 'private'], 'PUT', params, { 'cost': 1 });
+    }
+    kalshiPrivatePutPortfolioSubaccountsNetting(params = {}) {
+        return this.request('portfolio/subaccounts/netting', ['kalshi', 'private'], 'PUT', params, { 'cost': 1 });
+    }
+    kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup(params = {}) {
+        return this.request('multivariate_event_collections/{collection_ticker}/lookup', ['kalshi', 'private'], 'PUT', params, { 'cost': 1 });
+    }
+    kalshiPrivateDeletePortfolioOrdersOrderId(params = {}) {
+        return this.request('portfolio/orders/{order_id}', ['kalshi', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    kalshiPrivateDeletePortfolioOrdersBatched(params = {}) {
+        return this.request('portfolio/orders/batched', ['kalshi', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    kalshiPrivateDeletePortfolioEventsOrdersOrderId(params = {}) {
+        return this.request('portfolio/events/orders/{order_id}', ['kalshi', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId(params = {}) {
+        return this.request('portfolio/order_groups/{order_group_id}', ['kalshi', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    electionsPublicGetSearchSeries(params = {}) {
+        return this.request('search/series', ['elections', 'public'], 'GET', params, { 'cost': 1 });
+    }
 }
 
 exports["default"] = Exchange;

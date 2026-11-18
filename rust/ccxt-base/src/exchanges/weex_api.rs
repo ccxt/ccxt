@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::weex::WeexCore;
+use super::weex::Weex;
 use crate::exchange::ExchangeRuntime;
 
-impl WeexCore {
+impl Weex {
     /// Auto-generated wrapper for the `publicGetApiV3Time` implicit endpoint.
     pub async fn public_get_api_v3_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_api_v3_time".into()), optional_args).await

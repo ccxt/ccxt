@@ -81,6 +81,7 @@ const NOT_GENERATED: Record<string, string> = {
     'Network': 'synthesised from `CurrencyInterface.networks: Dictionary<any>`, no TS declaration',
     'Balances': 'dictionary wrapper carrying extra Free/Used/Total projections built by hand',
     'OHLCV': 'TS declares a positional tuple; the Go field names (Timestamp/Open/...) exist only in Go',
+    'OrderBookL3': 'rows are mixed [Num, Num, Str] tuples; Go uses the hand-written OrderBookL3Entry row struct',
 };
 
 /** Go field name -> TS field name, where the port renamed the field on purpose. */
@@ -107,7 +108,52 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'Ticker': { 'Info': 'any' },
     'Trade': { 'Info': 'any' },
     'Order': { 'Info': 'any' },
+    'FundingRate': { 'Info': 'any' },
+    'OpenInterest': { 'Info': 'any' },
+    'Leverage': { 'Info': 'any' },
+    'Status': { 'Info': 'any' },
+    'PositionModeInfo': { 'Info': 'any' },
+    'DepositWithdrawFee': { 'Info': 'any' },
+    'Account': { 'Info': 'any' },
+    'MarginLoan': { 'Info': 'any' },
+    'MarketInterface': { 'Info': 'any' },
+    // sxbet fetchEvent: info is the raw list of fixture markets
+    'PredictionEvent': { 'Info': 'any' },
 };
+
+/** TS string-literal union aliases emitted as Go `type X string` + one const per member. */
+const STRING_ENUMS: Record<string, string> = { 'DefaultType': 'exchange_types.go', 'DefaultSubType': 'exchange_types.go' };
+
+function emitStringEnum (type: IRType): string {
+    const lines = [ 'type ' + type.name + ' string', '', 'const (' ];
+    const names: string[] = [];
+    const values: string[] = [];
+    for (let i = 0; i < type.unionMembers.length; i++) {
+        const value = type.unionMembers[i].trim ().slice (1, -1);
+        names.push (type.name + value.charAt (0).toUpperCase () + value.slice (1));
+        values.push (value);
+    }
+    const width = Math.max (...names.map ((n) => n.length));
+    for (let i = 0; i < names.length; i++) {
+        lines.push ('\t' + names[i].padEnd (width) + ' ' + type.name + ' = "' + values[i] + '"');
+    }
+    lines.push (')');
+    return lines.join ('\n');
+}
+
+/** replaces `type X string` .. closing `)` of its const block, or appends it */
+function spliceStringEnum (text: string, name: string, source: string): string {
+    const lines = text.split ('\n');
+    const start = lines.indexOf ('type ' + name + ' string');
+    if (start < 0) {
+        return text.replace (/\n*$/, '') + '\n\n' + source + '\n';
+    }
+    let end = start;
+    while (end < lines.length && lines[end] !== ')') {
+        end++;
+    }
+    return lines.slice (0, start).concat (source.split ('\n')).concat (lines.slice (end + 1)).join ('\n');
+}
 
 const PLAIN_ACCESSOR = /^(?:Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*(?:"[^"]*"|\d+)\s*\)|GetInfo\(\s*\w+\s*\))$/;
 
@@ -329,6 +375,10 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
         // every port models the raw exchange payload as the untyped map
         return 'map[string]any';
     }
+    // a required bare `boolean` is never undefined: a plain Go bool
+    if (!field.optional && field.tsType.trim () === 'boolean') {
+        return 'bool';
+    }
     // TS scalar aliases are nullable unions (`Num` = number | undefined). A bare
     // `number` stays ambiguous, so only the nullable aliases pin the Go width.
     const scalarAliases = unionMembers (field.tsType);
@@ -429,6 +479,9 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
     }
     if (goType === '*bool') {
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
+    }
+    if (goType === 'bool') {
+        return 'derefScalar(' + accessor + '["' + key + '"]) == true';
     }
     if (goType === 'map[string]any') {
         if (isInfo) {
@@ -596,7 +649,7 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
             continue;
         } else if (goType === undefined) {
             goType = learnedType;
-        } else if (learnedType !== undefined && baseGoType (learnedType) === baseGoType (goType)) {
+        } else if (learnedType !== undefined && baseGoType (learnedType) === baseGoType (goType) && goType !== 'bool') {
             // the port may hold the value behind a pointer, that is its own choice
             goType = learnedType;
         }
@@ -789,7 +842,18 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         const file = files[f];
         const plan = plans[file.path];
         const result: SpliceResult = spliceBlocks (file.text, plan.blocks, findBraceBlockEnd);
-        const contents = ensureGeneratedBanner (softenNestedMapCasts (result.text), '//');
+        let text = result.text;
+        for (let t = 0; t < ir.types.length; t++) {
+            const type = ir.types[t];
+            if (STRING_ENUMS[type.name] === path.basename (file.path) && type.kind === 'alias') {
+                const next = spliceStringEnum (text, type.name, emitStringEnum (type));
+                if (next !== text) {
+                    result.appended.push (type.name);
+                }
+                text = next;
+            }
+        }
+        const contents = ensureGeneratedBanner (softenNestedMapCasts (text), '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {
             changed.push ('banner');

@@ -64,7 +64,7 @@ public partial class testMainClass : BaseTest
                 { "datetime", true },
                 { "side", true },
             });
-            if (!isEqual(getValue(entry, "trades"), null))
+            if (!(getValue(entry, "trades") == null))
             {
                 for (int i = 0; i < getArrayLength(getValue(entry, "trades")); i++)
                 {

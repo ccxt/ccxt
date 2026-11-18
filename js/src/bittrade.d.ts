@@ -5,7 +5,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class bittrade extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bittrade#fetchTime
@@ -15,24 +15,8 @@ export default class bittrade extends Exchange {
      */
     fetchTime(params?: Dict): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: Dict): Promise<Dict>;
-    fetchTradingLimitsById(id: Str, params?: Dict): Promise<{
-        info: Dict;
-        limits: {
-            amount: {
-                min: Num;
-                max: Num;
-            };
-        };
-    }>;
-    parseTradingLimits(limits: Dict, symbol?: Str, params?: Dict): {
-        info: Dict;
-        limits: {
-            amount: {
-                min: Num;
-                max: Num;
-            };
-        };
-    };
+    fetchTradingLimitsById(id: Str, params?: Dict): Promise<Dict>;
+    parseTradingLimits(limits: Dict, symbol?: Str, params?: Dict): Dict;
     costToPrecision(symbol: Str, cost: any): Str;
     /**
      * @method
@@ -136,7 +120,7 @@ export default class bittrade extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(currency: Dict): CurrencyInterface;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name bittrade#fetchBalance
@@ -278,11 +262,11 @@ export default class bittrade extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

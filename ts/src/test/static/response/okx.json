@@ -3887,9 +3887,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "id": "ETH-ERC20",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -8206,6 +8206,7 @@
                         "lastUpdateTimestamp": null,
                         "maintenanceMargin": 0.00044356,
                         "maintenanceMarginPercentage": 0.0065,
+                        "positionMargin": null,
                         "collateral": 0.0227466666666667,
                         "initialMargin": 0.0227466666666667,
                         "initialMarginPercentage": 0.3333,
@@ -8295,7 +8296,8 @@
                         "datetime": "2024-02-19T14:00:30.102Z",
                         "lastUpdateTimestamp": 1708354805699,
                         "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": 0,
+                        "maintenanceMarginPercentage": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "initialMargin": null,
                         "initialMarginPercentage": 0.1,
@@ -8462,6 +8464,139 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "paginate with since and until: each window asks for candles before its own end (min of window end and until), so all 6 mark candles come back; sending after=until in every window returns the last 3 twice",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "price": "mark",
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792389600000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "after=1792378800000": {
+                        "code": "0",
+                        "data": [
+                            [
+                                "1792375200000",
+                                "82404.2",
+                                "82780",
+                                "82307.6",
+                                "82677.2",
+                                "1"
+                            ],
+                            [
+                                "1792371600000",
+                                "82262.7",
+                                "82535",
+                                "82241.6",
+                                "82404.2",
+                                "1"
+                            ],
+                            [
+                                "1792368000000",
+                                "82069.7",
+                                "82510.3",
+                                "81964.6",
+                                "82262.7",
+                                "1"
+                            ]
+                        ],
+                        "msg": ""
+                    },
+                    "after=1792389599999": {
+                        "code": "0",
+                        "data": [
+                            [
+                                "1792386000000",
+                                "82740.8",
+                                "82752.9",
+                                "82502",
+                                "82727",
+                                "1"
+                            ],
+                            [
+                                "1792382400000",
+                                "82483.7",
+                                "82844.8",
+                                "82444.7",
+                                "82740.8",
+                                "1"
+                            ],
+                            [
+                                "1792378800000",
+                                "82677.2",
+                                "82693.3",
+                                "82430.8",
+                                "82484",
+                                "1"
+                            ]
+                        ],
+                        "msg": ""
+                    },
+                    "after=1792389600000": {
+                        "code": "0",
+                        "data": [],
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": [
+                    [
+                        1792368000000,
+                        82069.7,
+                        82510.3,
+                        81964.6,
+                        82262.7,
+                        null
+                    ],
+                    [
+                        1792371600000,
+                        82262.7,
+                        82535,
+                        82241.6,
+                        82404.2,
+                        null
+                    ],
+                    [
+                        1792375200000,
+                        82404.2,
+                        82780,
+                        82307.6,
+                        82677.2,
+                        null
+                    ],
+                    [
+                        1792378800000,
+                        82677.2,
+                        82693.3,
+                        82430.8,
+                        82484,
+                        null
+                    ],
+                    [
+                        1792382400000,
+                        82483.7,
+                        82844.8,
+                        82444.7,
+                        82740.8,
+                        null
+                    ],
+                    [
+                        1792386000000,
+                        82740.8,
+                        82752.9,
+                        82502,
+                        82727,
+                        null
+                    ]
+                ]
+            },
             {
                 "description": "spot ohlcv with limit and since",
                 "method": "fetchOHLCV",
@@ -9264,7 +9399,7 @@
                   "currency": "ETH",
                   "address": "AAAABBBCCCDDDDA",
                   "tag": null,
-                  "network": "ETH",
+                  "network": "ERC20",
                   "info": {
                     "chain": "ETH-ERC20",
                     "ctAddr": "",
@@ -10250,6 +10385,7 @@
                     "lastUpdateTimestamp": 1712390404547,
                     "maintenanceMargin": 0.00131729,
                     "maintenanceMarginPercentage": 0.0065,
+                    "positionMargin": null,
                     "collateral": 0.057576,
                     "initialMargin": 0.020266,
                     "initialMarginPercentage": 0.0999,
@@ -10424,6 +10560,7 @@
                     "lastUpdateTimestamp": 1768899436623,
                     "maintenanceMargin": 0.000004345115113,
                     "maintenanceMarginPercentage": 0.004,
+                    "positionMargin": null,
                     "collateral": 0.0000554987714204,
                     "initialMargin": 0.000054313938912,
                     "initialMarginPercentage": 0.0499,
@@ -10598,8 +10735,9 @@
                     "lastUpdateTimestamp": 1768899783914,
                     "maintenanceMargin": 0.0000043300962256,
                     "maintenanceMarginPercentage": 0.004,
-                    "collateral": 0.0003611412062116,
-                    "initialMargin": 0.000361141206211628,
+                    "positionMargin": 0.0003611412062116,
+                    "collateral": 0.0003620407684556,
+                    "initialMargin": 0.0003611412062116,
                     "initialMarginPercentage": 0.3333333333333333,
                     "leverage": 3,
                     "marginRatio": 0.0119,
@@ -10772,11 +10910,12 @@
                     "lastUpdateTimestamp": 1773228124186,
                     "maintenanceMargin": 0.02778276,
                     "maintenanceMarginPercentage": 0.004,
-                    "collateral": 0.693047,
-                    "initialMargin": 0.69457594569,
+                    "positionMargin": 0.693047,
+                    "collateral": 0.7082669999999996,
+                    "initialMargin": 0.693047,
                     "initialMarginPercentage": 0.1,
                     "leverage": 10,
-                    "marginRatio": 0.04,
+                    "marginRatio": 0.0392,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
                 }
@@ -11359,6 +11498,215 @@
                     "previousFundingDatetime": null,
                     "interval": "8h"
                 }
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned fundingTime values, so a swap with 4h funding gets all 6 settlements of the day; with a fixed 8h step the 24h window starting at 1792368000000 gets only its first 3 rows and 12:00-20:00 are dropped",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "TIA/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792454400000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "after=1792454400000": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792440000000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792425600000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.0000391268434787",
+                                "fundingTime": "1792411200000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.0000391268434787"
+                            }
+                        ],
+                        "msg": ""
+                    },
+                    "after=1792411199999": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792396800000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792382400000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "-0.0000273277828473",
+                                "fundingTime": "1792368000000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "-0.0000273277828473"
+                            }
+                        ],
+                        "msg": ""
+                    },
+                    "before=1792367999999": {
+                        "code": "0",
+                        "data": [
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792396800000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "0.00005",
+                                "fundingTime": "1792382400000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "0.00005"
+                            },
+                            {
+                                "formulaType": "withRate",
+                                "fundingRate": "-0.0000273277828473",
+                                "fundingTime": "1792368000000",
+                                "instId": "TIA-USDT-SWAP",
+                                "instType": "SWAP",
+                                "method": "current_period",
+                                "realizedRate": "-0.0000273277828473"
+                            }
+                        ],
+                        "msg": ""
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "-0.0000273277828473",
+                            "fundingTime": "1792368000000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "-0.0000273277828473"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": -0.0000273277828473,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792382400000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792396800000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0000391268434787",
+                            "fundingTime": "1792411200000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.0000391268434787"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.0000391268434787,
+                        "timestamp": 1792411200000,
+                        "datetime": "2026-10-19T12:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792425600000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.00005",
+                            "fundingTime": "1792440000000",
+                            "instId": "TIA-USDT-SWAP",
+                            "instType": "SWAP",
+                            "method": "current_period",
+                            "realizedRate": "0.00005"
+                        },
+                        "symbol": "TIA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792440000000,
+                        "datetime": "2026-10-19T20:00:00.000Z"
+                    }
+                ]
             }
         ],
         "fetchFundingHistory": [

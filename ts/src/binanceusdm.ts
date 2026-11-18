@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from './abstract/binanceusdm.js';
 import { InvalidOrder } from './base/errors.js';
 import type { Dict, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',

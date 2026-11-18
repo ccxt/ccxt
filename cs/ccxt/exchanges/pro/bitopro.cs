@@ -45,14 +45,14 @@ public partial class bitopro : ccxt.bitopro
         });
     }
 
-    public async virtual Task<object> watchPublic(object path, string? messageHash, object marketId)
+    public async virtual Task<object> watchPublic(string path, string? messageHash, object marketId)
     {
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "public");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "public");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
         }
-        string url = ((((wsUrl + "/") + (path)) + "/") + (marketId));
+        string url = ((((wsUrl + "/") + path) + "/") + (marketId));
         return await this.watch(url, messageHash, null, messageHash);
     }
 
@@ -66,7 +66,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((limit != null))
@@ -83,16 +83,17 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("ORDER_BOOK" + ":") + symbolValue);
-        object endPart = null;
+        string marketIdValue = this.safeString(market, "id", "");
+        string? endPart = null;
         if ((limit == null))
         {
-            endPart = (market.ContainsKey("id") ? market["id"] : null);
+            endPart = marketIdValue;
         } else
         {
-            endPart = add(add((market.ContainsKey("id") ? market["id"] : null), ":"), this.numberToString(limit));
+            endPart = ((marketIdValue + ":") + this.numberToString(limit));
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic("order-books", messageHash, endPart));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -148,7 +149,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -164,7 +165,7 @@ public partial class bitopro : ccxt.bitopro
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -202,7 +203,8 @@ public partial class bitopro : ccxt.bitopro
         }
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            tradesCache.append(trades[i]);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
+            tradesCache.append(trade);
         }
         this.trades[(string)symbol] = tradesCache;
         if ((eventVar != null))
@@ -223,7 +225,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -235,9 +237,10 @@ public partial class bitopro : ccxt.bitopro
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+            string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            messageHash = ((messageHash + ":") + symbolValue);
         }
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchMyTrades() has no private websocket url")) ;
@@ -304,7 +307,7 @@ public partial class bitopro : ccxt.bitopro
         }
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -400,7 +403,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -455,9 +458,9 @@ public partial class bitopro : ccxt.bitopro
         }
     }
 
-    public virtual void authenticate(object url)
+    public virtual void authenticate(string url)
     {
-        if (((this.clients != null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && ((this.clients != null && this.clients.ContainsKey(url))))
         {
             return;
         }
@@ -478,17 +481,19 @@ public partial class bitopro : ccxt.bitopro
         };
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
-        object originalHeaders = getValue(getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
+        IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsInnerOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
+        object originalHeaders = (wsInnerOptions != null && wsInnerOptions.ContainsKey("headers") ? wsInnerOptions["headers"] : null);
         Dictionary<string, object> headers = new Dictionary<string, object>() {
             { "X-BITOPRO-API", "ccxt" },
             { "X-BITOPRO-APIKEY", this.apiKey },
             { "X-BITOPRO-PAYLOAD", payload },
             { "X-BITOPRO-SIGNATURE", signature },
         };
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+        wsInnerOptions["headers"] = headers;
         // instantiate client
         this.client(url);
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = originalHeaders;
+        wsInnerOptions["headers"] = originalHeaders;
     }
 
     /**
@@ -499,7 +504,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -508,7 +513,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         string messageHash = "ACCOUNT_BALANCE";
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchBalance() has no private websocket url")) ;
@@ -541,11 +546,19 @@ public partial class bitopro : ccxt.bitopro
         Int64? timestamp = this.safeInteger(message, "timestamp");
         string? datetime = this.safeString(message, "datetime");
         List<object> currencies = new List<object>(data.Keys);
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", data },
-            { "timestamp", timestamp },
-            { "datetime", datetime },
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = data;
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = datetime;
         for (int i = 0; i < currencies.Count; i++)
         {
             string? currency = this.safeString(currencies, i);
@@ -557,10 +570,10 @@ public partial class bitopro : ccxt.bitopro
             account["total"] = this.safeString(balance, "amount");
             if ((code != null))
             {
-                result[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, eventVar);
     }
 

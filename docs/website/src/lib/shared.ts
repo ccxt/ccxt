@@ -11,6 +11,8 @@ export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://docs.ccxt.c
 // rather than at siteUrl. No basePath: the proxy always maps to the root /blog.
 export const blogSiteUrl = (process.env.NEXT_PUBLIC_BLOG_SITE_URL ?? 'https://ccxt.com').replace(/\/$/, '');
 export const docsRoute = '/docs';
+// Static OG cards rendered at build time into public/og (scripts/generate-og-images.mjs):
+// <docsImageRoute>/<...slugs>/image.png per docs page, plus /og/home.png.
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
 

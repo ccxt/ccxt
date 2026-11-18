@@ -64,12 +64,36 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://indexer.v4testnet.dydx.exchange/v4/candles/perpetualMarkets/BTC-USD?fromIso=2023-11-24T01%3A57%3A02.001Z&limit=1&resolution=1MIN",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/candles/perpetualMarkets/BTC-USD?fromISO=2023-11-24T01%3A57%3A02.001Z&limit=1&resolution=1MIN&toISO=2023-11-24T01%3A58%3A02.001Z",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
                     1700791022001,
                     1
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and no limit",
+                "method": "fetchOHLCV",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/candles/perpetualMarkets/BTC-USD?fromISO=2023-11-24T01%3A57%3A02.001Z&resolution=1MIN&toISO=2023-11-24T18%3A37%3A02.001Z",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1700791022001
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/candles/perpetualMarkets/BTC-USD?fromISO=2023-11-24T01%3A57%3A02.001Z&resolution=1MIN&toISO=2023-11-24T02%3A57%3A02.001Z",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1700791022001,
+                    null,
+                    {
+                        "until": 1700794622001
+                    }
                 ]
             }
         ],

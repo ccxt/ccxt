@@ -3,7 +3,7 @@
 import * as ccxt from 'ccxt';
 const log = require('ololog');
 const fetchFutures = async () => {
-    const exchange = new ccxt.bitmex();
+    const exchange = new ccxt.okx();
     exchange.markets = await exchange.loadMarkets(true);
     for (let symbol in exchange.markets) {
         log('----------------------------------------------------');

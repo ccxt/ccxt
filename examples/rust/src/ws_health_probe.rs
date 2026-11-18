@@ -3,16 +3,14 @@
 // capture. Classifies each as OK / EMPTY / TIMEOUT / PANIC(msg) so systemic
 // runtime bugs stand out from environmental failures.
 //
-// Each venue is built by id with `ccxt_pro::from_id`; because the method under
-// test is chosen at runtime (CCXT_METHOD), it's dispatched via the typed
-// `TypedExchange::call_raw` (the typed crate's dynamic escape hatch).
-use std::future::Future;
+// Each venue is built by id with `ccxt_pro::with_exchange`; because the method
+// under test is chosen at runtime (CCXT_METHOD), it's dispatched by name via
+// `TypedExchange::call::<Value>` (the dynamic escape hatch).
 use std::panic::AssertUnwindSafe;
-use std::pin::Pin;
 use std::time::Duration;
 
 use ccxt::{get_value, Value};
-use ccxt_pro::{from_id, TypedExchange};
+use ccxt_pro::{ExchangeVisitor, TypedExchange};
 use futures::stream::{self, StreamExt};
 use futures::FutureExt;
 
@@ -29,7 +27,7 @@ const CANDIDATES: &[&str] = &[
     "BTC/KRW",
 ];
 
-// Every pro venue with a typed WS wrapper (`ccxt_pro::from_id`).
+// Every pro exchange constructible by id (`ccxt_pro::with_exchange`).
 const VENUES: &[&str] = &[
     "alpaca",
     "apex",
@@ -40,7 +38,6 @@ const VENUES: &[&str] = &[
     "bitfinex",
     "bitget",
     "bithumb",
-    "bitmex",
     "bitopro",
     "bitrue",
     "bitstamp",
@@ -50,13 +47,11 @@ const VENUES: &[&str] = &[
     "blofin",
     "bullish",
     "bybit",
-    "bydfi",
     "cex",
     "coinbase",
     "coinbaseexchange",
     "coinbaseinternational",
     "coincheck",
-    "coinex",
     "coinone",
     "cryptocom",
     "deepcoin",
@@ -99,7 +94,14 @@ const VENUES: &[&str] = &[
     "xt",
 ];
 
-type Probe = Pin<Box<dyn Future<Output = (String, String)> + Send>>;
+struct Probe;
+
+impl ExchangeVisitor for Probe {
+    type Output = String;
+    async fn visit<E: TypedExchange + 'static>(self, ex: E) -> String {
+        watch_probe(ex).await
+    }
+}
 
 fn panic_msg(e: Box<dyn std::any::Any + Send>) -> String {
     let s = if let Some(s) = e.downcast_ref::<String>() {
@@ -177,9 +179,9 @@ fn classify(method: &str, result: &Value, sym: &str) -> String {
     }
 }
 
-async fn watch_probe(mut ex: Box<dyn TypedExchange>) -> String {
-    // `call_raw` is the TypedExchange dynamic escape hatch: `Result<Value>`.
-    let lm = ex.call_raw("load_markets", vec![]);
+async fn watch_probe<E: TypedExchange>(mut ex: E) -> String {
+    // `call` dispatches by name and returns the raw `Result<Value>`.
+    let lm = ex.call::<Value>("load_markets", vec![]);
     let markets =
         match tokio::time::timeout(Duration::from_secs(40), AssertUnwindSafe(lm).catch_unwind())
             .await
@@ -243,7 +245,7 @@ async fn watch_probe(mut ex: Box<dyn TypedExchange>) -> String {
         }
         let mut args = vec![Value::Str(sym.to_string().into())];
         args.extend(extra.iter().cloned());
-        let fut = ex.call_raw(&method, args);
+        let fut = ex.call::<Value>(&method, args);
         match tokio::time::timeout(deadline - now, AssertUnwindSafe(fut).catch_unwind()).await {
             Err(_) => {
                 return if resolved_once {
@@ -290,22 +292,16 @@ fn main() {
 }
 
 async fn async_main() {
-    let mut v: Vec<Probe> = Vec::new();
-    for &id in VENUES {
-        if !filter_ok(id) {
-            continue;
-        }
-        if let Some(ex) = from_id(id, None) {
-            v.push(Box::pin(async move { (id.to_string(), watch_probe(ex).await) }) as Probe);
-        }
-    }
-
-    let total = v.len();
-    eprintln!("probing {total} venues (concurrency 6)…");
-    let mut results: Vec<(String, String)> = stream::iter(v)
+    let ids: Vec<&'static str> = VENUES.iter().copied().filter(|id| filter_ok(id)).collect();
+    eprintln!("probing {} venues (concurrency 6)…", ids.len());
+    // one future type for every id: `with_exchange` picks the venue inside
+    let mut results: Vec<(String, String)> = stream::iter(ids)
+        .map(|id| async move { ccxt_pro::with_exchange(id, None, Probe).await.map(|out| (id.to_string(), out)) })
         .buffer_unordered(6)
+        .filter_map(|r| async move { r })
         .collect::<Vec<_>>()
         .await;
+    let total = results.len();
     results.sort();
     println!("\n==== {} health ====", probe_method());
     for (id, out) in &results {

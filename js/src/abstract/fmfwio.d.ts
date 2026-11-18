@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import _hitbtc from '../hitbtc.js';
-interface hitbtc {
+declare abstract class hitbtc extends _hitbtc {
     publicGetPublicCurrency(params?: {}): Promise<Dict>;
     publicGetPublicCurrencyCurrency(params?: {}): Promise<Dict>;
     publicGetPublicSymbol(params?: {}): Promise<Dict>;
@@ -31,7 +31,7 @@ interface hitbtc {
     publicGetPublicFuturesCandlesPremiumIndexSymbol(params?: {}): Promise<List>;
     publicGetPublicFuturesCandlesOpenInterest(params?: {}): Promise<Dict>;
     publicGetPublicFuturesCandlesOpenInterestSymbol(params?: {}): Promise<List>;
-    privateGetSpotBalance(params?: {}): Promise<Dict>;
+    privateGetSpotBalance(params?: {}): Promise<List>;
     privateGetSpotBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetSpotOrder(params?: {}): Promise<List>;
     privateGetSpotOrderClientOrderId(params?: {}): Promise<Dict>;
@@ -50,7 +50,7 @@ interface hitbtc {
     privateGetMarginHistoryPositions(params?: {}): Promise<List>;
     privateGetMarginHistoryClearing(params?: {}): Promise<List>;
     privateGetMarginSettings(params?: {}): Promise<Dict>;
-    privateGetFuturesBalance(params?: {}): Promise<Dict>;
+    privateGetFuturesBalance(params?: {}): Promise<List>;
     privateGetFuturesBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetFuturesAccount(params?: {}): Promise<List>;
     privateGetFuturesAccountIsolatedSymbol(params?: {}): Promise<Dict>;
@@ -64,7 +64,7 @@ interface hitbtc {
     privateGetFuturesHistoryPositions(params?: {}): Promise<List>;
     privateGetFuturesHistoryClearing(params?: {}): Promise<List>;
     privateGetUserApiKeys(params?: {}): Promise<List>;
-    privateGetWalletBalance(params?: {}): Promise<Dict>;
+    privateGetWalletBalance(params?: {}): Promise<List>;
     privateGetWalletBalanceCurrency(params?: {}): Promise<Dict>;
     privateGetWalletCryptoAddressWhiteList(params?: {}): Promise<Dict>;
     privateGetWalletCryptoAddress(params?: {}): Promise<List>;
@@ -122,7 +122,5 @@ interface hitbtc {
     privatePutFuturesAccountIsolatedSymbol(params?: {}): Promise<Dict>;
     privatePutFuturesMarginSettingsAmr(params?: {}): Promise<Dict>;
     privatePutWalletCryptoWithdrawId(params?: {}): Promise<Dict>;
-}
-declare abstract class hitbtc extends _hitbtc {
 }
 export default hitbtc;

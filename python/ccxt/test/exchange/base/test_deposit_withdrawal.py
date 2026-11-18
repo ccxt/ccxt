@@ -21,7 +21,7 @@ def test_deposit_withdrawal(exchange, skipped_properties, method, entry, request
         'txid': '0x1345FEG45EAEF7',
         'timestamp': 1502962946216,
         'datetime': '2017-08-17 12:42:48.000',
-        'network': 'ETH',
+        'network': 'ERC20',
         'address': '0xEFE3487358AEF352345345',
         'addressTo': '0xEFE3487358AEF352345123',
         'addressFrom': '0xEFE3487358AEF352345456',
@@ -39,6 +39,7 @@ def test_deposit_withdrawal(exchange, skipped_properties, method, entry, request
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now)
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['currency'], requested_code)
+    test_shared_methods.assert_unified_network_code(exchange, skipped_properties, method, entry, exchange.safe_string(entry, 'network'))
     #
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['ok', 'pending', 'failed', 'rejected', 'canceled'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['deposit', 'withdrawal'])

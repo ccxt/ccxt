@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseexchange(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'id': 'coinbaseexchange',
             'name': 'Coinbase Exchange',
@@ -404,10 +404,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'bitcoin',
                     # LIGHTNING unsupported
-                    'ETH': 'ethereum',
-                    # TRON unsupported
+                    'ERC20': 'ethereum',
+                    # TRC20 unsupported
                     'SOL': 'solana',
-                    # BSC unsupported
+                    # BEP20 unsupported
                     'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
@@ -415,7 +415,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                     'SUI': 'sui',
                     'OP': 'optimism',
                     'NEAR': 'near',
-                    # CRONOS unsupported
+                    # CRC20 unsupported
                     # GNO unsupported
                     'APT': 'aptos',
                     # SCROLL unsupported
@@ -666,7 +666,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             market = rawMarkets[i]
             id = self.safe_string(market, 'id')
-            baseId, quoteId = id.split('-')
+            parts = id.split('-')
+            baseId = parts[0]
+            quoteId = parts[1]
             # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             # const baseId = this.safeString (market, 'base_currency');
             # const quoteId = this.safeString (market, 'quote_currency');
@@ -780,10 +782,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        rawBalances = self.to_array(response)
+        for i in range(0, len(rawBalances)):
+            balance = self.safe_dict(rawBalances, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -806,7 +809,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.privateGetAccounts(params)
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -891,7 +894,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         low = None
         open = None
         volume = None
-        symbol = None if (market is None) else market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         if isinstance(ticker, list):
             last = self.safe_string(ticker, 4)
         else:
@@ -967,10 +970,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             entry = self.safe_list(response, marketId, [])
-            first = self.safe_list(entry, 0, [])
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(first, market)
+            result[symbol] = self.parse_ticker(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1122,7 +1124,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1185,8 +1187,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1246,19 +1249,20 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['granularity'] = parsedTimeframe
         else:
             request['granularity'] = timeframe
-        until = self.safe_value_2(paramsPaginate, 'until', 'end')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        cappedLimit = 300 if (limit is None) else min(300, limit)
+        cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
         limitResolved = cappedLimit if (since is not None) else limit
         if since is not None:
             request['start'] = self.iso8601(since)
             if until is None:
-                parsedTimeframeMilliseconds = parsedTimeframe * 1000
-                if self.is_round_number(since % parsedTimeframeMilliseconds):
-                    request['end'] = self.iso8601(self.sum((cappedLimit - 1) * parsedTimeframeMilliseconds, since))
-                else:
-                    request['end'] = self.iso8601(self.sum(cappedLimit * parsedTimeframeMilliseconds, since))
+                if parsedTimeframe is not None:
+                    parsedTimeframeMilliseconds = parsedTimeframe * 1000
+                    if self.is_round_number(since % parsedTimeframeMilliseconds):
+                        request['end'] = self.iso8601(self.sum((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds, since))
+                    else:
+                        request['end'] = self.iso8601(self.sum(cappedLimit * parsedTimeframeMilliseconds, since))
             else:
                 request['end'] = self.iso8601(until)
         response = self.publicGetProductsIdCandles(self.extend(request, paramsOmitted))
@@ -1286,7 +1290,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'epoch')
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'pending': 'open',
             'active': 'open',
@@ -1461,7 +1465,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1533,7 +1537,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         postOnly = self.safe_bool_2(params, 'postOnly', 'post_only', False)
-        if postOnly is True:
+        if postOnly:
             request['post_only'] = True
         paramsOmitted = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         costParam = self.safe_number_2(paramsOmitted, 'cost', 'funds')
@@ -1545,12 +1549,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)
         elif type == 'market':
-            cost = costParam
-            if cost is None:
-                if price is not None:
-                    cost = amount * price
-            if cost is not None:
-                request['funds'] = self.cost_to_precision(symbol, cost)
+            if costParam is not None:
+                request['funds'] = self.cost_to_precision(symbol, costParam)
+            elif price is not None:
+                request['funds'] = self.cost_to_precision(symbol, amount * price)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, paramsCost))
@@ -1631,7 +1633,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     def fetch_payment_methods(self, params: dict = {}) -> list[dict]:
         return self.privateGetPaymentMethods(params)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1641,12 +1643,12 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -1785,7 +1787,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['start_date'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit  # default 100
-        until = self.safe_value_2(params, 'until', 'end_date')
+        until = self.safe_integer_2(params, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(params, ['until']) if (until is not None) else params
@@ -1975,7 +1977,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        amount = self.safe_number(transaction, 'amount')
+        amountRaw = self.safe_number(transaction, 'amount')
+        amount = amountRaw
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
         address = self.safe_string(transaction, 'crypto_address', address)
@@ -1989,8 +1992,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             address = self.safe_string(details, 'sent_to_address', address)
             feeCost = self.safe_number(details, 'fee')
             if feeCost is not None:
-                if amount is not None:
-                    amount -= feeCost
+                if amountRaw is not None:
+                    amount = amountRaw - feeCost
                 fee['cost'] = feeCost
                 fee['currency'] = code
         networkId = self.safe_string(details, 'network')
@@ -2030,13 +2033,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        accounts = self.safe_list(self.options, 'coinbaseAccounts')
         if accounts is None:
             accounts = self.privateGetCoinbaseAccounts()
             self.options['coinbaseAccounts'] = accounts  # cache it
             self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
         currencyId = currency['id']
-        account = self.safe_dict(self.options['coinbaseAccountsByCurrencyId'], currencyId)
+        accountsByCurrencyId = self.safe_dict(self.options, 'coinbaseAccountsByCurrencyId')
+        account = self.safe_dict(accountsByCurrencyId, currencyId)
         if account is None:
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
@@ -2054,26 +2058,27 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        requestHeaders = None
+        requestBody = None
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
             if len(query) > 0:
                 request += '?' + self.urlencode(query)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + request
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
                 if len(query) > 0:
-                    requestBody = self.json(query)
-                    payload = requestBody
+                    payload = self.json(query)
+                    requestBody = payload
             what = nonce + method + request + payload
             secret = None
             try:
@@ -2090,9 +2095,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 400) or (code == 404):
-            if body[0] == '{':
+            if body.startswith('{'):
                 message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
@@ -2101,8 +2106,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def request(self, path: str, api='public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        response = self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        response = self.fetch2(path, api, method, params, config)
         if not isinstance(response, str):
             if 'message' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))

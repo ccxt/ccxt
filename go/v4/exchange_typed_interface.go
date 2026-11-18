@@ -105,6 +105,7 @@ type IExchange interface {
 	UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error)
 	FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error)
 	UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error)
+	ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error)
 	EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error)
 	FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error)
 	FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error)
@@ -218,7 +219,7 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	exchangeId = strings.ToLower(exchangeId)
 	switch exchangeId {
 	case "exchange":
-		itf := NewExchangeTyped(nil)
+		itf := &Exchange{}
 		return itf
 	case "alpaca":
 		itf := NewAlpaca(options)
@@ -255,6 +256,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "bit2c":
 		itf := NewBit2c(options)
+		return itf
+	case "bit2me":
+		itf := NewBit2me(options)
 		return itf
 	case "bitbank":
 		itf := NewBitbank(options)
@@ -324,9 +328,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "bybitid":
 		itf := NewBybitid(options)
-		return itf
-	case "bydfi":
-		itf := NewBydfi(options)
 		return itf
 	case "cex":
 		itf := NewCex(options)
@@ -495,6 +496,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "poloniex":
 		itf := NewPoloniex(options)
+		return itf
+	case "polymarket":
+		itf := NewPolymarket(options)
 		return itf
 	case "revolutx":
 		itf := NewRevolutx(options)

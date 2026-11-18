@@ -31,7 +31,7 @@ public class Coinspot extends CoinspotApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinspot" );
@@ -553,7 +553,7 @@ public class Coinspot extends CoinspotApi
                 put( "DRK", "DASH" );
             }} );
             put( "options", new HashMap<String, Object>() {{
-                put( "fetchBalance", "private_post_my_balances" );
+                put( "fetchBalance", "privatePostMyBalances" );
             }} );
             put( "features", new HashMap<String, Object>() {{
                 put( "spot", new HashMap<String, Object>() {{
@@ -607,7 +607,7 @@ public class Coinspot extends CoinspotApi
         }});
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -615,15 +615,17 @@ public class Coinspot extends CoinspotApi
         Object balances = this.safeValue2(response, "balance", "balances");
         if ((balances instanceof List))
         {
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            List<Object> rows = this.toArray(balances);
+            Integer numRows = rows.size();
+            for (var i = 0; (numRows != null && i < numRows); i++)
             {
-                Object currencies = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
-                List<Object> currencyIds = Helpers.objectKeys(currencies);
-                for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
+                Map<String, Object> currencies = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+                List<String> currencyIdsList = new ArrayList<String>(currencies.keySet());
+                for (var j = 0; j < currencyIdsList.size(); j++)
                 {
-                    Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
-                    String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                    String currencyId = (currencyIdsList == null || j < 0 || j >= currencyIdsList.size() ? null : currencyIdsList.get(j));
+                    Map<String, Object> balance = this.safeDict(currencies, currencyId, null);
+                    String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     Map<String, Object> account = this.account();
                     account.put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
@@ -634,11 +636,11 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            List<Object> currencyIds = Helpers.objectKeys(balances);
-            for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+            List<Object> currencyIdsMap = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            for (var i = 0; i < currencyIdsMap.size(); i++)
             {
-                Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                String currencyId = (String) (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
@@ -667,7 +669,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+            String method = this.safeString(this.options, "fetchBalance", "privatePostMyBalances");
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_post_ro_my_balances")) || (java.util.Objects.equals(method, "privatePostRoMyBalances")))
             {
@@ -785,7 +787,7 @@ public class Coinspot extends CoinspotApi
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
-            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "status":"ok",
@@ -798,7 +800,7 @@ public class Coinspot extends CoinspotApi
             //         }
             //     }
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(prices, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(prices, id, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -841,13 +843,13 @@ public class Coinspot extends CoinspotApi
             //    }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             List<String> ids = new ArrayList<String>(prices.keySet());
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
-                if (java.util.Objects.equals(market.get("spot"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     String symbol = (String) market.get("symbol");
                     Object ticker = (prices == null || id == null ? null : prices.get(id));
@@ -892,7 +894,7 @@ public class Coinspot extends CoinspotApi
             //         ],
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -955,13 +957,13 @@ public class Coinspot extends CoinspotApi
             //          },
             //      ]
             // }
-            List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)buyTrades).size(); i++)
+            List<Object> buyTrades = this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < buyTrades.size(); i++)
             {
                 ((Map<String, Object>)(buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i))).put("side", "buy");
             }
-            List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)sellTrades).size(); i++)
+            List<Object> sellTrades = this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < sellTrades.size(); i++)
             {
                 ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
             }
@@ -1142,7 +1144,7 @@ public class Coinspot extends CoinspotApi
 
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1163,18 +1165,22 @@ public class Coinspot extends CoinspotApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        Boolean isVersionedApi = false;
-        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0) : null;
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1) : java.util.Objects.requireNonNullElse(api, "public");
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
+        Integer apiLength = ((List<?>)api).size();
+        Boolean isVersionedApi = (apiLength != null && apiLength > 1);
+        Object accessType = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (Boolean.TRUE.equals(isVersionedApi))
+        {
+            accessType = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        }
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String fullPath = endpoint;
-        if (!java.util.Objects.equals(version, null))
+        if (Boolean.TRUE.equals(isVersionedApi))
         {
-            fullPath = (("/" + version) + endpoint);
+            fullPath = (("/" + (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0))) + endpoint);
         }
         String apiUrl = this.safeString(this.urls.get("api"), accessType);
         if (java.util.Objects.equals(apiUrl, null))
@@ -1186,15 +1192,17 @@ public class Coinspot extends CoinspotApi
         {
             this.checkRequiredCredentials(true);
             // coinspot requires an increasing nonce
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             requestBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "key", this.apiKey,
-                "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("Content-Type", "application/json");
+                hx4NewMap0.put("key", this.apiKey);
+                hx4NewMap0.put("sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512()));
+                requestHeaders = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

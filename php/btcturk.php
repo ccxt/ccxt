@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\btcturk as Exchange;
 
 class btcturk extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcturk',
             'name' => 'BTCTurk',
@@ -385,7 +385,7 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_list($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -706,17 +706,17 @@ class btcturk extends Exchange {
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * fetches historical candlestick data containing the $open, $high, $low, and $close price, and the $volume of a $market
          *
          * @see https://docs.btcturk.com/public-endpoints/get-kline-data
          *
          * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$since] $timestamp in ms of the earliest candle $to fetch
          * @param {int} [$limit] the maximum amount of candles $to fetch
          * @param {array} [$params] extra parameters specific $to the exchange API endpoint
-         * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
-         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [$params->until] $timestamp in ms of the latest candle $to fetch
+         * @return {int[][]} A list of candles ordered as $timestamp, $open, $high, $low, $close, $volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -727,26 +727,35 @@ class btcturk extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe), // allows the user to pass custom timeframes if needed
         );
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $request['to'] = $this->parse_to_int(($until / 1000));
+        $untilSeconds = $this->parse_to_int(($until / 1000));
+        $request['to'] = $untilSeconds;
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $limitDefaulted = $limit;
-        if (($since === null) && ($limit === null)) {
-            $limitDefaulted = 100; // default value
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = $limit;
+            if ($limit > 11000) {
+                $limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
+        } elseif ($since === null) {
+            $limitResolved = 100; // default value
         }
-        $limitResolved = ($limitDefaulted !== null) ? min($limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
-        if ($limitResolved !== null) {
+        if (($limit !== null) || ($since === null)) {
             if ($timeframe === '1y') { // difficult with leap years
                 throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
-            $limitSeconds = $seconds * ($limitResolved - 1);
+            $limitCount = ($limit === null) ? 100 : min($limit, 11000);
+            $limitSeconds = $this->parse_to_int($seconds * ($limitCount - 1));
             if ($since !== null) {
-                $to = $this->parse_to_int($since / 1000) . $limitSeconds;
-                $request['to'] = min($request['to'], $to);
+                $sinceSeconds = $this->parse_to_int($since / 1000);
+                $to = $sinceSeconds . $limitSeconds;
+                if ($to < $untilSeconds) {
+                    $request['to'] = $to;
+                }
             } else {
-                $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
+                $request['from'] = 0 - $limitSeconds;
             }
         }
         $response = $this->graphGetKlinesHistory($this->extend($request, $params));
@@ -785,19 +794,15 @@ class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limitResolved);
-    }
-
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
-        $results = array();
-        $timestamp = $this->safe_list($ohlcvs, 't', array());
-        $high = $this->safe_list($ohlcvs, 'h', array());
-        $open = $this->safe_list($ohlcvs, 'o', array());
-        $low = $this->safe_list($ohlcvs, 'l', array());
-        $close = $this->safe_list($ohlcvs, 'c', array());
-        $volume = $this->safe_list($ohlcvs, 'v', array());
+        $timestamp = $this->safe_list($response, 't', array());
+        $high = $this->safe_list($response, 'h', array());
+        $open = $this->safe_list($response, 'o', array());
+        $low = $this->safe_list($response, 'l', array());
+        $close = $this->safe_list($response, 'c', array());
+        $volume = $this->safe_list($response, 'v', array());
+        $rows = array();
         for ($i = 0; $i < count($timestamp); $i++) {
-            $ohlcv = array(
+            $rows[] = array(
                 'timestamp' => $this->safe_integer($timestamp, $i),
                 'high' => $this->safe_number($high, $i),
                 'open' => $this->safe_number($open, $i),
@@ -805,7 +810,15 @@ class btcturk extends Exchange {
                 'close' => $this->safe_number($close, $i),
                 'volume' => $this->safe_number($volume, $i),
             );
-            $results[] = $this->parse_ohlcv($ohlcv, $market);
+        }
+        return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limitResolved);
+    }
+
+    public function parse_ohlcvs(?array $ohlcvs, ?array $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+        $rows = $this->to_array($ohlcvs);
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $results[] = $this->parse_ohlcv($this->safe_dict($rows, $i, array()), $market);
         }
         $sorted = $this->sort_by($results, 0);
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
@@ -954,7 +967,7 @@ class btcturk extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Untouched' => 'open',
             'Partial' => 'open',
@@ -1080,33 +1093,35 @@ class btcturk extends Exchange {
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $path;
         $isQueryMethod = ($method === 'GET') || ($method === 'DELETE');
         if ($isQueryMethod) {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if (strlen($query) > 0) {
+                $url .= '?' . $query;
             }
         }
         $requestBody = null;
         if ($isQueryMethod) {
-            $requestBody = $body;
+            $requestBody = null;
         } else {
             $requestBody = $this->json($params);
         }
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $secret = base64_decode($this->secret);
@@ -1118,20 +1133,19 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $requestHeaders = ($privateHeaders !== null) ? $privateHeaders : $headers;
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
-        $output = $message;
-        if ($message === null) {
-            $output = $body;
+        $feedback = $this->id . ' ' . $body;
+        if ($message !== null) {
+            $feedback = $this->id . ' ' . $message;
         }
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $output);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
-            throw new ExchangeError($this->id . ' ' . $output);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

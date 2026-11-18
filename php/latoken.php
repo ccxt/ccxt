@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\latoken as Exchange;
 
 class latoken extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',
@@ -44,6 +44,7 @@ class latoken extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -275,6 +276,33 @@ class latoken extends Exchange {
                     'ACCOUNT_TYPE_WALLET' => 'wallet',
                     'ACCOUNT_TYPE_SPOT' => 'spot',
                 ),
+                'networks' => array(
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20' => 'BSC_TOKEN',
+                    'TRC20' => 'TRON',
+                    'ADA' => 'ADA_TOKEN',
+                    'ALGO' => 'ALGO_TOKEN',
+                    'ARBITRUM' => 'ARB_TOKEN',
+                    'AVAXC' => 'AVAXC_TOKEN',
+                    'BASE' => 'BASE_TOKEN',
+                    'CELO' => 'CELO_TOKEN',
+                    'EOS' => 'EOS_TOKEN',
+                    'FTM' => 'FTM_TOKEN',
+                    'MATIC' => 'MATIC_TOKEN',
+                    'OP' => 'OP_TOKEN',
+                    'QTUM' => 'QTUM_TOKEN',
+                    'SOL' => 'SOL_TOKEN',
+                    'TON' => 'TON_TOKEN',
+                    'VET' => 'VECHAIN_TOKEN',
+                    'WAVES' => 'WAVES_TOKEN',
+                    'XDC' => 'XDC_TOKEN',
+                    'XLM' => 'XLM_TOKEN',
+                    'XRP' => 'XRP_TOKEN',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20', // second provider id for the same chain
+                ),
                 'fetchTradingFee' => array(
                     'method' => 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 ),
@@ -302,7 +330,7 @@ class latoken extends Exchange {
                         'selfTradePrevention' => false,
                         'trailing' => false,
                         'leverage' => false,
-                        'marketBuyByCost' => true,
+                        'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                         'iceberg' => false,
                     ),
@@ -323,11 +351,19 @@ class latoken extends Exchange {
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'trigger' => false,
+                        'trigger' => true,
                         'trailing' => false,
                         'symbolRequired' => true,
                     ),
-                    'fetchOrders' => null,
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
@@ -352,7 +388,7 @@ class latoken extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $timeDifference = $this->safe_integer($this->options, 'timeDifference');
         if ($timeDifference === null) {
             throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
@@ -416,7 +452,7 @@ class latoken extends Exchange {
         $result = array();
         $rawMarkets = $this->to_array($response);
         for ($i = 0; $i < count($rawMarkets); $i++) {
-            $market = $rawMarkets[$i];
+            $market = $this->safe_dict($rawMarkets, $i);
             $id = $this->safe_string($market, 'id');
             // the exchange shows them inverted
             $baseId = $this->safe_string($market, 'baseCurrency');
@@ -491,9 +527,15 @@ class latoken extends Exchange {
     public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+         * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         $response = $this->publicGetCurrency($params);
         //
         //     [
@@ -527,7 +569,41 @@ class latoken extends Exchange {
         //         },
         //     ]
         //
-        return $this->parse_currencies($response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        $bindingsResponse = $this->publicGetTransactionBindings();
+        $bindingsById = $this->index_by($bindingsResponse, 'id');
+        $rawCurrencies = $this->to_array($response);
+        $merged = array();
+        for ($i = 0; $i < count($rawCurrencies); $i++) {
+            $rawCurrency = $this->safe_dict($rawCurrencies, $i);
+            $bindingEntry = $this->safe_dict($bindingsById, $this->safe_string($rawCurrency, 'id'));
+            $bindings = $this->safe_list($bindingEntry, 'bindings');
+            $mergedCurrency = $rawCurrency;
+            if ($bindings !== null) {
+                $mergedCurrency = $this->extend($rawCurrency, array( 'bindings' => $bindings ));
+            }
+            $merged[] = $mergedCurrency;
+        }
+        return $this->parse_currencies($merged);
     }
 
     public function parse_currency(array $currency): array {
@@ -536,6 +612,42 @@ class latoken extends Exchange {
         $code = $this->safe_currency_code($tag);
         $currencyType = $this->safe_string($currency, 'type');
         $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
+        $bindings = $this->safe_list($currency, 'bindings', array());
+        $networks = array();
+        for ($i = 0; $i < count($bindings); $i++) {
+            $binding = $bindings[$i];
+            $networkId = $this->safe_string($binding, 'providerName');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (($networkCode !== null) && !(is_array($networks) && array_key_exists($networkCode ?? '', $networks))) {
+                $networks[$networkCode] = array(
+                    'info' => $binding,
+                    'id' => $this->safe_string($binding, 'id'),
+                    'network' => $networkCode,
+                    'active' => null,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($binding, 'fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+        }
         return $this->safe_currency_structure(array(
             'id' => $id,
             'code' => $code,
@@ -545,7 +657,7 @@ class latoken extends Exchange {
             'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit' => null,
             'withdraw' => null,
-            'fee' => $this->safe_number($currency, 'fee'),
+            'fee' => null,
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
                 'amount' => array(
@@ -557,7 +669,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
             ),
-            'networks' => array(),
+            'networks' => $networks,
         ));
     }
 
@@ -573,7 +685,10 @@ class latoken extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->privateGetAuthAccount($params);
+        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $paramsOmitted = $this->omit($params, 'type');
+        $response = $this->privateGetAuthAccount($paramsOmitted);
         //
         //     [
         //         {
@@ -601,22 +716,19 @@ class latoken extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $maxTimestamp = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
         $types = $this->safe_dict($this->options, 'types', array());
         $accountType = $this->safe_string($types, $type, $type);
         $balancesByType = $this->group_by($response, 'type');
         $balances = $this->safe_list($balancesByType, $accountType, array());
+        $firstBalance = $this->safe_dict($balances, 0);
+        $maxTimestamp = $this->safe_integer($firstBalance, 'timestamp');
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $timestamp = $this->safe_integer($balance, 'timestamp');
             if ($timestamp !== null) {
-                if ($maxTimestamp === null) {
+                if (($maxTimestamp === null) || ($timestamp > $maxTimestamp)) {
                     $maxTimestamp = $timestamp;
-                } else {
-                    $maxTimestamp = max($maxTimestamp, $timestamp);
                 }
             }
             $code = $this->safe_currency_code($currencyId);
@@ -739,6 +851,16 @@ class latoken extends Exchange {
         }
         $last = $this->safe_string($ticker, 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        $bidVolume = $this->safe_string($ticker, 'bestBidQuantity');
+        if (($bidVolume !== null) && Precise::string_lt($bidVolume, '0')) {
+            $bidVolume = null;
+        }
+        $askVolume = $this->safe_string($ticker, 'bestAskQuantity');
+        if (($askVolume !== null) && Precise::string_lt($askVolume, '0')) {
+            $askVolume = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -746,9 +868,9 @@ class latoken extends Exchange {
             'low' => null,
             'high' => null,
             'bid' => $this->safe_string($ticker, 'bestBid'),
-            'bidVolume' => $this->safe_string($ticker, 'bestBidQuantity'),
+            'bidVolume' => $bidVolume,
             'ask' => $this->safe_string($ticker, 'bestAsk'),
-            'askVolume' => $this->safe_string($ticker, 'bestAskQuantity'),
+            'askVolume' => $askVolume,
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -882,10 +1004,10 @@ class latoken extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
         $costString = $this->safe_string($trade, 'cost');
-        $makerBuyer = $this->safe_bool($trade, 'makerBuyer');
+        $makerBuyer = $this->safe_bool($trade, 'makerBuyer', false);
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
-            $side = ($makerBuyer === true) ? 'sell' : 'buy';
+            $side = $makerBuyer ? 'sell' : 'buy';
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';
@@ -894,7 +1016,7 @@ class latoken extends Exchange {
             }
         }
         $isBuy = ($side === 'buy');
-        $isMaker = ($makerBuyer === true) && $isBuy;
+        $isMaker = $makerBuyer && $isBuy;
         $takerOrMaker = $isMaker ? 'maker' : 'taker';
         $baseId = $this->safe_string($trade, 'baseCurrency');
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
@@ -1107,7 +1229,7 @@ class latoken extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'ORDER_STATUS_PLACED' => 'open',
             'ORDER_STATUS_CLOSED' => 'closed',
@@ -1124,7 +1246,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ORDER_CONDITION_GOOD_TILL_CANCELLED' => 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL' => 'IOC',
@@ -1261,7 +1383,7 @@ class latoken extends Exchange {
             $this->load_markets();
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($params, 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         $market = $this->market($symbol);
         $request = array(
@@ -1691,7 +1813,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'TRANSACTION_STATUS_CONFIRMED' => 'ok',
             'TRANSACTION_STATUS_EXECUTED' => 'ok',
@@ -1869,19 +1991,20 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
         $urlencodedQuery = $this->urlencode($query);
         if ($method === 'GET') {
-            if (count($query) > 0) {
+            if ($urlencodedQuery !== '') {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
@@ -1903,7 +2026,7 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

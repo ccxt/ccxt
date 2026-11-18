@@ -73,6 +73,11 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
+**See**
+
+- https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+- https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

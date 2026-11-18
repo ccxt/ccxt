@@ -33,36 +33,14 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostBuildRegisterSessionKeyTx endpoint.
+     * Calls the publicPostDecodeAction endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostBuildRegisterSessionKeyTx (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostDecodeAction (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostBuildRegisterSessionKeyTx", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostRegisterSessionKey endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostRegisterSessionKey (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostRegisterSessionKey", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostDeregisterSessionKey endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostDeregisterSessionKey (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostDeregisterSessionKey", optionalArgs);
+        return this.callAsync ("publicPostDecodeAction", optionalArgs);
     }
 
     /**
@@ -74,61 +52,6 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  publicPostGetWalletsFromSessionKey (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetWalletsFromSessionKey", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostLogin endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostLogin (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostLogin", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostStatistics endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostStatistics (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostStatistics", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostAllStatistics endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostAllStatistics (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostAllStatistics", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostUserStatistics endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostUserStatistics (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostUserStatistics", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostAllUserStatistics endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostAllUserStatistics (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostAllUserStatistics", optionalArgs);
     }
 
     /**
@@ -154,25 +77,14 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostGetAsset endpoint.
+     * Calls the publicPostGetRiskUniverses endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetAsset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetRiskUniverses (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetAsset", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetAssets endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetAssets (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetAssets", optionalArgs);
+        return this.callAsync ("publicPostGetRiskUniverses", optionalArgs);
     }
 
     /**
@@ -198,14 +110,14 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostGetInstruments endpoint.
+     * Calls the publicPostGetAllLiveInstruments endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetInstruments (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetAllLiveInstruments (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetInstruments", optionalArgs);
+        return this.callAsync ("publicPostGetAllLiveInstruments", optionalArgs);
     }
 
     /**
@@ -253,28 +165,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostGetSpotFeedHistory endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetSpotFeedHistory (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetSpotFeedHistory", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetSpotFeedHistoryCandles endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetSpotFeedHistoryCandles (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetSpotFeedHistoryCandles", optionalArgs);
-    }
-
-    /**
      * Calls the publicPostGetIndexChartData endpoint.
      *
      * @param optionalArgs the request parameters
@@ -319,17 +209,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostGetOptionSettlementHistory endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetOptionSettlementHistory (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetOptionSettlementHistory", optionalArgs);
-    }
-
-    /**
      * Calls the publicPostGetLiquidationHistory endpoint.
      *
      * @param optionalArgs the request parameters
@@ -352,17 +231,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostGetPerpImpactTwap endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetPerpImpactTwap (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetPerpImpactTwap", optionalArgs);
-    }
-
-    /**
      * Calls the publicPostGetTransaction endpoint.
      *
      * @param optionalArgs the request parameters
@@ -371,6 +239,39 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  publicPostGetTransaction (Object... optionalArgs)
     {
         return this.callAsync ("publicPostGetTransaction", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetOnchainActionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetOnchainActionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetOnchainActionHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostGetPendingDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostGetPendingDeposits (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostGetPendingDeposits", optionalArgs);
+    }
+
+    /**
+     * Calls the publicPostRegisterDepositAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicPostRegisterDepositAddress (Object... optionalArgs)
+    {
+        return this.callAsync ("publicPostRegisterDepositAddress", optionalArgs);
     }
 
     /**
@@ -407,245 +308,80 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostValidateInviteCode endpoint.
+     * Calls the publicPostGetLiveAuctions endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostValidateInviteCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetLiveAuctions (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostValidateInviteCode", optionalArgs);
+        return this.callAsync ("publicPostGetLiveAuctions", optionalArgs);
     }
 
     /**
-     * Calls the publicPostGetPoints endpoint.
+     * Calls the publicPostStartAuction endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostStartAuction (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetPoints", optionalArgs);
+        return this.callAsync ("publicPostStartAuction", optionalArgs);
     }
 
     /**
-     * Calls the publicPostGetAllPoints endpoint.
+     * Calls the publicPostGetVault endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetAllPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVault (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetAllPoints", optionalArgs);
+        return this.callAsync ("publicPostGetVault", optionalArgs);
     }
 
     /**
-     * Calls the publicPostGetPointsLeaderboard endpoint.
+     * Calls the publicPostGetVaults endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetPointsLeaderboard (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaults (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetPointsLeaderboard", optionalArgs);
+        return this.callAsync ("publicPostGetVaults", optionalArgs);
     }
 
     /**
-     * Calls the publicPostGetDescendantTree endpoint.
+     * Calls the publicPostGetVaultActionHistory endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetDescendantTree (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultActionHistory (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetDescendantTree", optionalArgs);
+        return this.callAsync ("publicPostGetVaultActionHistory", optionalArgs);
     }
 
     /**
-     * Calls the publicPostGetTreeRoots endpoint.
+     * Calls the publicPostGetVaultPerformanceHistory endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetTreeRoots (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostGetVaultPerformanceHistory (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetTreeRoots", optionalArgs);
+        return this.callAsync ("publicPostGetVaultPerformanceHistory", optionalArgs);
     }
 
     /**
-     * Calls the publicPostGetSwellPercentPoints endpoint.
+     * Calls the publicPostSetSocializationFeedData endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  publicPostGetSwellPercentPoints (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicPostSetSocializationFeedData (Object... optionalArgs)
     {
-        return this.callAsync ("publicPostGetSwellPercentPoints", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetStdrvSnapshots endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetStdrvSnapshots (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetStdrvSnapshots", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetVaultAssets endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetVaultAssets (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetVaultAssets", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetEtherfiEffectiveBalances endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetEtherfiEffectiveBalances (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetEtherfiEffectiveBalances", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetKelpEffectiveBalances endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetKelpEffectiveBalances (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetKelpEffectiveBalances", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetBridgeBalances endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetBridgeBalances (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetBridgeBalances", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetEthenaParticipants endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetEthenaParticipants (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetEthenaParticipants", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetVaultShare endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetVaultShare (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetVaultShare", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetVaultStatistics endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetVaultStatistics (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetVaultStatistics", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetVaultBalances endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetVaultBalances (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetVaultBalances", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetVaultPools endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetVaultPools (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetVaultPools", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetVaultRates endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetVaultRates (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetVaultRates", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostEstimateIntegratorPoints endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostEstimateIntegratorPoints (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostEstimateIntegratorPoints", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostCreateSubaccountDebug endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostCreateSubaccountDebug (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostCreateSubaccountDebug", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostCreateAccountWithSecret endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostCreateAccountWithSecret (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostCreateAccountWithSecret", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostDepositDebug endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostDepositDebug (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostDepositDebug", optionalArgs);
+        return this.callAsync ("publicPostSetSocializationFeedData", optionalArgs);
     }
 
     /**
@@ -679,28 +415,6 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  publicPostExecuteQuoteDebug (Object... optionalArgs)
     {
         return this.callAsync ("publicPostExecuteQuoteDebug", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetInviteCode endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetInviteCode (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetInviteCode", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostRegisterInvite endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostRegisterInvite (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostRegisterInvite", optionalArgs);
     }
 
     /**
@@ -770,28 +484,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the publicPostGetDetailedMakerSnapshotHistory endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetDetailedMakerSnapshotHistory (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetDetailedMakerSnapshotHistory", optionalArgs);
-    }
-
-    /**
-     * Calls the publicPostGetRateLimits endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  publicPostGetRateLimits (Object... optionalArgs)
-    {
-        return this.callAsync ("publicPostGetRateLimits", optionalArgs);
-    }
-
-    /**
      * Calls the privatePostGetAccount endpoint.
      *
      * @param optionalArgs the request parameters
@@ -800,17 +492,6 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privatePostGetAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetAccount", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostCreateSubaccount endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostCreateSubaccount (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostCreateSubaccount", optionalArgs);
     }
 
     /**
@@ -836,6 +517,17 @@ public class DeriveApi extends Exchange
     }
 
     /**
+     * Calls the privatePostDeleteSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostDeleteSubaccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDeleteSubaccount", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostGetAllPortfolios endpoint.
      *
      * @param optionalArgs the request parameters
@@ -858,50 +550,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the privatePostGetNotificationsv endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostGetNotificationsv (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostGetNotificationsv", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostGetNotifications endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostGetNotifications (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostGetNotifications", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostUpdateNotifications endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostUpdateNotifications (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostUpdateNotifications", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostDeposit endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostDeposit (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostDeposit", optionalArgs);
-    }
-
-    /**
      * Calls the privatePostWithdraw endpoint.
      *
      * @param optionalArgs the request parameters
@@ -913,25 +561,25 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the privatePostTransferErc20 endpoint.
+     * Calls the privatePostTransferSpot endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostTransferErc20 (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferSpot (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostTransferErc20", optionalArgs);
+        return this.callAsync ("privatePostTransferSpot", optionalArgs);
     }
 
     /**
-     * Calls the privatePostTransferPosition endpoint.
+     * Calls the privatePostTransferSpotExternal endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostTransferPosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostTransferSpotExternal (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostTransferPosition", optionalArgs);
+        return this.callAsync ("privatePostTransferSpotExternal", optionalArgs);
     }
 
     /**
@@ -943,6 +591,28 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privatePostTransferPositions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferPositions", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRejectDepositRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostRejectDepositRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRejectDepositRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUpdateWhitelistedRecipients endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostUpdateWhitelistedRecipients (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUpdateWhitelistedRecipients", optionalArgs);
     }
 
     /**
@@ -987,17 +657,6 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privatePostGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetOrder", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostGetOrders endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostGetOrders (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostGetOrders", optionalArgs);
     }
 
     /**
@@ -1386,17 +1045,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the privatePostExpiredAndCancelledHistory endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostExpiredAndCancelledHistory (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostExpiredAndCancelledHistory", optionalArgs);
-    }
-
-    /**
      * Calls the privatePostGetFundingHistory endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1452,17 +1100,6 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the privatePostGetLiquidatorHistory endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostGetLiquidatorHistory (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostGetLiquidatorHistory", optionalArgs);
-    }
-
-    /**
      * Calls the privatePostSessionKeys endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1474,6 +1111,17 @@ public class DeriveApi extends Exchange
     }
 
     /**
+     * Calls the privatePostSetSessionKey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostSetSessionKey (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostSetSessionKey", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostEditSessionKey endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1482,28 +1130,6 @@ public class DeriveApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privatePostEditSessionKey (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEditSessionKey", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostChangeSessionKeyLabel endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostChangeSessionKeyLabel (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostChangeSessionKeyLabel", optionalArgs);
-    }
-
-    /**
-     * Calls the privatePostRegisterScopedSessionKey endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  privatePostRegisterScopedSessionKey (Object... optionalArgs)
-    {
-        return this.callAsync ("privatePostRegisterScopedSessionKey", optionalArgs);
     }
 
     /**
@@ -1540,80 +1166,168 @@ public class DeriveApi extends Exchange
     }
 
     /**
-     * Calls the privatePostSetCancelOnDisconnect endpoint.
+     * Calls the privatePostCreateVault endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostSetCancelOnDisconnect (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostCreateVault (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostSetCancelOnDisconnect", optionalArgs);
+        return this.callAsync ("privatePostCreateVault", optionalArgs);
     }
 
     /**
-     * Calls the privatePostGetInviteCode endpoint.
+     * Calls the privatePostUpdateVaultInfo endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostGetInviteCode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostUpdateVaultInfo (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostGetInviteCode", optionalArgs);
+        return this.callAsync ("privatePostUpdateVaultInfo", optionalArgs);
     }
 
     /**
-     * Calls the privatePostRegisterInvite endpoint.
+     * Calls the privatePostMintVaultShares endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostRegisterInvite (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostMintVaultShares (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostRegisterInvite", optionalArgs);
+        return this.callAsync ("privatePostMintVaultShares", optionalArgs);
     }
 
     /**
-     * Calls the privatePostGetContactInfo endpoint.
+     * Calls the privatePostBurnVaultShares endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostGetContactInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostBurnVaultShares (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostGetContactInfo", optionalArgs);
+        return this.callAsync ("privatePostBurnVaultShares", optionalArgs);
     }
 
     /**
-     * Calls the privatePostCreateContactInfo endpoint.
+     * Calls the privatePostForceBurn endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostCreateContactInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostForceBurn (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostCreateContactInfo", optionalArgs);
+        return this.callAsync ("privatePostForceBurn", optionalArgs);
     }
 
     /**
-     * Calls the privatePostUpdateContactInfo endpoint.
+     * Calls the privatePostRequestVaultDeposit endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostUpdateContactInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRequestVaultDeposit (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostUpdateContactInfo", optionalArgs);
+        return this.callAsync ("privatePostRequestVaultDeposit", optionalArgs);
     }
 
     /**
-     * Calls the privatePostDeleteContactInfo endpoint.
+     * Calls the privatePostRequestVaultWithdraw endpoint.
      *
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public CompletableFuture<Map<String, Object>>  privatePostDeleteContactInfo (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostRequestVaultWithdraw (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostDeleteContactInfo", optionalArgs);
+        return this.callAsync ("privatePostRequestVaultWithdraw", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelAllVaultRequests endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostCancelAllVaultRequests (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelAllVaultRequests", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetVaultShares endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetVaultShares (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetVaultShares", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetCuratedVaults endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetCuratedVaults (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetCuratedVaults", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetShareholderVaults endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetShareholderVaults (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetShareholderVaults", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetLiveMintRequests endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetLiveMintRequests (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetLiveMintRequests", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetLiveBurnRequests endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetLiveBurnRequests (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetLiveBurnRequests", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetLiveVaultRequests endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetLiveVaultRequests (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetLiveVaultRequests", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostGetVaultRequestHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostGetVaultRequestHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetVaultRequestHistory", optionalArgs);
     }
 
 }
