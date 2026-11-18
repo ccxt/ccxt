@@ -7999,12 +7999,13 @@ export function goStringLiteralNativeCompares (content: string, isEqualFn: strin
 const GO_STRPTR_LOCAL_PRODUCER = /^(?:ccxt\.)?(?:this\.(?:SafeString(?:Lower|Upper)?[2N]?|OmitZero|NumberToString)|Precise\.String(?:Add|Sub|Mul|Div|Abs|Neg|Max|Min|Mod))\(/;
 const GO_STRPTR_LOCAL_SINK = /(?:^|[^\w.])(?:ccxt\.)?(?:Precise\.String(?:Add|Sub|Mul|Div|Abs|Neg|Max|Min|Mod|Gt|Lt|Ge|Le|Eq|Equals)|this\.ParseNumber)$/;
 
-function goStrPtrLocalRetypeText (fn: string): string {
+function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string>> = new Map ()): string {
     if (fn.indexOf (' any') < 0) {
         return fn;
     }
     const sigEnd = fn.indexOf ('{');
     const signature = fn.slice (0, sigEnd);
+    const receiver = (/^\s*func \(this \*(\w+)\)/m.exec (signature) || [ '', '' ])[1];
     const lines = fn.split ('\n');
     const state = { 'inBlockComment': false };
     const code = lines.map ((line) => stripGoLiterals (line, state));
@@ -8087,7 +8088,7 @@ function goStrPtrLocalRetypeText (fn: string): string {
         if (/^\w+$/.test (text)) {
             return ptrLocals.has (text) || cand.has (text) || ptrParams.has (text);
         }
-        const m = GO_STRPTR_LOCAL_PRODUCER.exec (text);
+        const m = GO_STRPTR_LOCAL_PRODUCER.exec (text) || goStrPtrMethodCall (text, ptrMethods, receiver);
         return (m !== null) && (goMatchingCloseText (text, m[0].length - 1) === text.length - 1);
     };
     // every mention of `name` on line i outside its own write lhs must be a deref read
@@ -8172,8 +8173,19 @@ function goStrPtrLocalRetypeText (fn: string): string {
     return lines.join ('\n');
 }
 
+// a call of a method this file declares on the same receiver with a `*string` result, or of a base *string method
+function goStrPtrMethodCall (text: string, ptrMethods: Map<string, Set<string>>, receiver: string): RegExpExecArray | null {
+    const m = /^this\.(\w+)\(/.exec (text);
+    return (m && (CCXT_GO_STRING_PTR_METHOD_NAMES.includes (m[1]) || (ptrMethods.get (receiver) || new Set ()).has (m[1]))) ? m : null;
+}
+
 export function goStrPtrLocalRetype (content: string): string {
-    return goRewriteFuncBlocks (content, (block) => goStrPtrLocalRetypeText (block));
+    const ptrMethods = new Map<string, Set<string>> ();
+    for (const d of content.matchAll (/^func \(this \*(\w+)\) (\w+)\([^\n{]*\) \*string \{$/gm)) {
+        if (!ptrMethods.has (d[1])) { ptrMethods.set (d[1], new Set ()); }
+        ptrMethods.get (d[1]).add (d[2]);
+    }
+    return goRewriteFuncBlocks (content, (block) => goStrPtrLocalRetypeText (block, ptrMethods));
 }
 
 function goStrPtrLocalSelfTest (ok: SelfTestOk): void {
@@ -8188,6 +8200,10 @@ function goStrPtrLocalSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar c any = nil\n\tc = "x"\n\tthis.Other(c)\n').indexOf ('var c any') >= 0, 'a literal write with an unproven read keeps the box');
     ok (goStrPtrLocalRetype ('\nfunc (this *X) f(q *string) any {\n\tvar c any = nil\n\tif true {\n\t\tc = q\n\t}\n\tif IsEqual(c, nil) {\n\t}\n\treturn nil\n}\n').indexOf ('var c *string') >= 0, 'a copy of a *string param is *string');
     ok (f ('\tvar c any = this.SafeString(p, "x")\n\tc = func() any {\n\t\treturn "0"\n\t}()\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a literal returned from an IIFE keeps the box');
+    const own = '\nfunc (this *X) g(s string) *string {\n\treturn nil\n}\nfunc (this *X) f(p any) any {\n\tvar c any = "A"\n\tif true {\n\t\tc = this.g("x")\n\t}\n\tif IsEqual(c, "B") {\n\t}\n\treturn nil\n}\n';
+    ok (goStrPtrLocalRetype (own).indexOf ('var c *string') >= 0, 'a write from a same-receiver *string method is *string');
+    ok (goStrPtrLocalRetype (own.replace ('(this *X) g', '(this *Y) g')).indexOf ('var c any') >= 0, 'another receiver\'s *string method keeps the box');
+    ok (goStrPtrLocalRetype (own.replace (') *string {', ') any {')).indexOf ('var c any') >= 0, 'an any method keeps the box');
     ok (goStrPtrLocalRetype ('\nfunc (this *X) f(q *string) any {\n\tq = this.Y()\n\tvar c any = q\n\tif IsEqual(c, nil) {\n\t}\n\treturn nil\n}\n').indexOf ('var c any') >= 0, 'a copy of a written param keeps the box');
     ok (f ('\tvar c any = this.SafeString(p, "x")\n\tthis.Other(c)\n').indexOf ('var c any') >= 0, 'an unproven call argument keeps the box');
     ok (f ('\tvar c any = nil\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a nil-only local is left alone');
