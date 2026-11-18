@@ -45,6 +45,7 @@ var FunctionsMap = map[string]any{
 	"numberToBE":                      TestNumberToBE,
 	"numberToString":                  TestNumberToString,
 	"omit":                            TestOmit,
+	"parseMarkets":                    TestParseMarkets,
 	"parsePrecision":                  TestParsePrecision,
 	"precise":                         TestPrecise,
 	"precisionFromString":             TestPrecisionFromString,

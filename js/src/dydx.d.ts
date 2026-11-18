@@ -152,7 +152,7 @@ export default class dydx extends Exchange {
     signHash(hash: any, privateKey: any): Dict;
     signMessage(message: any, privateKey: any): Dict;
     signOnboardingAction(): object;
-    signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee?: any): string;
+    signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: Dict, authenticators: any, fee?: any): string;
     retrieveCredentials(): Dict;
     fetchDydxAccount(): Promise<Dict>;
     pow(n: string, m: Str): Str;

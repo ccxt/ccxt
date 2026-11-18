@@ -77,7 +77,7 @@ class deribit extends \ccxt\async\deribit {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -998,7 +998,7 @@ class deribit extends \ccxt\async\deribit {
                 throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() symbolsArray is required');
             }
             $market = null;
-            $currentDescriptor = null;
+            $currentDescriptor = '';
             if ($isOHLCV) {
                 $currentPair = $this->safe_list($symbolsArray, $i, array());
                 $market = $this->market($this->safe_string($currentPair, 0));

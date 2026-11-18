@@ -1,4 +1,4 @@
-import Transpiler from "ast-transpiler";
+import Transpiler, { rustDispatch } from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename } from 'path';
@@ -9,6 +9,7 @@ import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
+import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 
 // ---- final-text passes over the emitted Rust (run in the order the pipelines below set) ----
 
@@ -80,17 +81,6 @@ function callArgs(masked: string, callStart: number, recv: string): [number, num
     if (close < 0) return undefined;
     return [afterRecv, close];
 }
-
-
-type NativeGetValueStats = { seqLocals: number, seqReads: number, dictLocals: number, dictReads: number };
-
-
-
-
-// ── self-test ────────────────────────────────────────────────────────────────
-// Each case is a shape the rule must transform (or must leave alone).
-
-type Case = { name: string, src: string, want: string[], gone: string[] };
 
 
 
@@ -311,7 +301,7 @@ class Proof {
         if (depth > 2) return false;
         if (t.startsWith('Value::Map(')) return true;
         if (t.startsWith('Value::Null')) return true;
-        const callee = t.match(/^self\.([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
+        const callee = t.match(/^(?:self\.|<Self as crate::exchange::DerivedExchange>::)([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
         if (callee === null) return false;
         const name = callee[1];
         if (BUILDERS.has(name) || PARSERS.has(name)) return true;
@@ -341,7 +331,7 @@ class Proof {
                 if (this.localTagFree(ret[1], body, r)) { verdict = true; break; }
                 continue;
             }
-            if (new RegExp('\\b[A-Za-z0-9_]+Core::' + name + '\\(').test(body)) { verdict = true; break; }
+            if (new RegExp('\\b[A-Z][a-z0-9]*::' + name + '\\(').test(body)) { verdict = true; break; }
         }
         this.calls.set(key * 100000 + (name.charCodeAt(0) || 0), verdict);
         return verdict;
@@ -512,7 +502,7 @@ const CONTAINER_OP_CLIENT_STATE = /^&get_value\(&(client), &Value::Str\("(subscr
 // A side marker is the only `Value` whose length differs from `Value::len`.
 const CONTAINER_OP_SIDE_WORD = /asks|bids|[Ss]ide|[Bb]ook|entries|__sideKind/;
 // Sources that yield a plain JSON tree or a plain container.
-const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
+const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
 // Reads that cannot change the stored container shape.
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
@@ -964,29 +954,6 @@ function stripOuter (src: string): string {
     return s;
 }
 
-/** Text from the start of the statement holding `pos` up to `pos`. */
-function statementBefore (masked: string, pos: number): string {
-    let depth = 0;
-    for (let i = pos; i > 0; i--) {
-        const c = masked[i - 1];
-        if (c === ')' || c === ']') depth++;
-        else if (c === '(' || c === '[') { if (depth > 0) depth--; }
-        else if (depth === 0 && (c === ';' || c === '{' || c === '}' || c === '\n')) return masked.slice(i, pos);
-    }
-    return masked.slice(0, pos);
-}
-
-function fnRegionOf (masked: string, pos: number): FnRegion {
-    const heads: number[] = [0];
-    for (const m of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) heads.push((m.index as number) + 1);
-    heads.push(masked.length);
-    let lo = 0;
-    for (let h = 0; h + 1 < heads.length; h++) if (heads[h] <= pos) lo = h;
-    const body = masked.slice(heads[lo], heads[lo + 1]);
-    const brace = body.indexOf('{');
-    return { start: heads[lo], end: heads[lo + 1], header: brace < 0 ? body : body.slice(0, brace) };
-}
-
 function rhsAfter (masked: string, from: number): string {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
@@ -996,44 +963,6 @@ function rhsAfter (masked: string, from: number): string {
         else if (c === ';' && depth === 0) return masked.slice(from, i).trim();
     }
     return '';
-}
-
-/** Drop the balanced expression ending `s` (an operand of `&&` / `||`). */
-function stripTrailingOperand (s: string): string {
-    let depth = 0;
-    for (let i = s.length - 1; i >= 0; i--) {
-        const c = s[i];
-        if (c === ')' || c === ']' || c === '}') depth++;
-        else if (c === '(' || c === '[' || c === '{') {
-            if (depth === 0) return s.slice(0, i);
-            depth--;
-            if (depth === 0 && !/[A-Za-z0-9_.)\]]/.test(s[i - 1] ?? '')) return s.slice(0, i);
-        } else if (depth === 0) {
-            if ((c === '&' && s[i - 1] === '&') || (c === '|' && s[i - 1] === '|')) return s.slice(0, i - 1);
-            if (c === ',' || c === ';' || c === '=') return s.slice(0, i + 1);
-            if (/[A-Za-z0-9_.)]/.test(c)) {
-                let k = i;
-                while (k >= 0 && /[A-Za-z0-9_.]/.test(s[k])) k--;
-                return k < 0 ? s : s.slice(0, k + 1);
-            }
-        }
-    }
-    return '';
-}
-
-/** True when a `bool` is legal at `start` (condition, bool decl, Value::Bool box). */
-function boolSlotAt (masked: string, start: number): boolean {
-    let prefix = statementBefore(masked, start);
-    for (let hop = 0; hop < 60; hop++) {
-        prefix = prefix.replace(/[\s!]+$/, '');
-        if (/(?:^|[^\w])(?:if|while|for|assert|assert_eq)$/.test(prefix)) return true;
-        if (/Value::Bool\($/.test(prefix)) return true;
-        if (/(?:&&|\|\|)$/.test(prefix)) { prefix = stripTrailingOperand(prefix.slice(0, -2)); continue; }
-        if (/[^=!<>]=$/.test(prefix)) return /:\s*bool\s*=?$/.test(prefix.slice(0, -1));
-        if (/\($/.test(prefix)) { prefix = prefix.slice(0, -1); continue; }
-        return false;
-    }
-    return false;
 }
 
 const UNION: Variant[] = ['bool', 'null'];
@@ -1127,95 +1056,6 @@ function proveLocal (masked: string, name: string, region: FnRegion, depth: numb
         if (acc.size === 0) return { kind: 'none' };
     }
     return acc === undefined ? { kind: 'none' } : { kind: 'variant', variants: acc };
-}
-
-const isBoolOnly = (v: VariantSet): boolean => [...v].every((x) => x === 'bool' || x === 'null');
-
-/** `!is_true(&X)` flips the comparison instead of wrapping it. */
-function pushEdit (edits: Array<{ start: number, end: number, text: string }>, masked: string, start: number, close: number, text: string): void {
-    let k = start - 1;
-    while (k >= 0 && (masked[k] === ' ' || masked[k] === '\t')) k--;
-    if (k >= 0 && masked[k] === '!' && masked[k - 1] !== '=') {
-        edits.push({ start: k, end: close + 1, text: text.replace(' == ', ' != ') });
-        return;
-    }
-    edits.push({ start, end: close + 1, text });
-}
-
-function nativeBoolScalars (content: string): string {
-    if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
-    const masked = mask(content);
-    const edits: Array<{ start: number, end: number, text: string }> = [];
-    for (const m of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
-        const start = m.index as number;
-        const open = start + m[1].length;
-        const close = closeParen(masked, open);
-        if (close < 0) continue;
-        if (!boolSlotAt(masked, start)) continue;
-        const args = splitTopLevel(content.slice(open + 1, close), ',');
-        const region = fnRegionOf(masked, start);
-        const proofOf = (e: string): VariantSet | undefined => {
-            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) return undefined;
-            return proveLocal(masked, e, region, 0).variants;
-        };
-        if (m[1] === 'is_true') {
-            if (args.length !== 1) continue;
-            const operand = stripOuter(args[0].replace(/^&/, ''));
-            const variants = proofOf(operand);
-            if (variants === undefined || !isBoolOnly(variants)) continue;
-            pushEdit(edits, masked, start, close, `${operand}.as_bool() == Some(true)`);
-            continue;
-        }
-        if (args.length !== 2) continue;
-        const a = stripOuter(args[0].replace(/^&/, ''));
-        const b = stripOuter(args[1].replace(/^&/, ''));
-        const lit = (e: string): boolean => e === 'Value::Null' || /^Value::Bool\((?:true|false)\)$/.test(e);
-        if (lit(a) && lit(b)) continue;
-        const va = lit(a) ? new Set<Variant>(UNION) : proofOf(a);
-        const vb = lit(b) ? new Set<Variant>(UNION) : proofOf(b);
-        if (va === undefined || vb === undefined || !isBoolOnly(va) || !isBoolOnly(vb)) continue;
-        const asOption = (e: string): string => {
-            const box = /^Value::Bool\((true|false)\)$/.exec(e);
-            if (box !== null) return `Some(${box[1]})`;
-            return e === 'Value::Null' ? 'None' : `${e}.as_bool()`;
-        };
-        pushEdit(edits, masked, start, close, `${asOption(a)} == ${asOption(b)}`);
-    }
-    if (edits.length === 0) return content;
-    let out = '';
-    let at = 0;
-    for (const e of edits) {
-        if (e.start < at) continue;
-        out += content.slice(at, e.start) + e.text;
-        at = e.end;
-    }
-    return out + content.slice(at);
-}
-
-const BOOL_SCALAR_CASES: Array<[string, string, string]> = [
-    ['box-only local', 'let mut flag: Value = Value::Bool(false);\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['ternary writes', 'let mut flag: Value = Value::Bool(false);\n        flag = (if c { Value::Bool(true) } else { Value::Bool(false) });\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['safe_bool empty default', 'let mut flag: Value = self.safe_bool_k(o, "k", &[]);\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['safe_bool proven default', 'let mut pre: Value = Value::Bool(a != Value::Null);\n        let mut flag: Value = self.safe_bool_k(o, "k", &[pre.clone()]);\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['negated', 'let mut flag: Value = self.safe_bool_k(o, "k", &[]);\n        if !is_true(&flag) {', 'if flag.as_bool() != Some(true) {'],
-    ['is_equal pair', 'let mut a: Value = Value::Bool(true);\n        let mut b: Value = self.safe_bool_k(o, "k", &[]);\n        if is_equal(&a, &b) {', 'if a.as_bool() == b.as_bool() {'],
-    ['value slot keeps helper', 'let mut flag: Value = self.safe_bool_k(o, "k", &[]);\n        m.insert("k".into(), is_true(&flag));', 'is_true(&flag)'],
-    ['mixed write keeps helper', 'let mut flag: Value = Value::Bool(false);\n        flag = get_arg(o, 0, Value::Null);\n        if is_true(&flag) {', 'is_true(&flag)'],
-    ['any default keeps helper', 'let mut flag: Value = self.safe_bool_k(o, "k", &[other]);\n        if is_true(&flag) {', 'is_true(&flag)'],
-];
-
-/** Each case: the native text must appear, and the helper must be gone unless the case keeps it. */
-function nativeBoolScalarsSelfTest (): string[] {
-    const bad: string[] = [];
-    for (const [name, body, want] of BOOL_SCALAR_CASES) {
-        const src = `    pub fn f(&mut self) -> Value {\n        ${body} return Value::Null; }\n    Value::Null\n}\n`;
-        const out = nativeBoolScalars(src);
-        if (!out.includes(want)) bad.push(`${name}: missing ${JSON.stringify(want)}`);
-        const keep = want.startsWith('is_true') || want.startsWith('is_equal');
-        if (keep && out !== src) bad.push(`${name}: must stay unchanged`);
-        if (!keep && (out.includes('is_true(&') || out.includes('is_equal(&'))) bad.push(`${name}: helper left`);
-    }
-    return bad;
 }
 
 // ---- Arr-only vec push ----
@@ -2006,6 +1846,8 @@ function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1)
         if (open < declAt) continue;
         const head = blockHeader(masked, from, open);
         if (/\b(for|while|loop)\b/.test(head)) return true;
+        // a typed unified method's body block (`call_typed(async move {`) runs exactly once
+        if (/^\s*async move\s*$/.test(head) && /crate::runtime::call_typed\(\s*async move\s*$/.test(masked.slice(Math.max(from, open - 64), open))) continue;
         if (/\|[^|]*\|/.test(head)) return true;
         if (/\bmove\s*$/.test(head)) return true;
     }
@@ -2300,467 +2142,9 @@ function rustTypedLocalsSelfTest(): string[] {
     return fails;
 }
 
-// ---- callee-shape container ops ----
-// A local bound to a generated method's return carries the callee's proven container shape (every return builds
-// one fresh, marker-free `dict`/`arr`), so its helper reads/writes print native. Signatures stay `-> Value`.
-
-
-type CalleeShape = 'dict' | 'arr';
-
-// Keys `get_value` routes through a book/cache store, and the keys that tag a
-// container as a live book/cache handle. A proven-fresh container holds none.
-const CALLEE_SHAPE_ROUTED = new Set(['cache', 'hashmap', 'subscriptions', 'futures', 'timestamp', 'datetime', 'nonce', 'symbol', 'checksum']);
-const CALLEE_SHAPE_MARKER = ['__book_id', '__cache_id', '__cacheKind', '__sideKind', '__live_id'];
-
-const CALLEE_SHAPE_BASE_FILE = 'rust/ccxt-common/src/exchange_generated.rs';
-let baseCalleeShapes: Map<string, CalleeShape> | undefined = undefined;
-
-/** Blank string literals and line comments, same length as the input. */
-function calleeShapeMask(src: string): string {
-    let out = '';
-    let i = 0;
-    while (i < src.length) {
-        const c = src[i];
-        if (c === '/' && src[i + 1] === '/') {
-            while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-            continue;
-        }
-        if (c === '"') {
-            out += ' ';
-            i++;
-            while (i < src.length && src[i] !== '"') {
-                if (src[i] === '\n') { out += '\n'; i++; continue; }
-                if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                out += ' ';
-                i++;
-            }
-            if (i < src.length) { out += ' '; i++; }
-            continue;
-        }
-        out += c;
-        i++;
-    }
-    return out;
-}
-
-/** Index of the delimiter closing the one at `open`, or -1. */
-function calleeShapeClose(src: string, open: number): number {
-    const openCh = src[open];
-    const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : openCh === '{' ? '}' : '';
-    if (closeCh === '') return -1;
-    let depth = 0;
-    for (let k = open; k < src.length; k++) {
-        const c = src[k];
-        if (c === openCh) depth++;
-        else if (c === closeCh) {
-            depth--;
-            if (depth === 0) return k;
-        }
-    }
-    return -1;
-}
-
-/** Top-level argument spans of the call whose `(` is at `open`. */
-function calleeShapeArgs(masked: string, open: number, close: number): [number, number][] | undefined {
-    const spans: [number, number][] = [];
-    let depth = 0;
-    let start = open + 1;
-    for (let k = open + 1; k < close; k++) {
-        const c = masked[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === ',' && depth === 0) {
-            spans.push([start, k]);
-            start = k + 1;
-        }
-    }
-    if (masked.slice(start, close).trim() !== '') spans.push([start, close]);
-    return spans;
-}
-
-/** End index (the `;`) of the statement starting at `from`, or -1. */
-function calleeShapeStmtEnd(masked: string, from: number): number {
-    let depth = 0;
-    for (let k = from; k < masked.length; k++) {
-        const c = masked[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            depth--;
-            if (depth < 0) return -1;
-        } else if (c === ';' && depth === 0) return k;
-    }
-    return -1;
-}
-
-/** Depth-0 `return` expressions of a body. */
-function calleeShapeReturns(masked: string): string[] {
-    const out: string[] = [];
-    const rx = /(?<![A-Za-z0-9_])return\b/g;
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(masked)) !== null) {
-        const end = calleeShapeStmtEnd(masked, m.index + 6);
-        if (end < 0) continue;
-        out.push(masked.slice(m.index + 6, end).trim());
-    }
-    return out;
-}
-
-/** The bare tail expression of a body (no trailing `;`), or undefined. */
-function calleeShapeTail(body: string): string | undefined {
-    const t = body.replace(/\s+$/, '');
-    if (t === '' || t.endsWith(';')) return undefined;
-    const cut = t.lastIndexOf(';');
-    const tail = (cut < 0 ? t : t.slice(cut + 1)).trim();
-    if (tail === '' || /^(?:if|match|while|for|loop|\{)/.test(tail)) return undefined;
-    return tail;
-}
-
-/** True when the bare tail is unreachable: the statement before it returns. */
-function calleeShapeTailIsDead(body: string): boolean {
-    const cut = body.replace(/\s+$/, '').lastIndexOf(';');
-    if (cut < 0) return false;
-    let depth = 0;
-    let k = cut - 1;
-    for (; k >= 0; k--) {
-        const c = body[k];
-        if (c === ')' || c === ']' || c === '}') depth++;
-        else if (c === '(' || c === '[' || c === '{') { depth--; if (depth < 0) break; }
-        else if (c === ';' && depth === 0) break;
-    }
-    return /^\s*return\b/.test(body.slice(k + 1, cut));
-}
-
-/** Shape of the container a return expression builds from scratch, if it does. */
-function freshCalleeShape(t: string): CalleeShape | undefined {
-    const s = t.replace(/^\(+/, '').trim();
-    if (/^Value::(?:Map|Dict)\(/.test(s)) {
-        const open = s.indexOf('(');
-        // A literal payload: `Value::Map({ .. })` / `Value::Map(indexmap::IndexMap::new())`.
-        if (/^Value::(?:Map|Dict)\(\s*(?:\{|indexmap::IndexMap::new\(\)|HashMap::new\(\))/.test(s)) return 'dict';
-        void open;
-        return undefined;
-    }
-    if (/^Value::(?:Array|List)\(\s*(?:vec!\[|std::sync::Arc::new\(\s*vec!\[)/.test(s)) return 'arr';
-    if (/^Value::from\(\s*(?:std::sync::Arc::new\(\s*)?vec!\[/.test(s)) return 'arr';
-    return undefined;
-}
-
-/** The single declaration of a local in a region, with its initializer text. */
-function calleeShapeDecl(region: string, name: string): { init: string } | undefined {
-    const rx = new RegExp('\\blet (?:mut )?' + name + '\\s*(?::\\s*[^=;]+)?=\\s*', 'g');
-    let hit: RegExpExecArray | null = null;
-    let count = 0;
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(region)) !== null) { hit = m; count++; }
-    if (count !== 1 || hit === null) return undefined;
-    return { init: region.slice(hit.index + hit[0].length, hit.index + hit[0].length + 400) };
-}
-
-/** Arity-independent shape table for `pub fn NAME(...) -> Value` methods. */
-function methodCalleeShapes(content: string, masked: string, loose = false): Map<string, CalleeShape> {
-    const shapes = new Map<string, CalleeShape>();
-    const hdr = loose ? /\n {4}(?:pub )?fn (\w+)\s*\(/g : /\n {4}pub fn (\w+)\s*\(/g;
-    let hm: RegExpExecArray | null;
-    while ((hm = hdr.exec(masked)) !== null) {
-        const lineEnd = masked.indexOf('\n', hm.index + 1);
-        const line = masked.slice(hm.index, lineEnd < 0 ? masked.length : lineEnd);
-        if (!/->\s*(?:crate::)?Value\b/.test(line)) continue;
-        const open = masked.indexOf('(', hm.index);
-        const close = calleeShapeClose(masked, open);
-        if (close < 0) continue;
-        const braceOpen = masked.indexOf('{', close);
-        if (braceOpen < 0) continue;
-        if (!/^(?:->\s*(?:crate::)?Value)?$/.test(masked.slice(close + 1, braceOpen).trim())) continue;
-        const braceClose = calleeShapeClose(masked, braceOpen);
-        if (braceClose < 0) continue;
-        const body = masked.slice(braceOpen + 1, braceClose);
-        const exprs = calleeShapeReturns(body);
-        if (exprs.length === 0) continue;
-        // A body that ends in a bare tail expression can also fall through to it.
-        const tail = calleeShapeTail(body);
-        if (tail !== undefined && !calleeShapeTailIsDead(body)) {
-            exprs.push(tail);
-        }
-        const kinds = new Set<CalleeShape | 'other'>();
-        for (const e of exprs) {
-            // A base default starts with a virtual-dispatch arm that returns the
-            // override's own value; no override in this file means it never fires.
-            if (loose && /^__\w+$/.test(e)) continue;
-            kinds.add(freshCalleeShape(e) ?? 'other');
-        }
-        if (kinds.size !== 1) continue;
-        const only = [...kinds][0];
-        if (only === 'other') continue;
-        shapes.set(hm[1], only);
-    }
-    return shapes;
-}
-
-/** Base-tier shape table, read from the generated base (cached). */
-function baseCalleeShapeTable(): Map<string, CalleeShape> {
-    if (baseCalleeShapes !== undefined) return baseCalleeShapes;
-    baseCalleeShapes = new Map<string, CalleeShape>();
-    try {
-        const src = fs.readFileSync(CALLEE_SHAPE_BASE_FILE, 'utf8');
-        baseCalleeShapes = methodCalleeShapes(src, calleeShapeMask(src), true);
-    } catch (e: any) {
-        if (e === undefined || e.code !== 'ENOENT') throw e;
-    }
-    return baseCalleeShapes;
-}
-
-const CALLEE_SHAPE_PASSTHROUGH = new Set(['extend', 'omit', 'keysort', 'clone_value']);
-
-class CalleeShapeProver {
-    private region: string;
-    private masked: string;
-    private own: Map<string, CalleeShape>;
-    private base: Map<string, CalleeShape>;
-    private visiting = new Set<string>();
-
-    constructor(region: string, maskedRegion: string, own: Map<string, CalleeShape>, base: Map<string, CalleeShape>) {
-        this.region = region;
-        this.masked = maskedRegion;
-        this.own = own;
-        this.base = base;
-    }
-
-    /** Shape of the local `name` in this region, or undefined when unproven. */
-    shape(name: string): CalleeShape | undefined {
-        if (this.visiting.has(name)) return undefined;
-        this.visiting.add(name);
-        const out = this.prove(name);
-        this.visiting.delete(name);
-        return out;
-    }
-
-    private prove(name: string): CalleeShape | undefined {
-        const decl = calleeShapeDecl(this.masked, name);
-        if (decl === undefined) return undefined;
-        return this.shapeOfInit(decl.init);
-    }
-
-    private shapeOfInit(init: string): CalleeShape | undefined {
-        const fresh = freshCalleeShape(init);
-        if (fresh !== undefined) return fresh;
-        const call = /^self\.(\w+)\s*\(/.exec(init);
-        if (call === null) return undefined;
-        const callee = call[1];
-        const own = this.own.get(callee);
-        if (own !== undefined) return own;
-        const base = this.base.get(callee);
-        if (base !== undefined) return base;
-        if (CALLEE_SHAPE_PASSTHROUGH.has(callee)) {
-            // A copy of its first argument keeps that argument's container shape.
-            const open = init.indexOf('(');
-            const close = calleeShapeClose(init, open);
-            if (close < 0) return undefined;
-            const args = calleeShapeArgs(init, open, close);
-            if (args === undefined || args.length === 0) return undefined;
-            const first = init.slice(args[0][0], args[0][1]).trim();
-            if (!/^[a-z_][A-Za-z0-9_]*$/.test(first)) return undefined;
-            return this.shape(first);
-        }
-        return undefined;
-    }
-}
-
-/** Literal string key of an argument (`&Value::Str("k".into())`), else undefined. */
-function calleeShapeLiteralKey(arg: string | undefined): string | undefined {
-    if (arg === undefined) return undefined;
-    const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
-    return m === null ? undefined : m[1].slice(1, -1);
-}
-
-/** True when a `&mut name` receiver is only used by the writes this pass keeps. */
-function calleeShapePlainReceiver(region: string, name: string): boolean {
-    const rx = new RegExp('&mut ' + name + '(?![A-Za-z0-9_])', 'g');
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(region)) !== null) {
-        const before = region.slice(Math.max(0, m.index - 40), m.index);
-        if (/(?:add_element_to_object|get_value_mut|set_value)\($/.test(before)) continue;
-        if (/if let Value::(?:Dict|Arr|Map)\(\s*__\w+\s*\)\s*=\s*$/.test(before)) continue;
-        return false;
-    }
-    return true;
-}
-
-/** True when the local is never reassigned to another expression. */
-function calleeShapeSingleWrite(region: string, name: string): boolean {
-    const rx = new RegExp('(?<![A-Za-z0-9_.])' + name + '\\s*=\\s*(?!=)', 'g');
-    let m: RegExpExecArray | null;
-    while ((m = rx.exec(region)) !== null) {
-        const before = region.slice(Math.max(0, m.index - 5), m.index);
-        if (/\blet $/.test(before) || /\blet mut $/.test(region.slice(Math.max(0, m.index - 8), m.index))) continue;
-        return false;
-    }
-    return true;
-}
-
-interface CalleeShapeStats { sites: number }
-
-/** Rewrite helper calls on a proven callee-shaped local to the native op. */
-function calleeShapeContainerOps(content: string, stats?: CalleeShapeStats): string {
-    if (content.indexOf('add_element_to_object(') < 0 && content.indexOf('get_value(&') < 0
-        && content.indexOf('in_op(') < 0 && content.indexOf('object_keys(') < 0
-        && content.indexOf('object_values(') < 0 && content.indexOf('get_array_length(') < 0) return content;
-    const masked = calleeShapeMask(content);
-    const own = methodCalleeShapes(content, masked);
-    const base = baseCalleeShapeTable();
-    const heads: number[] = [];
-    const hdr = /^[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /gm;
-    let hm: RegExpExecArray | null;
-    while ((hm = hdr.exec(masked)) !== null) heads.push(hm.index);
-    heads.push(content.length);
-
-    type Edit = { start: number, end: number, text: string };
-    const edits: Edit[] = [];
-    const FAM = /(?<![A-Za-z0-9_:.])(add_element_to_object|get_value|in_op|object_keys|object_values|get_array_length)\(/g;
-
-    for (let h = 0; h + 1 < heads.length; h++) {
-        const from = heads[h];
-        const to = heads[h + 1];
-        const maskedRegion = masked.slice(from, to);
-        const prover = new CalleeShapeProver(content.slice(from, to), maskedRegion, own, base);
-        FAM.lastIndex = 0;
-        let fm: RegExpExecArray | null;
-        while ((fm = FAM.exec(maskedRegion)) !== null) {
-            const name = fm[1];
-            const open = fm.index + fm[0].length - 1;
-            const close = calleeShapeClose(maskedRegion, open);
-            if (close < 0) continue;
-            const spans = calleeShapeArgs(maskedRegion, open, close);
-            if (spans === undefined) continue;
-            let recv: string | undefined;
-            let keyArg: string | undefined;
-            let valueStart = -1;
-            if (name === 'add_element_to_object') {
-                if (spans.length !== 3) continue;
-                const first = maskedRegion.slice(spans[0][0], spans[0][1]).trim();
-                const head = /^&mut\s+([a-z_][A-Za-z0-9_]*)$/.exec(first);
-                if (head === null) continue;
-                recv = head[1];
-                keyArg = content.slice(from + spans[1][0], from + spans[1][1]);
-                valueStart = spans[2][0];
-            } else if (name === 'get_array_length' || name === 'object_keys' || name === 'object_values') {
-                if (spans.length !== 1) continue;
-                const head = /^&\s*([a-z_][A-Za-z0-9_]*)$/.exec(maskedRegion.slice(spans[0][0], spans[0][1]).trim());
-                if (head === null) continue;
-                recv = head[1];
-            } else {
-                if (spans.length !== 2) continue;
-                const head = /^&\s*([a-z_][A-Za-z0-9_]*)$/.exec(maskedRegion.slice(spans[0][0], spans[0][1]).trim());
-                if (head === null) continue;
-                recv = head[1];
-                keyArg = content.slice(from + spans[1][0], from + spans[1][1]);
-            }
-            const shape = prover.shape(recv);
-            if (shape === undefined) continue;
-            if (name === 'get_array_length') {
-                if (shape !== 'arr') continue;
-                if (!calleeShapeSingleWrite(maskedRegion, recv)) continue;
-                edits.push({ start: from + fm.index, end: from + close + 1, text: `Value::Int(${recv}.len() as i64)` });
-                continue;
-            }
-            if (shape !== 'dict') continue;
-            if (!calleeShapePlainReceiver(maskedRegion, recv) || !calleeShapeSingleWrite(maskedRegion, recv)) continue;
-            if (name === 'add_element_to_object') {
-                const key = calleeShapeLiteralKey(keyArg);
-                if (key === undefined || CALLEE_SHAPE_MARKER.indexOf(key) >= 0) continue;
-                const valueEnd = spans[2][1];
-                const value = content.slice(from + valueStart, from + valueEnd).trim();
-                // Absorb the statement's `;` so the block never trails it.
-                const stmtEnd = maskedRegion[close + 1] === ';' ? close + 2 : close + 1;
-                edits.push({
-                    start: from + fm.index,
-                    end: from + stmtEnd,
-                    text: `if let Value::Dict(__r03d) = &mut ${recv} { std::sync::Arc::make_mut(__r03d).insert("${key}".into(), ${value}); }`,
-                });
-                continue;
-            }
-            const key = calleeShapeLiteralKey(keyArg);
-            if (key === undefined || CALLEE_SHAPE_ROUTED.has(key) || CALLEE_SHAPE_MARKER.indexOf(key) >= 0) continue;
-            if (name === 'get_value') {
-                edits.push({
-                    start: from + fm.index,
-                    end: from + close + 1,
-                    text: `${recv}.as_map().unwrap().get("${key}").cloned().unwrap_or(Value::Null)`,
-                });
-            } else if (name === 'in_op') {
-                if (!calleeShapeBoolPosition(maskedRegion, fm.index)) continue;
-                edits.push({
-                    start: from + fm.index,
-                    end: from + close + 1,
-                    text: `matches!(&${recv}, Value::Dict(__r03k) if __r03k.contains_key("${key}"))`,
-                });
-            } else {
-                const body = name === 'object_keys'
-                    ? '__m.keys().map(|__k| Value::Str(__k.clone().into())).collect()'
-                    : '__m.values().cloned().collect()';
-                edits.push({
-                    start: from + fm.index,
-                    end: from + close + 1,
-                    text: `Value::Array(${recv}.as_map().map(|__m| ${body}).unwrap_or_default())`,
-                });
-            }
-        }
-    }
-    if (edits.length === 0) return content;
-    // Outermost first, so a nested rewrite never shifts an outer span.
-    edits.sort((a, b) => a.start - b.start || b.end - a.end);
-    let out = '';
-    let at = 0;
-    let count = 0;
-    for (const e of edits) {
-        if (e.start < at) continue;
-        out += content.slice(at, e.start) + e.text;
-        at = e.end;
-        count++;
-    }
-    out += content.slice(at);
-    if (stats !== undefined) stats.sites += count;
-    return out;
-}
-
-/** True when the call at `pos` sits in a Rust bool position (if/while head). */
-function calleeShapeBoolPosition(masked: string, pos: number): boolean {
-    const lineStart = masked.lastIndexOf('\n', pos) + 1;
-    const pre = masked.slice(lineStart, pos).trim();
-    const headed = /^(?:\}\s*else\s+)?(?:if|while)$/.test(pre);
-    const wrapped = /is_true\(&$/.test(pre);
-    return headed || wrapped;
-}
-
-/** Self-test: the rule fires on a proven callee and leaves an unproven one alone. */
-function calleeShapeContainerOpsSelfTest(): string[] {
-    const problems: string[] = [];
-    const dictFn = (body: string) => "\n    pub fn parse_thing(&self, mut x: Value) -> Value {\n" + body + "\n    Value::Null\n}\n";
-    const wrapper = (call: string) => "\n    pub fn use_it(&self, mut data: Value) -> Value {\n        let mut parsed: Value = " + call + ";\n        add_element_to_object(&mut parsed, &Value::Str(\"nonce\".into()), self.safe_integer_k(data, \"u\", &[]));\n        let mut n: Value = get_value(&parsed, &Value::Str(\"bids\"));\n        return parsed;\n    }\n";
-    const src = dictFn('        return Value::Map({\n    let mut m = indexmap::IndexMap::new();\n        m.insert("symbol".to_string(), x);\n    m\n});') + wrapper('self.parse_thing(data.clone())');
-    const out = calleeShapeContainerOps(src);
-    if (out.indexOf('add_element_to_object(') >= 0) problems.push('proven dict insert not native\n' + out);
-    if (out.indexOf('get_value(&') >= 0) problems.push('proven dict read not native\n' + out);
-    if (out.indexOf('std::sync::Arc::make_mut(__r03d).insert("nonce".into()') < 0) problems.push('insert text differs\n' + out);
-    if (out.indexOf('parsed.as_map().unwrap().get("bids")') < 0) problems.push('read text differs\n' + out);
-    // Re-boxed return: the local keeps the `Value` slot, so `return parsed;` stays.
-    if (out.indexOf('return parsed;') < 0) problems.push('return slot must stay boxed\n' + out);
-    // Idempotent: nothing left to rewrite on a second run.
-    if (calleeShapeContainerOps(out) !== out) problems.push('not idempotent\n' + out);
-    // A callee that can return Null keeps every site as printed.
-    const loose = dictFn('        if (x.as_bool() == Some(true)) {\n            return Value::Map({\n    let mut m = indexmap::IndexMap::new();\n    m\n});\n        }\n        return Value::Null;') + wrapper('self.parse_thing(data.clone())');
-    const kept = calleeShapeContainerOps(loose);
-    if (kept.indexOf('add_element_to_object(&mut parsed') < 0) problems.push('unproven callee was rewritten\n' + kept);
-    // A routed key keeps the helper (the runtime store lookup is not `.get`).
-    const routed = dictFn('        return Value::Map({\n    let mut m = indexmap::IndexMap::new();\n        m.insert("symbol".to_string(), x);\n    m\n});')
-        + `    pub fn use_it(&self, mut data: Value) -> Value {\n        let mut parsed: Value = self.parse_thing(data.clone());\n        let mut n: Value = get_value(&parsed, &Value::Str("timestamp"));\n        return parsed;\n    }\n`;
-    const keptRead = calleeShapeContainerOps(routed);
-    if (keptRead.indexOf('get_value(&parsed, &Value::Str("timestamp"))') < 0) problems.push('routed key rewritten\n' + keptRead);
-    return problems;
-}
-
 // ---- bool-proven callee is_true ----
 // When every return of every same-file declaration of a `-> Value` method is `Value::Bool`, a bool `safe_bool*`, a
-// proven bool local or `Value::Null`, `is_true(&call)` reduces to `.as_bool() == Some(true)`. Runs after nativeBoolScalars.
+// proven bool local or `Value::Null`, `is_true(&call)` reduces to `.as_bool() == Some(true)`.
 
 interface BoolCalleeRegion { start: number, end: number, name: string, ret: string, body: string }
 
@@ -3509,11 +2893,23 @@ function rustVecPushInline (content: string): string {
             if (isPlainField (freeRead[1])) return true;
             return /^[A-Za-z_][A-Za-z0-9_]*$/.test (freeRead[1]) && localFree (freeRead[1], region, seen);
         }
+        // a typed literal map's element read: `m.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)`
+        const typedRead = /^([A-Za-z_][A-Za-z0-9_]*)\.get\([A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec (t);
+        if (typedRead !== null) return literalMapLocal (typedRead[1], region);
         const clone = /^([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)$/.exec (t);
         if (clone !== null) return localFree (clone[1], region, seen);
         const root = chainRoot (t);
         if (root !== null) return localFree (root, region, seen);
         return false;
+    };
+
+    // A typed literal map local (`let mut m: indexmap::IndexMap<String, Value> = ({`), never reassigned: the
+    // `IndexMap` counterpart of a `Value::Map({` local.
+    const literalMapLocal = (name: string, region: [number, number]): boolean => {
+        const body = masked.slice (region[0], region[1]);
+        const decls = body.match (new RegExp ('let (?:mut )?' + name + '\\s*:', 'g')) ?? [];
+        if (decls.length !== 1 || !new RegExp ('let mut ' + name + ': indexmap::IndexMap<String, Value> = \\(\\{').test (body)) return false;
+        return !new RegExp ('(?<![\\w.])' + name + '\\s*=(?!=)').test (body);
     };
 
     // Every declaration and every later write of `name` in this body is a marker-free source.
@@ -3660,6 +3056,12 @@ function rustVecPushInlineSelfTest (): string[] {
     const param = run (push ('other', 'candle'));
     ok (param.includes (helperName + '(&mut other, candle);'), 'parameter receiver keeps the helper: ' + param);
 
+    // 6b. element read of a typed literal map (`IndexMap<String, Value>`) goes native; a reassigned map keeps the helper
+    const typedMap = run (`        let mut byKey: indexmap::IndexMap<String, Value> = ({\n            let mut m = indexmap::IndexMap::new();\n            m\n        });\n        let mut rows: Value = byKey.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);\n` + push ('rows', 'candle'));
+    ok (typedMap.includes (native ('rows', 'candle')), 'typed literal map element read goes native: ' + typedMap);
+    const typedMapRe = run (`        let mut byKey: indexmap::IndexMap<String, Value> = ({\n            let mut m = indexmap::IndexMap::new();\n            m\n        });\n        byKey = self.rows();\n        let mut rows: Value = byKey.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);\n` + push ('rows', 'candle'));
+    ok (typedMapRe.includes (helperName + '(&mut rows, candle);'), 'reassigned typed map keeps the helper: ' + typedMapRe);
+
     // 7. idempotent, and the helper definition itself is untouched
     ok (rustVecPushInline (alias) === alias, 'idempotent');
     const def = rustVecPushInline (fileHead + 'pub fn append_to_array(arr: &mut Value, v: Value) {\n    if let Value::Arr(a) = arr { std::sync::Arc::make_mut(a).push(v); }\n}\n');
@@ -3681,39 +3083,6 @@ type VSet = Set<string>;
 type Local = { set?: VSet, ty: string, elems?: string };
 
 const SCALAR: VSet = new Set([ 'str', 'int', 'float', 'bool', 'null' ]);
-const NATIVE_TY = new Set([ 'String', 'Vec<String>', 'i64', 'f64', 'bool', 'usize', 'u32', 'isize' ]);
-
-/** Blank string literals and comments, same length as the input. */
-function stringNativesMaskText(src: string): string {
-    const out = src.split('');
-    let i = 0;
-    while (i < src.length) {
-        const c = src[i];
-        if (c === '/' && src[i + 1] === '/') {
-            while (i < src.length && src[i] !== '\n') out[i++] = ' ';
-            continue;
-        }
-        if (c === '/' && src[i + 1] === '*') {
-            while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) {
-                if (src[i] !== '\n') out[i] = ' ';
-                i++;
-            }
-            if (i < src.length) { out[i] = ' '; out[i + 1] = ' '; i += 2; }
-            continue;
-        }
-        if (c === '"') {
-            out[i++] = ' ';
-            while (i < src.length && src[i] !== '"') {
-                if (src[i] === '\\') out[i++] = ' ';
-                if (i < src.length) { if (src[i] !== '\n') out[i] = ' '; i++; }
-            }
-            if (i < src.length) out[i++] = ' ';
-            continue;
-        }
-        i++;
-    }
-    return out.join('');
-}
 
 /** Index just past the delimiter matching the one at `open`, or -1. */
 function stringNativesCloseParen(masked: string, open: number): number {
@@ -3743,30 +3112,6 @@ function stringNativesSplitArgs(masked: string, from: number, to: number): strin
     return args;
 }
 
-/** Index of the `;` closing the statement at `from`, or -1. */
-function stringNativesStmtEnd(masked: string, from: number): number {
-    let depth = 0;
-    for (let k = from; k < masked.length; k++) {
-        const c = masked[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; }
-        else if (c === ';' && depth === 0) return k;
-    }
-    return -1;
-}
-
-const STRING_NATIVES_FN_HEAD = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
-
-/** `[start, end)` of the fn body holding `pos`. */
-function fnBounds(masked: string, pos: number): [number, number] {
-    let start = 0;
-    for (const m of masked.matchAll(STRING_NATIVES_FN_HEAD)) {
-        const at = m.index as number;
-        if (at <= pos) start = at + 1; else return [start, at + 1];
-    }
-    return [ start, masked.length ];
-}
-
 /** `&Value::Str("lit".into())` -> `"lit"`, else undefined. */
 function strBox(arg: string): string | undefined {
     const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
@@ -3777,42 +3122,6 @@ function strBox(arg: string): string | undefined {
 function intBox(arg: string): string | undefined {
     const m = /^&\s*Value::Int\(\s*(-?\d+)\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1];
-}
-
-/** `'str'` when every element the expression can hold is a `Value::Str`, else undefined. */
-function elemKind(expr: string, locals: Map<string, Local>, depth = 0): string | undefined {
-    const e = expr.trim().replace(/;$/, '').trim();
-    const vec = /^(?:Value::(?:Array|List|from)|vec!)\(?(vec!)?\[/.exec(e) ?? /^vec!\[/.exec(e);
-    if (vec !== null) {
-        const open = e.indexOf('[');
-        const close = stringNativesCloseParen(e, open);
-        if (close < 0 || !/^\)*$/.test(e.slice(close))) return undefined;
-        const items = stringNativesSplitArgs(e, open + 1, close - 1);
-        if (items === undefined) return undefined;
-        for (const it of items) {
-            if (it.trim() === '') continue;
-            if (!/^\s*Value::Str\(/.test(it)) return undefined;
-        }
-        return 'str';
-    }
-    const arr = /^Value::(?:Array|List)\(/.exec(e);
-    if (arr !== null) {
-        const open = arr[0].length - 1;
-        const close = stringNativesCloseParen(e, open);
-        if (close !== e.length) return undefined;
-        const inner = e.slice(open + 1, close - 1);
-        // The printer's `split` idiom maps every part through `Value::Str` — as a `|__p|` closure or,
-        // since the ast closure pass, as the `From` fn item on the split parts.
-        if (/\.map\(\|__p\| Value::Str\(|\.split\([^()]*\)\.map\(Value::from\)/.test(inner)) return 'str';
-        return undefined;
-    }
-    if (/^(?:crate::runtime::)?split\(/.test(e)) return 'str';
-    const slice = /^(?:self\.)?array_slice\(\s*&?([A-Za-z_]\w*)/.exec(e);
-    if (slice !== null && depth === 0) {
-        const src = locals.get(slice[1]);
-        return src === undefined ? undefined : src.elems;
-    }
-    return undefined;
 }
 
 /** Variant set a single write expression can leave in a `Value`, or undefined. */
@@ -3833,18 +3142,26 @@ function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
     const own = /^(?:crate::runtime::)?(to_string_val|replace_str|replace_all_str|join|pad_end|to_fixed)\(/.exec(e);
     if (own !== null) return own[1] === 'pad_end' ? new Set([ 'str', 'null' ]) : new Set([ 'str' ]);
     if (/^(?:crate::runtime::)?split\(/.test(e)) return new Set([ 'arr' ]);
-    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|parse_to_int|number_to_string|decimal_to_precision|sum)\(/.exec(e);
+    // `parse_to_int` / `number_to_string` return `Option<i64>` / `Option<String>`, boxed once at a `Value` write.
+    const typed = /^Value::from\(self\.parse_to_int\(/.exec(e) ?? /^self\.number_to_string\(/.exec(e);
+    if (typed !== null) {
+        const open = typed[0].length - 1;
+        const close = stringNativesCloseParen(e, open);
+        const tail = close < 0 ? '' : e.slice(close);
+        if (typed[0].startsWith('Value::from') ? tail === ')' : tail === '.map(Value::from).unwrap_or(Value::Null)') return new Set([ typed[0].startsWith('Value::from') ? 'int' : 'str', 'null' ]);
+        return undefined;
+    }
+    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|decimal_to_precision|sum)\(/.exec(e);
     if (call !== null) {
         const name = call[1];
         const open = call[0].length - 1;
         if (stringNativesCloseParen(e, open) !== e.length) return undefined;
         if (name === 'decimal_to_precision') return new Set([ 'str' ]);
-        if (name === 'number_to_string') return new Set([ 'str', 'null' ]);
         if (name === 'sum') return new Set([ 'int', 'float', 'str', 'null' ]);
         let own = 'str';
         if (name.startsWith('safe_bool')) own = 'bool';
         else if (name.startsWith('safe_float') || name.startsWith('safe_number') || name === 'parse_float') own = 'float';
-        else if (!name.startsWith('safe_string') && name !== 'parse_to_int') own = 'int';
+        else if (!name.startsWith('safe_string')) own = 'int';
         const out: VSet = new Set([ own ]);
         // `safe_*` fall back to their default: a literal box pins it, `&[]` leaves Null.
         if (name.startsWith('safe')) {
@@ -3878,71 +3195,6 @@ function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
     // The printer's inline arithmetic: every arm is an Int/Float/Null.
     if (/^\(match \(&\(/.test(e)) return new Set([ 'int', 'float', 'null' ]);
     return undefined;
-}
-
-/** Locals of one fn: declared native type, or the variant set every write of a `Value` local pins. */
-function valueSets(region: string, maskedRegion: string, sig: string): Map<string, Local> {
-    const locals = new Map<string, Local>();
-    const declRe = /let\s+(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^=;]+?)\s*=/g;
-    const decls: Array<{ name: string, ty: string, at: number, init: number }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(maskedRegion)) !== null) {
-        const rel = new RegExp(`\\b${m[1]}\\b`).exec(m[0]);
-        decls.push({ name: m[1], ty: m[2].replace(/\s+/g, ''), at: m.index + (rel === null ? 0 : rel.index), init: m.index + m[0].length });
-    }
-    const multi = new Map<string, number>();
-    for (const d of decls) multi.set(d.name, (multi.get(d.name) ?? 0) + 1);
-    // Typed parameters declare their own type; only those need a set.
-    for (const p of sig.matchAll(/\(\s*(?:&?\s*(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^,)]+)|&[A-Za-z_]\w*)|,\s*(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^,)]+)/g)) {
-        const name = p[1] ?? p[3];
-        const ty = (p[2] ?? p[4] ?? '').replace(/\s+/g, '');
-        if (name !== undefined && NATIVE_TY.has(ty)) locals.set(name, { ty });
-    }
-    for (const d of decls) {
-        if (multi.get(d.name) !== 1) continue;
-        locals.set(d.name, { ty: d.ty });
-        if (d.ty !== 'Value') continue;
-        // A parameter, loop binding or closure arg of the same name could shadow the local.
-        const bind = new RegExp(`(?:[(,|]\\s*(?:mut\\s+)?${d.name}\\s*:|\\bfor\\s+(?:mut\\s+)?${d.name}\\b)`);
-        if (bind.test(sig)) continue;
-        const set: VSet = new Set();
-        let ok = true;
-        let elems: string | undefined = 'str';
-        const word = new RegExp(`(?<![A-Za-z0-9_.])${d.name}(?![A-Za-z0-9_])`, 'g');
-        for (let k = 0; k < maskedRegion.length; k++) {
-            word.lastIndex = k;
-            const hit = word.exec(maskedRegion);
-            if (hit === null) break;
-            const s = hit.index;
-            k = s;
-            if (/&\s*mut\s*$/.test(maskedRegion.slice(Math.max(0, s - 12), s))) { ok = false; break; }
-            const tail = maskedRegion.slice(s + d.name.length);
-            const rhs = /^\s*=(?!=)/.exec(tail);
-            if (s === d.at) {
-                const end = stringNativesStmtEnd(maskedRegion, d.init);
-                const ex = end < 0 ? '' : region.slice(d.init, end);
-                const got = end < 0 ? undefined : inferSet(ex, locals);
-                if (got === undefined) { ok = false; break; }
-                got.forEach(v => set.add(v));
-                if (elemKind(ex, locals) !== 'str') elems = undefined;
-                k = end < 0 ? s + d.name.length : end;
-                continue;
-            }
-            if (rhs !== null) {
-                const from = s + d.name.length + rhs[0].length;
-                const end = stringNativesStmtEnd(maskedRegion, from);
-                const ex = end < 0 ? '' : region.slice(from, end);
-                const got = end < 0 ? undefined : inferSet(ex, locals);
-                if (got === undefined) { ok = false; break; }
-                got.forEach(v => set.add(v));
-                if (elemKind(ex, locals) !== 'str') elems = undefined;
-                k = end < 0 ? from : end;
-                continue;
-            }
-        }
-        if (ok && set.size > 0) locals.set(d.name, { ty: d.ty, set, elems });
-    }
-    return locals;
 }
 
 /** Native replacement for one helper call, or undefined when the operand is unproven. */
@@ -4017,128 +3269,6 @@ function rewrite(name: string, args: string[], locals: Map<string, Local>): stri
     }
     default: return undefined;
     }
-}
-
-/** Rewrite the family where the operand type is proven; leave every other site as printed. */
-function rustStringNatives(content: string): string {
-    if (!/to_string_val\(|replace_str\(|replace_all_str\(|split\(|join\(|starts_with\(|ends_with\(|to_fixed\(/.test(content)) return content;
-    const masked = stringNativesMaskText(content);
-    const rx = /(?<![A-Za-z0-9_:.])(to_string_val|replace_str|replace_all_str|split|join|starts_with|ends_with|to_fixed)\(/g;
-    const hits: Array<{ start: number, end: number, name: string }> = [];
-    for (const m of masked.matchAll(rx)) {
-        const start = m.index as number;
-        if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-        const open = start + m[1].length;
-        const close = stringNativesCloseParen(masked, open);
-        if (close < 0) continue;
-        hits.push({ start, end: close, name: m[1] });
-    }
-    if (hits.length === 0) return content;
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    const cache = new Map<number, Map<string, Local>>();
-    for (const h of hits) {
-        const [ lo, hi ] = fnBounds(masked, h.start);
-        let locals = cache.get(lo);
-        if (locals === undefined) {
-            const region = content.slice(lo, hi);
-            const head = content.slice(lo, hi).indexOf('{');
-            const sig = head < 0 ? '' : region.slice(0, head);
-            locals = valueSets(region, masked.slice(lo, hi), sig);
-            cache.set(lo, locals);
-        }
-        const args = stringNativesSplitArgs(content, h.start + h.name.length + 1, h.end - 1);
-        if (args === undefined) continue;
-        const text = rewrite(h.name, args, locals);
-        if (text === undefined) continue;
-        // Never push a line that was under the 400-char report threshold over it.
-        const lineStart = content.lastIndexOf('\n', h.start) + 1;
-        const lineEnd = content.indexOf('\n', h.end);
-        const len = (lineEnd < 0 ? content.length : lineEnd) - lineStart;
-        if (len <= 400 && len - (h.end - h.start) + text.length > 400) continue;
-        rewrites.push({ start: h.start, end: h.end, text });
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = '';
-    let at = 0;
-    for (const r of rewrites) {
-        if (r.start < at) continue;
-        out += content.slice(at, r.start) + r.text;
-        at = r.end;
-    }
-    return out + content.slice(at);
-}
-
-/** One case per rule; each fails on the base generator (no such pass). */
-function rustStringNativesSelfTest(): string[] {
-    const cases: Array<[string, string, string]> = [
-        [
-            'to-string-scalar-local',
-            'fn f(&self) -> Value {\n    let mut e: Value = self.sum(&[a, b]);\n    let mut s: Value = to_string_val(&e);\n    s\n}\n',
-            'fn f(&self) -> Value {\n    let mut e: Value = self.sum(&[a, b]);\n    let mut s: Value = Value::str(e.to_string());\n    s\n}\n',
-        ],
-        [
-            'to-string-inline-sum',
-            'fn f(&self) -> Value {\n    self.log(to_string_val(&self.sum(&[a, b])));\n}\n',
-            'fn f(&self) -> Value {\n    self.log(Value::str(self.sum(&[a, b]).to_string()));\n}\n',
-        ],
-        [
-            'replace-on-str-local',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.decimal_to_precision(n, r, p, &[]);\n    s = replace_str(&s, &Value::Str(".".into()), &Value::Str("".into()));\n    s\n}\n',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.decimal_to_precision(n, r, p, &[]);\n    s = Value::str(s.as_str().unwrap_or_default().replace(".", ""));\n    s\n}\n',
-        ],
-        [
-            'split-on-str-param',
-            'fn f(&self, mut s: String) -> Value {\n    let mut parts: Value = split(&s, &Value::Str("_".into()));\n    parts\n}\n',
-            'fn f(&self, mut s: String) -> Value {\n    let mut parts: Value = Value::Array(s.split("_").map(Value::str).collect());\n    parts\n}\n',
-        ],
-        [
-            'join-on-string-vec',
-            'fn f(&self, mut xs: Vec<String>) -> Value {\n    join(&xs, &Value::Str(",".into()))\n}\n',
-            'fn f(&self, mut xs: Vec<String>) -> Value {\n    Value::str(xs.join(","))\n}\n',
-        ],
-        [
-            'affix-on-str-local',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    ends_with(&s, &Value::Str("USDT".into()))\n}\n',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    s.as_str().unwrap_or_default().ends_with("USDT")\n}\n',
-        ],
-        [
-            'to-fixed-on-float-local',
-            'fn f(&self, mut d: f64) -> Value {\n    to_fixed(&d, &Value::Int(8))\n}\n',
-            'fn f(&self, mut d: f64) -> Value {\n    Value::str(format!("{:.*}", 8, d))\n}\n',
-        ],
-        [
-            'join-on-str-array-local',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());\n    join(&parts, &Value::Str("-".into()))\n}\n',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());\n    Value::str(parts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"))\n}\n',
-        ],
-        [
-            'join-on-str-array-local-from-split',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());\n    join(&parts, &Value::Str("-".into()))\n}\n',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());\n    Value::str(parts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"))\n}\n',
-        ],
-        [
-            'unproven-join-keeps-helper',
-            'fn f(&self, mut xs: Value) -> Value {\n    join(&xs, &Value::Str(",".into()))\n}\n',
-            'fn f(&self, mut xs: Value) -> Value {\n    join(&xs, &Value::Str(",".into()))\n}\n',
-        ],
-        [
-            'unproven-keeps-helper',
-            'fn f(&self, mut x: Value) -> Value {\n    to_string_val(&x)\n}\n',
-            'fn f(&self, mut x: Value) -> Value {\n    to_string_val(&x)\n}\n',
-        ],
-        [
-            'mutated-local-keeps-helper',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    s = get_value(&raw, &Value::Str("x".into()));\n    to_string_val(&s)\n}\n',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    s = get_value(&raw, &Value::Str("x".into()));\n    to_string_val(&s)\n}\n',
-        ],
-    ];
-    const fails: string[] = [];
-    for (const [ label, src, want ] of cases) {
-        const got = rustStringNatives(src);
-        if (got !== want) fails.push(`${label}: got\n${got}\nwant\n${want}`);
-    }
-    return fails;
 }
 
 // ---- plain-dict state containers ----
@@ -4382,378 +3512,6 @@ function plainDictChains(content: string): string {
     return plainDictRunPass(content);
 }
 
-// ---- ws ClientHandle views ----
-// In a venue method taking `client: Value`, a read of a handle field becomes a clone of the typed `ClientHandle`
-// field, which stores exactly what `get_value` returns. A key the method writes through keeps the helper method-wide.
-
-const CLIENT_HANDLE_KEYS = ['subscriptions', 'futures', 'rejections', 'url'];
-const CLIENT_HANDLE_TYPE = 'crate::pro::ws_client::ClientHandle';
-
-/** Blank out comments and string bodies, keeping every index in place. */
-function clientHandleMask(src: string): string {
-    let out = '';
-    let i = 0;
-    const n = src.length;
-    while (i < n) {
-        const c = src[i];
-        if (c === '/' && src[i + 1] === '/') {
-            while (i < n && src[i] !== '\n') { out += ' '; i++; }
-            continue;
-        }
-        // Block comment (the generated files carry JS doc comments verbatim).
-        if (c === '/' && src[i + 1] === '*') {
-            out += '  ';
-            i += 2;
-            while (i < n && !(src[i] === '*' && src[i + 1] === '/')) {
-                out += src[i] === '\n' ? '\n' : ' ';
-                i++;
-            }
-            if (i < n) { out += '  '; i += 2; }
-            continue;
-        }
-        if (c === '"') {
-            out += '"';
-            i++;
-            while (i < n && src[i] !== '"') {
-                if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                out += src[i] === '\n' ? '\n' : ' ';
-                i++;
-            }
-            if (i < n) { out += '"'; i++; }
-            continue;
-        }
-        out += c;
-        i++;
-    }
-    return out;
-}
-
-/**
- * The ClientHandle view rewrite, driven by line structure.
- * A method starts on a `pub fn …(` line that sits directly inside an `impl`
- * block, and ends where the brace depth returns to that level; brace counting
- * skips comment and string spans per line.
- */
-function clientHandleViews(content: string): string {
-    if (!content.includes('&client')) return content;
-    const lines = content.split('\n');
-    const braces = clientHandleBraceDeltas(content).split('\n');
-    const out: string[] = [];
-    let depth = 0;
-    let i = 0;
-    while (i < lines.length) {
-        const line = lines[i];
-        const startsMethod = depth === 1 && /^\s*pub\s+(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/.test(line);
-        if (!startsMethod) {
-            out.push(line);
-            depth += clientHandleDeltaAt(braces, i);
-            i++;
-            continue;
-        }
-        let j = i;
-        let level = depth;
-        while (j < lines.length) {
-            level += clientHandleDeltaAt(braces, j);
-            if (j > i && level <= depth) break;
-            j++;
-        }
-        if (j >= lines.length) { out.push(line); depth += clientHandleDeltaAt(braces, i); i++; continue; }
-        out.push(...clientHandleBlock(lines.slice(i, j + 1)));
-        for (let k = i; k <= j; k++) depth += clientHandleDeltaAt(braces, k);
-        i = j + 1;
-    }
-    return clientHandleTypedReads(clientHandleSubsWrites(out.join('\n')));
-}
-
-const CLIENT_HANDLE_SUBS_WRITES: Array<[RegExp, string]> = [
-    [/(?<![\w:.])remove\(&mut __ch\.subscriptions,\s*/g, '__ch.remove_subscription('],
-    [/(?<![\w:.])add_element_to_object\(&mut __ch\.subscriptions,\s*/g, '__ch.add_subscription('],
-];
-
-/**
- * `remove(&mut __ch.subscriptions, k)` / `add_element_to_object(&mut __ch.subscriptions, k, v)`
- * become `__ch.remove_subscription(k)` / `__ch.add_subscription(k, v)`: ClientHandle owns the
- * `subscriptions` snapshot and the write that persists to the live client, so the venue code
- * names the operation instead of dispatching a dynamic helper on a Value.
- */
-function clientHandleSubsWrites(content: string): string {
-    if (!content.includes('&mut __ch.subscriptions')) return content;
-    let text = content;
-    for (const [rx, repl] of CLIENT_HANDLE_SUBS_WRITES) {
-        // Mask comments/strings so only real code is rewritten; indices line up 1:1.
-        const masked = clientHandleMask(text);
-        const hits: Array<{ at: number, len: number }> = [];
-        rx.lastIndex = 0;
-        let m: RegExpExecArray | null;
-        while ((m = rx.exec(masked)) !== null) hits.push({ at: m.index, len: m[0].length });
-        for (let n = hits.length - 1; n >= 0; n--) {
-            text = text.slice(0, hits[n].at) + repl + text.slice(hits[n].at + hits[n].len);
-        }
-    }
-    return text;
-}
-
-const CLIENT_HANDLE_NAMES: { [k: string]: string } = { subscriptions: 'subscription', futures: 'future' };
-
-/**
- * Remaining reads of the handle snapshots name a typed ClientHandle method:
- * key test -> `has_subscription(k)` / `has_future(k)`, `get_value(.., k)` ->
- * `get_subscription(k)` / `get_future(k)`, `object_keys(..)` -> `subscription_keys()` /
- * `future_keys()`. The methods read the same snapshot value the helpers did.
- */
-function clientHandleTypedReads(content: string): string {
-    if (!content.includes('__ch.')) return content;
-    return content
-        .replace(/matches!\(\(&__ch\.(subscriptions|futures)\.clone\(\), (&[^\n]+?)\), \(Value::Dict\(__d\), Value::Str\(__k\)\) if __d\.contains_key\(__k\.as_ref\(\)\)\)/g,
-            (_m, k, key) => '__ch.has_' + CLIENT_HANDLE_NAMES[k] + '(' + key + ')')
-        .replace(/(?<![\w:.])get_value\(&__ch\.(subscriptions|futures)\.clone\(\), (&[A-Za-z_][A-Za-z0-9_]*)\)/g,
-            (_m, k, key) => '__ch.get_' + CLIENT_HANDLE_NAMES[k] + '(' + key + ')')
-        .replace(/(?<![\w:.])object_keys\(&__ch\.(subscriptions|futures)\.clone\(\)\)\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\)/g,
-            (_m, k) => '__ch.' + CLIENT_HANDLE_NAMES[k] + '_keys()');
-}
-
-/** The masked text (comments, strings, char literals blanked) for structure. */
-function clientHandleBraceDeltas(content: string): string {
-    return clientHandleMask(content);
-}
-
-/** Brace delta of one line of the masked text. */
-function clientHandleDeltaAt(maskedLines: string[], idx: number): number {
-    const line = maskedLines[idx] ?? '';
-    let d = 0;
-    for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (c === '{') d++;
-        else if (c === '}') d--;
-    }
-    return d;
-}
-
-const CLIENT_HANDLE_LET = /^ {8}let mut client: Value = /;
-const CLIENT_HANDLE_LET_NESTED = /^ {9,}let mut client: Value = /;
-const CLIENT_HANDLE_REASSIGN = /^\s*client\s*=[^=]/;
-const CLIENT_HANDLE_COMMENT_LINE = /^\s*(?:\/\/|\/\*|\*)/;
-
-/** One method block (header + body + closing `    }`). */
-function clientHandleBlock(block: string[]): string[] {
-    const header = block[0];
-    const fromParam = /\bclient\s*:\s*Value\b/.test(header);
-    let anchor: number;      // binding line goes right after this index
-    let bodyStart: number;   // first body line the handle is in scope for
-    if (fromParam) {
-        if (/\blet\s+(?:mut\s+)?client\b/.test(block.join('\n'))) return block;
-        anchor = 0;
-        bodyStart = 1;
-    } else {
-        const decls: number[] = [];
-        for (let k = 1; k < block.length; k++) if (CLIENT_HANDLE_LET.test(block[k])) decls.push(k);
-        if (decls.length === 0) {
-            // A single-statement declaration nested in a block (`authenticate`'s
-            // flight client): `client` is scoped to that block, and so is the
-            // binding placed right after it, with every read after the decl.
-            for (let k = 1; k < block.length; k++) if (CLIENT_HANDLE_LET_NESTED.test(block[k])) decls.push(k);
-            const nestedAt: number = decls.length;
-            if (nestedAt === 1 && !block[decls[0]].trimEnd().endsWith(';')) return block;
-        }
-        if (decls.length !== 1) return block; // none, or two handles in one method
-        anchor = decls[0];
-        bodyStart = anchor + 1;
-    }
-    for (let k = bodyStart; k < block.length; k++) if (CLIENT_HANDLE_REASSIGN.test(block[k])) return block;
-
-    // Occurrence map per key, then one order-aware decision per key.
-    const rewritten = new Map<number, string[]>();
-    let needsMut = false;
-    let touched = false;
-    for (const key of CLIENT_HANDLE_KEYS) {
-        // Pipeline text carries the allocating literal spelling
-        // (`Value::Str("k".to_string())`); the borrow form is restored only at
-        // write time, so both spellings must match here.
-        const rx = new RegExp('get_value\\(\\s*&client\\s*,\\s*&Value::Str\\("' + key + '"\\.(?:into|to_string)\\(\\)\\)\\s*\\)', 'g');
-        const reads: Array<{ line: number, col: number, len: number }> = [];
-        const writes: Array<{ line: number, col: number, len: number }> = [];
-        for (let k = bodyStart; k < block.length; k++) {
-            const text = block[k];
-            if (CLIENT_HANDLE_COMMENT_LINE.test(text)) continue;
-            rx.lastIndex = 0;
-            let m: RegExpExecArray | null;
-            while ((m = rx.exec(text)) !== null) {
-                const before = text.slice(Math.max(0, m.index - 8), m.index);
-                (/(?<![\w.])&mut\s*$/.test(before) ? writes : reads).push({ line: k, col: m.index, len: m[0].length });
-            }
-        }
-        if (reads.length === 0 && writes.length === 0) continue;
-        // A read after the first write would observe the field's mutation where
-        // the helper read a fresh snapshot: those stay helper calls.
-        const firstWriteLine = writes.length > 0 ? writes[0].line : Number.MAX_SAFE_INTEGER;
-        for (const r of reads) {
-            if (r.line >= firstWriteLine) continue;
-            if (!rewritten.has(r.line)) rewritten.set(r.line, []);
-            rewritten.get(r.line)!.push(...clientHandleSpan(r.col, r.len, '__ch.' + key + '.clone()'));
-            touched = true;
-        }
-        for (const w of writes) {
-            if (!rewritten.has(w.line)) rewritten.set(w.line, []);
-            rewritten.get(w.line)!.push(...clientHandleSpan(w.col, w.len, '__ch.' + key));
-            needsMut = true;
-            touched = true;
-        }
-    }
-    if (!touched) return block;
-    const bindIndent = fromParam ? '        ' : block[anchor].match(/^ */)![0];
-    const binding = bindIndent + 'let ' + (needsMut ? 'mut ' : '') + '__ch = ' + CLIENT_HANDLE_TYPE + '::from_value(client.clone());';
-    const result: string[] = [];
-    for (let k = 0; k < block.length; k++) {
-        const spans = rewritten.get(k);
-        result.push(spans === undefined ? block[k] : clientHandleApply(block[k], spans));
-        if (k === anchor) result.push(binding);
-    }
-    return result;
-}
-
-/** A replacement span encoded as `col:length:text`, kept sortable per line. */
-function clientHandleSpan(col: number, len: number, text: string): string[] {
-    return [col + ':' + len + ':' + text];
-}
-
-/** Apply `col:length:text` spans (rightmost first) to one line. */
-function clientHandleApply(line: string, spans: string[]): string {
-    const parsed = spans.map((s) => {
-        const first = s.indexOf(':');
-        const second = s.indexOf(':', first + 1);
-        return { col: Number(s.slice(0, first)), len: Number(s.slice(first + 1, second)), text: s.slice(second + 1) };
-    }).sort((a, b) => b.col - a.col);
-    let out = line;
-    for (const p of parsed) out = out.slice(0, p.col) + p.text + out.slice(p.col + p.len);
-    return out;
-}
-
-function clientHandleSelfTest(): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, what: string) => { if (!c) problems.push('client handle self test: ' + what); };
-    const head = '// PLEASE DO NOT EDIT THIS FILE\n';
-    const wrap = (body: string, params = '&mut self, mut client: Value, mut message: Value') =>
-        head + 'impl X {\n    pub fn handle_message(' + params + ') {\n' + body + '\n    }\n}\n';
-    const read = (k: string) => `        let mut v: Value = get_value(&client, &Value::Str("${k}".into()));`;
-
-    // 1. read on subscriptions goes through the handle
-    const one = clientHandleViews(wrap(read('subscriptions')));
-    ok(one.includes('let __ch = ' + CLIENT_HANDLE_TYPE + '::from_value(client.clone());'), 'binds the handle: ' + one);
-    ok(one.includes('__ch.subscriptions.clone()'), 'field read: ' + one);
-    ok(!one.includes('get_value(&client'), 'helper call gone: ' + one);
-
-    // 2. a read *after* a write of the same key keeps the helper (the field is
-    //    mutated by then); a read before the write is safe to type
-    const write = clientHandleViews(wrap('        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &hash);\n' + read('subscriptions')));
-    ok(write.includes('__ch.remove_subscription(&hash);'), 'write goes native: ' + write);
-    ok(write.includes('let mut v: Value = get_value(&client, &Value::Str("subscriptions".into()));'), 'same-key read after the write kept: ' + write);
-    const readFirst = clientHandleViews(wrap(read('subscriptions') + '\n        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &hash);'));
-    ok(readFirst.includes('__ch.subscriptions.clone()'), 'earlier read typed: ' + readFirst);
-    ok(readFirst.includes('__ch.remove_subscription(&hash);'), 'later write typed: ' + readFirst);
-
-    // 3. writes on one key do not stop reads of another; a write-only key goes native
-    const split = clientHandleViews(wrap('        remove(&mut get_value(&client, &Value::Str("futures".into())), &hash);\n' + read('subscriptions')));
-    ok(split.includes('__ch.subscriptions.clone()'), 'other key still typed: ' + split);
-    ok(split.includes('remove(&mut __ch.futures, &hash);'), 'write-only key typed: ' + split);
-    ok(split.includes('let mut __ch = '), 'write site binds __ch mut: ' + split);
-    ok(!split.includes('get_value(&client'), 'no client helper left: ' + split);
-
-    // 4. no client param -> untouched
-    const noParam = wrap(read('subscriptions'), '&mut self, mut message: Value');
-    ok(clientHandleViews(noParam) === noParam, 'no client param untouched');
-
-    // 5. other receivers, nested keys and comments are untouched
-    const other = wrap('        let mut v: Value = get_value(&self.options, &Value::Str("subscriptions".into()));');
-    ok(clientHandleViews(other) === other, 'other receiver untouched');
-    const comment = wrap('        // get_value(&client, &Value::Str("subscriptions".into())) is the old read\n        let mut v: Value = Value::Null;');
-    ok(clientHandleViews(comment) === comment, 'comment untouched');
-
-    // 6. a reassigned `client` keeps every site a helper call
-    const reassigned = wrap(read('subscriptions') + '\n        client = Value::Null;');
-    ok(clientHandleViews(reassigned) === reassigned, 'reassigned client untouched');
-
-    // 6b. `client` built by the venue (`self.client(url)`) is a handle too
-    const localBody = '        let mut client: Value = self.client(&[url.clone()]);\n' + read('subscriptions');
-    const local = clientHandleViews(wrap(localBody, '&mut self, mut url: Value'));
-    ok(local.includes('self.client(&[url.clone()]);\n        let __ch = ' + CLIENT_HANDLE_TYPE), 'binding follows the local decl: ' + local);
-    ok(local.includes('__ch.subscriptions.clone()'), 'local client typed: ' + local);
-    ok(local.indexOf('let __ch') > local.indexOf('self.client('), 'binding is after the decl: ' + local);
-    // ... but a declaration nested in a block, or a second one, is left alone
-    const nestedBody = '        if (is_true(&flag)) {\n            let mut client: Value = self.client(&[url.clone()]);\n' + read('subscriptions') + '\n        }';
-    const nested = clientHandleViews(wrap(nestedBody, '&mut self, mut url: Value'));
-    ok(nested.includes('self.client(&[url.clone()]);\n            let __ch = ' + CLIENT_HANDLE_TYPE), 'nested decl typed at its own indent: ' + nested);
-    const twoDecls = '        let mut client: Value = self.client(&[url.clone()]);\n        let mut client: Value = self.client(&[other.clone()]);\n' + read('subscriptions');
-    const two = clientHandleViews(wrap(twoDecls, '&mut self, mut url: Value'));
-    ok(two === wrap(twoDecls, '&mut self, mut url: Value'), 'two decls untouched');
-
-    // 6c. a lone declaration nested in a block binds at the decl's indent
-    const nestedOne = '        if (is_true(&flag)) {\n            let mut client: Value = self.client(&[url.clone()]);\n' + read('futures').replace('        let', '            let') + '\n        }';
-    const nestedOut = clientHandleViews(wrap(nestedOne, '&mut self, mut url: Value'));
-    ok(nestedOut.includes('self.client(&[url.clone()]);\n            let __ch = ' + CLIENT_HANDLE_TYPE), 'nested binding follows the decl: ' + nestedOut);
-    ok(nestedOut.includes('__ch.futures.clone()'), 'nested read typed: ' + nestedOut);
-
-    // 7. url / futures / rejections are handle fields too
-    for (const k of ['url', 'futures', 'rejections']) {
-        const got = clientHandleViews(wrap(read(k)));
-        ok(got.includes('__ch.' + k + '.clone()'), k + ' typed: ' + got);
-    }
-
-    // 8. idempotent
-    const twice = clientHandleViews(one);
-    ok(twice === one, 'idempotent');
-    ok(!twice.includes('let __ch = let __ch'), 'single binding');
-
-    // 9. a read-only ws method that only mentions `client` stays as it is
-    const bare = wrap('        let mut v: Value = client.clone();');
-    ok(clientHandleViews(bare) === bare, 'no handle site untouched');
-    ok(clientHandleViews('').length === 0, 'empty stays empty');
-    ok(!clientHandleViews(wrap(read('subscriptions'))).includes('let mut __ch'), 'binding need not be mut: ' + one);
-
-    // 10. the pipeline text carries the allocating literal spelling
-    //     (`Value::Str("k".to_string())`); it must rewrite the same way.
-    const alloc = wrap('        let mut v: Value = get_value(&client, &Value::Str("subscriptions".to_string()));');
-    const allocOut = clientHandleViews(alloc);
-    ok(allocOut.includes('__ch.subscriptions.clone()'), 'allocating spelling typed: ' + allocOut);
-    ok(!allocOut.includes('get_value(&client'), 'allocating spelling helper gone: ' + allocOut);
-
-    // 11. subscriptions writes name the handle operation
-    const sw = clientHandleViews(wrap('        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &hash);\n        add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &hash, Value::Map({ let mut m = HashMap::new(); m.insert("a".to_string(), Value::Int(1)); m }));'));
-    ok(sw.includes('__ch.remove_subscription(&hash);'), 'remove names the handle op: ' + sw);
-    ok(sw.includes('__ch.add_subscription(&hash, Value::Map({'), 'add names the handle op: ' + sw);
-    ok(!sw.includes('add_element_to_object(') && !sw.includes(' remove('), 'helpers gone: ' + sw);
-    ok(sw.includes('let mut __ch = '), 'handle bound mut: ' + sw);
-    ok(clientHandleViews(sw) === sw, 'writes idempotent');
-    const futW = clientHandleViews(wrap('        remove(&mut get_value(&client, &Value::Str("futures".into())), &hash);'));
-    ok(futW.includes('remove(&mut __ch.futures, &hash);'), 'other keys keep the helper: ' + futW);
-
-    // 12. typed key tests, element reads and key lists
-    const tr = clientHandleViews(wrap('        if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &hash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {}\n        let mut f: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &hash);\n        let mut ks: Vec<Value> = object_keys(&get_value(&client, &Value::Str("subscriptions".into()))).as_array().cloned().unwrap_or_default();'));
-    ok(tr.includes('if (__ch.has_subscription(&hash)) {}'), 'has_subscription: ' + tr);
-    ok(tr.includes('__ch.get_future(&hash)'), 'get_future: ' + tr);
-    ok(tr.includes('= __ch.subscription_keys();'), 'subscription_keys: ' + tr);
-    ok(!tr.includes('.clone()), &') && !tr.includes('object_keys('), 'helpers gone: ' + tr);
-    ok(clientHandleViews(tr) === tr, 'typed reads idempotent');
-
-    return problems;
-}
-
-// ---- native-map param dispatch ----
-// Dynamic dispatch for a method whose parameter prints as a native map: the dispatcher receives `Value`s, so it
-// hands the method an owned map copy built from the argument; every other parameter keeps its shape.
-
-const MAP_PARAM_RE = /:\s*&mut\s+indexmap::IndexMap<String, Value>/;
-
-/** `'map'` for a printed native-map parameter, undefined for any other shape. */
-function mapParamKind(printedParam: string): 'map' | undefined {
-    return MAP_PARAM_RE.test(printedParam) ? 'map' : undefined;
-}
-
-/** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
- *  own line so a generated dispatch arm stays within the 400-char line budget. */
-function mapParamDispatchArg(index: number): string {
-    return `&mut { let mut __m = args.get(${index}).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }`;
-}
-
 /** Split a printed parameter list on top-level commas: a generic argument list
  *  (`IndexMap<String, Value>`) carries its own. */
 function mapParamSplitArgs(argList: string): string[] {
@@ -4800,10 +3558,7 @@ function refMapParamNames(content: string): Set<string> {
 const MAP_PARAM_CASES: Array<{ name: string, got: () => any, want: any }> = [
     { name: 'split keeps a generic argument list whole', got: () => mapParamSplitTopLevel('&self, a: Value, p: &mut indexmap::IndexMap<String, Value>, optional_args: &[Value]'), want: ['&self', ' a: Value', ' p: &mut indexmap::IndexMap<String, Value>', ' optional_args: &[Value]'] },
     { name: 'split handles a plain list', got: () => mapParamSplitTopLevel('&self, a: Value, b: bool'), want: ['&self', ' a: Value', ' b: bool'] },
-    { name: 'a map parameter is classified', got: () => mapParamKind('p: &mut indexmap::IndexMap<String, Value>'), want: 'map' },
-    { name: 'a Value parameter is not', got: () => mapParamKind('p: Value'), want: undefined },
     { name: 'a file\'s map-parameter names are collected', got: () => Array.from(refMapParamNames('fn f(&self, a: Value, p: &mut indexmap::IndexMap<String, Value>) {}').values()), want: ['p'] },
-    { name: 'the dispatch argument builds an owned map', got: () => mapParamDispatchArg(4), want: '&mut { let mut __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }' },
 ];
 
 function mapParamDispatchSelfTest(): number {
@@ -4822,1230 +3577,8 @@ function mapParamDispatchSelfTest(): number {
     return failures;
 }
 
-// ---- narrow str locals ----
-// `safe_string*` locals narrowed to a native `String` / `Option<String>`.
-// Text passes over the final Rust; neither touches `this`.
-
-/**
- * `let X: Value = self.safe_string*(obj, key, &[default])` whose every later use is its own
- * slot of a `format!` becomes a native `String` through the family's `_opt` twin, which has
- * the same lookup and default rules. Any other use, a `{:?}` sink or a non-`Str` default
- * keeps `Value`.
- */
-function narrowStrSinkLocals(content: string): string {
-    // Boxed family -> its `Option<String>` twin on the same `Exchange` impl.
-    const OPT: { [k: string]: string } = {
-        safe_string: 'safe_string_opt',
-        safe_string_k: 'safe_string_k_opt',
-        safe_string_lower_k: 'safe_string_lower_k_opt',
-        safe_string_upper_k: 'safe_string_upper_k_opt',
-    };
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
-    const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
-    // Blank string bodies and line comments; same length, quotes kept.
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const fam = m[4];
-        const opt = OPT[fam];
-        if (opt === undefined) continue;
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 3) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        if (obj.length === 0 || keyRaw.length === 0) continue;
-        // The `_k` twins take `&str`, the `safe_string` twin a `Value` key: both pass verbatim.
-        if (fam.endsWith('_k') && !strKeyRe.test(keyRaw)) continue;
-        // A non-`Str` default would print its `Value`, not the `String` accessor's text.
-        if (defRaw !== '&[]' && !/^&\[\s*Value::Str\(/.test(defRaw)) continue;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        // A second binding of the name makes the use scan ambiguous.
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const fRe = /format!\(/g;
-        const fSpans: Array<[number, number, boolean]> = [];
-        let f: RegExpExecArray | null;
-        while ((f = fRe.exec(body)) !== null) {
-            const close = closeParen(body, f.index + f[0].length - 1);
-            if (close < 0) continue;
-            const lit = /^"(?:[^"\\]|\\.)*"/.exec(body.slice(f.index + f[0].length, close));
-            fSpans.push([f.index, close, lit !== null && /:\?/.test(lit[0])]);
-        }
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-        let ok = true; let uses = 0;
-        let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index;
-            const cand = fSpans.filter(([s, e]) => at > s && at < e);
-            if (cand.length === 0) { ok = false; break; }
-            const hit = cand.reduce((a, b) => (b[0] > a[0] ? b : a));
-            if (hit[2]) { ok = false; break; }
-            // The use must BE a `format!` argument slot, not a block inside one.
-            const inner = hit[0] + 'format!('.length;
-            const slot = argSpans(body.slice(inner, hit[1] - 1))
-                .filter(([a, b]) => inner + a <= at && at + name.length <= inner + b);
-            if (slot.length === 0) { ok = false; break; }
-            if (body.slice(inner + slot[0][0], inner + slot[0][1]).replace(/\s+/g, '') !== name) { ok = false; break; }
-            uses++;
-        }
-        if (!ok || uses === 0) continue;
-        const indent = m[1];
-        const text = `${indent}let ${name}: String = self.${opt}(${obj}, ${keyRaw}, ${defRaw}).unwrap_or_default();`;
-        if (indent.length + text.length > 400 && stmtEnd - m.index <= 400) continue;
-        rewrites.push({ start: m.index, end: stmtEnd, text });
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue; // overlapping — should not happen; keep the first
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
-/**
- * `let X: Value = self.safe_string*(obj, key, &[])` whose uses are all null tests,
- * `as_str()` compares, `stringify_param` calls or plain `Value` operands becomes
- * `Option<String>` through the `_opt` twin (same lookup and default rules, `None` where
- * the boxed helper yields `Null`). Null tests print `is_none()`/`is_some()`, compares
- * `as_deref()`, `get_value(&X, &Value::Int(0)).as_str() == Some("c")` the `starts_with("c")`
- * of the same first character, `stringify_param(&X)` the text it prints, and a `Value`
- * operand re-boxes through
- * `Value::from`, which builds the `Value::Str` the helper returned. Any other use, a
- * `&mut`, an assignment or a closure keeps `Value`.
- */
-function narrowStrNullLocals(content: string): string {
-    const OPT: { [k: string]: string } = {
-        safe_string: 'safe_string_opt',
-        safe_string_k: 'safe_string_k_opt',
-        safe_string_lower_k: 'safe_string_lower_k_opt',
-        safe_string_upper_k: 'safe_string_upper_k_opt',
-    };
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
-    const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const groups: Array<{ decl: { start: number, end: number, text: string }, edits: Array<{ start: number, end: number, text: string }> }> = [];
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    // Candidate declarations: boxed `self.safe_string*` calls and the inlined reads of a
-    // `__pro_message` shadow (a `match` over `.get(key)` with the same coercion arms).
-    type Cand = { index: number, stmtEnd: number, name: string, declText: string, intOnly?: boolean };
-    const cands: Cand[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const opt = OPT[m[4]];
-        if (opt === undefined) continue;
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 3) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        if (obj.length === 0 || keyRaw.length === 0) continue;
-        if (m[4].endsWith('_k') && !strKeyRe.test(keyRaw)) continue;
-        // Only a `Null` default maps to `None`.
-        if (defRaw !== '&[]') continue;
-        cands.push({
-            index: m.index, stmtEnd: callClose + tail[0].length, name: m[3],
-            declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<String> = self.${opt}(${obj}, ${keyRaw}, ${defRaw});`,
-        });
-    }
-    const inlineRe = new RegExp('^([ \\t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = \\(match __pro_message\\.get\\(("(?:[^"\\\\]|\\\\.)*")\\)\\.cloned\\(\\) \\{ '
-        + 'Some\\(Value::Str\\(__s\\)\\) if !__s\\.is_empty\\(\\) => Value::Str\\(__s\\), '
-        + 'Some\\(Value::Int\\(__n\\)\\) => Value::Str\\(__n\\.to_string\\(\\)\\.into\\(\\)\\), '
-        + 'Some\\(Value::Float\\(__f\\)\\) => Value::Str\\(__f\\.to_string\\(\\)\\.into\\(\\)\\), '
-        + '_ => Value::Null \\}\\);', 'gm');
-    while ((m = inlineRe.exec(content)) !== null) {
-        cands.push({
-            index: m.index, stmtEnd: m.index + m[0].length, name: m[3],
-            declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<String> = match __pro_message.get(${m[4]}).cloned() { `
-                + 'Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), '
-                + 'Some(Value::Int(__n)) => Some(__n.to_string()), '
-                + 'Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };',
-        });
-    }
-    // The `safe_integer` twin narrows to `Option<i64>` and only for null tests.
-    const intRe = new RegExp('^([ \\t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = \\(match __pro_message\\.get\\(("(?:[^"\\\\]|\\\\.)*")\\)\\.cloned\\(\\) \\{ '
-        + 'Some\\(Value::Int\\(__n\\)\\) => Value::Int\\(__n\\), Some\\(Value::Float\\(__f\\)\\) => Value::Int\\(__f as i64\\), '
-        + 'Some\\(Value::Str\\(__s\\)\\) if !__s\\.is_empty\\(\\) => match __s\\.parse::<i64>\\(\\) \\{ Ok\\(__n\\) => Value::Int\\(__n\\), '
-        + 'Err\\(_\\) => match __s\\.parse::<f64>\\(\\) \\{ Ok\\(__f\\) if __f\\.is_finite\\(\\) => Value::Int\\(__f as i64\\), _ => Value::Null \\} \\}, '
-        + '_ => Value::Null \\}\\);', 'gm');
-    while ((m = intRe.exec(content)) !== null) {
-        cands.push({
-            index: m.index, stmtEnd: m.index + m[0].length, name: m[3], intOnly: true,
-            declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<i64> = match __pro_message.get(${m[4]}).cloned() { `
-                + 'Some(Value::Int(__n)) => Some(__n), Some(Value::Float(__f)) => Some(__f as i64), '
-                + 'Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), '
-                + 'Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None };',
-        });
-    }
-    cands.sort((a, b) => a.index - b.index);
-    for (const cand of cands) {
-        const name = cand.name;
-        const stmtEnd = cand.stmtEnd;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if (cand.intOnly === true && !/^\s*(==|!=)\s*Value::Null\b/.test(after)) { ok = false; break; }
-            if ((g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null) {
-                // `Option<String>::as_deref()` is the same `Option<&str>` the boxed `as_str()` gave.
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
-            } else if (/get_value\(&$/.test(before)
-                && (g = /^, &Value::Int\(0\)\)\.as_str\(\) (==|!=) Some\("/.exec(after)) !== null) {
-                // First character probe; the char sits in the unmasked text at the same offsets.
-                const chPos = abs + name.length + g[0].length;
-                const ch = /^([^"\\])"\)/.exec(content.slice(chPos, chPos + 3));
-                if (ch === null) { ok = false; break; }
-                const probe = `${name}.as_deref().unwrap_or("").starts_with("${ch[1]}")`;
-                edits.push({ start: abs - 'get_value(&'.length, end: chPos + ch[0].length, text: g[1] === '==' ? probe : `!${probe}` });
-            } else if (/crate::runtime::stringify_param\(&$/.test(before) && /^\)/.test(after)) {
-                // The helper prints `null` for `Null` and the text for `Str`: both are `Option<String>` states.
-                const from = abs - 'crate::runtime::stringify_param(&'.length;
-                edits.push({ start: from, end: abs + name.length + 1, text: `${name}.as_deref().unwrap_or("null").to_string()` });
-            // eslint-disable-next-line no-useless-escape
-            } else if (/(?:[(,\[]\s*&?|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
-                && (g = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after)) !== null && !/==\s*$/.test(before)) {
-                // The conversion consumes the `Option`: only the last use, outside any loop, may move it.
-                const lastUse = !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(after.slice(g[0].length));
-                const inLoop = /\b(?:loop|while|for)\b/.test(body);
-                const move = lastUse && !inLoop && !/&\s*$/.test(before);
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}${move ? '' : '.clone()'}.map(Value::from).unwrap_or(Value::Null)` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        // A longer line must not newly cross 400 chars, counting growth from earlier locals.
-        const declText = cand.declText;
-        const all = [{ start: cand.index, end: stmtEnd, text: declText }, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        groups.push({ decl: { start: cand.index, end: stmtEnd, text: declText }, edits });
-    }
-    // A use that sits inside another narrowed local's initializer would be lost when that
-    // statement is reprinted from its original text: leave the used local boxed.
-    for (let again = true; again;) {
-        again = false;
-        for (let a = 0; a < groups.length; a++) {
-            const hit = groups.some((b, bi) => bi !== a
-                && groups[a].edits.some(e => e.start >= b.decl.start && e.start < b.decl.end));
-            if (hit) { groups.splice(a, 1); again = true; break; }
-        }
-    }
-    for (const gr of groups) { rewrites.push(gr.decl); for (const e of gr.edits) rewrites.push(e); }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue; // overlapping: keep the first
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
-
-// ---- bool_k local -> Option<bool> ----
-/**
- * `let mut X: Value = self.safe_bool_k(obj, "k", &[..])` (or `safe_bool`) whose every later use is a native-able bool
- * read becomes `Option<bool>` (default `&[]`) or `bool` (literal default). Any other use or a closure keeps `Value`.
- */
-function rustBoolKLocalOptionBool(content: string): string {
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool_k|safe_bool)\(/gm;
-    const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const callee = m[4];
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 3) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        if (obj.length === 0 || keyRaw.length === 0) continue;
-        if (callee === 'safe_bool_k' && !strKeyRe.test(keyRaw)) continue;
-        let dflt: boolean | null;
-        const dm = /^&\[Value::Bool\((true|false)\)\]$/.exec(defRaw);
-        if (defRaw === '&[]') dflt = null;
-        else if (dm !== null) dflt = dm[1] === 'true';
-        else continue;
-        const isOpt = dflt === null;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        const cmp = (eq: boolean, b: boolean): string => {
-            // `X == Some(b)` / `X != Some(b)` on Option<bool>; plain or negated `X` on bool.
-            if (isOpt) return `${name} ${eq ? '==' : '!='} Some(${b})`;
-            return (eq === b) ? name : `!${name}`;
-        };
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if ((g = /^\.as_bool\(\) (==|!=) Some\((true|false)\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: cmp(g[1] === '==', g[2] === 'true') });
-            } else if ((g = /^\.is_truthy\(\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: isOpt ? `${name} == Some(true)` : name });
-            } else if ((g = /^\s*(==|!=)\s*Value::Bool\((true|false)\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: cmp(g[1] === '==', g[2] === 'true') });
-            } else if (isOpt && (g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\s*=\s*Value::Bool\((true|false)\);/.exec(after)) !== null && /(?:^|[;{}\s])\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name} = ${isOpt ? `Some(${g[1]})` : g[1]};` });
-            } else if (!isOpt && /is_true\(&$/.test(before) && /^\)/.test(after)) {
-                continue; // `IsTruthy for &bool` is the identity
-            } else if (/\.insert\(\s*"[^"]*"(?:\.to_string\(\)|\.into\(\))?,\s*$/.test(before.slice(-80).replace(/\n/g, ' '))
-                && (g = /^(\.clone\(\))?\)/.exec(after)) !== null) {
-                // `Value::Bool` / `Option<bool>` are `Copy`: the boxed value is rebuilt at the sink.
-                edits.push({ start: abs, end: abs + name.length + g[0].length - 1, text: isOpt ? `${name}.map(Value::Bool).unwrap_or(Value::Null)` : `Value::Bool(${name})` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        const optName = callee === 'safe_bool_k' ? 'safe_bool_k_opt' : 'safe_bool_opt';
-        const typeStart = m.index + m[1].length + 'let '.length + (m[2] ?? '').length + name.length;
-        const declEdits = [
-            { start: typeStart, end: callOpen, text: `: ${isOpt ? 'Option<bool>' : 'bool'} = self.${optName}` },
-        ];
-        if (!isOpt) declEdits.push({ start: callClose, end: callClose, text: `.unwrap_or(${dflt})` });
-        const all = [...declEdits, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        for (const e of all) rewrites.push(e);
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start || a.end - b.end);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
-// ---- reassigned str local -> Option<String> ----
-// `safe_string*` locals that are later reassigned, narrowed to `Option<String>`.
-// Text pass over the final Rust; complements narrowStrNullLocals, which skips any assigned name.
-
-/**
- * `let mut X: Value = self.safe_string*(obj, key, &[])` that is assigned again, where every
- * assignment is `X = self.safe_string*(..)` (same family, becomes its `_opt` twin),
- * `X = Value::Str("lit".into())` (becomes `Some("lit".to_string())`) or `X = Value::Null`
- * (becomes `None`), and every other use is a null test, an `as_str()` compare or a `Value`
- * operand (re-boxed with `Value::from`). Any other use keeps `Value`.
- */
-function strLocalReassign(content: string): string {
-    const OPT: { [k: string]: string } = {
-        safe_string: 'safe_string_opt',
-        safe_string_k: 'safe_string_k_opt',
-        safe_string_lower_k: 'safe_string_lower_k_opt',
-        safe_string_upper_k: 'safe_string_upper_k_opt',
-    };
-    const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
-    const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
-    const strLitRe = /^Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const stmtEndAt = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; }
-            else if (c === ';' && depth === 0) return k;
-        }
-        return -1;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-    type Edit = { start: number, end: number, text: string };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const groups: Array<{ decl: Edit, edits: Edit[] }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const fam = m[3];
-        const opt = OPT[fam];
-        if (opt === undefined) continue;
-        const name = m[2];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        // A call whose twin gives the same value: only an empty or empty-string default.
-        const callEdit = (famName: string, open: number, close: number): Edit | null => {
-            const twin = OPT[famName];
-            if (twin === undefined) return null;
-            const base = open + 1;
-            const spans = argSpans(masked.slice(base, close - 1));
-            if (spans.length !== 3) return null;
-            const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-            if (famName.endsWith('_k') && !strKeyRe.test(keyRaw)) return null;
-            if (keyRaw.length === 0) return null;
-            const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-            const defMasked = masked.slice(base + spans[2][0], base + spans[2][1]).trim();
-            if (!(defMasked === '&[]'
-                || /^&\[Value::Str\("\s*"\.into\(\)\)\]$/.test(defMasked))) return null;
-            if (defRaw.length === 0) return null;
-            const nameAt = open - famName.length;
-            return { start: nameAt, end: open, text: twin };
-        };
-        const declEdit = callEdit(fam, callOpen, callClose);
-        if (declEdit === null) continue;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Edit[] = [declEdit];
-        let assigned = 0; let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if ((g = /^\s*=(?!=)\s*/.exec(after)) !== null && /(?:^|[;{}])\s*$/.test(before)) {
-                // Assignment: only the three forms that map to `Option<String>`.
-                const rhsStart = abs + name.length + g[0].length;
-                const rhsEnd = stmtEndAt(masked, rhsStart);
-                if (rhsEnd < 0) { ok = false; break; }
-                const rhsMasked = masked.slice(rhsStart, rhsEnd).trim();
-                const rhsRaw = content.slice(rhsStart, rhsEnd).trim();
-                let lit: RegExpExecArray | null; let call: RegExpExecArray | null;
-                if (rhsMasked === 'Value::Null') {
-                    edits.push({ start: rhsStart, end: rhsStart + 'Value::Null'.length, text: 'None' });
-                } else if ((lit = strLitRe.exec(rhsRaw)) !== null) {
-                    edits.push({ start: rhsStart, end: rhsStart + rhsRaw.length, text: `Some(${lit[1]}.to_string())` });
-                } else if ((call = /^self\.(safe_string[a-z_0-9]*)\(/.exec(rhsMasked)) !== null) {
-                    const open = rhsStart + call[0].length - 1;
-                    const close = closeParen(masked, open);
-                    if (close < 0 || masked.slice(close, rhsEnd).trim() !== '') { ok = false; break; }
-                    const ce = callEdit(call[1], open, close);
-                    if (ce === null) { ok = false; break; }
-                    edits.push(ce);
-                } else { ok = false; break; }
-                assigned++;
-                useRe.lastIndex = rhsStart - stmtEnd; // inner uses of the name in the RHS are rewritten below
-                continue;
-            }
-            if ((g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
-            // eslint-disable-next-line no-useless-escape
-            } else if (/(?:[(,\[]\s*&?|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
-                && (g = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after)) !== null && !/==\s*$/.test(before)) {
-                // The conversion consumes the `Option`: only the last use, outside any loop, may move it.
-                const lastUse = !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(after.slice(g[0].length));
-                const inLoop = /\b(?:loop|while|for)\b/.test(body);
-                const move = lastUse && !inLoop && !/&\s*$/.test(before);
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}${move ? '' : '.clone()'}.map(Value::from).unwrap_or(Value::Null)` });
-            } else { ok = false; break; }
-        }
-        if (!ok || assigned === 0) continue;
-        const declText = `${m[1]}let mut ${name}: Option<String> = `;
-        const all: Edit[] = [{ start: m.index, end: m.index + m[0].length - `self.${fam}(`.length, text: declText }, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        groups.push({ decl: { start: m.index, end: stmtEnd, text: '' }, edits: all });
-    }
-    // A use inside another narrowed local's declaration or edit region is left boxed.
-    for (let again = true; again;) {
-        again = false;
-        for (let a = 0; a < groups.length && !again; a++) {
-            for (let b = 0; b < groups.length; b++) {
-                if (a === b) continue;
-                const bEdits = groups[b].edits;
-                const bs = groups[b].decl.start; const be = groups[b].decl.end;
-                // Uses of `a` that sit within b's declaration statement would be reprinted from original text.
-                if (groups[a].edits.some(e => e.start >= bs && e.start < be && e.start !== bs)
-                    && bEdits.length > 0) { groups.splice(a, 1); again = true; break; }
-            }
-        }
-    }
-    const rewrites: Edit[] = [];
-    for (const gr of groups) for (const e of gr.edits) rewrites.push(e);
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
-// ---- bool2 local -> Option<bool> ----
-/**
- * `let mut X: Value = self.safe_bool2(obj, k1, k2, &[..])` whose every later use is a native-able bool read becomes
- * `Option<bool>` / `bool` (same uses as the bool_k pass); a non-literal default, shadowing or closure keeps `Value`.
- */
-function rustBool2LocalOptionBool(content: string): string {
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool2)\(/gm;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 4) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const key1 = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const key2 = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        const defRaw = content.slice(base + spans[3][0], base + spans[3][1]).trim();
-        if (obj.length === 0 || key1.length === 0 || key2.length === 0) continue;
-        let dflt: boolean | null;
-        const dm = /^&\[Value::Bool\((true|false)\)\]$/.exec(defRaw);
-        if (defRaw === '&[]') dflt = null;
-        else if (dm !== null) dflt = dm[1] === 'true';
-        else continue;
-        const isOpt = dflt === null;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        const cmp = (eq: boolean, b: boolean): string => {
-            // `X == Some(b)` / `X != Some(b)` on Option<bool>; plain or negated `X` on bool.
-            if (isOpt) return `${name} ${eq ? '==' : '!='} Some(${b})`;
-            return (eq === b) ? name : `!${name}`;
-        };
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if ((g = /^\.as_bool\(\) (==|!=) Some\((true|false)\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: cmp(g[1] === '==', g[2] === 'true') });
-            } else if ((g = /^\.is_truthy\(\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: isOpt ? `${name} == Some(true)` : name });
-            } else if ((g = /^\s*(==|!=)\s*Value::Bool\((true|false)\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: cmp(g[1] === '==', g[2] === 'true') });
-            } else if (isOpt && (g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\s*=\s*Value::Bool\((true|false)\);/.exec(after)) !== null && /(?:^|[;{}\s])\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name} = ${isOpt ? `Some(${g[1]})` : g[1]};` });
-            } else if (!isOpt && /is_true\(&$/.test(before) && /^\)/.test(after)) {
-                continue; // `IsTruthy for &bool` is the identity
-            } else if (/\.insert\(\s*"[^"]*"(?:\.to_string\(\)|\.into\(\))?,\s*$/.test(before.slice(-80).replace(/\n/g, ' '))
-                && (g = /^(\.clone\(\))?\)/.exec(after)) !== null) {
-                // `Value::Bool` / `Option<bool>` are `Copy`: the boxed value is rebuilt at the sink.
-                edits.push({ start: abs, end: abs + name.length + g[0].length - 1, text: isOpt ? `${name}.map(Value::Bool).unwrap_or(Value::Null)` : `Value::Bool(${name})` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        const optName = 'safe_bool2_opt';
-        const typeStart = m.index + m[1].length + 'let '.length + (m[2] ?? '').length + name.length;
-        const declEdits = [
-            { start: typeStart, end: callOpen, text: `: ${isOpt ? 'Option<bool>' : 'bool'} = self.${optName}` },
-        ];
-        if (!isOpt) declEdits.push({ start: callClose, end: callClose, text: `.unwrap_or(${dflt})` });
-        const all = [...declEdits, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        for (const e of all) rewrites.push(e);
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start || a.end - b.end);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
-// ---- bool_n local -> Option<bool> ----
-/**
- * `let mut X: Value = self.safe_bool_n(obj, Value::from(vec![..]), &[..])` whose every later use is a native-able bool
- * read becomes `Option<bool>` / `bool` (same uses as the bool_k pass). Any other use or a closure keeps `Value`.
- */
-function rustBoolNLocalOptionBool(content: string): string {
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_bool_n)\(/gm;
-    const keyListRe = /^Value::from\(vec!\[Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)(?:, Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\))*\]\)$/;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 3) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        if (obj.length === 0 || keyRaw.length === 0) continue;
-        if (!keyListRe.test(keyRaw)) continue;
-        let dflt: boolean | null;
-        const dm = /^&\[Value::Bool\((true|false)\)\]$/.exec(defRaw);
-        if (defRaw === '&[]') dflt = null;
-        else if (dm !== null) dflt = dm[1] === 'true';
-        else continue;
-        const isOpt = dflt === null;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        const cmp = (eq: boolean, b: boolean): string => {
-            // `X == Some(b)` / `X != Some(b)` on Option<bool>; plain or negated `X` on bool.
-            if (isOpt) return `${name} ${eq ? '==' : '!='} Some(${b})`;
-            return (eq === b) ? name : `!${name}`;
-        };
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if ((g = /^\.as_bool\(\) (==|!=) Some\((true|false)\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: cmp(g[1] === '==', g[2] === 'true') });
-            } else if ((g = /^\.is_truthy\(\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: isOpt ? `${name} == Some(true)` : name });
-            } else if ((g = /^\s*(==|!=)\s*Value::Bool\((true|false)\)/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: cmp(g[1] === '==', g[2] === 'true') });
-            } else if (isOpt && (g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\s*=\s*Value::Bool\((true|false)\);/.exec(after)) !== null && /(?:^|[;{}\s])\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name} = ${isOpt ? `Some(${g[1]})` : g[1]};` });
-            } else if (!isOpt && /is_true\(&$/.test(before) && /^\)/.test(after)) {
-                continue; // `IsTruthy for &bool` is the identity
-            } else if (/\.insert\(\s*"[^"]*"(?:\.to_string\(\)|\.into\(\))?,\s*$/.test(before.slice(-80).replace(/\n/g, ' '))
-                && (g = /^(\.clone\(\))?\)/.exec(after)) !== null) {
-                // `Value::Bool` / `Option<bool>` are `Copy`: the boxed value is rebuilt at the sink.
-                edits.push({ start: abs, end: abs + name.length + g[0].length - 1, text: isOpt ? `${name}.map(Value::Bool).unwrap_or(Value::Null)` : `Value::Bool(${name})` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        const optName = 'safe_bool_n_opt';
-        const typeStart = m.index + m[1].length + 'let '.length + (m[2] ?? '').length + name.length;
-        const declEdits = [
-            { start: typeStart, end: callOpen, text: `: ${isOpt ? 'Option<bool>' : 'bool'} = self.${optName}` },
-        ];
-        if (!isOpt) declEdits.push({ start: callClose, end: callClose, text: `.unwrap_or(${dflt})` });
-        const all = [...declEdits, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        for (const e of all) rewrites.push(e);
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start || a.end - b.end);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
-// ---- integer2 / integer_n local -> Option<i64> ----
-// `safe_integer2` / `safe_integer_n` locals become `Option<i64>` via `*_opt` readers.
-// Pure text pass over the final Rust; relies on `From<Option<i64>> for Value` and the stubs twins.
-
-/**
- * `let [mut] X: Value = self.safe_integer2|safe_integer_n(.., &[] | &[Value::Null])` becomes
- * `Option<i64>` (`safe_integer2_opt` / `safe_integer_n_opt`) when every later use of `X` is one of:
- *   `X.clone()` -> `Value::from(X)`           `self.iso8601(X)` / `m.insert("k".to_string(), X);` sinks
- *   `X != / == Value::Null` -> `is_some()` / `is_none()`
- *   `X.as_f64() == / != Some(<n>[.0])` -> `X == / != Some(<n>)`
- *   `X = Value::Null | Value::Int(n) | self.safe_integer*(..);` -> `None` / `Some(n)` / `.as_i64()`
- * Any other use, or a second binding of the name, keeps `Value`.
- */
-function rustInt2IntNLocalOptionI64(content: string): string {
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_integer(2|_n)\(/gm;
-    const closeOf = (src: string, open: number): number => {
-        let depth = 0; let inStr = false; let esc = false; let inLine = false;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (inLine) { if (c === '\n') inLine = false; continue; }
-            if (inStr) {
-                if (esc) esc = false;
-                else if (c === '\\') esc = true;
-                else if (c === '"') inStr = false;
-                continue;
-            }
-            if (c === '"') { inStr = true; continue; }
-            if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    // Same length; string bodies, line and block comments blanked (quotes kept).
-    const mask = (src: string): string => {
-        let out = ''; let i = 0;
-        const blank = (s: string) => s.replace(/[^\n]/g, ' ');
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '/' && src[i + 1] === '*') {
-                const e = src.indexOf('*/', i + 2);
-                const stop = e < 0 ? src.length : e + 2;
-                out += blank(src.slice(i, stop)); i = stop;
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    // End of the block holding the declaration (first unmatched `}`).
-    const scopeEnd = (masked: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < masked.length; k++) {
-            if (masked[k] === '{') depth++;
-            else if (masked[k] === '}') { depth--; if (depth < 0) return k; }
-        }
-        return masked.length;
-    };
-    const splitArgs = (src: string): string[] => {
-        const out: string[] = []; let cur = ''; let depth = 0; let inStr = false; let esc = false;
-        for (const c of src) {
-            if (inStr) {
-                cur += c;
-                if (esc) esc = false;
-                else if (c === '\\') esc = true;
-                else if (c === '"') inStr = false;
-                continue;
-            }
-            if (c === '"') { inStr = true; cur += c; continue; }
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
-            cur += c;
-        }
-        out.push(cur);
-        return out;
-    };
-
-    const maskedAll = mask(content);
-    type Rw = { start: number, end: number, text: string };
-    const rewrites: Rw[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(content)) !== null) {
-        const name = m[3];
-        const isTwo = m[4] === '2';
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeOf(content, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(content.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const args = splitArgs(content.slice(callOpen + 1, callClose - 1));
-        if (args.length !== (isTwo ? 4 : 3)) continue;
-        if (!/^&\[\s*(?:Value::Null)?\s*\]$/.test(args[args.length - 1].trim())) continue;
-        const end = scopeEnd(maskedAll, stmtEnd);
-        const masked = maskedAll.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
-        if (new RegExp(`\\blet\\b[^=;\\n]*\\b${name}\\b`).test(masked)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-        const uses: Rw[] = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(masked)) !== null) {
-            const s = u.index; const e = s + name.length;
-            const after = masked.slice(e);
-            const before = masked.slice(0, s);
-            const abs = (x: number) => stmtEnd + x;
-            let g: RegExpExecArray | null;
-            if (after.startsWith('.clone()')) {
-                uses.push({ start: abs(s), end: abs(e + 8), text: `Value::from(${name})` });
-                useRe.lastIndex = e + 8;
-            } else if ((g = /^\s*(!=|==)\s*Value::Null\b/.exec(after)) !== null) {
-                uses.push({ start: abs(s), end: abs(e + g[0].length), text: `${name}.${g[1] === '!=' ? 'is_some' : 'is_none'}()` });
-                useRe.lastIndex = e + g[0].length;
-            } else if ((g = /^\.as_f64\(\)\s*(==|!=)\s*Some\((-?\d+)(?:\.0)?\)/.exec(after)) !== null) {
-                uses.push({ start: abs(s), end: abs(e + g[0].length), text: `${name} ${g[1]} Some(${g[2]})` });
-                useRe.lastIndex = e + g[0].length;
-            } else if (/self\.iso8601\($/.test(before) && after.startsWith(')')) {
-                uses.push({ start: abs(s), end: abs(e), text: `Value::from(${name})` });
-            } else if (/\bm\.insert\("[^"\n]*"\.to_string\(\),\s*$/.test(before) && after.startsWith(');')) {
-                uses.push({ start: abs(s), end: abs(e), text: `Value::from(${name})` });
-            } else if (/(?:^|[;{}])\s*$/.test(before) && (g = /^\s*=(?!=)\s*/.exec(after)) !== null) {
-                const rhsAt = stmtEnd + e + g[0].length;
-                const rhs = /^(Value::Null|Value::Int\((-?\d+)\))\s*;/.exec(content.slice(rhsAt, rhsAt + 40));
-                if (rhs !== null) {
-                    uses.push({ start: rhsAt, end: rhsAt + rhs[1].length, text: rhs[2] === undefined ? 'None' : `Some(${rhs[2]})` });
-                } else {
-                    const call = /^self\.safe_integer(?:_k|2|_n)?\(/.exec(content.slice(rhsAt, rhsAt + 30));
-                    if (call === null) { ok = false; break; }
-                    const o = rhsAt + call[0].length - 1;
-                    const c = closeOf(content, o);
-                    if (c < 0 || !/^\s*;/.test(content.slice(c, c + 3))) { ok = false; break; }
-                    const a = splitArgs(content.slice(o + 1, c - 1));
-                    const want = call[0].endsWith('2(') ? 4 : 3;
-                    if (a.length !== want || !/^&\[\s*(?:Value::Null|Value::Int\(-?\d+\))?\s*\]$/.test(a[a.length - 1].trim())) { ok = false; break; }
-                    uses.push({ start: c, end: c, text: '.as_i64()' });
-                }
-                useRe.lastIndex = e;
-            } else {
-                ok = false; break;
-            }
-        }
-        if (!ok) continue;
-        rewrites.push({ start: m.index, end: callOpen, text: content.slice(m.index, callOpen).replace(': Value =', ': Option<i64> =') + '_opt' });
-        for (const use of uses) rewrites.push(use);
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start || a.end - b.end);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    return out + content.slice(last);
-}
-
 // ---- integer local with null sinks -> Option<i64> ----
-// `safe_integer*` locals that narrowOptionalSafeLocals skips become `Option<i64>`.
+// `safe_integer*` locals the printer leaves boxed become `Option<i64>`.
 // Pure text pass over the final Rust; relies on the runtime `From<Option<i64>> for Value`.
 
 /**
@@ -6215,428 +3748,6 @@ function rustIntLocalNullSinkOptionI64(content: string): string {
         last = r.end;
     }
     return out + content.slice(last);
-}
-
-// ---- number2 local -> Option<f64> ----
-// `safe_number2` locals become `Option<f64>` via the runtime `safe_number2_opt`.
-// Pure text pass; same accepted uses as narrowOptionalSafeLocals, default none/Null only.
-
-/**
- * `let [mut] X: Value = self.safe_number2(o, k1, k2, &[] | &[Value::Null])` becomes
- * `Option<f64>` when every later use of `X` in the fn is `X != / == Value::Null`
- * (-> `is_some()` / `is_none()`) or `X.as_f64() == / != Some(<n>.0)` (-> `X == / != Some(<n>.0)`).
- * Any other use, or a second binding of the name, keeps `Value`.
- */
-function rustNumber2LocalOptionF64(content: string): string {
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_number2\(/gm;
-    const mask = (src: string): string => {
-        let out = ''; let i = 0;
-        const blank = (s: string) => s.replace(/[^\n]/g, ' ');
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '/' && src[i + 1] === '*') {
-                const e = src.indexOf('*/', i + 2);
-                const stop = e < 0 ? src.length : e + 2;
-                out += blank(src.slice(i, stop)); i = stop;
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const maskedAll = mask(content);
-    const closeOf = (masked: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < masked.length; k++) {
-            if (masked[k] === '(') depth++;
-            else if (masked[k] === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const scopeEnd = (masked: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < masked.length; k++) {
-            if (masked[k] === '{') depth++;
-            else if (masked[k] === '}') { depth--; if (depth < 0) return k; }
-        }
-        return masked.length;
-    };
-    const splitArgs = (src: string): string[] => {
-        const out: string[] = []; let cur = ''; let depth = 0; let inStr = false; let esc = false;
-        for (const c of src) {
-            if (inStr) {
-                cur += c;
-                if (esc) esc = false;
-                else if (c === '\\') esc = true;
-                else if (c === '"') inStr = false;
-                continue;
-            }
-            if (c === '"') { inStr = true; cur += c; continue; }
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
-            cur += c;
-        }
-        out.push(cur);
-        return out;
-    };
-    type Rw = { start: number, end: number, text: string };
-    const rewrites: Rw[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(content)) !== null) {
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeOf(maskedAll, callOpen);
-        if (callClose < 0 || !/^\s*;/.test(content.slice(callClose, callClose + 3))) continue;
-        const stmtEnd = callClose + /^\s*;/.exec(content.slice(callClose, callClose + 3))![0].length;
-        const args = splitArgs(content.slice(callOpen + 1, callClose - 1));
-        if (args.length !== 4 || !/^&\[\s*(?:Value::Null)?\s*\]$/.test(args[3].trim())) continue;
-        const end = scopeEnd(maskedAll, stmtEnd);
-        const masked = maskedAll.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
-        if (new RegExp(`\\blet\\b[^=;\\n]*\\b${name}\\b`).test(masked)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-        const uses: Rw[] = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(masked)) !== null) {
-            const s = u.index; const e = s + name.length;
-            const after = masked.slice(e);
-            let g: RegExpExecArray | null;
-            if ((g = /^\s*(!=|==)\s*Value::Null\b/.exec(after)) !== null) {
-                uses.push({ start: stmtEnd + s, end: stmtEnd + e + g[0].length, text: `${name}.${g[1] === '!=' ? 'is_some' : 'is_none'}()` });
-            } else if ((g = /^\.as_f64\(\)\s*(==|!=)\s*Some\((-?\d+\.0)\)/.exec(after)) !== null) {
-                uses.push({ start: stmtEnd + s, end: stmtEnd + e + g[0].length, text: `${name} ${g[1]} Some(${g[2]})` });
-            } else { ok = false; break; }
-            useRe.lastIndex = e + g[0].length;
-        }
-        if (!ok) continue;
-        rewrites.push({
-            start: m.index,
-            end: callOpen,
-            text: content.slice(m.index, callOpen).replace(': Value =', ': Option<f64> =').replace('safe_number2', 'safe_number2_opt'),
-        });
-        for (const use of uses) rewrites.push(use);
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start || a.end - b.end);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    return out + content.slice(last);
-}
-
-// ---- number2 local with Value sinks -> Option<f64> ----
-// `safe_number2` locals whose uses include Value sinks (runtime `From<Option<f64>>`).
-// Pure text pass; reuses `safe_number2_opt`; default none/Null only. Every other use keeps `Value`.
-
-/**
- * `let [mut] X: Value = self.safe_number2(o, k1, k2, &[] | &[Value::Null])` becomes `Option<f64>` when each use is
- * `X != / == Value::Null`, `X.as_f64() == / != Some(<n>.0)`, `X.clone()` (-> `Value::from(X)`), or a bare `X`
- * as the last arg of `m.insert("k".to_string(), X);` or `self.price_to_precision(<arg>, X)`.
- */
-function rustNumber2SinkLocalOptionF64R2(content: string): string {
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_number2\(/gm;
-    const mask = (src: string): string => {
-        let out = ''; let i = 0;
-        const blank = (s: string) => s.replace(/[^\n]/g, ' ');
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '/' && src[i + 1] === '*') {
-                const e = src.indexOf('*/', i + 2);
-                const stop = e < 0 ? src.length : e + 2;
-                out += blank(src.slice(i, stop)); i = stop;
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const maskedAll = mask(content);
-    const closeOf = (masked: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < masked.length; k++) {
-            if (masked[k] === '(') depth++;
-            else if (masked[k] === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const scopeEnd = (masked: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < masked.length; k++) {
-            if (masked[k] === '{') depth++;
-            else if (masked[k] === '}') { depth--; if (depth < 0) return k; }
-        }
-        return masked.length;
-    };
-    const splitArgs = (src: string): string[] => {
-        const out: string[] = []; let cur = ''; let depth = 0; let inStr = false; let esc = false;
-        for (const c of src) {
-            if (inStr) {
-                cur += c;
-                if (esc) esc = false;
-                else if (c === '\\') esc = true;
-                else if (c === '"') inStr = false;
-                continue;
-            }
-            if (c === '"') { inStr = true; cur += c; continue; }
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
-            cur += c;
-        }
-        out.push(cur);
-        return out;
-    };
-    type Rw = { start: number, end: number, text: string };
-    const rewrites: Rw[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(content)) !== null) {
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeOf(maskedAll, callOpen);
-        if (callClose < 0 || !/^\s*;/.test(content.slice(callClose, callClose + 3))) continue;
-        const stmtEnd = callClose + /^\s*;/.exec(content.slice(callClose, callClose + 3))![0].length;
-        const args = splitArgs(content.slice(callOpen + 1, callClose - 1));
-        if (args.length !== 4 || !/^&\[\s*(?:Value::Null)?\s*\]$/.test(args[3].trim())) continue;
-        const end = scopeEnd(maskedAll, stmtEnd);
-        const masked = maskedAll.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
-        if (new RegExp(`\\blet\\b[^=;\\n]*\\b${name}\\b`).test(masked)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-        const uses: Rw[] = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(masked)) !== null) {
-            const s = u.index; const e = s + name.length;
-            const after = masked.slice(e);
-            let g: RegExpExecArray | null;
-            if ((g = /^\s*(!=|==)\s*Value::Null\b/.exec(after)) !== null) {
-                uses.push({ start: stmtEnd + s, end: stmtEnd + e + g[0].length, text: `${name}.${g[1] === '!=' ? 'is_some' : 'is_none'}()` });
-            } else if ((g = /^\.as_f64\(\)\s*(==|!=)\s*Some\((-?\d+\.0)\)/.exec(after)) !== null) {
-                uses.push({ start: stmtEnd + s, end: stmtEnd + e + g[0].length, text: `${name} ${g[1]} Some(${g[2]})` });
-            } else if (after.startsWith('.clone()')) {
-                uses.push({ start: stmtEnd + s, end: stmtEnd + e + 8, text: `Value::from(${name})` });
-                useRe.lastIndex = e + 8;
-                continue;
-            } else if ((/\bm\.insert\("[^"\n]*"\.to_string\(\),\s*$/.test(masked.slice(0, s)) && after.startsWith(');')) ||
-                (/self\.price_to_precision\([^;\n]*,\s*$/.test(masked.slice(0, s)) && after.startsWith(')'))) {
-                uses.push({ start: stmtEnd + s, end: stmtEnd + e, text: `Value::from(${name})` });
-                continue;
-            } else { ok = false; break; }
-            useRe.lastIndex = e + g[0].length;
-        }
-        if (!ok) continue;
-        rewrites.push({
-            start: m.index,
-            end: callOpen,
-            text: content.slice(m.index, callOpen).replace(': Value =', ': Option<f64> =').replace('safe_number2', 'safe_number2_opt'),
-        });
-        for (const use of uses) rewrites.push(use);
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start || a.end - b.end);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue;
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    return out + content.slice(last);
-}
-
-// ---- str2 local -> Option<String> ----
-// `let [mut] X: Value = self.safe_string2(obj, k1, k2, &[..])` narrowed to `Option<String>` via `safe_string2_opt`.
-// Uses and sinks as in narrowStrNullLocals; default `&[]` or a `Value::Str` literal.
-
-function rustStr2LocalOptionString(content: string): string {
-    const opt = 'safe_string2_opt';
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string2)\(/gm;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const groups: Array<{ decl: { start: number, end: number, text: string }, edits: Array<{ start: number, end: number, text: string }> }> = [];
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 4) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim() + ', '
-            + content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        const defRaw = content.slice(base + spans[3][0], base + spans[3][1]).trim();
-        if (obj.length === 0 || keyRaw.length === 0) continue;
-        // `&[]` yields `None`; a string literal default yields `Some(..)` in both forms.
-        if (defRaw !== '&[]' && !/^&\[Value::Str\("(?:[^"\\]|\\.)*"\.into\(\)\)\]$/.test(defRaw)) continue;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if ((g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null) {
-                // `Option<String>::as_deref()` is the same `Option<&str>` the boxed `as_str()` gave.
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
-            } else if (/get_value\(&$/.test(before)
-                && (g = /^, &Value::Int\(0\)\)\.as_str\(\) (==|!=) Some\("/.exec(after)) !== null) {
-                // First character probe; the char sits in the unmasked text at the same offsets.
-                const chPos = abs + name.length + g[0].length;
-                const ch = /^([^"\\])"\)/.exec(content.slice(chPos, chPos + 3));
-                if (ch === null) { ok = false; break; }
-                const probe = `${name}.as_deref().unwrap_or("").starts_with("${ch[1]}")`;
-                edits.push({ start: abs - 'get_value(&'.length, end: chPos + ch[0].length, text: g[1] === '==' ? probe : `!${probe}` });
-            } else if (/crate::runtime::stringify_param\(&$/.test(before) && /^\)/.test(after)) {
-                // The helper prints `null` for `Null` and the text for `Str`: both are `Option<String>` states.
-                const from = abs - 'crate::runtime::stringify_param(&'.length;
-                edits.push({ start: from, end: abs + name.length + 1, text: `${name}.as_deref().unwrap_or("null").to_string()` });
-            // eslint-disable-next-line no-useless-escape
-            } else if (/(?:[(,\[]\s*&?|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
-                && (g = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after)) !== null && !/==\s*$/.test(before)) {
-                // The conversion consumes the `Option`: only the last use, outside any loop, may move it.
-                const lastUse = !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(after.slice(g[0].length));
-                const inLoop = /\b(?:loop|while|for)\b/.test(body);
-                const move = lastUse && !inLoop && !/&\s*$/.test(before);
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}${move ? '' : '.clone()'}.map(Value::from).unwrap_or(Value::Null)` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        // A longer line must not newly cross 400 chars, counting growth from earlier locals.
-        const declText = `${m[1]}let ${m[2] ?? ''}${name}: Option<String> = self.${opt}(${obj}, ${keyRaw}, ${defRaw});`;
-        const all = [{ start: m.index, end: stmtEnd, text: declText }, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        groups.push({ decl: { start: m.index, end: stmtEnd, text: declText }, edits });
-    }
-    // A use that sits inside another narrowed local's initializer would be lost when that
-    // statement is reprinted from its original text: leave the used local boxed.
-    for (let again = true; again;) {
-        again = false;
-        for (let a = 0; a < groups.length; a++) {
-            const hit = groups.some((b, bi) => bi !== a
-                && groups[a].edits.some(e => e.start >= b.decl.start && e.start < b.decl.end));
-            if (hit) { groups.splice(a, 1); again = true; break; }
-        }
-    }
-    for (const gr of groups) { rewrites.push(gr.decl); for (const e of gr.edits) rewrites.push(e); }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue; // overlapping: keep the first
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
 }
 
 // ---- str literal local -> String ----
@@ -6814,168 +3925,6 @@ function rustStrLiteralLocalNativeString(content: string): string {
     return out;
 }
 
-// ---- str_n local -> Option<String> ----
-// `let [mut] X: Value = self.safe_string_n(obj, keys, &[..])` narrowed to `Option<String>` via `safe_string_n_opt`.
-// Uses and sinks as in the str2 pass; default `&[]` or a `Value::Str` literal.
-
-function rustStrNLocalOptionString(content: string): string {
-    const opt = 'safe_string_n_opt';
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string_n)\(/gm;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const groups: Array<{ decl: { start: number, end: number, text: string }, edits: Array<{ start: number, end: number, text: string }> }> = [];
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const name = m[3];
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const stmtEnd = callClose + tail[0].length;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 3) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        if (obj.length === 0 || !/^Value::from\(vec!\[[^\]]*\]\)$/.test(keyRaw)) continue;
-        // `&[]` yields `None`; a string literal default yields `Some(..)` in both forms.
-        if (defRaw !== '&[]' && !/^&\[Value::Str\("(?:[^"\\]|\\.)*"\.into\(\)\)\]$/.test(defRaw)) continue;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if ((g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null) {
-                // `Option<String>::as_deref()` is the same `Option<&str>` the boxed `as_str()` gave.
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
-            } else if (/get_value\(&$/.test(before)
-                && (g = /^, &Value::Int\(0\)\)\.as_str\(\) (==|!=) Some\("/.exec(after)) !== null) {
-                // First character probe; the char sits in the unmasked text at the same offsets.
-                const chPos = abs + name.length + g[0].length;
-                const ch = /^([^"\\])"\)/.exec(content.slice(chPos, chPos + 3));
-                if (ch === null) { ok = false; break; }
-                const probe = `${name}.as_deref().unwrap_or("").starts_with("${ch[1]}")`;
-                edits.push({ start: abs - 'get_value(&'.length, end: chPos + ch[0].length, text: g[1] === '==' ? probe : `!${probe}` });
-            } else if (/crate::runtime::stringify_param\(&$/.test(before) && /^\)/.test(after)) {
-                // The helper prints `null` for `Null` and the text for `Str`: both are `Option<String>` states.
-                const from = abs - 'crate::runtime::stringify_param(&'.length;
-                edits.push({ start: from, end: abs + name.length + 1, text: `${name}.as_deref().unwrap_or("null").to_string()` });
-            // eslint-disable-next-line no-useless-escape
-            } else if (/(?:[(,\[]\s*&?|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
-                && (g = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after)) !== null && !/==\s*$/.test(before)) {
-                // The conversion consumes the `Option`: only the last use, outside any loop, may move it.
-                const lastUse = !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(after.slice(g[0].length));
-                const inLoop = /\b(?:loop|while|for)\b/.test(body);
-                const move = lastUse && !inLoop && !/&\s*$/.test(before);
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}${move ? '' : '.clone()'}.map(Value::from).unwrap_or(Value::Null)` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        // A longer line must not newly cross 400 chars, counting growth from earlier locals.
-        const declText = `${m[1]}let ${m[2] ?? ''}${name}: Option<String> = self.${opt}(${obj}, ${keyRaw}, ${defRaw});`;
-        const all = [{ start: m.index, end: stmtEnd, text: declText }, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        groups.push({ decl: { start: m.index, end: stmtEnd, text: declText }, edits });
-    }
-    // A use that sits inside another narrowed local's initializer would be lost when that
-    // statement is reprinted from its original text: leave the used local boxed.
-    for (let again = true; again;) {
-        again = false;
-        for (let a = 0; a < groups.length; a++) {
-            const hit = groups.some((b, bi) => bi !== a
-                && groups[a].edits.some(e => e.start >= b.decl.start && e.start < b.decl.end));
-            if (hit) { groups.splice(a, 1); again = true; break; }
-        }
-    }
-    for (const gr of groups) { rewrites.push(gr.decl); for (const e of gr.edits) rewrites.push(e); }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue; // overlapping: keep the first
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
 // ---- index ----
 // Rust final-text passes that ccxt's build script runs over the generated Rust after its own post-passes. They are
 // pure `string -> string` functions: the build script owns the ORDER (it interleaves them with its own passes).
@@ -7127,8 +4076,8 @@ const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
 
-// Cargo feature that gates a transpiled Core in ccxt-base. Shared with
-// build/generateRustWrappers.ts, which emits the matching [features] entries.
+// Cargo feature that gates a transpiled exchange in ccxt-base; `writeCargoFeatures`
+// emits the matching [features] entries.
 export function rustFeatureName (id: string, prediction = false): string {
     return prediction ? `prediction-${id}` : id;
 }
@@ -7176,7 +4125,15 @@ export class RustTranspilerBuilder {
     getTranspilerConfig() {
         return {
             verbose: false,
-            rust: {},
+            // Unified methods whose core signature is typed (`&str`/`Option<i64>`/`Params` -> `Result<T>`).
+            rust: { typedUnified: ['loadMarkets', 'market', 'setSandboxMode', 'fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance', 'fetchDeposits', 'fetchWithdrawals', 'fetchDepositsWithdrawals', 'fetchTransactions', 'fetchDepositAddress', 'fetchDepositAddresses', 'withdraw', 'transfer', 'fetchTransfers', 'fetchLedger', 'fetchTradingFee', 'fetchTradingFees', 'fetchDepositWithdrawFees',
+                'fetchFundingRate', 'fetchFundingRates', 'fetchFundingRateHistory', 'fetchFundingHistory', 'fetchLeverage', 'fetchLeverages', 'setLeverage', 'setMarginMode', 'fetchMarginMode', 'fetchMarginModes', 'addMargin', 'reduceMargin', 'fetchOpenInterest', 'fetchOpenInterestHistory', 'fetchMarkPrice', 'fetchMarkPrices', 'fetchLiquidations', 'fetchMyLiquidations', 'fetchPositionsHistory', 'closePosition', 'closeAllPositions', 'fetchLeverageTiers', 'fetchMarketLeverageTiers', 'fetchGreeks', 'fetchOption', 'fetchOptionChain', 'fetchBidsAsks', 'fetchLastPrices', 'fetchStatus', 'fetchTime',
+                'watchTradesForSymbols', 'watchOrderBookForSymbols', 'watchOHLCVForSymbols', 'watchMyTrades', 'watchMyTradesForSymbols', 'watchOrdersForSymbols', 'watchPositions', 'watchPositionForSymbols', 'watchPosition', 'watchBidsAsks', 'watchLiquidations', 'watchLiquidationsForSymbols', 'watchMyLiquidations', 'watchMyLiquidationsForSymbols', 'watchFundingRate', 'watchFundingRates', 'watchFundingRatesForSymbols', 'watchMarkPrice', 'watchMarkPrices', 'unWatchBidsAsks', 'unWatchFundingRate', 'unWatchFundingRates', 'unWatchMarkPrice', 'unWatchMarkPrices', 'unWatchMyTrades', 'unWatchOHLCV', 'unWatchOHLCVForSymbols', 'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders', 'unWatchPositions', 'unWatchTicker', 'unWatchTickers', 'unWatchTrades', 'unWatchTradesForSymbols', 'cancelAllOrdersWs', 'cancelOrderWs', 'createOrderWs', 'editOrderWs', 'fetchBalanceWs', 'fetchClosedOrdersWs', 'fetchCurrenciesWs', 'fetchDepositsWs', 'fetchMarketsWs', 'fetchMyTradesWs', 'fetchOHLCVWs', 'fetchOpenOrdersWs', 'fetchOrderBookWs', 'fetchOrdersByStatusWs', 'fetchOrdersWs', 'fetchOrderWs', 'fetchPositionsForSymbolWs', 'fetchPositionsWs', 'fetchPositionWs', 'fetchTickersWs', 'fetchTickerWs', 'fetchTradesWs', 'fetchTradingFeesWs', 'fetchWithdrawalsWs', 'fetchEvents', 'fetchEvent', 'fetchSettlements',
+                'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrders', 'fetchCanceledAndClosedOrders', 'fetchOrderTrades', 'cancelOrders', 'createOrders', 'editOrders', 'createLimitOrder', 'createMarketOrder', 'createLimitBuyOrder', 'createLimitSellOrder', 'createMarketBuyOrder', 'createMarketSellOrder', 'createMarketOrderWithCost', 'createMarketBuyOrderWithCost', 'createMarketSellOrderWithCost', 'createPostOnlyOrder', 'createReduceOnlyOrder', 'createStopOrder', 'createStopLimitOrder', 'createStopMarketOrder', 'createStopLossOrder', 'createTakeProfitOrder', 'createTriggerOrder', 'createTrailingAmountOrder', 'createTrailingPercentOrder', 'createOrderWithTakeProfitAndStopLoss', 'createTwapOrder',
+                'fetchAccounts', 'fetchCrossBorrowRates', 'fetchIsolatedBorrowRates', 'fetchFundingIntervals', 'createDepositAddress', 'setMargin', 'fetchLongShortRatio', 'fetchLongShortRatioHistory', 'fetchMarginAdjustmentHistory', 'fetchDepositAddressesByNetwork', 'fetchOpenInterests', 'repayCrossMargin', 'repayIsolatedMargin', 'borrowCrossMargin', 'borrowIsolatedMargin', 'borrowMargin', 'repayMargin', 'fetchSpotOHLCV', 'fetchContractOHLCV', 'fetchBorrowInterest', 'fetchLedgerEntry', 'fetchPartialBalance', 'fetchFreeBalance', 'fetchUsedBalance', 'fetchTotalBalance', 'fetchDepositWithdrawFee', 'fetchCrossBorrowRate', 'fetchIsolatedBorrowRate', 'fetchSpotTickers', 'fetchContractTickers', 'fetchOrderBooks', 'createConvertTrade', 'fetchConvertTrade', 'fetchConvertTradeHistory', 'fetchPositionMode', 'fetchADLRank', 'fetchPositionsADLRank', 'fetchPositionADLRank', 'createSpotOrders', 'createContractOrders', 'cancelSpotOrder', 'cancelContractOrder', 'cancelAllSpotOrders', 'cancelAllContractOrders', 'cancelOrdersForSymbols', 'fetchAllGreeks', 'fetchConvertQuote', 'fetchContractDepositAddress', 'fetchConvertCurrencies', 'fetchFundingInterval', 'fetchMarkOHLCV', 'fetchIndexOHLCV', 'fetchPremiumIndexOHLCV', 'fetchTransfer', 'fetchPositionHistory', 'fetchPositionsRisk', 'fetchPositionsForSymbol', 'fetchL3OrderBook', 'editLimitBuyOrder', 'editLimitSellOrder', 'editLimitOrder', 'editOrderWithClientOrderId', 'fetchOrderWithClientOrderId', 'fetchOrderStatus', 'fetchUnifiedOrder', 'cancelOrderWithClientOrderId', 'cancelOrdersWithClientOrderIds', 'cancelUnifiedOrder', 'createOrdersWs', 'cancelOrdersWs', 'withdrawWs', 'createLimitOrderWs', 'createMarketOrderWs', 'createLimitBuyOrderWs', 'createLimitSellOrderWs', 'createMarketBuyOrderWs', 'createMarketSellOrderWs', 'createMarketOrderWithCostWs', 'createPostOnlyOrderWs', 'createReduceOnlyOrderWs', 'createStopOrderWs', 'createStopLimitOrderWs', 'createStopMarketOrderWs', 'createStopLossOrderWs', 'createTakeProfitOrderWs', 'createTriggerOrderWs', 'createTrailingAmountOrderWs', 'createTrailingPercentOrderWs', 'createOrderWithTakeProfitAndStopLossWs'],
+                // base methods that ask the derived exchange first, and those printed with an `X_non_virtual` body
+                virtualDispatch: this.traitMethodSignatures(), nonVirtualShims: [ ...this.superShimmedVirtualMethods() ], lentSlots: [ ...this.lentTraitSlots() ],
+                errorClassesWithSubclasses: [ ...this.errorClassesWithSubclassesSet() ] },
         };
     }
 
@@ -7188,82 +4145,6 @@ export class RustTranspilerBuilder {
             text = text.replace(rx, replacement);
         }
         return text;
-    }
-
-    /**
-     * Apply a regex.replace() ONLY to portions of `text` that aren't
-     * inside a string literal, char literal, or line/block comment.
-     * Avoids the trap where rewrites like "OrderNotFound → Value::Str(...)"
-     * end up nested inside a "OrderNotFound" string-key, breaking syntax.
-     */
-    replaceOutsideStrings(text: string, rx: RegExp, replacer: any): string {
-        const segments: string[] = [];
-        let buf = '';
-        let i = 0;
-        const n = text.length;
-        const flush = () => {
-            if (buf) {
-                segments.push(buf.replace(rx, replacer));
-                buf = '';
-            }
-        };
-        while (i < n) {
-            const ch = text[i];
-            // Line comment
-            if (ch === '/' && text[i + 1] === '/') {
-                flush();
-                let j = i;
-                while (j < n && text[j] !== '\n') j++;
-                segments.push(text.slice(i, j));
-                i = j;
-                continue;
-            }
-            // Block comment
-            if (ch === '/' && text[i + 1] === '*') {
-                flush();
-                let j = i + 2;
-                while (j < n && !(text[j] === '*' && text[j + 1] === '/')) j++;
-                j = Math.min(j + 2, n);
-                segments.push(text.slice(i, j));
-                i = j;
-                continue;
-            }
-            // String literal
-            if (ch === '"') {
-                flush();
-                let j = i + 1;
-                while (j < n && text[j] !== '"') {
-                    if (text[j] === '\\') j++;
-                    j++;
-                }
-                j = Math.min(j + 1, n);
-                segments.push(text.slice(i, j));
-                i = j;
-                continue;
-            }
-            // Char literal vs lifetime
-            if (ch === '\'') {
-                // Look ahead for a closing ' (char literal) within ~4 chars
-                let j = i + 1;
-                if (text[j] === '\\') {
-                    j += 2;
-                    while (j < n && text[j] !== '\'' && j - i < 8) j++;
-                } else {
-                    j += 1;
-                }
-                if (text[j] === '\'') {
-                    flush();
-                    segments.push(text.slice(i, j + 1));
-                    i = j + 1;
-                    continue;
-                }
-                // It's a lifetime — flow through as code.
-            }
-            buf += ch;
-            i++;
-        }
-        flush();
-        return segments.join('');
     }
 
 
@@ -7279,11 +4160,21 @@ export class RustTranspilerBuilder {
     // mutated via `add_element_to_object`/`set_value`, append a
     // `set_value(&mut ARR, &IDX, local)` write-back after the last such
     // contiguous mutation so `ARR` reflects it.
+    // The nearest `fn` above line `at` declares `name` as a typed literal map (`IndexMap<String, Value>`).
+    rustTypedLiteralMapBefore(lines: string[], at: number, name: string): boolean {
+        const decl = new RegExp(`^\\s*let mut ${name}: indexmap::IndexMap<String, Value> = \\(\\{$`);
+        for (let k = at - 1; k >= 0; k--) {
+            if (decl.test(lines[k])) return true;
+            if (/^\s*(?:pub )?(?:async )?fn /.test(lines[k])) return false;
+        }
+        return false;
+    }
+
     writeBackIndexedMutations(content: string): string {
         const lines = content.split('\n');
         const out: string[] = [];
         // the bind is the helper call or the printer's native dict read of the same container/key
-        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\));\s*$/;
+        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)|([a-zA-Z_]\w*)\.get\(([a-zA-Z_]\w*)\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)|get_value\(&([a-zA-Z_]\w*), &Value::Int\(([a-zA-Z_]\w*)\)\));\s*$/;
         let i = 0;
         while (i < lines.length) {
             const m = lines[i].match(bindRe);
@@ -7295,10 +4186,13 @@ export class RustTranspilerBuilder {
             // safety gate: a plain field *read* isn't followed by a mutation of
             // the local, so it gets no (wrong) write-back — the earlier
             // single-letter-index restriction was therefore unnecessary.
-            if (m && (m[3] ?? m[5] ?? m[7]) !== 'self') {
+            // (a typed literal map `IndexMap<String, Value>` reads `C.get(K.as_str()..)` and takes `set_value`'s plain-map insert)
+            const typedMap = m !== null && m[9] !== undefined && this.rustTypedLiteralMapBefore(lines, i, m[9]);
+            // (a typed `i64` loop counter keys the helper as `&Value::Int(i)`: the same `Int` the `Value` counter held)
+            if (m && (m[3] ?? m[5] ?? m[7] ?? m[11] ?? (typedMap ? m[9] : 'self')) !== 'self') {
                 const [, indent, local] = m;
-                const arr = m[3] ?? m[5] ?? m[7];
-                const idx = m[4] ?? m[6] ?? m[8];
+                const arr = m[3] ?? m[5] ?? m[7] ?? m[11] ?? m[9];
+                const idx = m[4] ?? m[6] ?? m[8] ?? (m[12] !== undefined ? `Value::Int(${m[12]})` : m[10]);
                 out.push(lines[i]);
                 let j = i + 1;
                 const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value|append_to_array)\\(&mut ${local}[,)]`);
@@ -7309,7 +4203,7 @@ export class RustTranspilerBuilder {
                     j++;
                 }
                 if (mutated) {
-                    out.push(`${indent}crate::set_value(&mut ${arr}, &${idx}, ${local}.clone());`);
+                    out.push(m[9] !== undefined ? `${indent}if let Some(__k) = ${idx}.as_str() { ${arr}.insert(__k.to_string(), ${local}.clone()); }` : `${indent}crate::set_value(&mut ${arr}, &${idx}, ${local}.clone());`);
                     i = j;
                     continue;
                 }
@@ -7370,49 +4264,6 @@ export class RustTranspilerBuilder {
             const valueArg = inner.slice(gvEndRel + 1).replace(/^,\s*/, '');
             out += `crate::runtime::append_to_object_array(&mut ${objArg}, ${keyArg}, ${valueArg})`;
             idx = appEnd + 1;
-        }
-        return out;
-    }
-
-    /**
-     * Wrap an error constructor that appears directly as a `&[Value]` slice
-     * element in `Value::from(...)`.
-     *
-     * `crate::exchange_errors::x(...)` returns a typed `ExchangeError`, which
-     * is what a `panic!` site wants, but a slice element has to be a `Value` —
-     * `client.reject(&[crate::exchange_errors::exchange_error(...)])` otherwise
-     * fails to compile with "expected `Value`, found `ExchangeError`".
-     *
-     * Anchored on `&[` immediately preceding the constructor: that is the value
-     * position. Deliberately does NOT match a `, `-preceded occurrence, which is
-     * the `panic!("{}", crate::exchange_errors::…)` throw form that must stay a
-     * typed error.
-     */
-    wrapInlineErrorsInValueSlices(content: string): string {
-        const marker = '&[crate::exchange_errors::';
-        let out = '';
-        let i = 0;
-        while (true) {
-            const p = content.indexOf(marker, i);
-            if (p < 0) { out += content.slice(i); break; }
-            // Balance-parse the constructor's argument list.
-            const openParen = content.indexOf('(', p + marker.length);
-            if (openParen < 0) { out += content.slice(i); break; }
-            let depth = 0, j = openParen, inStr = false, esc = false;
-            for (; j < content.length; j++) {
-                const c = content[j];
-                if (esc) { esc = false; continue; }
-                if (c === '\\' && inStr) { esc = true; continue; }
-                if (c === '"') { inStr = !inStr; continue; }
-                if (inStr) continue;
-                if (c === '(') depth++;
-                else if (c === ')') { depth--; if (depth === 0) break; }
-            }
-            if (j >= content.length) { out += content.slice(i); break; }
-            const callStart = p + 2; // past the `&[`
-            out += content.slice(i, callStart);
-            out += `Value::from(${content.slice(callStart, j + 1)})`;
-            i = j + 1;
         }
         return out;
     }
@@ -8005,7 +4856,7 @@ export class RustTranspilerBuilder {
                 'pub async fn $1(&mut self)'],
 
             // Specific sync methods known to mutate self.
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string|sign|handle_errors)\(&self,/g,
                 'pub fn $1(&mut self,'],
             [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce)\(&self\)/g,
                 'pub fn $1(&mut self)'],
@@ -8105,32 +4956,7 @@ export class RustTranspilerBuilder {
                 (_: string, indent: string, n: string, e: string) =>
                     `${indent}${n} = Value::Bool(${e});`],
 
-            // `<LHS> = <ident>;` — RHS is a bare local. Clone it so the
-            // original remains usable. (Allows trailing whitespace/comment.)
-            [/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*;/gm,
-                (_: string, indent: string, lhs: string, rhs: string) => {
-                    if (rhs === 'self' || rhs === 'true' || rhs === 'false') return _;
-                    return `${indent}${lhs} = ${rhs}.clone();`;
-                }],
 
-            // `let mut X: Value = <ident>;` — RHS is a bare local. Clone.
-            [/^(\s*)let\s+mut\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*;$/gm,
-                (_: string, indent: string, lhs: string, rhs: string) => {
-                    if (rhs === 'self' || rhs === 'true' || rhs === 'false') return _;
-                    return `${indent}let mut ${lhs}: Value = ${rhs}.clone();`;
-                }],
-
-
-            // `set_value(...)`, `append_to_array(...)`, and
-            // `add_element_to_object(...)` take the value arg by move.
-            // A bare-identifier final arg moves the local out, breaking
-            // any later use (apex `timeStamp`, coinbaseexchange/
-            // krakenfutures/poloniex `trade`). Clone it.
-            [/\b((?:set_value|append_to_array|add_element_to_object)\([^;]*?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)(\s*;)/g,
-                (whole: string, prefix: string, ident: string, tail: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone())${tail}`;
-                }],
 
             // Paren-wrapped bool RHS in plain assignment: `X = (is_Y(...));`
             // (allows trailing whitespace/comments on the same line)
@@ -8139,39 +4965,7 @@ export class RustTranspilerBuilder {
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
 
-            // (Auto-clone in `Value::Array(vec![...])` is done by the
-            // paren-balanced `cloneInArrayLiterals` walker below; running a
-            // regex here doesn't see nested parens correctly.)
 
-            // Auto-clone simple identifier args inside `&[...]` slice
-            // literals in CALL-ARGUMENT position. Allow Value::X inside the
-            // bracket so calls like `&[id, Value::Null, marketType]` work.
-            //   foo(x, &[market, Value::Null, params])
-            //     → foo(x, &[market.clone(), Value::Null, params.clone()])
-            [/([,(])\s*&\[([a-zA-Z_][a-zA-Z0-9_:, .]*?)\]/g,
-                (_: string, prefix: string, inside: string) => {
-                    if (inside.includes('(') || inside.includes(')')) {
-                        // Skip slices that contain nested call expressions;
-                        // those need paren-balanced parsing we don't have here.
-                        return `${prefix} &[${inside}]`;
-                    }
-                    const parts = inside.split(',').map(s => s.trim());
-                    const out = parts.map(p =>
-                        /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(p) && p !== 'self'
-                            ? `${p}.clone()` : p
-                    ).join(', ');
-                    return `${prefix} &[${out}]`;
-                }],
-
-            // Auto-clone simple identifier values in `m.insert(...)` calls
-            // (inside `Value::Map { ... }` builders). The same local is
-            // often inserted under multiple keys; the first insert moves it.
-            //   m.insert("X", marketId); → m.insert("X", marketId.clone());
-            [/(\bm\.insert\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
 
 
@@ -8549,7 +5343,8 @@ export class RustTranspilerBuilder {
         for (let li = 0; li < lines.length; li++) {
             const line = lines[li];
             // Find outer `self.<X>(` where X looks WS-mut-ish.
-            const m = line.match(/^(\s*)(.*?)(self\.\w+\()/);
+            // (a lifted trait override is called through its trait path, receiver first)
+            const m = line.match(/^(\s*)(.*?)(self\.\w+\(|<Self as crate::exchange::DerivedExchange>::\w+\(self, )/);
             if (!m || !mutMethods.test(line)) { out.push(line); continue; }
             // Walk to balanced close-paren of the outer call. If the
             // line itself isn't balanced, accumulate subsequent lines
@@ -8589,7 +5384,7 @@ export class RustTranspilerBuilder {
             // the outer `&mut self` call.
             const hoists: { start: number; end: number; tmp: string }[] = [];
             // Pattern 1: `self.<method>(…)`.
-            const subRe = /\bself\.(\w+)\(/g;
+            const subRe = /\bself\.(\w+)\(|<Self as crate::exchange::DerivedExchange>::(\w+)\(/g;
             let subMatch: RegExpExecArray | null;
             while ((subMatch = subRe.exec(args)) !== null) {
                 const s = subMatch.index;
@@ -8782,6 +5577,7 @@ export class RustTranspilerBuilder {
             // WS Client / handler infra
             'client', 'get_listen_key', 'spawn', 'delay',
             'fetch_rest_order_book_safe',
+            ...this.mutReceiverTraitMethods(),
         ]);
         if (extraMutSeeds) {
             for (const name of extraMutSeeds) mutSet.add(name);
@@ -8802,13 +5598,8 @@ export class RustTranspilerBuilder {
             // handle_* cache handlers (and the dispatch entry points) so their
             // writes persist. Gated to WS so the REST/prediction transpile — and
             // its long-green output — is byte-for-byte unchanged.
-            // handle_errors is the one `&self` virtual where venues persist session state read
-            // from the response headers (grvt stores its auth cookie / account id in
-            // this.options there). Promote it when it writes a self field so those writes are
-            // not cloned away; the DerivedExchange forwarder already casts for mut virtuals.
             const seeded = directMutRe.test(body)
-                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)))
-                || (f.name === 'handle_errors' && refMutRe.test(body));
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
@@ -8879,25 +5670,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-
-    /**
-     * The ast printer emits a TS `while (true)` as `while (true) { … }`, which
-     * trips rustc's built-in `while_true` lint ("denote infinite loops with
-     * `loop { ... }`"). CI's clippy lane runs `cargo clippy … -- -D warnings`,
-     * so a single site fails the whole lane. Emit the `loop {` rustc asks for:
-     * every generated infinite loop leaves through `break`, so the two forms
-     * are equivalent.
-     *
-     * Applied to file text (strings / comments masked), so a `while (true)`
-     * inside a literal or a doc comment is left alone.
-     */
-    whileTrueToLoop(content: string): string {
-        return this.replaceOutsideStrings(
-            content,
-            /\bwhile\s*\(\s*true\s*\)\s*\{/g,
-            'loop {',
-        );
-    }
 
     /**
      * Walks every `pub fn <name>(` body (brace-balanced) and, if the body
@@ -9040,7 +5812,11 @@ export class RustTranspilerBuilder {
             const isVoid = enclosingVoid !== null ? enclosingVoid : this.isEnclosingFnVoid(content, idx);
             // Recurse so nested try/catch in either body is handled too.
             let tryBody     = this.rewriteTryCatchAsync(inner, isVoid);
-            const catchPart = this.rewriteTryCatchAsync(catchBody, isVoid);
+            // The printer marks a binding read only as an error object: a typed `CaughtError`.
+            const caught = catchBody.startsWith(' /* CaughtError */');
+            const errType = caught ? 'crate::error::CaughtError' : 'Value';
+            const errInit = caught ? 'crate::error::CaughtError::from_panic(_try_err)' : 'panic_to_value(_try_err)';
+            const catchPart = this.rewriteTryCatchAsync(caught ? catchBody.slice(' /* CaughtError */'.length) : catchBody, isVoid);
             // A handler that never reads its binding needs no `Value` payload:
             // `Err(_)` / `is_err()` are native, so the helper call disappears
             // Bindings the body does read keep `panic_to_value`.
@@ -9076,7 +5852,7 @@ export class RustTranspilerBuilder {
                 out += `{${tryBody}}`;
             } else {
                 const errArm = errUsed
-                    ? `Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} }`
+                    ? `Err(_try_err) => { let ${errName}: ${errType} = ${errInit}; ${catchPart} }`
                     : `Err(_) => { ${catchPart} }`;
                 // The catch binding is the panic payload (`Box<dyn Any>`);
                 // convert it to a `Value` so the catch body (which treats
@@ -9113,7 +5889,7 @@ export class RustTranspilerBuilder {
                     out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } ${errArm} }`;
                 } else {
                     const catchHead = errUsed
-                        ? `if let Err(_try_err) = _try_result { let ${errName}: Value = panic_to_value(_try_err);`
+                        ? `if let Err(_try_err) = _try_result { let ${errName}: ${errType} = ${errInit};`
                         : `if _try_result.is_err() {`;
                     out += `${catchHead}${catchPart}}`;
                 }
@@ -9484,6 +6260,10 @@ export class RustTranspilerBuilder {
     private errorClassesWithSubclasses: Set<string> | undefined;
 
     errorClassHasSubclass(className: string): boolean {
+        return this.errorClassesWithSubclassesSet().has(className);
+    }
+
+    errorClassesWithSubclassesSet(): Set<string> {
         if (this.errorClassesWithSubclasses === undefined) {
             const withSubclasses = new Set<string>();
             const walk = (node: any): void => {
@@ -9497,7 +6277,7 @@ export class RustTranspilerBuilder {
             walk(errorHierarchy);
             this.errorClassesWithSubclasses = withSubclasses;
         }
-        return this.errorClassesWithSubclasses.has(className);
+        return this.errorClassesWithSubclasses;
     }
 
     /**
@@ -9927,189 +6707,6 @@ export class RustTranspilerBuilder {
         return this.applyRewrites(content, rewrites);
     }
 
-    /**
-     * Types `let [mut] X: Value = self.safe_number[_k](…)` /
-     * `self.safe_integer[_k](…)` as `Option<f64>` / `Option<i64>` when every
-     * later use of `X` in the enclosing fn is one of the two Option-native
-     * shapes: a `Value::Null` test (`X != Value::Null` -> `X.is_some()`) or an
-     * `X.as_f64() [!=]= Some(<integral literal>)` comparison. Both readers
-     * return a `Value::Float`/`Value::Int` or their `Value::Null`/numeric
-     * default, so the `Option` carries the same value with `None` for `Null`
-     * (`as_f64()`/`as_i64()` on those two variants is exact).
-     *
-     * Rejected (kept as `Value`): any other use — `.clone()` into a `Value`
-     * slot, arithmetic, `return X`, `is_true(&X)` — and any later write of a
-     * different printed type (`X = Value::Null`), per the D2 rule: typing a
-     * local whose every sink re-boxes it only moves the boxing to the use
-     * site. A non-literal or non-numeric default (`&[until.clone()]`,
-     * `Value::Str(…)`) is rejected too: the default flows into the local as a
-     * `Value` the `Option` accessor would drop.
-     *
-     * The scan is scoped to the enclosing fn by brace depth and masks string
-     * literals + line comments, so map keys never count as uses. A nested
-     * `let`/`for`/`fn`/closure binding of the same name rejects the site (the
-     * scan cannot tell the two apart). Idempotent.
-     */
-    narrowOptionalSafeLocals(content: string): string {
-        const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_(number|integer)(_k)?\(/gm;
-        // Index just past the `)` matching the `(` at `open`, string/comment aware.
-        const closeOf = (src: string, open: number): number => {
-            let depth = 0; let inStr = false; let esc = false; let inLine = false;
-            for (let k = open; k < src.length; k++) {
-                const c = src[k];
-                if (inLine) { if (c === '\n') inLine = false; continue; }
-                if (inStr) {
-                    if (esc) esc = false;
-                    else if (c === '\\') esc = true;
-                    else if (c === '"') inStr = false;
-                    continue;
-                }
-                if (c === '"') { inStr = true; continue; }
-                if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
-                if (c === '(') depth++;
-                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-            }
-            return -1;
-        };
-        // End of the enclosing fn body: from `from`, walk braces until the
-        // depth goes below zero (the fn's closing `}`).
-        const scopeEnd = (src: string, from: number): number => {
-            let depth = 0; let inStr = false; let esc = false; let inLine = false;
-            for (let k = from; k < src.length; k++) {
-                const c = src[k];
-                if (inLine) { if (c === '\n') inLine = false; continue; }
-                if (inStr) {
-                    if (esc) esc = false;
-                    else if (c === '\\') esc = true;
-                    else if (c === '"') inStr = false;
-                    continue;
-                }
-                if (c === '"') { inStr = true; continue; }
-                if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
-                if (c === '{') depth++;
-                else if (c === '}') { depth--; if (depth < 0) return k; }
-            }
-            return src.length;
-        };
-        // Same-length copy with string bodies + line comments blanked, so an
-        // identifier scan cannot see `"k"` keys or commented-out code.
-        const mask = (src: string): string => {
-            let out = ''; let inStr = false; let esc = false; let inLine = false;
-            for (let k = 0; k < src.length; k++) {
-                const c = src[k];
-                if (inLine) { out += c === '\n' ? '\n' : ' '; if (c === '\n') inLine = false; continue; }
-                if (inStr) {
-                    out += ' ';
-                    if (esc) esc = false;
-                    else if (c === '\\') esc = true;
-                    else if (c === '"') inStr = false;
-                    continue;
-                }
-                if (c === '"') { inStr = true; out += ' '; continue; }
-                if (c === '/' && src[k + 1] === '/') { inLine = true; out += ' '; continue; }
-                out += c;
-            }
-            return out;
-        };
-        const splitArgs = (src: string): string[] => {
-            const out: string[] = []; let cur = ''; let depth = 0;
-            let inStr = false; let esc = false;
-            for (const c of src) {
-                if (inStr) {
-                    cur += c;
-                    if (esc) esc = false;
-                    else if (c === '\\') esc = true;
-                    else if (c === '"') inStr = false;
-                    continue;
-                }
-                if (c === '"') { inStr = true; cur += c; continue; }
-                if (c === '(' || c === '[' || c === '{') depth++;
-                else if (c === ')' || c === ']' || c === '}') depth--;
-                if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
-                cur += c;
-            }
-            out.push(cur);
-            return out;
-        };
-        // Ends the statement — `self.safe_number_k(a, b, &[])` and nothing else.
-        const stmtTailRe = /^\s*;/;
-
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        let m: RegExpExecArray | null;
-        while ((m = declRe.exec(content)) !== null) {
-            const name = m[3]; const isInt = m[4] === 'integer';
-            const acc = isInt ? 'i64' : 'f64';
-            const callOpen = m.index + m[0].length - 1;
-            const callClose = closeOf(content, callOpen);
-            if (callClose < 0) continue;
-            const tail = stmtTailRe.exec(content.slice(callClose, callClose + 3));
-            if (tail === null) continue;
-            const stmtEnd = callClose + tail[0].length;
-            const args = splitArgs(content.slice(callOpen + 1, callClose - 1));
-            if (args.length !== 3) continue;
-            const def = args[2].trim();
-            const defaultIsNative = /^&\[\s*\]$/.test(def)
-                || /^&\[\s*Value::Null\s*\]$/.test(def)
-                || /^&\[\s*Value::Int\(-?\d+\)\s*\]$/.test(def)
-                || (!isInt && /^&\[\s*Value::Float\(-?\d+(?:\.\d+)?\)\s*\]$/.test(def));
-            if (!defaultIsNative) continue;
-            const end = scopeEnd(content, stmtEnd);
-            const body = content.slice(stmtEnd, end);
-            const masked = mask(body);
-            // A nested binding of the same name makes the use scan ambiguous.
-            if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
-            if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
-            // The allowed shapes, with the text each one prints as.
-            const shapes: Array<{ re: RegExp, text: (g: RegExpExecArray) => string }> = [
-                { re: new RegExp(`\\b${name}\\s*!=\\s*Value::Null`, 'g'), text: () => `${name}.is_some()` },
-                { re: new RegExp(`\\b${name}\\s*==\\s*Value::Null`, 'g'), text: () => `${name}.is_none()` },
-                {
-                    re: new RegExp(`\\b${name}\\.as_f64\\(\\)\\s*(==|!=)\\s*Some\\((-?\\d+)\\.0\\)`, 'g'),
-                    text: (g) => `${name} ${g[1]} Some(${isInt ? g[2] : `${g[2]}.0`})`,
-                },
-            ];
-            const spans: Array<{ start: number, end: number, text: string }> = [];
-            const covered: Array<[number, number]> = [];
-            for (const shape of shapes) {
-                shape.re.lastIndex = 0;
-                let g: RegExpExecArray | null;
-                while ((g = shape.re.exec(masked)) !== null) {
-                    const e = g.index + g[0].length;
-                    spans.push({ start: g.index, end: e, text: shape.text(g) });
-                    covered.push([g.index, e]);
-                }
-            }
-            // Every printed use of `name` in the fn must be one of those spans.
-            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-            let ok = true;
-            let u: RegExpExecArray | null;
-            while ((u = useRe.exec(masked)) !== null) {
-                const at = u.index;
-                if (!covered.some(([s, e]) => at >= s && at < e)) { ok = false; break; }
-            }
-            if (!ok) continue;
-            rewrites.push({
-                start: m.index,
-                end: stmtEnd,
-                text: `${content.slice(m.index, callOpen).replace(': Value =', `: Option<${acc}> =`)}`
-                    + `${content.slice(callOpen, callClose)}.as_${acc}()${content.slice(callClose, stmtEnd)}`,
-            });
-            for (const sp of spans) {
-                rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
-            }
-        }
-        if (rewrites.length === 0) return content;
-        rewrites.sort((a, b) => a.start - b.start);
-        let out = ''; let last = 0;
-        for (const r of rewrites) {
-            if (r.start < last) continue; // overlapping — should not happen; keep the first
-            out += content.slice(last, r.start) + r.text;
-            last = r.end;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
 
     /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
@@ -10295,6 +6892,10 @@ export class RustTranspilerBuilder {
         // `Option` tests the narrowing passes emit are Rust `bool`s too.
         if (/^matches!\(/.test(s) || /^!\s*matches!\(/.test(s)) return true;
         if (/\.(?:is_some|is_none)\(\)$/.test(s)) return true;
+        // a typed caught error's class tests (`e.names("K")`, `e.is_instance_of("K")`)
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.(?:names|is_instance_of)\("[A-Za-z0-9_]+"\)$/.test(s)) return true;
+        // a borrowed Dict's own literal-key test (`m.contains_key("k")`, the printed `'k' in m`)
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.contains_key\("(?:[^"\\]|\\.)*"\)$/.test(s)) return true;
         return this.topLevelRustComparisonIndex(s) >= 0;
     }
 
@@ -10810,7 +7411,7 @@ export class RustTranspilerBuilder {
         const recv = m[1];
         const decls = region.match(new RegExp(`let (?:mut )?${recv}\\b`, 'g')) ?? [];
         if (decls.length !== 1) return false;
-        return new RegExp(`let (?:mut )?${recv}\\s*:\\s*Value\\s*=\\s*self\\.market\\(`).test(region);
+        return new RegExp(`let (?:mut )?${recv}\\s*:\\s*Value\\s*=\\s*(?:crate::types::IntoRaw::into_raw\\()?self\\.market\\(`).test(region);
     }
 
     /** True when a printed RHS can only evaluate to `Value::Bool(..)` / Null. */
@@ -11251,83 +7852,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    splitAddElementBorrowConflicts(content: string): string {
-        const pattern = /\badd_element_to_object\(/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            const absStart = i + m.index;
-            out += rest.slice(0, m.index);
-            const callStart = absStart + m[0].length;
-            // brace-balance
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
-            const inside = content.slice(callStart, j);
-            const args = this.splitArgs(inside) ?? [];
-            if (args.length !== 3) {
-                out += content.slice(absStart, j + 1);
-                i = j + 1;
-                continue;
-            }
-            // Extract the mutably-borrowed name from arg[0]
-            const mutMatch = args[0].match(/&mut\s+([a-zA-Z_][a-zA-Z0-9_]*)\b/);
-            if (!mutMatch) {
-                out += content.slice(absStart, j + 1);
-                i = j + 1;
-                continue;
-            }
-            const name = mutMatch[1];
-            const expr = args[2];
-            // `&mut self.<field>` mutably borrows `*self`, so the value
-            // arg conflicts if it touches `self` at all (e.g.
-            // `add_element_to_object(&mut self.options, K, self.milliseconds())`).
-            // For a `&mut <local>` the narrower clone/borrow check applies.
-            const conflicts = name === 'self'
-                ? /\bself\b/.test(expr)
-                : new RegExp(`\\b${name}\\.clone\\(\\)|&\\s*${name}\\b`).test(expr);
-            const exprTrim = expr.trim();
-            // If 3rd arg is just a bare identifier, clone it so subsequent
-            // uses of that identifier keep it alive.
-            const isBareIdent = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(exprTrim) &&
-                exprTrim !== 'self' && exprTrim !== 'true' && exprTrim !== 'false';
-            if (!conflicts && !isBareIdent) {
-                out += content.slice(absStart, j + 1);
-                i = j + 1;
-                continue;
-            }
-            const trailing = content[j + 1] === ';' ? ';' : '';
-            if (conflicts) {
-                out += `{ let __be_tmp = ${exprTrim}; add_element_to_object(${args[0]}, ${args[1]}, __be_tmp); }${trailing}`;
-            } else {
-                // Just clone the bare identifier in place.
-                out += `add_element_to_object(${args[0]}, ${args[1]}, ${exprTrim}.clone())${trailing}`;
-            }
-            i = j + 1 + trailing.length;
-        }
-        return out;
-    }
-
-
-
-
     rewriteSelfFieldMutCloneCast(content: string): string {
         return content.replace(
             /get_value_mut\(\s*&mut\s+self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*,/g,
@@ -11335,106 +7859,6 @@ export class RustTranspilerBuilder {
         );
     }
 
-
-    /**
-     * Paren-balanced walker over `&[...]` slice literals in call-arg
-     * position. Clones bare identifiers among the slice elements.
-     */
-    cloneInRefSlices(content: string): string {
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            // Look for `, &[` or `( &[` start markers.
-            const re = /[,(]\s*&\[/g;
-            re.lastIndex = i;
-            const m = re.exec(content);
-            if (!m) { out += content.slice(i); break; }
-            const matchStart = m.index;
-            const prefix = m[0][0]; // `,` or `(`
-            out += content.slice(i, matchStart);
-            out += prefix === '(' ? '(&[' : ', &[';
-            // Find the matching `]` (balance brackets/parens/braces).
-            const j = balancedCloseIndex(content, m.index + m[0].length);
-            if (j >= content.length) { out += content.slice(matchStart); break; }
-            const inside = content.slice(m.index + m[0].length, j);
-            // Recurse so nested slices get processed too.
-            const insideRec = this.cloneInRefSlices(inside);
-            const parts = this.splitArgs(insideRec) ?? [];
-            const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
-            const cloned = parts.map(p => {
-                const t = p.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self') {
-                    return `${t}.clone()`;
-                }
-                if (boolPrefix.test(t)) {
-                    return `Value::Bool(${t})`;
-                }
-                return p;
-            }).join(', ');
-            out += cloned + ']';
-            i = j + 1;
-        }
-        return out;
-    }
-
-    /**
-     * Walks `Value::Array(vec![...])` literals and clones simple identifier
-     * args (paren-balanced — handles nested calls in element positions).
-     */
-    cloneInArrayLiterals(content: string): string {
-        // The AST transpiler emits `Value::from(vec![...])` (the
-        // `From<Vec<Value>>` impl; older builds emitted the `Value::List`
-        // fn alias). Match either spelling.
-        const markers = ['Value::Array(vec![', 'Value::List(vec![', 'Value::from(vec!['];
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            // Find the nearest marker at or after `i`.
-            let idx = -1; let marker = '';
-            for (const mk of markers) {
-                const ix = content.indexOf(mk, i);
-                if (ix >= 0 && (idx === -1 || ix < idx)) { idx = ix; marker = mk; }
-            }
-            if (idx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, idx);
-            // find matching `])` (the vec!'s closing bracket)
-            let depth = 1;
-            let j = idx + marker.length;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '[' || c === '(' || c === '{') depth++;
-                    else if (c === ']' || c === ')' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx); break; }
-            // content[j] is the `]` closing the vec!, expect `)` after
-            const rawInside = content.slice(idx + marker.length, j);
-            // Recurse first so nested `Value::List(vec![…])` args have
-            // their own inner identifiers cloned before we split the
-            // outer arg list.
-            const recurInside = this.cloneInArrayLiterals(rawInside);
-            const args = this.splitArgs(recurInside) ?? [];
-            const cloned = args.map(a => {
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            // Preserve original spelling (List vs Array).
-            out += `${marker.replace(/\(vec!\[$/, '')}(vec![${cloned}])`;
-            // skip past `]` then trailing `)` of `vec!(...)`
-            i = j + 1;
-            if (content[i] === ')') i++; // outer `)` of Value::List/Array(...)
-        }
-        return out;
-    }
 
     /**
      * rust-05: brace-balanced block index of `content` — string/char/comment
@@ -11605,12 +8029,8 @@ export class RustTranspilerBuilder {
         return true;
     }
 
-    /**
-     * Walks every `self.<X>(...)` and bare-fn `ternary(...) / append_to_array(...)` calls,
-     * cloning simple-identifier args (so locals like `symbol`, `market`,
-     * `params` aren't moved into the call and remain usable on the next line).
-     * Paren-balanced parser.
-     */
+    /** Boxes a bool-helper argument of every `self.<X>(...)` / test-helper call as `Value::Bool(..)` (the
+     *  bare-local argument clones are printed by ast-transpiler). Paren-balanced parser. */
     autoCloneCallArgs(content: string): string {
         let i = 0;
         let out = '';
@@ -11638,7 +8058,6 @@ export class RustTranspilerBuilder {
             const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
             const cloned = args.map(a => {
                 const t = a.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self') return `${t}.clone()`;
                 if (boolPrefix.test(t)) return `Value::Bool(${t})`;
                 return a;
             }).join(', ');
@@ -11646,91 +8065,6 @@ export class RustTranspilerBuilder {
             i = j + 1;
         }
         return out;
-    }
-
-    /**
-     * Drop `.clone()` on the value arg of `self.extend/omit/market/parse_number`.
-     * Those callees take their `Value` argument BY VALUE (see the hand-written
-     * stubs `Exchange::extend/omit/parse_number` and the generated `market`), so
-     * the clone is only needed when the local is still read after the call —
-     * `autoCloneCallArgs` adds it unconditionally. Drop it when the name is dead
-     * after the call in the enclosing fn: the value moves instead of being
-     * copied, and `Value::clone()` is a COW refcount bump, so nothing else about
-     * the emitted program changes. Conservative — any later mention of the name
-     * (the call's own trailing `&[..]` slice included) keeps the clone.
-     */
-    dropDeadLastUseArgClones(content: string): string {
-        const callees = 'extend|omit|market|parse_number';
-        const callRe = new RegExp(`\\bself\\.(?:${callees})\\(([a-zA-Z_][a-zA-Z0-9_]*)\\.clone\\(\\)`, 'g');
-        if (!callRe.test(content)) return content;
-        callRe.lastIndex = 0;
-        // Body span of every `fn` (line-anchored so a mention inside a comment
-        // or doc block can't start a bogus span) — the "later in the same fn"
-        // test must not see a use in a following method.
-        const bodies: Array<[number, number]> = [];
-        const fnRe = /^[ \t]*(?:pub\s+)?(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*[(<]/gm;
-        let fm: RegExpExecArray | null;
-        while ((fm = fnRe.exec(content)) !== null) {
-            const open = content.indexOf('{', fm.index);
-            if (open < 0) continue;
-            bodies.push([fm.index, this.findMatchingBrace(content, open)]);
-        }
-        const bodyEndFor = (pos: number): number => {
-            for (const [a, b] of bodies) {
-                if (a <= pos && pos <= b) return b;
-            }
-            return -1;
-        };
-        // A move inside a loop is only legal when the local is re-created each
-        // iteration. If the last loop keyword before the call comes after the
-        // name's last `let` declaration, the value would be moved on a second
-        // iteration — keep the clone.
-        const loops: number[] = [];
-        {
-            const r = /\b(?:while|loop|for)\b/g;
-            let x: RegExpExecArray | null;
-            while ((x = r.exec(content)) !== null) loops.push(x.index);
-        }
-        const lastBefore = (sorted: number[], pos: number): number => {
-            let lo = 0, hi = sorted.length - 1, at = -1;
-            while (lo <= hi) {
-                const mid = (lo + hi) >> 1;
-                if (sorted[mid] < pos) { at = sorted[mid]; lo = mid + 1; } else hi = mid - 1;
-            }
-            return at;
-        };
-        const declCache = new Map<string, number[]>();
-        const declsFor = (ident: string): number[] => {
-            let v = declCache.get(ident);
-            if (!v) {
-                v = [];
-                const r = new RegExp(`\\blet\\s+(?:mut\\s+)?${ident}\\b`, 'g');
-                let x: RegExpExecArray | null;
-                while ((x = r.exec(content)) !== null) v.push(x.index);
-                declCache.set(ident, v);
-            }
-            return v;
-        };
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = callRe.exec(content)) !== null) {
-            // Never touch a call that sits in a comment.
-            const lineAt = content.lastIndexOf('\n', m.index) + 1;
-            if (content.slice(lineAt, m.index).includes('//')) continue;
-            if (content.lastIndexOf('/*', m.index) > content.lastIndexOf('*/', m.index)) continue;
-            const ident = m[1];
-            const identAt = m.index + m[0].length - ident.length - '.clone()'.length;
-            const end = bodyEndFor(m.index);
-            if (end < 0) continue;
-            const rest = content.slice(identAt + ident.length, end);
-            if (new RegExp(`(?<![A-Za-z0-9_])${ident}(?![A-Za-z0-9_])`).test(rest)) continue;
-            if (lastBefore(loops, identAt) > lastBefore(declsFor(ident), identAt)) continue;
-            out += content.slice(last, m.index) + m[0].slice(0, m[0].length - '.clone()'.length);
-            last = m.index + m[0].length;
-        }
-        if (last === 0) return content;
-        return out + content.slice(last);
     }
 
     /**
@@ -12114,8 +8448,8 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * `crate::exchanges::kucoin::KucoinCore` → `./rust/ccxt-base/src/exchanges/kucoin`
-     * `crate::pro::kucoin::KucoinCore`       → `./rust/ccxt-pro/src/pro/kucoin`
+     * `crate::exchanges::kucoin::Kucoin` → `./rust/ccxt-base/src/exchanges/kucoin`
+     * `crate::pro::kucoin::Kucoin`       → `./rust/ccxt-pro/src/pro/kucoin`
      *
      * The transpiled WS venues live in the sibling `ccxt-pro` crate, while
      * `ccxt-base/src/pro/` keeps only the hand-written infra (cache,
@@ -12169,7 +8503,7 @@ export class RustTranspilerBuilder {
                 } catch (_) { /* file may not exist (no implicit API) */ }
             }
             hops.push(defined);
-            const pm = coreSrc.match(/pub\s+parent:\s*(crate::[A-Za-z0-9_:]+Core)\b/);
+            const pm = coreSrc.match(/pub\s+parent:\s*(crate::(?:exchanges|pro|prediction)::[a-z0-9_]+::\w+)/);
             mod = pm ? pm[1] : null;
         }
         this._parentHopsCache.set(parentCore, hops);
@@ -12220,86 +8554,21 @@ export class RustTranspilerBuilder {
                     }).join('')
                   } __args }`
                 : `vec![${vecArgs.join(', ')}]`;
-            const preamble =
-                `\n        // async-virtual: try the derived exchange first\n` +
+            // a typed unified method forwards the `__args` its printed body lowered and decodes the override's result
+            const typed = /->\s*crate::Result</.test(m[0]);
+            const preamble = typed
+                ? `\n        // async-virtual: try the derived exchange first\n` +
+                  `        if let Some(__v) = self.dispatch_to_derived("${name}", __args.clone()).await {\n` +
+                  `            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }\n` +
+                  `        }`
+                : `\n        // async-virtual: try the derived exchange first\n` +
                 `        if let Some(__v) = self.dispatch_to_derived("${name}", ${vecBuild}).await {\n` +
-                `            if !matches!(__v, crate::Value::Null) { return __v; }\n` +
+                `            if !matches!(__v, crate::Value::Null) { return ${/->\s*Option<crate::types::Market>/.test(m[0]) ? 'crate::types::FromRaw::from_raw(__v)' : '__v'}; }\n` +
                 `        }\n`;
-            const matchEnd = m.index + m[0].length;
-            out += content.slice(last, matchEnd) + preamble;
-            last = matchEnd;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
-    injectVirtualDispatchPreamble(content: string): string {
-        // Methods whose param shapes match the trait signatures we declared.
-        // Each entry: name → [argNames or '@SLICE@' for variadic].
-        const traitDispatches = this.traitMethodSignatures();
-        const pattern = /\bpub(\s+async)?\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]*)\)\s*(->\s*[^\{]+?)?\s*\{/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = pattern.exec(content)) !== null) {
-            const name = m[2];
-            const sig = traitDispatches[name];
-            if (!sig) continue;
-            const retType = (m[4] || '').trim();
-            if (!/->\s*(crate::)?Value\b/.test(retType)) continue;
-            // Build the forwarding call. The trait method takes fixed-arity
-            // `Value` args; we pull them from the inherent method's params.
-            const argList = m[3];
-            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
-            // Classify each inherent param: 'value' (a fixed Value),
-            // 'slice' (the `optional_args: &[Value]` bag), or unknown.
-            type ParamInfo = { name: string, kind: 'value' | 'slice' | 'other' };
-            const paramInfo: ParamInfo[] = [];
-            for (const p of params) {
-                const nameMatch = p.match(/^(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.*)$/);
-                if (!nameMatch) { paramInfo.push({ name: '', kind: 'other' }); continue; }
-                const ty = nameMatch[3].trim();
-                let kind: 'value' | 'slice' | 'other' = 'other';
-                if (/^&\[/.test(ty))          kind = 'slice';
-                else if (/^Value\b/.test(ty)) kind = 'value';
-                paramInfo.push({ name: nameMatch[2], kind });
-            }
-            const sliceIdx = paramInfo.findIndex(p => p.kind === 'slice');
-            const sliceName = sliceIdx >= 0 ? paramInfo[sliceIdx].name : '';
-            // Map each trait arg to either a fixed inherent param
-            // (by position) or `get_arg(optional_args, k, Null)`.
-            const callArgs = sig.map((argName, i) => {
-                if (argName === '@SLICE@') {
-                    // For variadic methods, the trait takes a fixed shape;
-                    // skip preamble (don't generate forwarding here).
-                    return null;
-                }
-                const info = paramInfo[i];
-                if (info && info.kind === 'value') {
-                    return `${info.name}.clone()`;
-                }
-                // Trait arg lands past the fixed inherent params — pull
-                // it from the optional_args slice.
-                if (sliceIdx >= 0 && i >= sliceIdx) {
-                    const k = i - sliceIdx;
-                    return `crate::runtime::get_arg(${sliceName}, ${k}, crate::Value::Null)`;
-                }
-                return 'crate::Value::Null';
-            });
-            if (callArgs.includes(null)) continue;
-            // Static dispatch to the derived override — `self` is the concrete
-            // Core (Self), so this monomorphizes to its `DerivedExchange` impl
-            // (override or the trait default). No stored pointer (review #1).
-            const callExpr = `crate::exchange::DerivedExchange::${name}(self, ${callArgs.join(', ')})`;
-            const preamble =
-                `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
-                `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return __v; } }\n`;
-            if (this.superShimmedVirtualMethods().has(name)) {
-                // overrides that call super.X() reach `X_non_virtual`, so the virtual hop cannot recurse
-                const fwd = paramInfo.map(p => p.name).join(', ');
-                const wrapper = `pub fn ${name}(${argList}) ${retType} {${preamble}        self.${name}_non_virtual(${fwd})\n    }\n\n    `;
-                out += content.slice(last, m.index) + wrapper + m[0].replace(`fn ${name}(`, `fn ${name}_non_virtual(`);
-                last = m.index + m[0].length;
+            if (typed) {
+                const argsEnd = content.indexOf('\n', content.indexOf('let __args: Vec<Value>', m.index + m[0].length));
+                out += content.slice(last, argsEnd) + preamble;
+                last = argsEnd;
                 continue;
             }
             const matchEnd = m.index + m[0].length;
@@ -12313,6 +8582,39 @@ export class RustTranspilerBuilder {
     /** Trait methods whose overrides call `super.X()`; their base body is emitted as `X_non_virtual`. */
     superShimmedVirtualMethods(): Set<string> {
         return new Set([ 'market' ]);
+    }
+
+    /** Trait slots whose first parameter the hand-written `DerivedExchange` declares `impl Into<Value>`. */
+    lentTraitSlots(): Set<string> {
+        if (this._lentTraitSlots === null) {
+            const src = fs.existsSync(`${RUST_CORE}/exchange.rs`) ? fs.readFileSync(`${RUST_CORE}/exchange.rs`, 'utf8') : '';
+            const at = src.indexOf('pub trait DerivedExchange {');
+            const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}\n', at));
+            this._lentTraitSlots = new Set([...body.matchAll(/^\s*fn (\w+)\(&(?:mut )?self, \w+: impl Into<Value>/gm)].map(m => m[1]));
+        }
+        return this._lentTraitSlots;
+    }
+
+    private _lentTraitSlots: Set<string> | null = null;
+
+    /** Parameter list of the trait slot `name` as an impl prints it (a lent first slot takes `impl Into`). */
+    traitSlotParams(name: string, args: string[]): string {
+        const text = rustDispatch.slotParams(args);
+        return this.lentTraitSlots().has(name) && args.length > 0 ? text.replace(/^(\w+): crate::Value/, '$1: impl Into<crate::Value>') : text;
+    }
+
+    private _typedVirtualSlots: Map<string, { params: string, ret: string }> | null = null;
+    /** Trait slots the printed base forwards with their typed signature unchanged (`fn X(&self, P) -> crate::Result<T>`). */
+    typedVirtualSlots(): Map<string, { params: string, ret: string }> {
+        if (this._typedVirtualSlots) return this._typedVirtualSlots;
+        const slots = new Map<string, { params: string, ret: string }>();
+        let src = '';
+        try { src = fs.readFileSync(BASE_METHODS_FILE, 'utf8'); } catch (_) { /* base not generated yet */ }
+        const re = /\n    fn ([a-z_][a-z0-9_]*)\(&self, ([^)]*)\) -> (crate::Result<[^{]+>) \{\n        \/\/ virtual-dispatch \(static: DerivedExchange::\1\(self, \.\.\.\)\)\n        crate::exchange::DerivedExchange::\1\(self, /g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(src)) !== null) slots.set(m[1], { params: m[2], ret: m[3] });
+        this._typedVirtualSlots = slots;
+        return slots;
     }
 
     /**
@@ -12332,7 +8634,8 @@ export class RustTranspilerBuilder {
             parse_order:                ['order', 'market'],
             parse_market:               ['market'],
             parse_ohlcv:                ['ohlcv', 'market'],
-            parse_order_book:           ['ob', 'symbol', 'ts', 'bk', 'ak', 'pk', 'ak2', 'ck'],
+            // a `name: type` slot prints its own type: the trailing optional arguments ride as one slice
+            parse_order_book:           ['ob: impl Into<crate::Value>', 'symbol', 'optional_args: &[Value]'],
             parse_balance:              ['response'],
             parse_position:             ['position', 'market'],
             parse_funding_rate:         ['rate', 'market'],
@@ -12369,70 +8672,42 @@ export class RustTranspilerBuilder {
             parse_prediction_position:  ['position', 'market'],
             create_expired_option_market: ['symbol'],
             market:                     ['symbol'],
-            sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
+            sign:                       ['path', 'optional_args: &[Value]'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };
     }
 
     /**
-     * Scans transpiled per-exchange Rust for method signatures. Returns
-     * { name, isAsync, params } so we can emit a virtual-dispatch arm
-     * that forwards `(name, &[args])` to the typed method.
-     *
-     * Only considers `pub fn` and `pub async fn` at indented positions
-     * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
-     * and `bind`/`dispatch_virtual` we generate ourselves.
+     * The dispatchable methods of a printed file, from the printer's signature table (`rustSignatures`: parameter
+     * and return kinds per method). Only two facts come from the final text, because later passes decide them:
+     * whether the method is `async`, and whether its receiver was promoted to `&mut self`.
      */
-    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }> {
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }> = [];
-        // Match `[pub] [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`.
-        // `allowNoPub` (used only for the `ExchangeBase` trait body → its
-        // `call_dynamic_base`) makes `pub` optional because trait methods are
-        // emitted without it (review #1): otherwise base-only methods
-        // (createTakeProfitOrder, fetchPositionADLRank, …) get no dispatch arm
-        // and return Null. For per-Core content `pub` stays required so local
-        // `fn`s inside method bodies aren't picked up.
-        const pub = allowNoPub ? '(?:pub\\s+)?' : 'pub\\s+';
-        const re = new RegExp(`\\b${pub}(async\\s+)?fn\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(([^)]*)\\)\\s*(->\\s*[^\\{]+?)?\\s*\\{`, 'g');
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const isAsync = m[1] !== undefined && m[1].trim().length > 0;
-            const name = m[2];
-            const argList = m[3];
-            const retType = (m[4] || '').trim();
-            if (['new', 'bind', 'dispatch_virtual', 'super_describe', 'super_set_sandbox_mode'].includes(name)) {
-                continue;
-            }
-            // Methods returning `Value` dispatch directly. Async methods that
-            // DON'T return Value (void handlers like `handle_order_book`, which
-            // WS venues schedule via spawn/delay and then run through
-            // dispatch_to_derived → call_dynamic) must still be dispatchable —
-            // emit them with the return value discarded (see `isVoid` in the
-            // emitters). Sync non-Value methods stay out (they route through the
-            // sync dispatch_ws_handler, which already void-wraps them).
-            const isValue = /->\s*(crate::)?Value\b/.test(retType);
-            if (!isValue && !isAsync) continue;
-            const isVoid = !isValue;
-            // Skip if there's no `self` receiver.
-            if (!/\bself\b/.test(argList)) continue;
-            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
-            const paramKinds = params.map(p => {
-                if (/:\s*&\[/.test(p)) return 'slice';
-                if (mapParamKind(p) !== undefined) return 'map';
-                if (/:\s*Vec<String>/.test(p)) return 'strvec';
-                if (/:\s*Value\b/.test(p)) return 'value';
-                if (/:\s*bool\b/.test(p)) return 'bool';
-                return 'other';
-            });
+    collectExchangeMethodSignatures(table: Array<{ name: string, params: Array<{ kind: string }>, ret: string }> | undefined, content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | string }> {
+        const facts = this.receiverFacts(content, allowNoPub);
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean | string }> = [];
+        for (const sig of table ?? []) {
+            const fact = facts.get(sig.name);
+            if (fact === undefined || [ 'new', 'bind', 'dispatch_virtual', 'super_describe', 'super_set_sandbox_mode' ].includes(sig.name)) continue;
+            // a sync method dispatches only when it returns a value (sync void handlers go through dispatch_ws_handler)
+            const isValue = sig.ret === 'value';
+            // a typed or native return boxes back to `Value` once, inside the arm (`isTyped` carries the return kind)
+            const isTyped: boolean | string = sig.ret === 'typed' ? true : rustDispatch.isNativeReturn(sig.ret) ? sig.ret : false;
+            if (!isValue && !fact.isAsync && isTyped === false) continue;
+            const paramKinds = sig.params.map(p => p.kind);
             if (paramKinds.some(k => k === 'other')) continue;
-            // Receiver mutability — the DerivedExchange forwarder only needs the
-            // unsafe `&`→`&mut` cast when the inherent method really takes
-            // `&mut self`; for `&self` methods (parse_ticker/parse_market/sign/
-            // handle_errors, …) it can forward directly and soundly.
-            const isMut = /^\s*&mut\s+self\b/.test(argList);
-            out.push({ name, isAsync, paramKinds, isMut, isVoid });
+            out.push({ name: sig.name, isAsync: fact.isAsync, paramKinds, isMut: fact.isMut, isVoid: !isValue && isTyped === false, isTyped });
         }
         return out;
+    }
+
+    /** Per printed method name: its final `async` keyword and `&mut self` receiver (decided by later text passes). */
+    receiverFacts(content: string, allowNoPub = false): Map<string, { isAsync: boolean, isMut: boolean }> {
+        const facts = new Map<string, { isAsync: boolean, isMut: boolean }>();
+        const re = new RegExp(`\\b${allowNoPub ? '(?:pub\\s+)?' : 'pub\\s+'}(async\\s+)?fn\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\s*(&mut\\s+self|&self)\\b`, 'g');
+        for (const m of content.matchAll(re)) {
+            if (!facts.has(m[2])) facts.set(m[2], { isAsync: m[1] !== undefined, isMut: m[3].startsWith('&mut') });
+        }
+        return facts;
     }
 
     /**
@@ -12504,22 +8779,15 @@ export class RustTranspilerBuilder {
 `;
     }
 
-    /// Tail of a dynamic-dispatch `args` list as a slice: `&args[..]` for the
-    /// whole list, `&args[N.min(args.len())..]` for the tail. Same slice the
-    /// old `&args.get(N..).unwrap_or(&[]).to_vec()[..]` passed, without the copy.
-    dispatchSliceArg(index: number): string {
-        return index === 0 ? '&args[..]' : `&args[${index}.min(args.len())..]`;
-    }
-
     /// The prediction-only `call_dynamic_prediction_base` trait default: a
     /// `match` over prediction base method names, falling through to the
     /// Exchange `call_dynamic_base`. A prediction Core's `call_dynamic` ends
     /// with `_ => self.call_dynamic_prediction_base(method, args).await`.
-    emitCallDynamicPredictionBase(content: string): string {
-        const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
+    emitCallDynamicPredictionBase(table: any[], content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(table, content, /* allowNoPub */ true);
         // Qualify only genuinely-ambiguous names (also in ExchangeBase /
         // DerivedExchange); a bare call for a prediction-only method avoids the
-        // async-trait-fn lifetime error (E0792).
+        // async-fn-in-trait lifetime error (E0792).
         const exBase = new Set<string>();
         try {
             const src = fs.readFileSync(BASE_METHODS_FILE, 'utf8');
@@ -12529,27 +8797,14 @@ export class RustTranspilerBuilder {
         } catch (_) { /* base not generated yet */ }
         const collide = new Set([...exBase, ...Object.keys(this.traitMethodSignatures())]);
         const arms: string[] = [];
-        for (const { name, paramKinds, isAsync, isVoid } of sigs) {
+        for (const { name, paramKinds, isAsync, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
+            const callArgs = rustDispatch.args(paramKinds);
             // Every arm is a prediction base method; several override an
             // ExchangeBase method of the same name (cancel_order, create_order),
             // so always qualify to PredictionBase to avoid ambiguity (review #1).
             const recv = `<Self as crate::prediction_exchange_generated::PredictionBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`;
-            const expr = `${recv}${isAsync ? '.await' : ''}`;
+            const expr = rustDispatch.result(`${recv}${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
@@ -12570,10 +8825,10 @@ ${arms.join('\n')}
     /// method names (the async ones a core inherits, e.g.
     /// cancel_order_with_client_order_id). A core's `call_dynamic` ends with
     /// `_ => self.call_dynamic_base(method, args).await`.
-    emitCallDynamicBaseTrait(content: string): string {
-        const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
-        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[] }> = [
-            { name: 'load_markets',    isAsync: true,  paramKinds: ['slice'] },
+    emitCallDynamicBaseTrait(table: any[], content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(table, content, /* allowNoPub */ true);
+        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[], isTyped?: boolean }> = [
+            { name: 'load_markets',    isAsync: true,  paramKinds: ['flag', 'params'], isTyped: true },
             { name: 'fetch',           isAsync: true,  paramKinds: ['value', 'slice'] },
             { name: 'call_method',     isAsync: true,  paramKinds: ['value', 'slice'] },
         ];
@@ -12584,26 +8839,13 @@ ${arms.join('\n')}
         // here, so qualify them to the `ExchangeBase` trampoline (review #1).
         const collide = new Set(Object.keys(this.traitMethodSignatures()));
         const arms: string[] = [];
-        for (const { name, paramKinds, isAsync, isVoid } of sigs) {
+        for (const { name, paramKinds, isAsync, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
+            const callArgs = rustDispatch.args(paramKinds);
             const recv = collide.has(name)
                 ? `<Self as crate::exchange_generated::ExchangeBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`
                 : `self.${name}(${callArgs.join(', ')})`;
-            const expr = `${recv}${isAsync ? '.await' : ''}`;
+            const expr = rustDispatch.result(`${recv}${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
@@ -12643,8 +8885,8 @@ ${arms.join('\n')}
     }`;
     }
 
-    emitCallDynamicForBase(content: string): string {
-        const sigs = this.collectExchangeMethodSignatures(content);
+    emitCallDynamicForBase(table: any[], content: string): string {
+        const sigs = this.collectExchangeMethodSignatures(table, content);
         // Hand-written base methods (`load_markets`, `sign_in`, `fetch`,
         // …) live in `exchange_stubs.rs` so the regex transpiler never
         // sees them. Without arms here, `live_dispatch::dispatch(&mut
@@ -12652,8 +8894,8 @@ ${arms.join('\n')}
         // `_ => Null` — and the live test reading `exchange.markets`
         // sees nothing. Mirror the Go path where the `LoadMarkets`
         // wrapper is in the typed `ICoreExchange` interface.
-        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[] }> = [
-            { name: 'load_markets',    isAsync: true,  paramKinds: ['slice'] },
+        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[], isTyped?: boolean }> = [
+            { name: 'load_markets',    isAsync: true,  paramKinds: ['flag', 'params'], isTyped: true },
             { name: 'fetch',           isAsync: true,  paramKinds: ['value', 'slice'] },
             { name: 'call_method',     isAsync: true,  paramKinds: ['value', 'slice'] },
         ];
@@ -12665,27 +8907,11 @@ ${arms.join('\n')}
     emitCallDynamic(sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, isBase: boolean = false, parentCore: string | null = null): string {
         if (sigs.length === 0) return '';
         const arms: string[] = [];
-        for (const { name, isAsync, paramKinds, isVoid } of sigs) {
+        for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             // Skip names that already clash with the synthesized helpers.
             if (['describe', 'new', 'bind', 'init', 'call_dynamic'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    // Pull args[i] (cloned), defaulting to Null.
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    // A native `bool` slot takes the same truthiness the body used.
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (paramKinds[i] === 'slice') {
-                    // Pass the remaining args as a slice of `args` itself.
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
-            const callExpr = `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`;
+            const callArgs = rustDispatch.args(paramKinds);
+            const callExpr = rustDispatch.result(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${callExpr}; crate::Value::Null }` : callExpr},`);
         }
         // Sort arms for stable diffs.
@@ -12714,23 +8940,10 @@ ${isBase
     /// now a static trait method (review #1).
     emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage = false, frameHandlers: string[] = []): string {
         const arms: string[] = [];
-        for (const { name, isAsync, paramKinds, isVoid } of sigs) {
+        for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
-            const callArgs: string[] = [];
-            for (let i = 0; i < paramKinds.length; i++) {
-                if (paramKinds[i] === 'value') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-                } else if (paramKinds[i] === 'bool') {
-                    callArgs.push(`args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`);
-                } else if (paramKinds[i] === 'strvec') {
-                    callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
-                } else if (paramKinds[i] === 'map') {
-                    callArgs.push(mapParamDispatchArg(i));
-                } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(this.dispatchSliceArg(i));
-                }
-            }
-            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`},`);
+            const callArgs = rustDispatch.args(paramKinds);
+            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : rustDispatch.result(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped)},`);
         }
         // `handle_message(&mut self, client, message)` returns `()`, so it's
         // filtered out of `sigs` (dispatch arms must yield a Value). The base
@@ -12775,53 +8988,33 @@ ${fallthrough}
      * itself can stay sync (called from the sync `handle_message`). Unknown /
      * async names are no-ops. Returns '' when the Core has no such handlers.
      */
-    emitWsHandlerDispatch(coreName: string, content: string): string {
+    emitWsHandlerDispatch(coreName: string, table: Array<{ name: string, params: Array<{ kind: string }>, ret: string }> | undefined, content: string): string {
         const arms: string[] = [];
         const seen = new Set<string>();
-        // Every *sync* method: `pub fn NAME(args) [-> Ret] {`. A handler-dispatch
-        // table can reference any of them (some venues' handlers return `()`,
-        // others return `Value`), so include both — void gets wrapped, a Value
-        // return is forwarded, and any other return type is skipped (can't be
-        // coerced to the dispatcher's `Value` result).
-        const re = /\bpub\s+(async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*(->\s*[^{]+?)?\s*\{/g;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const isAsync = !!(m[1] && m[1].trim());
-            const name = m[2];
-            const argList = m[3];
-            const retType = (m[4] || '').trim();
-            if (['new', 'bind', 'init', 'describe', 'dispatch_ws_handler'].includes(name)) continue;
-            if (!/\bself\b/.test(argList)) continue;
-            if (seen.has(name)) continue;
-            // Async handlers (e.g. htx `handle_order_book_snapshot`, fetched via a
-            // subscription-status dispatch table) can't be `.await`ed from the sync
-            // dispatcher. Queue them onto the spawn queue — `ws_run` drains and
-            // awaits them right after `handle_message`, same as `this.spawn(...)`.
-            if (isAsync) {
+        // Every method of the printed file: a handler-dispatch table can reference any of them (some venues'
+        // handlers return `()`, others `Value`), so void gets wrapped, a Value return is forwarded, and any
+        // other return type (e.g. `-> bool`) is not dispatchable.
+        const facts = this.receiverFacts(content);
+        for (const sig of table ?? []) {
+            const name = sig.name;
+            const fact = facts.get(name);
+            if (fact === undefined || [ 'new', 'bind', 'init', 'describe', 'dispatch_ws_handler' ].includes(name) || seen.has(name)) continue;
+            // Async handlers (e.g. htx `handle_order_book_snapshot`, fetched via a subscription-status dispatch
+            // table) can't be `.await`ed from the sync dispatcher. Queue them onto the spawn queue — `ws_run`
+            // drains and awaits them right after `handle_message`, same as `this.spawn(...)`.
+            if (fact.isAsync) {
                 seen.add(name);
                 arms.push(`            "${name}" => { crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()); crate::Value::Null },`);
                 continue;
             }
-            const isVoid = retType === '';
-            const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
-            if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
-            const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(Boolean);
-            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (mapParamKind(p) !== undefined ? 'map' : (/:\s*Vec<String>/.test(p) ? 'strvec' : (p.match(/:\s*bool\b/) ? 'bool' : (p.match(/:\s*Value\b/) ? 'value' : 'other')))));
-            if (kinds.some(k => k === 'other')) continue;
+            if (sig.ret !== 'void' && sig.ret !== 'value' && !rustDispatch.isKeptReturn(sig.ret)) continue;
+            const callArgs = sig.params.map((p, i) => rustDispatch.wsArg(p.kind, i));
+            if (callArgs.some(a => a === undefined)) continue;
             seen.add(name);
-            const callArgs = kinds.map((k, i) => k === 'slice'
-                ? this.dispatchSliceArg(i)
-                : k === 'strvec'
-                    ? `args.get(${i}).cloned().unwrap_or_default().to_str_vec()`
-                    : k === 'bool'
-                    ? `args.get(${i}).map(|v| v.is_truthy()).unwrap_or(false)`
-                    : k === 'map'
-                        ? mapParamDispatchArg(i)
-                        : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
-            arms.push(isVoid
+            arms.push(sig.ret === 'void'
                 ? `            "${name}" => { ${call}; crate::Value::Null },`
-                : `            "${name}" => ${call},`);
+                : `            "${name}" => ${rustDispatch.result(call, sig.ret)},`);
         }
         // Emit the dispatcher if there are handler arms OR the (already
         // rewritten) content calls it — otherwise a `.call` rewrite with no
@@ -12832,14 +9025,19 @@ ${fallthrough}
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
 ${arms.join('\n')}
             _ => crate::Value::Null,
         }
     }
 }`;
+    }
+
+    /** DerivedExchange methods with a `&mut self` receiver: venue overrides persist state (nonce, session) there. */
+    mutReceiverTraitMethods(): Set<string> {
+        return new Set([ 'sign', 'handle_errors' ]);
     }
 
     /**
@@ -12852,25 +9050,64 @@ ${arms.join('\n')}
         const traitSigs = this.traitMethodSignatures();
         const inherentSigs = new Map(sigs.map(s => [s.name, s]));
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
-        for (const [name, args] of Object.entries(traitSigs)) {
+        // The trait defaults reach the parent through these accessors (`impl Trait`, not `dyn`: the trait has generic methods).
+        const accessors = [
+            `    fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { Some(&self.parent) }`,
+            `    fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { Some(&mut self.parent) }`,
+        ];
+        const pushParentAccessors = () => { if (!out.includes(accessors[0])) out.push(...accessors); };
+        for (const [name, slots] of Object.entries(traitSigs)) {
+            const args = slots.map(rustDispatch.slotName);
             const inh = inherentSigs.get(name);
+            // Trait methods whose overrides write exchange state take `&mut self` end to end.
+            if (this.mutReceiverTraitMethods().has(name)) {
+                const traitParams = rustDispatch.slotParams(slots);
+                if (!inherent.has(name) || !inh || inh.isAsync) {
+                    if (parentCore) pushParentAccessors();
+                    continue;
+                }
+                const callArgs: string[] = [];
+                let traitIdx = 0;
+                for (const kind of inh.paramKinds) {
+                    if (kind === 'value') {
+                        callArgs.push(rustDispatch.isSlotStr(args[traitIdx] ?? '', traitIdx) ? `crate::Value::from(${args[traitIdx]})` : args[traitIdx] ?? 'crate::Value::Null');
+                        traitIdx++;
+                    } else if (rustDispatch.isTyped(kind)) {
+                        callArgs.push(rustDispatch.slotArg(kind, args[traitIdx] ?? 'crate::Value::Null', traitIdx));
+                        traitIdx++;
+                    } else if (kind === 'slice') {
+                        callArgs.push(rustDispatch.isSlotSlice(slots[traitIdx] ?? '') ? args[traitIdx] : `&[${args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ')}]`);
+                        break;
+                    }
+                }
+                out.push(`    fn ${name}(&mut self, ${traitParams}) -> crate::Value {`);
+                out.push(`        // Forward to the inherent method on ${coreName}.`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
+                out.push(`    }`);
+                continue;
+            }
             // A method this exchange doesn't override (or overrides only
             // as an async variant the sync trait can't forward to) must,
             // for a subclass, delegate to the parent's trait impl — that
             // is Go-style inheritance. A base exchange falls back to the
             // trait default.
-            if (!inherent.has(name) || !inh || inh.isAsync) {
-                if (parentCore) {
-                    const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
-                    const fwd = args.join(', ');
-                    out.push(`    fn ${name}(&self, ${traitParams}) -> crate::Value {`);
-                    out.push(`        crate::exchange::DerivedExchange::${name}(&self.parent${fwd ? ', ' + fwd : ''})`);
-                    out.push(`    }`);
-                }
+            const typedSlot = this.typedVirtualSlots().get(name);
+            if (typedSlot !== undefined) {
+                // a typed slot keeps its typed signature: forward to the own inherent; a subclass reaches the parent through the accessors
+                const own = inherent.has(name) && inh !== undefined && !inh.isAsync;
+                if (!own) { if (parentCore) pushParentAccessors(); continue; }
+                const names = typedSlot.params.split(', ').map(p => p.slice(0, p.indexOf(':')).replace(/^mut\s+/, '')).join(', ');
+                out.push(`    fn ${name}(&self, ${typedSlot.params}) -> ${typedSlot.ret} {`);
+                out.push(`        // Forward to the inherent method on ${coreName}.`);
+                out.push(`        ${coreName}::${name}(self, ${names})`);
+                out.push(`    }`);
                 continue;
             }
-            // Trait declares (self, ...args : Value).
-            const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
+            if (!inherent.has(name) || !inh || inh.isAsync) {
+                if (parentCore) pushParentAccessors();
+                continue;
+            }
+            const traitParams = this.traitSlotParams(name, slots);
             // Forwarding call: align inherent param shape (some methods
             // have `(value: Value, optional_args: &[Value])` for variadic
             // TS defaults). Map trait args 0..N onto inherent params:
@@ -12880,12 +9117,14 @@ ${arms.join('\n')}
             let traitIdx = 0;
             for (const kind of inh.paramKinds) {
                 if (kind === 'value') {
-                    callArgs.push(args[traitIdx] ?? 'crate::Value::Null');
+                    callArgs.push(rustDispatch.isSlotStr(args[traitIdx] ?? '', traitIdx) ? `crate::Value::from(${args[traitIdx]})` : args[traitIdx] ?? 'crate::Value::Null');
+                    traitIdx++;
+                } else if (rustDispatch.isTyped(kind)) {
+                    callArgs.push(rustDispatch.slotArg(kind, args[traitIdx] ?? 'crate::Value::Null', traitIdx));
                     traitIdx++;
                 } else if (kind === 'slice') {
-                    const rest = args.slice(traitIdx)
-                        .map(a => `${a}.clone()`).join(', ');
-                    callArgs.push(`&[${rest}]`);
+                    const rest = args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ');
+                    callArgs.push(rustDispatch.isSlotSlice(slots[traitIdx] ?? '') ? args[traitIdx] : `&[${rest}]`);
                     traitIdx = args.length;
                     break;
                 }
@@ -12900,10 +9139,10 @@ ${arms.join('\n')}
                 // genuinely-mut virtuals.
                 out.push(`        #[allow(invalid_reference_casting)]`);
                 out.push(`        let me = unsafe { &mut *(self as *const ${coreName} as *mut ${coreName}) };`);
-                out.push(`        ${coreName}::${name}(me, ${callArgs.join(', ')})`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(me, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
             } else {
                 // Inherent method takes `&self` — forward directly, no cast, sound.
-                out.push(`        ${coreName}::${name}(self, ${callArgs.join(', ')})`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
             }
             out.push(`    }`);
         }
@@ -12914,7 +9153,7 @@ ${arms.join('\n')}
     // ── exchange file creation ────────────────────────────────────────────────
 
     createRustExchange(className: string, rustResult: any, ws = false, isPrediction = false): string {
-        const coreName = capitalize(className) + 'Core';
+        const coreName = capitalize(className);
         const header = this.createGeneratedHeader().join('\n');
 
         // Go-style inheritance: a `class X extends Y` (Y a real exchange,
@@ -12946,14 +9185,14 @@ ${arms.join('\n')}
                 if (ws && rawParent.endsWith('Rest')) {
                     const restId = rawParent.slice(0, -4).toLowerCase();
                     parentMod  = restId;
-                    parentCore = `crate::exchanges::${restId}::${capitalize(restId)}Core`;
+                    parentCore = `crate::exchanges::${restId}::${capitalize(restId)}`;
                 } else if (ws) {
                     // WS-extends-WS (bequant, binanceusdm, …).
                     parentMod  = rawParent.toLowerCase();
-                    parentCore = `crate::pro::${parentMod}::${capitalize(rawParent)}Core`;
+                    parentCore = `crate::pro::${parentMod}::${capitalize(rawParent)}`;
                 } else {
                     parentMod  = rawParent.toLowerCase();
-                    parentCore = `crate::exchanges::${parentMod}::${capitalize(rawParent)}Core`;
+                    parentCore = `crate::exchanges::${parentMod}::${capitalize(rawParent)}`;
                 }
             }
         } catch { /* no parent */ }
@@ -12986,13 +9225,13 @@ ${arms.join('\n')}
                 (_full, restId) => {
                     const id = restId.toLowerCase();
                     const cap = restId.charAt(0).toUpperCase() + restId.slice(1);
-                    return `crate::exchanges::${id}::${cap}Core`;
+                    return `crate::exchanges::${id}::${cap}`;
                 },
             );
             // Now the zero-arg `<Id>Core::new()` form (from `new
             // <id>Rest()`) needs an explicit `None` config arg.
             content = content.replace(
-                /(crate::exchanges::[a-z][a-zA-Z0-9_]*::[A-Z][A-Za-z0-9]*Core::new)\(\)/g,
+                /(crate::exchanges::[a-z][a-zA-Z0-9_]*::[A-Z][a-z0-9]*::new)\(\)/g,
                 '$1(None)',
             );
             // Zero-arg `<book>.reset()` — rewrite to `.reset0()` since
@@ -13028,19 +9267,16 @@ ${arms.join('\n')}
         // unwind past the parent method and leave its last_request_*
         // unset).
         content = this.rewriteTryCatchAsync(content);
-        content = this.cloneInRefSlices(content);
         // `self.super_X(...)` → `self.parent.X(...)`.
         if (parentCore) {
             content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
         }
         content = this.autoCloneCallArgs(content);
-        content = this.cloneInArrayLiterals(content);
         content = this.rewriteValueFieldAccess(content);
         // Must run AFTER rewriteValueFieldAccess so `precise.decimals = X`
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
         content = this.rewriteGetValueAssignments(content);
         content = this.stripMutSelfFieldClones(content);
-        content = this.splitAddElementBorrowConflicts(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
@@ -13144,30 +9380,6 @@ ${arms.join('\n')}
         // conflict at the call site.
         content = this.hoistSelfArgFromMutCall(content);
 
-        // Clone bare-identifier args passed to known cache / order-book
-        // methods on local variables (`candles.get_limit(symbol, limit)`,
-        // `cache.append(liquidation)`, …). The base `autoCloneCallArgs`
-        // pass only catches well-known prefixes — these are
-        // local-receiver method calls so it doesn't fire.
-        content = this.cloneIdentArgsToCalls(
-            content,
-            /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit|limit|reusable_future)\(/g,
-        );
-
-        // Same for WS-class factories: `ArrayCacheBySymbolById::new(limit)`
-        // moves `limit`; subsequent reuse needs `.clone()`.
-        content = this.cloneIdentArgsToCalls(
-            content,
-            /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
-        );
-
-        // `let mut <X>: Value = <ident>;` moves the source local. Clone
-        // the RHS since `Value::clone()` is an Arc bump anyway; the
-        // source typically gets used again on a later line.
-        content = content.replace(
-            /(let\s+mut\s+\w+\s*:\s*Value\s*=\s*)([a-zA-Z_]\w*)(;)/g,
-            '$1$2.clone()$3',
-        );
         // Wrap `error.clone()` in a `Value::from(...)` when it appears
         // inside a Value-slice arg to `client.reject(...)`. The TS
         // sites pass `new ExchangeError(...)` directly; in Rust the
@@ -13177,20 +9389,6 @@ ${arms.join('\n')}
             /(client\.reject\(&\[)error\.clone\(\)/g,
             '$1Value::from(error.clone())',
         );
-
-        // `error = crate::exchange_errors::<X>(...);` — `error` is a
-        // `Value`-typed local but the RHS produces `ExchangeError`.
-        // Wrap in `Value::from(...)` so the assignment type-checks.
-        content = content.replace(
-            /(\b\w+\s*=\s*)(crate::exchange_errors::\w+\([^;]+?\))\s*;/g,
-            '$1Value::from($2);',
-        );
-
-        // The same conversion for an error CONSTRUCTED INLINE inside a Value
-        // slice — `client.reject (new ExchangeError (…))` (bithumb's
-        // handleErrorMessage). The two passes above only cover the cases where
-        // the error first lands in a local.
-        content = this.wrapInlineErrorsInValueSlices(content);
 
         // JS `method.call(this, ...)` passes the `this` value as the
         // first arg. In our Value-shaped stub the receiver is
@@ -13230,7 +9428,7 @@ ${arms.join('\n')}
             content = this.regexAll(content, this.getWsRegexes());
         }
 
-        // Rename the struct/impl to CoreName convention (BinanceCore)
+        // Rename the struct/impl to CoreName convention (Binance)
         content = content
             .replace(new RegExp(`pub struct ${capitalize(className)}\\b`, 'g'), `pub struct ${coreName}`)
             .replace(new RegExp(`pub struct ${className}\\b`, 'gi'), `pub struct ${coreName}`)
@@ -13278,7 +9476,7 @@ ${proImport}${predImport}`;
 
         // Collect inherent methods so we can emit a `DerivedExchange`
         // impl block that forwards trait methods to the inherent ones.
-        const methodSigs = this.collectExchangeMethodSignatures(content);
+        const methodSigs = this.collectExchangeMethodSignatures(rustResult.rustSignatures, content);
         const methodNames = new Set(methodSigs.map(s => s.name));
         // Go-style inheritance for a subclass/WS Core: a bare `self.X(...)` call
         // to a method the Core does NOT define itself and that is NOT a base
@@ -13324,7 +9522,7 @@ ${proImport}${predImport}`;
         // Sync WS handler dispatch (used by the rewritten `method.call(...)` in
         // handle_message). WS-only — REST/prediction have no `.call` dispatch, so
         // emitting it there would be dead code (and needless churn).
-        const wsHandlerDispatchRaw = ws ? this.emitWsHandlerDispatch(coreName, content) : '';
+        const wsHandlerDispatchRaw = ws ? this.emitWsHandlerDispatch(coreName, rustResult.rustSignatures, content) : '';
         // Prepend the separating newline only when non-empty, so a REST/prediction
         // Core (empty) leaves the surrounding layout byte-for-byte unchanged.
         const wsHandlerDispatch = wsHandlerDispatchRaw ? '\n' + wsHandlerDispatchRaw : '';
@@ -13395,6 +9593,11 @@ impl ${coreName} {
         let mut s = ${newInit};
         s.init();
         s
+    }
+
+    /// Construct from the typed [\`crate::Config\`] builder; \`Config::none()\` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
     }
 
     pub fn init(&mut self) {
@@ -13501,9 +9704,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
                 rustContent = this.dropDeadFirstArgClones(rustContent);
-                // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
-                // whose every sink is Option-native.
-                rustContent = this.narrowOptionalSafeLocals(rustContent);
                 // Last: narrow `Value::Bool` locals whose every sink takes
                 // a `bool`. Must see the final shape of the file.
                 rustContent = this.narrowBoolLocals(rustContent);
@@ -13522,13 +9722,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
                 rustContent = this.rustDropBoolBoxedIsTrue(rustContent);
-                rustContent = this.rustNativeBoolEquals(rustContent);
                 rustContent = this.rustNativeBoolIsTrue(rustContent);
                 rustContent = this.rustInlineLiteralIsEqual(rustContent);
-                // Last: drop `.clone()` on the value arg of
-                // extend/omit/market/parse_number when the local is dead
-                // afterwards (those callees take the Value by value).
-                rustContent = this.dropDeadLastUseArgClones(rustContent);
                 // Last: element writes into a fresh dict local go native.
                 // Last: payload accessors on a local whose declaration pins its
                 // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
@@ -13546,11 +9741,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // Last: a `.clone()` in a by-value slot whose local is dead
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
-                // And `while (true)` → `loop {` (rustc's `while_true` lint is
-                // an error under the CI clippy lane's `-D warnings`).
-                rustContent = this.whileTrueToLoop(rustContent);
                 rustContent = this.rustNativeTruthAndEquality(rustContent);
-                rustContent = nativeBoolScalars(rustContent);
                 rustContent = nativeBoolCallee(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
@@ -13558,28 +9749,56 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = nativeContainerOps(rustContent);
                 // Typed locals run last, on the final text.
                 rustContent = rustTypedLocals(rustContent);
-                rustContent = rustStringNatives(rustContent);
-                rustContent = calleeShapeContainerOps(rustContent);
                 rustContent = fieldChainInserts(rustContent);
                 rustContent = plainDictChains(rustContent);
-                // Venue reads of the ws client go through the typed
-                // handle the drive loop owns (field reads, no `get_value` lookup).
-                rustContent = clientHandleViews(rustContent);
-                // `safe_string*` locals whose only sink is a `format!` print a `String`.
-                rustContent = narrowStrSinkLocals(rustContent);
-                rustContent = narrowStrNullLocals(rustContent);
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = rustIntLocalNullSinkOptionI64(rustContent);
                 rustContent = rustStrLiteralLocalNativeString(rustContent);
-                rustContent = strLocalReassign(rustContent);
-                rustContent = rustBoolKLocalOptionBool(rustContent);
-                rustContent = rustBool2LocalOptionBool(rustContent);
-                rustContent = rustBoolNLocalOptionBool(rustContent);
-                rustContent = rustStr2LocalOptionString(rustContent);
-                rustContent = rustNumber2LocalOptionF64(rustContent);
-                rustContent = rustInt2IntNLocalOptionI64(rustContent);
-                rustContent = rustStrNLocalOptionString(rustContent);
-                rustContent = rustNumber2SinkLocalOptionF64R2(rustContent);
+                // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
+                // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
+                {
+                    const liftClasses = new Set<string>([ 'same', 'param-differs', 'slice-args', 'typed-return' ]);
+                    const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
+                    const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
+                        if (fact.isAsync) return 'async';
+                        const hasSlice = sig.params.some((p: any) => p.type === '&[Value]');
+                        if (fact.isMut && !this.mutReceiverTraitMethods().has(sig.name)) return 'mut-cast';
+                        // a slice the trait slot does not take carries extra arguments
+                        if (hasSlice && !slots.some(rustDispatch.isSlotSlice)) return 'arity';
+                        // a typed return lifts only when the trait slot carries the same typed signature
+                        const typedSlot = this.typedVirtualSlots().get(sig.name);
+                        if (sig.ret !== 'value') return typedSlot !== undefined && sig.returns === typedSlot.ret && sig.params.map((p: any) => `${p.name}: ${p.type}`).join(', ') === typedSlot.params ? 'typed-return' : 'typed-differs';
+                        const types = (text: string) => text.split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
+                        const slotTypes = types(rustDispatch.slotParams(slots));
+                        if (slotTypes.length !== sig.params.length) return 'arity';
+                        if (sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i])) return hasSlice ? 'slice-args' : 'same';
+                        // a lent first slot is generic in the trait as in the inherent: the item moves unchanged
+                        const lentTypes = types(this.traitSlotParams(sig.name, slots));
+                        return sig.params.every((p: any, i: number) => norm(p.type) === lentTypes[i]) ? (hasSlice ? 'slice-args' : 'param-differs') : 'other';
+                    };
+                    const implHead = rustContent.match(/\nimpl crate::exchange::DerivedExchange for (\w+) \{\n/);
+                    const facts = this.receiverFacts(rustContent);
+                    const traitSigs = this.traitMethodSignatures();
+                    for (const sig of (implHead ? result.rustSignatures ?? [] : [])) {
+                        const fact = facts.get(sig.name);
+                        const slots = traitSigs[sig.name];
+                        if (fact === undefined || slots === undefined || !liftClasses.has(forwarderClass(sig, fact, slots))) continue;
+                        const recv = this.mutReceiverTraitMethods().has(sig.name) ? '&mut self' : '&self';
+                        const fwdOpen = `\n    fn ${sig.name}(${recv}`;
+                        const implAt = rustContent.indexOf(implHead![0]);
+                        const fwdAt = rustContent.indexOf(fwdOpen, implAt);
+                        const fwdBrace = rustContent.indexOf('{\n', fwdAt);
+                        const inhAt = rustContent.indexOf(`\n    pub fn ${sig.name}(${recv}`);
+                        if (fwdAt < 0 || inhAt < 0 || !rustContent.startsWith(`        // Forward to the inherent method on ${implHead![1]}.`, fwdBrace + 2)) continue;
+                        const inhBrace = rustContent.indexOf('{\n', inhAt);
+                        const inhEnd = this.findMatchingBrace(rustContent, inhBrace) + 1;
+                        const item = '\n    ' + rustContent.slice(inhAt + '\n    pub '.length, inhEnd);
+                        const fwdEnd = this.findMatchingBrace(rustContent, fwdBrace) + 1;
+                        // the inherent item sits after the trait impl, so cut it first
+                        rustContent = rustContent.slice(0, inhAt) + rustContent.slice(inhEnd);
+                        rustContent = rustContent.slice(0, fwdAt) + item + rustContent.slice(fwdEnd);
+                    }
+                }
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -13617,7 +9836,7 @@ impl std::ops::DerefMut for ${coreName} {
         }
 
         // Prune orphans — on a FULL run (no explicit subset requested) any
-        // generated `<id>.rs` / `<id>_api.rs` / `<id>_typed.rs` whose exchange
+        // generated `<id>.rs` / `<id>_api.rs` whose exchange
         // id is no longer in the current id list is a stale leftover from an
         // exchange that upstream removed or renamed (e.g. gateio→gate,
         // huobi→htx, or a delisted venue). The transpiler never revisits it
@@ -13630,7 +9849,7 @@ impl std::ops::DerefMut for ${coreName} {
             const validIds = new Set(ids);
             for (const f of fs.readdirSync(outFolder)) {
                 if (!f.endsWith('.rs') || f === 'mod.rs') continue;
-                const baseId = basename(f, '.rs').replace(/_(api|typed)$/, '');
+                const baseId = basename(f, '.rs').replace(/_api$/, '');
                 if (validIds.has(baseId)) continue;
                 // Only delete files we actually generated. Hand-written infra
                 // modules live in these folders too (e.g. `pro/cache.rs`,
@@ -13752,6 +9971,129 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /**
+     * Venue struct re-exports plus `with_exchange`, for a venue `mod.rs`: one arm per venue
+     * builds the concrete struct and hands it to a generic visitor (no boxing, no venue enum).
+     */
+    venueRegistry(ids: string[], feature: (id: string) => string, prediction = false): string {
+        const gate = (n: string) => `#[cfg(feature = "${feature(n)}")]`;
+        const visitor = prediction ? 'crate::prediction_exchange::PredictionVisitor' : 'crate::exchange::ExchangeVisitor';
+        const L: string[] = [];
+        for (const n of ids) L.push(gate(n), `pub use ${n}::${capitalize(n)};`);
+        L.push('',
+            '/// Build the venue named `id` and run `visitor` on it; `None` for an id not compiled in.',
+            `pub async fn with_exchange<V: ${visitor}>(id: &str, config: Option<crate::Value>, visitor: V) -> Option<V::Output> {`,
+            '    match id {');
+        for (const n of ids) L.push(`        ${gate(n)}`, `        ${JSON.stringify(n)} => Some(visitor.visit(${n}::${capitalize(n)}::new(config)).await),`);
+        L.push('        _ => None,', '    }', '}', '',
+            '/// [`with_exchange`] with the typed [`crate::Config`] builder.',
+            `pub async fn with_exchange_config<V: ${visitor}>(id: &str, config: crate::Config, visitor: V) -> Option<V::Output> {`,
+            '    with_exchange(id, config.into_option(), visitor).await',
+            '}');
+        return L.join('\n');
+    }
+
+    /** Ids of the transpiled exchanges in a folder (no `_api` siblings, no hand-written infra). */
+    transpiledIds(folder: string): string[] {
+        if (!fs.existsSync(folder)) return [];
+        return fs.readdirSync(folder)
+            .filter(f => f.endsWith('.rs') && !f.endsWith('_api.rs') && f !== 'mod.rs')
+            .filter(f => !['cache.rs', 'order_book.rs', 'ws_client.rs'].includes(f))
+            .map(f => basename(f, '.rs'))
+            .sort();
+    }
+
+    /** `<id> -> parent id` from each exchange's `pub parent: crate::<module>::<parent>::<Parent>` field. */
+    exchangeParents(folder: string, modulePath: string): Map<string, string> {
+        const parents = new Map<string, string>();
+        const re = new RegExp(`\\bpub\\s+parent:\\s*crate::${modulePath}::([a-z0-9_]+)::\\w+`);
+        for (const id of this.transpiledIds(folder)) {
+            const m = fs.readFileSync(`${folder}/${id}.rs`, 'utf-8').match(re);
+            if (m) parents.set(id, m[1]);
+        }
+        return parents;
+    }
+
+    /** Rewrites the `BEGIN/END GENERATED FEATURES` block of a crate's Cargo.toml. */
+    replaceGeneratedFeatures(manifest: string, lines: string[]) {
+        const src = fs.readFileSync(manifest, 'utf-8');
+        const begin = src.indexOf('# BEGIN GENERATED FEATURES');
+        const end = src.indexOf('# END GENERATED FEATURES');
+        if (begin === -1 || end === -1 || end < begin) {
+            throw new Error(`${manifest}: missing BEGIN/END GENERATED FEATURES markers`);
+        }
+        const beginLineEnd = src.indexOf('\n', begin) + 1;
+        const out = src.slice(0, beginLineEnd) + lines.join('\n') + '\n' + src.slice(end);
+        if (out !== src) fs.writeFileSync(manifest, out, 'utf-8');
+    }
+
+    /**
+     * One cargo feature per exchange in each crate, so a consumer compiles only the venues it uses:
+     * ccxt-base `<id>` (a derived venue pulls its parent) and `prediction-<id>`; ccxt / ccxt-prediction /
+     * ccxt-pro forward to the engine feature, a pro venue also to its pro parent.
+     */
+    writeCargoFeatures() {
+        const restIds = this.transpiledIds(EXCHANGES_FOLDER);
+        const restParents = this.exchangeParents(EXCHANGES_FOLDER, 'exchanges');
+        const predictionIds = this.transpiledIds(PREDICTION_EXCHANGES_FOLDER);
+        const proIds = this.transpiledIds(EXCHANGES_WS_FOLDER);
+        const proParents = this.exchangeParents(EXCHANGES_WS_FOLDER, 'pro');
+        const list = (ids: string[]) => `[${ids.map(i => JSON.stringify(i)).join(', ')}]`;
+        const base: string[] = restIds.map(id => `${id} = ${restParents.has(id) ? list([restParents.get(id)]) : '[]'}`);
+        for (const id of predictionIds) base.push(`${rustFeatureName(id, true)} = []`);
+        base.push(`all-exchanges = ${list(restIds)}`);
+        base.push(`all-prediction = ${list(predictionIds.map(id => rustFeatureName(id, true)))}`);
+        this.replaceGeneratedFeatures('./rust/ccxt-base/Cargo.toml', base);
+        const rest = restIds.map(id => `${id} = ${list([`ccxt-base/${id}`])}`);
+        rest.push(`all = ${list(restIds)}`);
+        this.replaceGeneratedFeatures('./rust/ccxt/Cargo.toml', rest);
+        const prediction = predictionIds.map(id => `${id} = ${list([`ccxt-base/${rustFeatureName(id, true)}`])}`);
+        prediction.push(`all = ${list(predictionIds)}`);
+        this.replaceGeneratedFeatures('./rust/ccxt-prediction/Cargo.toml', prediction);
+        const pro = proIds.map(id => {
+            const parent = proParents.get(id);
+            return `${id} = ${list(parent && parent !== id ? [`ccxt-base/${id}`, parent] : [`ccxt-base/${id}`])}`;
+        });
+        pro.push(`all = ${list(proIds)}`);
+        this.replaceGeneratedFeatures('./rust/ccxt-pro/Cargo.toml', pro);
+    }
+
+    /**
+     * `rust/tests/src/generated_cores.rs`: every exchange the test harness can dispatch to, plus the
+     * `for_each_core!` / `for_each_ws_core!` / `for_each_prediction_core!` macros it walks. A prediction
+     * venue is aliased `Pred<Id>`, a pro venue `Ws<Id>`; a prediction-only venue is also imported bare.
+     */
+    writeTestCoreRegistry() {
+        const rest = this.transpiledIds(EXCHANGES_FOLDER);
+        const pro = this.transpiledIds(EXCHANGES_WS_FOLDER);
+        const pred = this.transpiledIds(PREDICTION_EXCHANGES_FOLDER);
+        const predOnly = pred.filter(id => !rest.includes(id));
+        const L: string[] = [
+            ...this.createGeneratedHeader(),
+            '#![allow(unused_imports)]',
+            '',
+            'pub(crate) use ccxt::exchanges::{',
+            ...rest.map(id => `    ${id}::${capitalize(id)},`),
+            '};',
+            '',
+        ];
+        if (predOnly.length) L.push('pub(crate) use ccxt::prediction::{', ...predOnly.map(id => `    ${id}::${capitalize(id)},`), '};', '');
+        for (const id of pred) L.push(`pub(crate) use ccxt::prediction::${id}::${capitalize(id)} as Pred${capitalize(id)};`);
+        if (pred.length) L.push('');
+        if (pro.length) L.push('pub(crate) use ccxt_pro::pro::{', ...pro.map(id => `    ${id}::${capitalize(id)} as Ws${capitalize(id)},`), '};', '');
+        const macro = (name: string, rows: string[]) => [`macro_rules! ${name} {`, '    ($cb:ident) => {', ...rows, '    };', '}', `pub(crate) use ${name};`, ''];
+        L.push(...macro('for_each_core', [...rest, ...predOnly].sort().map(id => `        $cb!(${id}, ${capitalize(id)});`)));
+        L.push(...macro('for_each_ws_core', pro.map(id => `        $cb!(${id}, Ws${capitalize(id)});`)));
+        L.push(...macro('for_each_prediction_core', pred.map(id => `        $cb!(${id}, Pred${capitalize(id)});`)));
+        overwriteFileAndFolder('./rust/tests/src/generated_cores.rs', L.join('\n'));
+    }
+
+    /** Cargo features + test registry, both read from the exchange files on disk. */
+    writeRustRegistries() {
+        this.writeCargoFeatures();
+        this.writeTestCoreRegistry();
+    }
+
+    /**
      * Writes a `mod.rs` (or `mod` declarations) listing all transpiled exchanges.
      */
     writeModFile(folder: string, names: string[]) {
@@ -13764,7 +10106,7 @@ impl std::ops::DerefMut for ${coreName} {
         // boundary buys, not a feature flag).
         if (folder === EXCHANGES_WS_FOLDER) {
             const venues = names
-                .filter(n => n !== 'mod' && !n.endsWith('_api') && !n.endsWith('_typed'))
+                .filter(n => n !== 'mod' && !n.endsWith('_api'))
                 .sort();
             const wsLines = [
                 '// Re-export the hand-written pro infra (cache / order_book /',
@@ -13775,6 +10117,8 @@ impl std::ops::DerefMut for ${coreName} {
                 'pub use ccxt_base::pro::*;',
                 '',
                 ...venues.map(n => `#[cfg(feature = "${n}")]\npub mod ${n};`),
+                '',
+                this.venueRegistry(venues, n => n),
             ];
             const wsContent = [
                 ...this.createGeneratedHeader(),
@@ -13784,18 +10128,9 @@ impl std::ops::DerefMut for ${coreName} {
             overwriteFileAndFolder(`${folder}/mod.rs`, wsContent);
             return;
         }
-        // Each exchange gets its main `<id>.rs` plus optional siblings:
-        //   `<id>_api.rs`    — auto-generated implicit-endpoint wrappers
-        //                      (by `build/generateImplicitAPI.ts`); e.g.
-        //                      `binance.sapi_get_account_info(...)`.
-        //   `<id>_typed.rs`  — hand-written (or codegen'd) typed wrapper
-        //                      analogous to Go's `<id>_wrapper.go`; e.g.
-        //                      `Binance::fetch_ticker_typed(...)`.
-        // Both get a `pub mod` line when the file is present on disk.
-        // We filter the `_api`/`_typed` suffixes out of `names` so the
-        // existence checks below are the sole source of those module
-        // lines (avoids duplicate `pub mod` emission if a future change
-        // accidentally includes them in `names`).
+        // Each exchange gets its main `<id>.rs` plus an optional `<id>_api.rs`
+        // sibling (implicit-endpoint methods by `build/generateImplicitAPI.ts`),
+        // which gets a `pub mod` line when the file is present on disk.
         // Hand-written non-exchange modules that live alongside the
         // transpiled exchanges (e.g. `pro/cache.rs`, `pro/order_book.rs`).
         // Filter them out of `names` (the existence check below is the
@@ -13803,7 +10138,6 @@ impl std::ops::DerefMut for ${coreName} {
         const HAND_WRITTEN_SIBLINGS = new Set(['cache', 'order_book', 'ws_client']);
         const baseNames = names.filter(
             n => !n.endsWith('_api')
-              && !n.endsWith('_typed')
               && !HAND_WRITTEN_SIBLINGS.has(n),
         );
         const lines: string[] = [];
@@ -13817,8 +10151,8 @@ impl std::ops::DerefMut for ${coreName} {
         // REST features are the bare id; prediction Cores share ids with REST
         // venues (binance, hyperliquid, …) so theirs carry a `prediction-`
         // prefix. The feature lists themselves are emitted into each crate's
-        // Cargo.toml by build/generateRustWrappers.ts (rustFeatureName is the
-        // shared naming rule).
+        // Cargo.toml by `writeCargoFeatures` (rustFeatureName is the shared
+        // naming rule).
         const isPredictionFolder = folder === PREDICTION_EXCHANGES_FOLDER;
         for (const n of baseNames) {
             const gate = `#[cfg(feature = "${rustFeatureName(n, isPredictionFolder)}")]\n`;
@@ -13826,9 +10160,10 @@ impl std::ops::DerefMut for ${coreName} {
             if (fs.existsSync(`${folder}/${n}_api.rs`)) {
                 lines.push(`${gate}pub mod ${n}_api;`);
             }
-            if (fs.existsSync(`${folder}/${n}_typed.rs`)) {
-                lines.push(`${gate}pub mod ${n}_typed;`);
-            }
+        }
+        if (folder === EXCHANGES_FOLDER || isPredictionFolder) {
+            lines.push('');
+            lines.push(this.venueRegistry(baseNames, n => rustFeatureName(n, isPredictionFolder), isPredictionFolder));
         }
         // Re-export the hand-written pro types at the module root so
         // existing `use ccxt::pro::ArrayCache;` style imports keep
@@ -13975,9 +10310,6 @@ impl std::ops::DerefMut for ${coreName} {
 
 
 
-        // Re-apply `&[...]` auto-clone using paren-balanced walker so it
-        // handles slices that contain `Value::Str(...)` etc.
-        basePart = this.cloneInRefSlices(basePart);
 
         // Clone bare identifier args in `ternary(cond, a, b)` calls.
 
@@ -13986,7 +10318,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Auto-clone simple identifier args inside `Value::Array(vec![...])`
         // literals (paren-balanced).
-        basePart = this.cloneInArrayLiterals(basePart);
 
         // Convert `<localVar>.<field>` (Value property access) to get_value.
         // String-aware: skips contents of `"..."` literals.
@@ -13994,12 +10325,8 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Clone bare identifier args in `ternary(...)` calls.
 
-        // Fix borrow conflicts: `add_element_to_object(&mut X, KEY, EXPR)`
-        // where EXPR refers to `X` either via `.clone()`, `&X`, or
-        // `value` that came from `X`. Splits into a temp + add. Done
-        // via paren-balanced walker so KEY/EXPR can contain nested calls.
+        // `add_element_to_object(&mut X, K, v)` reading X binds v first in the printer (ral-67f).
         basePart = this.stripMutSelfFieldClones(basePart);
-        basePart = this.splitAddElementBorrowConflicts(basePart);
 
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
         // Paren-balanced walker (the old regex couldn't handle nested parens).
@@ -14026,7 +10353,6 @@ impl std::ops::DerefMut for ${coreName} {
             // throwaway clone (so the outcome cache stayed empty). Re-run the
             // self-field mut-clone cleanup now that they are `&mut self`.
             basePart = this.stripMutSelfFieldClones(basePart);
-            basePart = this.splitAddElementBorrowConflicts(basePart);
             basePart = this.rewriteSelfFieldMutCloneCast(basePart);
             // The prediction base has `self.fetch(url, &[…, self.json(x)])` and
             // `self.send_evm_transaction(url, self.parse_to_int(id), …)` shapes
@@ -14074,7 +10400,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Route Exchange.ts virtual methods through the derived dispatcher
         // (Go-style: this.parseTicker(...) → this.DerivedExchange.ParseTicker(...)).
-        basePart = this.injectVirtualDispatchPreamble(basePart);
         basePart = this.injectAsyncDispatchPreamble(basePart);
 
         // Collision disambiguation (ExchangeBase trait only). ~33 base method
@@ -14107,7 +10432,7 @@ impl std::ops::DerefMut for ${coreName} {
             // Only qualify a call when it is genuinely AMBIGUOUS — i.e. the name
             // exists in BOTH PredictionBase and (ExchangeBase or DerivedExchange).
             // Qualifying a prediction-only method (load_outcomes, fetch_events)
-            // is unnecessary and, on an async-trait-fn recursion, triggers a
+            // is unnecessary and, on an async-fn-in-trait recursion, triggers a
             // lifetime error (E0792). Read the Exchange base method names once.
             const exBase = new Set<string>();
             try {
@@ -14133,11 +10458,6 @@ impl std::ops::DerefMut for ${coreName} {
                     '<Self as crate::exchange_generated::ExchangeBase>::$1(self, ');
             }
         }
-
-        // Drop `.clone()` on the value arg of extend/omit/market/parse_number
-        // when the local is dead afterwards (those callees take the Value by
-        // value). Runs last, once every other pass has fixed the final shape.
-        basePart = this.dropDeadLastUseArgClones(basePart);
 
         // Drop base methods we keep as hand-written stubs in `exchange_stubs.rs`.
         // `loadOrderBook` is a WS-only helper (its body uses the WS `client`,
@@ -14234,9 +10554,9 @@ impl std::ops::DerefMut for ${coreName} {
             traitBody,
             // call_dynamic_base — base-only async methods (cancelOrderWith…) that
             // a core's `call_dynamic` falls through to.
-            isExchangeBase ? this.emitCallDynamicBaseTrait(traitBodyForSigs)
-                : isPredictionBase ? this.emitCallDynamicPredictionBase(traitBodyForSigs)
-                : this.emitCallDynamicForBase(basePart),
+            isExchangeBase ? this.emitCallDynamicBaseTrait(result.rustSignatures, traitBodyForSigs)
+                : isPredictionBase ? this.emitCallDynamicPredictionBase(result.rustSignatures, traitBodyForSigs)
+                : this.emitCallDynamicForBase(result.rustSignatures, basePart),
             '}',
             '',
         ].join('\n')
@@ -14247,7 +10567,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.dropDeadFirstArgClones(finalFile);
-        finalFile = this.narrowOptionalSafeLocals(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.narrowFloatLocals(finalFile);
         finalFile = this.collapseNumericBoxAccessors(finalFile);
@@ -14257,7 +10576,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
         finalFile = this.rustDropBoolBoxedIsTrue(finalFile);
-        finalFile = this.rustNativeBoolEquals(finalFile);
         finalFile = this.rustNativeBoolIsTrue(finalFile);
         finalFile = this.rustInlineLiteralIsEqual(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
@@ -14267,33 +10585,16 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
-        // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
-        // under the CI clippy lane's `-D warnings`).
-        finalFile = this.whileTrueToLoop(finalFile);
         finalFile = this.rustNativeTruthAndEquality(finalFile);
-        finalFile = nativeBoolScalars(finalFile);
         finalFile = nativeBoolCallee(finalFile);
         // Last of all: native get_value on a pinned receiver.
         finalFile = nativeInserts(finalFile);
         finalFile = nativeContainerOps(finalFile);
         finalFile = rustTypedLocals(finalFile);
-        finalFile = rustStringNatives(finalFile);
-                finalFile = calleeShapeContainerOps(finalFile);
         finalFile = fieldChainInserts(finalFile);
         finalFile = plainDictChains(finalFile);
-        finalFile = narrowStrSinkLocals(finalFile);
-        finalFile = narrowStrNullLocals(finalFile);
         finalFile = rustIntLocalNullSinkOptionI64(finalFile);
         finalFile = rustStrLiteralLocalNativeString(finalFile);
-        finalFile = strLocalReassign(finalFile);
-        finalFile = rustBoolKLocalOptionBool(finalFile);
-        finalFile = rustBool2LocalOptionBool(finalFile);
-        finalFile = rustBoolNLocalOptionBool(finalFile);
-        finalFile = rustStr2LocalOptionString(finalFile);
-        finalFile = rustNumber2LocalOptionF64(finalFile);
-        finalFile = rustInt2IntNLocalOptionI64(finalFile);
-        finalFile = rustStrNLocalOptionString(finalFile);
-        finalFile = rustNumber2SinkLocalOptionF64R2(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -14427,11 +10728,9 @@ impl std::ops::DerefMut for ${coreName} {
                 // catch_unwind keeps the catch body, so a test can assert that a call throws
                 content = this.rewriteTryCatchAsync(content);
                 content = this.autoCloneCallArgs(content);
-                content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
-                content = this.splitAddElementBorrowConflicts(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
                 // Async propagation — mark fns async when their body
                 // contains `.await`.
@@ -14833,11 +11132,9 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
                 content = this.wrapBoolValueArgs(content);
                 content = this.autoCloneCallArgs(content);
-                content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
-                content = this.splitAddElementBorrowConflicts(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
                 content = this.markMethodsAsyncIfBodyAwaits(content);
                 // `assert (cond, msg)` → `assert!(cond, "msg")` → strip
@@ -14879,32 +11176,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = content.replace(
                     /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(\)/g,
                     '$1::new(Value::Null)',
-                );
-
-                // Auto-clone args passed to known cache / order-book methods.
-                // The base `autoCloneCallArgs` pass only matches well-known
-                // helper prefixes (`self.X`, `exchange.X`, `assert`, …) — it
-                // doesn't recognise method calls on arbitrary Value-typed
-                // locals like `timestampCache.append(ohlcv1)`, which means the
-                // raw arg is moved and the next reference fails to borrow-
-                // check. Append `.clone()` to bare-identifier arguments only;
-                // expression args (`Value::Null`, `Value::Map({...})`, etc.)
-                // are not at risk of being moved-from beyond the call site.
-                const cloneIdent = (s: string) =>
-                    /^[a-zA-Z_]\w*$/.test(s.trim()) ? `${s.trim()}.clone()` : s;
-                content = this.cloneIdentArgsToCalls(
-                    content,
-                    /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit)\(/g,
-                );
-
-                // Same idea for the WS factory constructors:
-                //   `OrderBook::new(snapshot, depth)`
-                //   `ArrayCacheBySymbolById::new(maxSize)`
-                // — clone bare-identifier args so the test can rebuild the
-                // book/cache later with the same snapshot.
-                content = this.cloneIdentArgsToCalls(
-                    content,
-                    /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
                 );
 
                 // Side-extraction rewrite. TS uses reference semantics:
@@ -14951,50 +11222,6 @@ impl std::ops::DerefMut for ${coreName} {
         }
 
         this.writeBaseTestsWsModFile(outDir, written);
-    }
-
-    /**
-     * Walk through every call site whose opening `(` is matched by
-     * `headRe`, balance-parse the arg list (so nested `Value::Int(5)`
-     * etc. count), then append `.clone()` to each bare-identifier arg.
-     * Expression args (`Value::Null`, literals, …) are left untouched.
-     * Used by `transpileBaseTestsWs` to fix the move-once borrow
-     * pattern in transpiled cache / order-book test bodies.
-     */
-    cloneIdentArgsToCalls(content: string, headRe: RegExp): string {
-        let out = '';
-        let i = 0;
-        const re = new RegExp(headRe.source, headRe.flags.includes('g') ? headRe.flags : headRe.flags + 'g');
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const headEnd = m.index + m[0].length;
-            out += content.slice(i, headEnd);
-            // Balance-parse to find the matching closing `)`.
-            let depth = 1, j = headEnd, inStr = false, esc = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (esc) { esc = false; j++; continue; }
-                if (c === '\\') { esc = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                    if (depth === 0) break;
-                }
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(headEnd); i = content.length; break; }
-            const argsRaw = content.slice(headEnd, j);
-            const args = this.splitArgs(argsRaw) ?? [];
-            const rewritten = args
-                .map(a => /^[a-zA-Z_]\w*$/.test(a.trim()) ? `${a.trim()}.clone()` : a)
-                .join(', ');
-            out += rewritten + ')';
-            i = j + 1;
-            re.lastIndex = i;
-        }
-        out += content.slice(i);
-        return out;
     }
 
     /**
@@ -15217,7 +11444,6 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapBoolValueArgs(content);
         content = this.rewriteTryCatchAsync(content);
         content = this.autoCloneCallArgs(content);
-        content = this.cloneInArrayLiterals(content);
         // `symbol in exchange.markets` → `in_op(get_value(exchange,
         // "markets"), symbol)` deep-clones the whole markets map. In
         // `test.ticker.rs` that guard runs once per ticker, so for a 3k-
@@ -15240,7 +11466,6 @@ impl std::ops::DerefMut for ${coreName} {
             /in_op\(&get_value\(&exchange, &Value::Str\("markets"\.to_string\(\)\)\), &(\w+)(?:\.clone\(\))?\)/g,
             'crate::tests_support::shared::market_exists(&exchange, &$1)',
         );
-        content = this.splitAddElementBorrowConflicts(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
         // Belt + braces: mark a fn async if its body holds `.await`.
@@ -15288,7 +11513,6 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
         content = this.rewriteNativeErrorClassChecks(content);
-                content = calleeShapeContainerOps(content);
         content = fieldChainInserts(content);
         content = plainDictChains(content);
         return content;
@@ -15601,7 +11825,6 @@ impl std::ops::DerefMut for ${coreName} {
             // `try { createOrder } catch { capture last_request_body }`),
             // so transpile it properly instead of dropping the catch.
             content = this.rewriteTryCatchAsync(content);
-            content = this.cloneInRefSlices(content);
             // Go-style interface dispatch: retype `exchange.<live_method>(args)`
             // → `crate::live_dispatch::dispatch(&exchange, "<method>", vec![args])`.
             // Mirrors what runExchangeTestPipeline does for the per-test
@@ -15609,11 +11832,9 @@ impl std::ops::DerefMut for ${coreName} {
             // are already formed and can be flattened into the vec.
             content = this.rewriteExchangeMethodCalls(content);
             content = this.autoCloneCallArgs(content);
-            content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
             content = this.stripMutSelfFieldClones(content);
-            content = this.splitAddElementBorrowConflicts(content);
             content = this.rewriteSelfFieldMutCloneCast(content);
             content = this.appendValueNullToVoidEnds(content);
             // Strip `mut` from struct field declarations — Rust fields
@@ -15670,9 +11891,6 @@ impl std::ops::DerefMut for ${coreName} {
             );
             // `continue` inside a transpiled `for`→`while` must still run
             // the manual loop increment — labelled-block rewrite.
-            // `while (true)` → `loop {` (rustc's `while_true` lint; the file
-            // header's `clippy::all` allow does not cover rustc lints).
-            content = this.whileTrueToLoop(content);
             // Methods that assign to `self.<field>` need `&mut self`.
             content = this.promoteSelfMutMethods(content);
             // `callExchangeMethodDynamically` / `setFetchResponse`
@@ -15792,6 +12010,7 @@ impl std::ops::DerefMut for ${coreName} {
         const inputExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'));
         const options = { rustFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges };
         await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, true);
+        this.writeRustRegistries();
     }
 
     // ── main entry ─────────────────────────────────────────────────────────────
@@ -15832,6 +12051,7 @@ impl std::ops::DerefMut for ${coreName} {
             }
         }
 
+        if (!child) this.writeRustRegistries();
         if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
@@ -15940,8 +12160,8 @@ impl std::ops::DerefMut for ${coreName} {
         const re = new RegExp(`\\bthis\\.${field}\\s*=(?!=)`);
         for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
             let files: string[] = [];
-            try { files = fs.readdirSync(dir).filter(f => f.endsWith('.ts')); } catch { continue; }
-            for (const f of files) if (re.test(fs.readFileSync(`${dir}/${f}`, 'utf8'))) return true;
+            try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
+            for (const f of files) if (re.test(readTsIndexSource(`${dir}/${f}`) ?? '')) return true;
         }
         return false;
     }
@@ -15953,11 +12173,11 @@ impl std::ops::DerefMut for ${coreName} {
         const out = new Set<string>();
         try {
             const src = fs.readFileSync(`${RUST_CORE}/precise.rs`, 'utf8');
-            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\)), b: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\))\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
                 const body = m[2].trim();
                 if (/^if Self::any_null\(a, b\) \{ return crate::Value::Bool\(false\); \} Self::vbool\([^;{}]*\)$/.test(body)) out.add(m[1]);
             }
-            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\)), b: &(?:crate::Value|\(impl PreciseArg \+ \?Sized\))\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
                 if (out.has(m[2])) out.add(m[1]);
             }
         } catch { /* precise.rs absent: keep the helper */ }
@@ -16225,64 +12445,6 @@ impl std::ops::DerefMut for ${coreName} {
         return this.rustIsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
     }
 
-    /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
-    rustNativeBoolEquals(content: string): string {
-        if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
-        this.rustEmittedBoolReturnMethods(content, []);
-        const masked = this.maskStringsAndComments(content);
-        const own = new Set<string>();
-        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
-        const memo = new Map<string, boolean>();
-        const headers: number[] = [0];
-        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const region = masked.slice(from, headers[h + 1]);
-            const localOk = new Map<string, boolean>();
-            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_(?:equal|true)\(&/g)) {
-                const start = from + (sm.index as number);
-                const isTrue = sm[0].startsWith('is_true');
-                const open = start + (isTrue ? 'is_true(' : 'is_equal(').length - 1;
-                const close = this.closeParenAt(content, open);
-                if (close < 0 || close >= headers[h + 1]) continue;
-                const end = close + 1;
-                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
-                const args = isTrue ? [content.slice(open + 1, close), '&Value::Bool(true)'] : this.splitTopLevelCommas(content.slice(open + 1, close));
-                if (args.length !== 2) continue;
-                const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
-                if (lit === null || !args[0].trim().startsWith('&')) continue;
-                // `is_true` sites over non-locals stay with rustDropBoolBoxedIsTrue (already rewritten when proven).
-                if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
-                const lead = content.slice(Math.max(0, start - 12), start);
-                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
-                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
-                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
-                if (slot === undefined) continue;
-                const inner = this.stripOuterParens(args[0].trim().slice(1).trim());
-                if (inner.includes('is_equal(')) continue;
-                if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
-                    const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
-                    if (declAt < 0 || declAt > (sm.index as number)) continue;
-                    if (!localOk.has(inner)) localOk.set(inner, this.rustBoolBoxedLocal(inner, region, from, content, own, memo));
-                    if (!localOk.get(inner)) continue;
-                } else if (!this.rustIsBoolBoxedExpr(inner, content, own, memo)) continue;
-                const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
-                const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
-                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
-            }
-        }
-        if (rewrites.length === 0) return content;
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
-    }
-
     /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
      *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
     rustIsNativeBoolExpr(raw: string, depth = 0): boolean {
@@ -16354,7 +12516,10 @@ impl std::ops::DerefMut for ${coreName} {
             try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
             for (const e of entries) {
                 if (e.isDirectory()) walk(`${dir}/${e.name}`);
-                else if (e.name.endsWith('.ts')) files.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+                else if (isTsIndexSource(e.name)) {
+                    const text = readTsIndexSource(`${dir}/${e.name}`);
+                    if (text !== undefined) files.push(text);
+                }
             }
         };
         walk('./ts/src');
@@ -16810,30 +12975,15 @@ impl std::ops::DerefMut for ${coreName} {
 function rustPassesSelfTest(): string[] {
     const problems: string[] = [];
     const lists: Record<string, () => string[]> = {
-        nativeContainerOpsSelfTest, nativeBoolScalarsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest, calleeShapeContainerOpsSelfTest,
-        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest, clientHandleSelfTest,
+        nativeContainerOpsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest,
+        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest,
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');
     const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(msg); };
-    ok(narrowStrSinkLocals('pub fn f(&mut self) -> Value {\n    let mut s: Value = self.safe_string_k(x.clone(), "id", &[]);\n    let t: String = format!("a{}", s);\n    return Value::Null;\n}\n').includes('safe_string_k_opt'), 'narrowStrSinkLocals: format!-only local');
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
     ok(plainDictChains(chain).includes('.entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null)') && !plainDictChains(chain).includes('get_value_mut'), 'plainDictChains: Value-ident key');
     ok(plainDictChains(chain.replace('symbol: Value', 'symbol: &str')).includes('get_value_mut'), 'plainDictChains: unknown key type');
-    const read = (name: string, key: string, dflt = 'Value::Null'): string => 'let mut ' + name + ': Value = (match __pro_message.get("' + key + '").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), '
-        + 'Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => ' + dflt + ' });';
-    const topic = narrowStrNullLocals('fn f() {\n    ' + read('topic', 'topic') + '\n    if (topic != Value::Null) {\n        let ok = topic.as_str() == Some("a");\n    }\n}\n');
-    ok(topic.includes('let mut topic: Option<String> = match __pro_message.get("topic").cloned()') && topic.includes('topic.is_some()') && topic.includes('topic.as_deref() == Some("a")'), 'narrowStrNullLocals: inlined read');
-    const kept = 'fn f() {\n    ' + read('topic', 'topic') + '\n    self.go(&mut topic);\n}\n';
-    ok(narrowStrNullLocals(kept) === kept, 'narrowStrNullLocals: &mut use');
-    const dflt = 'fn f() {\n    ' + read('topic', 'topic', 'Value::Str("".into())') + '\n    let a = topic.as_str();\n}\n';
-    ok(narrowStrNullLocals(dflt) === dflt, 'narrowStrNullLocals: non-Null default');
-    const intRead = 'let mut pong: Value = (match __pro_message.get("pong").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), '
-        + 'Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });';
-    const pong = narrowStrNullLocals('fn f() {\n    ' + intRead + '\n    if (pong != Value::Null) { return; }\n}\n');
-    ok(pong.includes('let mut pong: Option<i64> = match __pro_message.get("pong").cloned()') && pong.includes('pong.is_some()'), 'narrowStrNullLocals: integer read');
-    const pongKept = 'fn f() {\n    ' + intRead + '\n    self.go(pong);\n}\n';
-    ok(narrowStrNullLocals(pongKept) === pongKept, 'narrowStrNullLocals: integer used otherwise');
     return problems;
 }
 
@@ -16867,6 +13017,7 @@ if (isMainEntry(import.meta.url)) {
                 .sort();
             t.writeModFile(folder, onDisk);
         }
+        t.writeRustRegistries();
     } else if (baseOnly) {
         t.transpileBaseMethods('./ts/src/base/Exchange.ts');
         t.transpileErrorHierarchy();

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::binanceus::BinanceusCore;
+use super::binanceus::Binanceus;
 use crate::exchange::ExchangeRuntime;
 
-impl BinanceusCore {
+impl Binanceus {
     /// Auto-generated wrapper for the `sapiGetCopyTradingFuturesUserStatus` implicit endpoint.
     pub async fn sapi_get_copy_trading_futures_user_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_get_copy_trading_futures_user_status".into()), optional_args).await
@@ -575,6 +575,11 @@ impl BinanceusCore {
     /// Auto-generated wrapper for the `sapiGetSubAccountTransactionStatistics` implicit endpoint.
     pub async fn sapi_get_sub_account_transaction_statistics(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_get_sub_account_transaction_statistics".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiGetSubAccountSubAccountApi` implicit endpoint.
+    pub async fn sapi_get_sub_account_sub_account_api(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_sub_account_sub_account_api".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiGetSubAccountSubAccountApiIpRestriction` implicit endpoint.
@@ -1637,6 +1642,16 @@ impl BinanceusCore {
         self.call_method(Value::Str("sapi_post_sub_account_virtual_sub_account".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `sapiPostSubAccountSubAccountApi` implicit endpoint.
+    pub async fn sapi_post_sub_account_sub_account_api(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_sub_account_sub_account_api".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiPostSubAccountSubAccountApiPermission` implicit endpoint.
+    pub async fn sapi_post_sub_account_sub_account_api_permission(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_sub_account_sub_account_api_permission".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `sapiPostSubAccountMarginTransfer` implicit endpoint.
     pub async fn sapi_post_sub_account_margin_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_post_sub_account_margin_transfer".into()), optional_args).await
@@ -2302,6 +2317,11 @@ impl BinanceusCore {
         self.call_method(Value::Str("sapi_delete_algo_futures_order".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `sapiDeleteSubAccountSubAccountApi` implicit endpoint.
+    pub async fn sapi_delete_sub_account_sub_account_api(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_delete_sub_account_sub_account_api".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `sapiDeleteSubAccountSubAccountApiIpRestrictionIpList` implicit endpoint.
     pub async fn sapi_delete_sub_account_sub_account_api_ip_restriction_ip_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_delete_sub_account_sub_account_api_ip_restriction_ip_list".into()), optional_args).await
@@ -2390,6 +2410,11 @@ impl BinanceusCore {
     /// Auto-generated wrapper for the `sapiV2PostEthStakingEthStake` implicit endpoint.
     pub async fn sapi_v2_post_eth_staking_eth_stake(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_v2_post_eth_staking_eth_stake".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiV2PostSubAccountSubAccountApi` implicit endpoint.
+    pub async fn sapi_v2_post_sub_account_sub_account_api(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_v2_post_sub_account_sub_account_api".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiV2PostSubAccountSubAccountApiIpRestriction` implicit endpoint.

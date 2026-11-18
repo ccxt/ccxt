@@ -236,7 +236,7 @@ export default class onetrading extends onetradingRest {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        const tickers = this.safeList (message, 'ticker_updates', []);
+        const tickers: Dict[] = this.safeList (message, 'ticker_updates', []);
         const datetime = this.safeString (message, 'time');
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
@@ -1221,16 +1221,15 @@ export default class onetrading extends onetradingRest {
             this.safeNumber (message, 'close'),
             this.safeNumber (message, 'volume'),
         ];
-        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
-        let stored = this.safeValue (symbolOhlcvs, timeframe);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
         }
         stored.append (parsed);
         if (symbol !== undefined && timeframe !== undefined) {
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         client.resolve (stored, channel);
     }

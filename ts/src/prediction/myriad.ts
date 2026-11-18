@@ -270,7 +270,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const found: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString (raw, 'networkId', '');
@@ -446,7 +446,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const found: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString (raw, 'id');
@@ -487,7 +487,7 @@ export default class myriad extends Exchange {
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
             const responseIsArray = Array.isArray (response);
-            const rawQuestions = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const rawQuestions: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -2770,7 +2770,7 @@ export default class myriad extends Exchange {
             chart = this.safeDict (chartsDict, bucketKey);
         }
         const pointsList = this.safeList (chart, 'prices', this.safeList (chart, 'data', chart as any));
-        let points = (pointsList !== undefined) ? pointsList : [];
+        let points: Dict[] = (pointsList !== undefined) ? pointsList : [];
         const pointsLength = points.length;
         if (pointsLength === 0) {
             const priceCharts = this.safeDict (response, 'price_charts', {});
@@ -3163,7 +3163,7 @@ export default class myriad extends Exchange {
         }) as any;
     }
 
-    requestId (url: Str): number {
+    requestId (url: Str): int {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary ();
@@ -3484,7 +3484,7 @@ export default class myriad extends Exchange {
             if (takerTrader === myWallet) {
                 myLegs.push (trade);
             }
-            const makers = this.safeList (data, 'makers', []);
+            const makers: Dict[] = this.safeList (data, 'makers', []);
             const makersLength = makers.length;
             for (let i = 0; i < makersLength; i++) {
                 const maker = makers[i];
@@ -3603,7 +3603,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
      */
-    override async watchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         const trades = await this.watchTrades (outcome, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades as any, timeframe, 0, 2147483647);

@@ -92,11 +92,11 @@ public partial class polymarket : ccxt.polymarket
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
         // private channels register a shared hash next to narrowed ones
-        object hashesToCheck = ((checkHashes == null)) ? messageHashes : checkHashes;
+        IList<object> hashesToCheck = ((checkHashes == null)) ? messageHashes : checkHashes;
         bool willSend = false;
-        for (int i = 0; i < getArrayLength(hashesToCheck); i++)
+        for (int i = 0; i < (hashesToCheck?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && getValue(hashesToCheck, i) is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+            if (!((client.subscriptions != null && hashesToCheck[i] is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 willSend = true;
             }
@@ -132,7 +132,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -154,7 +154,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -217,7 +217,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -238,7 +238,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -418,7 +418,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -445,7 +445,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -486,15 +486,15 @@ public partial class polymarket : ccxt.polymarket
         // as a single object, so both shapes are handled here
         //
         object data = this.safeValue(message, "data");
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
-            ((IList<object>)rows).Add(data);
+            rows.Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
         {
             return;
@@ -520,7 +520,7 @@ public partial class polymarket : ccxt.polymarket
         client.resolve(trades, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -573,7 +573,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -610,7 +610,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -738,13 +738,13 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
         string messageHash = "orders";
-        object symbolResolved = symbol;
+        string? symbolResolved = symbol;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
@@ -761,7 +761,7 @@ public partial class polymarket : ccxt.polymarket
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -789,15 +789,15 @@ public partial class polymarket : ccxt.polymarket
         //     }
         //
         object data = this.safeValue(message, "data");
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
-            ((IList<object>)rows).Add(data);
+            rows.Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
         {
             return;
@@ -840,13 +840,13 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
         string messageHash = "myTrades";
-        object symbolResolved = symbol;
+        string? symbolResolved = symbol;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
@@ -863,7 +863,7 @@ public partial class polymarket : ccxt.polymarket
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -895,15 +895,15 @@ public partial class polymarket : ccxt.polymarket
         //     }
         //
         object data = this.safeValue(message, "data");
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
-            ((IList<object>)rows).Add(data);
+            rows.Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
         {
             return;
@@ -946,7 +946,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -962,14 +962,14 @@ public partial class polymarket : ccxt.polymarket
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         List<object> subscribeHashes = new List<object>() {"portfolio"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"positions"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         object newPositions = await this.watch(url, "positions", request, "portfolio");
         if (this.newUpdates)
         {
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(newPositions, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(newPositions), symbolsNormalized, since, limit, true));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
@@ -1021,7 +1021,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1237,10 +1237,10 @@ public partial class polymarket : ccxt.polymarket
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                object messageHash = messageHashes[i];
-                if ((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+                string? messageHash = ((string)messageHashes[i]);
+                if (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                    ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
                 if (action == "sub")
                 {

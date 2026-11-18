@@ -1378,8 +1378,7 @@ class coinone extends Exchange {
             ), $params));
             $payload = base64_encode($json);
             $requestBody = $payload;
-            $secret = strtoupper($this->secret);
-            $signature = $this->hmac($this->encode($payload), $this->encode($secret), 'sha512');
+            $signature = $this->hmac($this->encode($payload), $this->encode(strtoupper($this->secret)), 'sha512');
             $requestHeaders = array(
                 'Content-Type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,

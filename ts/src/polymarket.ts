@@ -410,8 +410,8 @@ export default class polymarket extends Exchange {
             this.publicGetInfoAssets (params),
         ];
         const responses = await Promise.all (promises);
-        const instruments = this.safeList (responses, 0, []);
-        const assets = this.safeList (responses, 1, []);
+        const instruments: Dict[] = this.safeList (responses, 0, []);
+        const assets: Dict[] = this.safeList (responses, 1, []);
         const result: Dict = {};
         for (let i = 0; i < instruments.length; i++) {
             const instrument = instruments[i];
@@ -675,14 +675,14 @@ export default class polymarket extends Exchange {
         //     ]
         //
         const merged: Dict = {};
-        const statistics = this.safeList (responses, 1, []);
+        const statistics: Dict[] = this.safeList (responses, 1, []);
         for (let i = 0; i < statistics.length; i++) {
             const entry = statistics[i];
             const instrumentId = this.safeString (entry, 'instrument_id');
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged[instrumentId as string] = this.omit (entry, 'klines');
         }
-        const bbos = this.safeList (responses, 2, []);
+        const bbos: Dict[] = this.safeList (responses, 2, []);
         for (let i = 0; i < bbos.length; i++) {
             const entry = bbos[i];
             const instrumentId = this.safeString (entry, 'instrument_id');
@@ -690,7 +690,7 @@ export default class polymarket extends Exchange {
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             merged[instrumentId as string] = this.extend (previous, entry);
         }
-        const tickers = this.safeList (responses, 0, []);
+        const tickers: Dict[] = this.safeList (responses, 0, []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -1030,7 +1030,7 @@ export default class polymarket extends Exchange {
         return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrument_id": 1,
@@ -1117,7 +1117,7 @@ export default class polymarket extends Exchange {
         //         "more": false
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -2134,7 +2134,7 @@ export default class polymarket extends Exchange {
         //         "more": false
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -2596,11 +2596,11 @@ export default class polymarket extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: any, privateKey: any): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const sVal = signature['s'];
@@ -2608,7 +2608,7 @@ export default class polymarket extends Exchange {
         return '0x' + r.padStart (64, '0') + sVal.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: any): string {
         return this.signHash (this.hashMessage (message), privateKey);
     }
 

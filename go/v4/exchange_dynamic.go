@@ -45,6 +45,9 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "bit2c":
 		bit2cItf := NewBit2c(exchangeArgs)
 		return bit2cItf, true
+	case "bit2me":
+		bit2meItf := NewBit2me(exchangeArgs)
+		return bit2meItf, true
 	case "bitbank":
 		bitbankItf := NewBitbank(exchangeArgs)
 		return bitbankItf, true

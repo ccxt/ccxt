@@ -1349,21 +1349,21 @@ export default class phemex extends Exchange {
         return precise.toString ();
     }
 
-    fromEp (ep: any, market: Market = undefined) {
+    fromEp (ep: Str, market: Market = undefined): Str {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    fromEv (ev: any, market: Market = undefined) {
+    fromEv (ev: Str, market: Market = undefined): Str {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    fromEr (er: any, market: Market = undefined) {
+    fromEr (er: Str, market: Market = undefined): Str {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
@@ -2445,7 +2445,7 @@ export default class phemex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
-        let fee: Fee = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.fromEv (this.safeString (order, 'cumFeeEv'), marketResolved);
         if (feeCost !== undefined) {
             fee = {
@@ -4413,7 +4413,7 @@ export default class phemex extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "askEp": 2332500,
@@ -4461,16 +4461,16 @@ export default class phemex extends Exchange {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.safeNumber (contract, 'markPriceRp', markEp),
-            'indexPrice': this.safeNumber (contract, 'indexPriceRp', indexEp),
+            'markPrice': this.safeNumber (contract, 'markPriceRp', this.parseNumber (markEp)),
+            'indexPrice': this.safeNumber (contract, 'indexPriceRp', this.parseNumber (indexEp)),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.safeNumber (contract, 'fundingRateRr', fundingRateEr),
+            'fundingRate': this.safeNumber (contract, 'fundingRateRr', this.parseNumber (fundingRateEr)),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.safeNumber (contract, 'predFundingRateRr', nextFundingRateEr),
+            'nextFundingRate': this.safeNumber (contract, 'predFundingRateRr', this.parseNumber (nextFundingRateEr)),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
@@ -4890,7 +4890,7 @@ export default class phemex extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const scaledAmmount = this.toEv (amount, currency);
+        const scaledAmmount = this.toEn (amount, this.safeInteger (currency, 'valueScale'));
         let direction: Int = undefined;
         let transfer: TransferEntry | undefined = undefined;
         if (fromId === 'spot' && toId === 'future') {
@@ -5061,7 +5061,7 @@ export default class phemex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
-            'amount': amountTransfered,
+            'amount': this.parseNumber (amountTransfered),
             'fromAccount': fromId,
             'toAccount': toId,
             'status': this.parseTransferStatus (status),
@@ -5147,7 +5147,7 @@ export default class phemex extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const rates = this.safeList (data, 'rows', []);
+        const rates: Dict[] = this.safeList (data, 'rows', []);
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];

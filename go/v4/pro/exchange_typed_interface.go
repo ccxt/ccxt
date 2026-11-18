@@ -45,6 +45,9 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
 	case "bingx":
 		itf := NewBingx(options)
 		return itf
+	case "bit2me":
+		itf := NewBit2me(options)
+		return itf
 	case "bitfinex":
 		itf := NewBitfinex(options)
 		return itf

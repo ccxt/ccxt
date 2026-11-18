@@ -1200,7 +1200,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = self.array_concat(self.safe_list(markets[0], 'result', []), self.safe_list(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
-    def parse_markets(self, markets: object):
+    def parse_markets(self, markets: list):
         result = []
         for i in range(0, len(markets)):
             parsed = self.parse_market(self.safe_value(markets, i))
@@ -3758,10 +3758,19 @@ class xt(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = self.safe_symbol(marketId, marketResolved, None, marketType)
         timestamp = self.safe_integer_2(order, 'time', 'createdTime')
-        quantity = self.safe_number(order, 'origQty')
-        amount = quantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(quantity), self.number_to_string(marketResolved['contractSize']))
-        filledQuantity = self.safe_number(order, 'executedQty')
-        filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(marketResolved['contractSize']))
+        contractSize = self.safe_string(marketResolved, 'contractSize')
+        quantity = self.safe_string(order, 'origQty')
+        # on spot market buy orders executedQty is denominated in the quote
+        # currency, so the filled base amount is only correct in tradeBase
+        filledQuantity = self.safe_string_2(order, 'tradeBase', 'executedQty')
+        amount = quantity if (marketType == 'spot') else Precise.string_mul(quantity, contractSize)
+        filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(filledQuantity, contractSize)
+        # leavingQty follows executedQty and is quote-denominated on the same
+        # spot market buy shape, so it is only read when the order carries a
+        # base-denominated origQty - otherwise safeOrder derives it from filled
+        remaining = None
+        if quantity is not None:
+            remaining = self.safe_string(order, 'leavingQty')
         lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = None
@@ -3791,7 +3800,7 @@ class xt(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastUpdatedTimestamp,
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
-            'type': self.safe_string_lower_2(order, 'type', 'orderType'),
+            'type': self.parse_order_type(self.safe_string_lower_n(order, ['type', 'orderType', 'entrustType'])),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -3801,8 +3810,8 @@ class xt(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number(order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': self.safe_number(order, 'leavingQty'),
-            'cost': None,
+            'remaining': remaining,
+            'cost': self.safe_string(order, 'tradeQuote'),
             'average': self.safe_number(order, 'avgPrice'),
             'status': self.parse_order_status(self.safe_string(order, 'state')),
             'fee': {
@@ -3811,6 +3820,16 @@ class xt(Exchange, ImplicitAPI):
             },
             'trades': None,
         }, marketResolved)
+
+    def parse_order_type(self, type: Str) -> Str:
+        types = {
+            'stop': 'limit',
+            'stop_market': 'market',
+            'take_profit': 'limit',
+            'take_profit_market': 'market',
+            'trailing_stop_market': 'market',
+        }
+        return self.safe_string(types, type, type)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -4639,7 +4658,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4812,7 +4831,7 @@ class xt(Exchange, ImplicitAPI):
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
-        symbol = market['symbol'] if (market is not None) else None
+        symbol = self.safe_string(market, 'symbol')
         return {
             'info': fee,
             'symbol': symbol,
@@ -5558,8 +5577,9 @@ class xt(Exchange, ImplicitAPI):
             jsonBody = self.json(query)
             signedBody = None if isUndefinedBody else jsonBody
             payloadString = ''
+            timestampPart = '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
             if (endpoint == 'spot') or (endpoint == 'user'):
-                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
+                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + timestampPart
                 if isUndefinedBody:
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded
@@ -5571,7 +5591,7 @@ class xt(Exchange, ImplicitAPI):
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256'
                 headersValue['xt-validate-recvwindow'] = recvWindow
             else:
-                futurePrefix = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
+                futurePrefix = 'xt-validate-appkey=' + self.apiKey + timestampPart
                 if method == 'GET':
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded

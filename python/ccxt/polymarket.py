@@ -1006,7 +1006,7 @@ class polymarket(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(response)
         return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrument_id": 1,
@@ -2462,17 +2462,17 @@ class polymarket(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object):
+    def sign_hash(self, hash: object, privateKey: object) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         sVal = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + sVal.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object):
+    def sign_message(self, message: object, privateKey: object) -> str:
         return self.sign_hash(self.hash_message(message), privateKey)
 
     def create_proxy_credentials(self, params: dict = {}) -> dict:

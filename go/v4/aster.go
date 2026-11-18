@@ -1397,12 +1397,12 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
-	var amountPrecision *float64 = func() *float64 {
-		if filterLotSize != nil {
-			return this.SafeNumber(filterLotSize, "stepSize")
-		}
-		return this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
-	}()
+	var amountPrecision *float64
+	if filterLotSize != nil {
+		amountPrecision = this.SafeNumber(filterLotSize, "stepSize")
+	} else {
+		amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -1584,7 +1584,7 @@ func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1500)
+		request["limit"] = min(*limit, 1500)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	requestUntil["interval"] = *this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1787,7 +1787,7 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		AddElementToObject(request, "limit", min(*limit, 1000))
 	}
 	var response []any = nil
 	var sinceDefined bool = (since != nil)
@@ -1882,7 +1882,7 @@ func (this *Aster) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 	var response []any = nil
@@ -2600,7 +2600,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(this.ToArray(response), symbolsNormalized))}
 	return nil
 }
 
@@ -2701,7 +2701,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -2838,12 +2838,12 @@ func (this *Aster) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
 	var marginModeUpper string = strings.ToUpper(marginMode)
-	var marginModeValue string = func() string {
-		if marginModeUpper == "CROSS" {
-			return "CROSSED"
-		}
-		return marginModeUpper
-	}()
+	var marginModeValue string
+	if marginModeUpper == "CROSS" {
+		marginModeValue = "CROSSED"
+	} else {
+		marginModeValue = marginModeUpper
+	}
 	if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
 		panic(BadRequest(this.Id + " marginMode must be either isolated or cross"))
 	}
@@ -3106,7 +3106,6 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var info any = order
 	var positionSide *string = this.SafeString(order, "positionSide")
 	var defaultType string = "spot"
 	if positionSide != nil {
@@ -3121,7 +3120,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) Order {
 	var stopPriceString *string = this.SafeString(order, "stopPrice")
 	var triggerPrice *float64 = this.ParseNumber(this.OmitZero(stopPriceString))
 	return this.SafeOrder(map[string]any{
-		"info":                info,
+		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
 		"symbol":              this.SafeSymbol(marketId, marketResolved),
@@ -3374,7 +3373,7 @@ func (this *Aster) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -3574,7 +3573,7 @@ func (this *Aster) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
 
@@ -3804,7 +3803,7 @@ func (this *Aster) CreateOrderRequest(symbol *string, typeVar *string, side *str
 	request["type"] = uppercaseType
 	if uppercaseType == "MARKET" {
 		if *this.SafeBool(market, "spot", false) {
-			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
+			var quoteOrderQty bool = this.HandleOption("createOrder", "quoteOrderQty", true) == true
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
 				var marketPrecision map[string]any = SafeMapTyped(market, "precision")
@@ -3964,12 +3963,12 @@ func (this *Aster) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Aster) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Aster) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4031,12 +4030,12 @@ func (this *Aster) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalA
  * @param {int[]} [params.recvWindow]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Aster) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4059,7 +4058,12 @@ func (this *Aster) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	if clientOrderIdList != nil {
 		request["origClientOrderIdList"] = clientOrderIdList
 	} else {
-		request["orderIdList"] = ids
+		// the api takes LONG[] order ids
+		var orderIdList []any = []any{}
+		for i := 0; i < len(ids); i++ {
+			orderIdList = append(orderIdList, this.ParseToNumeric(ids[i]))
+		}
+		request["orderIdList"] = orderIdList
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "swap", false) {
@@ -4642,7 +4646,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // max 1000
+		request["limit"] = min(*limit, 1000) // max 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -4756,7 +4760,7 @@ func (this *Aster) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // max 1000
+		request["limit"] = min(*limit, 1000) // max 1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
@@ -4822,7 +4826,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
-		var bracket any = DerefScalar(leverageBracket[i])
+		var bracket any = leverageBracket[i]
 		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
 			break
 		}
@@ -4833,7 +4837,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var contracts *float64 = this.ParseNumber(contractsAbs)
 	var unrealizedPnlString *string = this.SafeString(position, "unRealizedProfit")
 	var unrealizedPnl *float64 = this.ParseNumber(unrealizedPnlString)
-	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
+	var liquidationPriceString *string = this.OmitZero(this.SafeString(position, "liquidationPrice"))
 	var liquidationPrice *float64 = this.ParseNumber(liquidationPriceString)
 	var collateralString *string = nil
 	var marginMode *string = this.SafeString(position, "marginType")
@@ -5037,7 +5041,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[[]Position], optio
 	var rawPositions []any = this.ToArray(response)
 	var result []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = DerefScalar(rawPositions[i])
+		var rawPosition any = rawPositions[i]
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
 			result = append(result, this.ParsePositionRisk(rawPosition))
@@ -5087,11 +5091,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes381119 []any = PositionsToList(r.Value)
-		if retRes381119 == nil {
+		var retRes381519 []any = PositionsToList(r.Value)
+		if retRes381519 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381519)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5100,11 +5104,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes381319 []any = PositionsToList(r1.Value)
-		if retRes381319 == nil {
+		var retRes381719 []any = PositionsToList(r1.Value)
+		if retRes381719 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381319)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381719)}
 		}
 		return nil
 	} else {
@@ -5198,7 +5202,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
-		var bracket any = DerefScalar(leverageBracket[i])
+		var bracket any = leverageBracket[i]
 		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
 			break
 		}
@@ -5852,12 +5856,12 @@ func (this *Aster) EncodeValuesWithJson(values map[string]any) string {
 		var key string = keys[i]
 		var value any = values[key]
 		var isObj bool = IsArray(value) || this.IsDictionary(value)
-		var valueJsonified string = func() string {
-			if isObj {
-				return this.Json(value)
-			}
-			return ToString(value)
-		}()
+		var valueJsonified string
+		if isObj {
+			valueJsonified = this.Json(value)
+		} else {
+			valueJsonified = ToString(value)
+		}
 		var encoded string = this.EncodeURIComponent(valueJsonified)
 		encodedString += key + "=" + encoded + "&"
 	}

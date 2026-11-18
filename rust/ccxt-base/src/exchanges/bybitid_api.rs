@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bybitid::BybitidCore;
+use super::bybitid::Bybitid;
 use crate::exchange::ExchangeRuntime;
 
-impl BybitidCore {
+impl Bybitid {
     /// Auto-generated wrapper for the `publicGetSpotV3PublicSymbols` implicit endpoint.
     pub async fn public_get_spot_v3_public_symbols(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_spot_v3_public_symbols".into()), optional_args).await

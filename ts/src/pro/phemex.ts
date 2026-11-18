@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List, int } from '../base/types.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -61,28 +61,28 @@ export default class phemex extends phemexRest {
         return precise.toString ();
     }
 
-    override fromEp (ep: any, market: Market = undefined): Str {
+    override fromEp (ep: Str, market: Market = undefined): Str {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    override fromEv (ev: any, market: Market = undefined): Str {
+    override fromEv (ev: Str, market: Market = undefined): Str {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    override fromEr (er: any, market: Market = undefined): Str {
+    override fromEr (er: Str, market: Market = undefined): Str {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
         return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -1322,7 +1322,7 @@ export default class phemex extends phemexRest {
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeList (message, 'closed', []);
             const open = this.safeList (message, 'open', []);
-            const orders = this.arrayConcat (open, closed);
+            const orders: Dict[] = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;

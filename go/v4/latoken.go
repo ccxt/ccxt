@@ -599,7 +599,7 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = this.SafeValue(rawMarkets, i)
+		var market map[string]any = SafeMapTyped(rawMarkets, i)
 		var id *string = this.SafeString(market, "id")
 		// the exchange shows them inverted
 		var baseId *string = this.SafeString(market, "baseCurrency")
@@ -762,7 +762,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	var rawCurrencies []any = this.ToArray(response)
 	var merged []any = []any{}
 	for i := 0; i < len(rawCurrencies); i++ {
-		var rawCurrency any = this.SafeValue(rawCurrencies, i)
+		var rawCurrency any = this.SafeDict(rawCurrencies, i)
 		var bindingEntry map[string]any = SafeMapTyped(bindingsById, this.SafeString(rawCurrency, "id"))
 		var bindings []any = SafeListTyped(bindingEntry, "bindings")
 		var mergedCurrency any = rawCurrency
@@ -783,10 +783,10 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(tag)
 	var currencyType *string = this.SafeString(currency, "type")
 	var isCrypto bool = ((currencyType != nil && *currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType != nil && *currencyType == "CURRENCY_TYPE_IEO"))
-	var bindings []any = SafeListTyped(currency, "bindings")
+	var bindings []map[string]any = this.SafeListMapsTyped(currency, "bindings")
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < len(bindings); i++ {
-		var binding any = bindings[i]
+		var binding map[string]any = bindings[i]
 		var networkId *string = this.SafeString(binding, "providerName")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		// the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
@@ -1062,7 +1062,7 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
@@ -1071,6 +1071,16 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	}
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
+	// during venue incidents a deleted level leaks a signed aggregate into the
+	// best sizes - the quoted prices stay usable, so only negatives are dropped
+	var bidVolume *string = this.SafeString(ticker, "bestBidQuantity")
+	if (bidVolume != nil) && Precise.StringLt(bidVolume, "0") {
+		bidVolume = nil
+	}
+	var askVolume *string = this.SafeString(ticker, "bestAskQuantity")
+	if (askVolume != nil) && Precise.StringLt(askVolume, "0") {
+		askVolume = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1078,9 +1088,9 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"low":           nil,
 		"high":          nil,
 		"bid":           this.SafeString(ticker, "bestBid"),
-		"bidVolume":     this.SafeString(ticker, "bestBidQuantity"),
+		"bidVolume":     bidVolume,
 		"ask":           this.SafeString(ticker, "bestAsk"),
-		"askVolume":     this.SafeString(ticker, "bestAskQuantity"),
+		"askVolume":     askVolume,
 		"vwap":          nil,
 		"open":          nil,
 		"close":         last,
@@ -1275,18 +1285,18 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var isBuy bool = (side != nil && *side == "buy")
 	var isMaker bool = (makerBuyer != nil && *makerBuyer) && isBuy
-	var takerOrMaker string = func() string {
-		if isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker string
+	if isMaker {
+		takerOrMaker = "maker"
+	} else {
+		takerOrMaker = "taker"
+	}
 	var baseId *string = this.SafeString(trade, "baseCurrency")
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
@@ -1358,7 +1368,7 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"quote":    market["quoteId"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100) // default 100, limit 100
+		request["limit"] = min(*limit, 100) // default 100, limit 100
 	}
 
 	responseRecv := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
@@ -1678,7 +1688,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		symbol = *base + "/" + *quote
 	}
 	var symbolKnown bool = (symbol != nil) && (this.Markets != nil) && (InOp(this.Markets, symbol))
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if symbolKnown {
 		marketResolved = this.Market(symbol)
 	}
@@ -2108,12 +2118,12 @@ func (this *Latoken) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {boolean} [params.trigger] true if cancelling a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Latoken) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Latoken) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Latoken) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Latoken) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -236,7 +236,7 @@ export default class limitless extends Exchange {
             for (let i = 0; i < queries.length; i++) {
                 const q = queries[i];
                 const response = await this.limitlessPublicGetMarketsSearch (this.extend ({ 'query': q, 'limit': limit }, searchRest));
-                const found = this.safeList (response, 'markets', []);
+                const found: Dict[] = this.safeList (response, 'markets', []);
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString (raw, 'slug');
@@ -294,7 +294,7 @@ export default class limitless extends Exchange {
                         break;
                     }
                     for (let i = 0; i < pageMarketsLength; i++) {
-                        const raw = this.safeValue (page_markets, i);
+                        const raw = this.safeDict (page_markets, i);
                         allRaw.push (raw);
                     }
                     const allRawCount = allRaw.length;
@@ -1207,8 +1207,8 @@ export default class limitless extends Exchange {
         for (let i = 0; i < slugs.length; i++) {
             const slug = slugs[i];
             const detailIndex = i * 2;
-            const detail = this.safeValue (responses, detailIndex);
-            const book = this.safeValue (responses, this.sum (detailIndex, 1));
+            const detail = this.safeDict (responses, detailIndex);
+            const book = this.safeDict (responses, this.sum (detailIndex, 1));
             const tickerInput: Dict = { 'market': detail, 'book': book };
             const grouped = this.safeList (outcomesBySlug, slug, []);
             for (let j = 0; j < grouped.length; j++) {
@@ -1337,22 +1337,22 @@ export default class limitless extends Exchange {
         const bids: any[] = [];
         const asks: any[] = [];
         for (let bi = 0; bi < bidsSource.length; bi++) {
-            let priceStr = this.safeString (this.safeValue (bidsSource, bi), 'price');
+            let priceStr = this.safeString (this.safeDict (bidsSource, bi), 'price');
             if (!isYes && (priceStr !== undefined)) {
                 priceStr = Precise.stringSub ('1', priceStr);
             }
-            let sizeStr = this.safeString (this.safeValue (bidsSource, bi), 'size');
+            let sizeStr = this.safeString (this.safeDict (bidsSource, bi), 'size');
             if (sizeStr !== undefined) {
                 sizeStr = Precise.stringDiv (sizeStr, scaleStr);
             }
             bids.push ([ this.parseNumber (priceStr), this.parseNumber (sizeStr) ]);
         }
         for (let ai = 0; ai < asksSource.length; ai++) {
-            let priceStr = this.safeString (this.safeValue (asksSource, ai), 'price');
+            let priceStr = this.safeString (this.safeDict (asksSource, ai), 'price');
             if (!isYes && (priceStr !== undefined)) {
                 priceStr = Precise.stringSub ('1', priceStr);
             }
-            let sizeStr = this.safeString (this.safeValue (asksSource, ai), 'size');
+            let sizeStr = this.safeString (this.safeDict (asksSource, ai), 'size');
             if (sizeStr !== undefined) {
                 sizeStr = Precise.stringDiv (sizeStr, scaleStr);
             }
@@ -2981,7 +2981,7 @@ export default class limitless extends Exchange {
                     'query': q,
                     'limit': limit,
                 }, rest));
-                const found = this.safeList (response, 'markets', []);
+                const found: Dict[] = this.safeList (response, 'markets', []);
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString (raw, 'slug');
@@ -3071,11 +3071,11 @@ export default class limitless extends Exchange {
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    async fetchRawActiveMarkets (params: Dict = {}, categoryId: Str = undefined): Promise<any[]> {
+    async fetchRawActiveMarkets (params: Dict = {}, categoryId: Str = undefined): Promise<Dict[]> {
         const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
-        const allRaw: any[] = [];
+        const allRaw: Dict[] = [];
         let page = 1;
         while (true) {
             const request: Dict = { 'page': page, 'limit': pageSize };

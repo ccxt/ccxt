@@ -293,8 +293,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol, params = {}) {
-        return this.unSubscribe('trades', 'trades', symbol, params);
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unSubscribe('trades', 'trades', symbol, params);
     }
     /**
      * @method
@@ -342,8 +342,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol, params = {}) {
-        return this.unSubscribe('ticker', 'ticker', symbol, params);
+    async unWatchTicker(symbol, params = {}) {
+        return await this.unSubscribe('ticker', 'ticker', symbol, params);
     }
     handleMyTrade(client, message, subscription = {}) {
         //
@@ -711,13 +711,13 @@ export default class bitfinex extends bitfinexRest {
             if (isRaw) {
                 const deltas = this.safeList(message, 1, []);
                 for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
-                    const delta2 = this.safeNumber(delta, 2);
+                    const rawDelta = deltas[i];
+                    const delta2 = this.safeNumber(rawDelta, 2);
                     const size = (delta2 !== undefined && delta2 < 0) ? -delta2 : delta2;
                     const side = (delta2 !== undefined && delta2 < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    const idString = this.safeString(delta, 0);
-                    const price = this.safeFloat(delta, 1);
+                    const idString = this.safeString(rawDelta, 0);
+                    const price = this.safeFloat(rawDelta, 1);
                     bookside.storeArray([price, size, idString]);
                 }
             }
@@ -742,7 +742,7 @@ export default class bitfinex extends bitfinexRest {
         }
         else {
             const orderbook = this.orderbooks[symbol];
-            const deltas = this.safeValue(message, 1);
+            const deltas = this.safeList(message, 1);
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString(deltas, 1);

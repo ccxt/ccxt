@@ -77,7 +77,7 @@ func (this *Deribit) Describe() map[string]any {
 	})
 }
 func (this *Deribit) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }
@@ -459,7 +459,7 @@ func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var ticker any = this.ParseWsBidAsk(data)
+	var ticker map[string]any = this.ParseWsBidAsk(data)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
@@ -467,7 +467,7 @@ func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
@@ -1234,14 +1234,14 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && unifiedTimeframe != nil {
-		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	var ohlcv map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	// data contains a single ccxt.OHLCV candle
 	var parsed any = this.ParseWsOHLCV(ohlcv, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
 		this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
 	}
@@ -1303,7 +1303,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 			panic(ccxt.ArgumentsRequired(this.Id + " watchMultipleWrapper() symbolsArray is required"))
 		}
 		var market map[string]any = nil
-		var currentDescriptor any = nil
+		var currentDescriptor any = ""
 		if isOHLCV {
 			var currentPair []any = ccxt.SafeListTyped(symbolsArray, i)
 			market = this.Market(this.SafeString(currentPair, 0))

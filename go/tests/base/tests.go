@@ -365,7 +365,7 @@ func (this *testMainClass) testMethodBody(ch chan ccxt.AsyncResult[any], methodN
 	}
 	var skipMessage any = nil
 	var supportedByExchange bool = (InOp(exchange.GetHas(), methodName)) && (!IsEqual(GetValue(exchange.GetHas(), methodName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), methodName), false))
-	if !isLoadMarkets && ((GetArrayLength(this.OnlySpecificTests) > 0) && (!IsEqual(exchange.InArray(methodName, this.OnlySpecificTests), true))) {
+	if !isLoadMarkets && ((GetArrayLength(this.OnlySpecificTests) > 0) && !EvalTruthy(exchange.InArray(methodName, this.OnlySpecificTests))) {
 		skipMessage = "[INFO] IGNORED_TEST"
 	} else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
 		skipMessage = "[INFO] UNSUPPORTED_TEST" // keep it aligned with the longest message
@@ -549,12 +549,12 @@ func (this *testMainClass) testSafeBody(ch chan ccxt.AsyncResult[any], methodNam
 										}
 									}
 									// output the message
-									var failType string = func() string {
-										if shouldFail {
-											return "[TEST_FAILURE]"
-										}
-										return "[TEST_WARNING]"
-									}()
+									var failType string
+									if shouldFail {
+										failType = "[TEST_FAILURE]"
+									} else {
+										failType = "[TEST_WARNING]"
+									}
 									Dump(failType, exchange.GetId(), methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", ExceptionMessage(e))
 
 									ch <- ccxt.AsyncResult[any]{Value: retSuccess}
@@ -735,12 +735,12 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 			failedMethods = append(failedMethods, testName)
 		}
 	}
-	var testPrefixString string = func() string {
-		if EvalTruthy(isPublicTest) {
-			return "PUBLIC_TESTS"
-		}
-		return "PRIVATE_TESTS"
-	}()
+	var testPrefixString string
+	if EvalTruthy(isPublicTest) {
+		testPrefixString = "PUBLIC_TESTS"
+	} else {
+		testPrefixString = "PRIVATE_TESTS"
+	}
 	if len(failedMethods) > 0 {
 		var errorsString string = strings.Join(failedMethods, ", ")
 		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
@@ -837,12 +837,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var codes []string = []string{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
-	var targetSymbols any = func() any {
-		if spot == true {
-			return spotSymbols
-		}
-		return swapSymbols
-	}()
+	var targetSymbols []any
+	if spot == true {
+		targetSymbols = spotSymbols
+	} else {
+		targetSymbols = swapSymbols
+	}
 	var symbol any = this.GetTestSymbol(exchange, spot, targetSymbols)
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
@@ -930,12 +930,12 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan ccxt.AsyncResult[any
 	// an explicit per-exchange pin is a deliberate maintainer choice (it usually
 	// works around a venue-specific quirk), so never rank around it
 	var isSpot any = ccxt.DerefScalar(exchange.SafeBool(defaultMarket, "spot", false))
-	var preferredKey string = func() string {
-		if isSpot == true {
-			return "preferredSpotSymbol"
-		}
-		return "preferredSwapSymbol"
-	}()
+	var preferredKey string
+	if isSpot == true {
+		preferredKey = "preferredSpotSymbol"
+	} else {
+		preferredKey = "preferredSwapSymbol"
+	}
 	var preferredSymbol any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, preferredKey))
 	if !IsEqual(preferredSymbol, nil) {
 
@@ -2273,18 +2273,18 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
-		var newOutputString string = func() string {
-			if !IsEqual(sanitizedNewOutput, nil) {
-				return ToString(sanitizedNewOutput)
-			}
-			return "undefined"
-		}()
-		var storedOutputString string = func() string {
-			if !IsEqual(sanitizedStoredOutput, nil) {
-				return ToString(sanitizedStoredOutput)
-			}
-			return "undefined"
-		}()
+		var newOutputString string
+		if !IsEqual(sanitizedNewOutput, nil) {
+			newOutputString = ToString(sanitizedNewOutput)
+		} else {
+			newOutputString = "undefined"
+		}
+		var storedOutputString string
+		if !IsEqual(sanitizedStoredOutput, nil) {
+			storedOutputString = ToString(sanitizedStoredOutput)
+		} else {
+			storedOutputString = "undefined"
+		}
 		var messageError string = "output value mismatch:" + newOutputString + " != " + storedOutputString
 		if (strictTypeCheck == true) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
@@ -2791,18 +2791,18 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 	var sequential bool = GetArgBool(optionalArgs, 0, false)
 	_ = sequential
 	for i := 0; i < GetArrayLength(messages); i++ {
-		var waited any = 0
-		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (waited.(int) < 5000) {
+		var waited int = 0
+		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (waited < 5000) {
 
 			<-exchange.Sleep(50)
-			waited = Add(waited, 50)
+			waited = waited + 50
 		}
 		var frameId any = ccxt.DerefScalar(exchange.SafeString(GetValue(messages, i), "id"))
-		var waitedSent any = 0
-		for (!IsEqual(frameId, nil)) && !EvalTruthy(this.WsRequestWasSent(exchange, url, frameId)) && (waitedSent.(int) < 5000) {
+		var waitedSent int = 0
+		for (!IsEqual(frameId, nil)) && !EvalTruthy(this.WsRequestWasSent(exchange, url, frameId)) && (waitedSent < 5000) {
 
 			<-exchange.Sleep(50)
-			waitedSent = Add(waitedSent, 50)
+			waitedSent = waitedSent + 50
 		}
 		var frame any = GetValue(messages, i)
 		var binaryFrame any = ccxt.DerefScalar(exchange.SafeString(frame, "binary"))
@@ -2810,11 +2810,11 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 			frame = exchange.Base16ToBinary(binaryFrame)
 		}
 		InjectWsMessage(exchange, url, frame)
-		var settled any = 0
-		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (settled.(int) < 500) {
+		var settled int = 0
+		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (settled < 500) {
 
 			<-exchange.Sleep(20)
-			settled = Add(settled, 20)
+			settled = settled + 20
 		}
 	}
 
@@ -2827,12 +2827,12 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 		// executed inline on a stack that blocks the watch side (forkjoin
 		// work stealing): give up eventually so the stack unwinds instead
 		// of deadlocking
-		var waitedDone any = 0
-		for !EvalTruthy(IsWsTestCompleted(exchange, url)) && (waitedDone.(int) < 30000) {
+		var waitedDone int = 0
+		for !EvalTruthy(IsWsTestCompleted(exchange, url)) && (waitedDone < 30000) {
 			RejectPendingWsFutures(exchange, url)
 
 			<-exchange.Sleep(50)
-			waitedDone = Add(waitedDone, 50)
+			waitedDone = waitedDone + 50
 		}
 	}
 	// reject anything still pending so a wrong fixture fails fast
@@ -3560,12 +3560,12 @@ func (this *testMainClass) runStaticTestsBody(ch chan ccxt.AsyncResult[any], typ
 	if EvalTruthy(this.RequestTestsFailed) || EvalTruthy(this.ResponseTestsFailed) || EvalTruthy(this.StaticWsTestsFailed) {
 		ExitScript(1)
 	} else {
-		var prefix string = func() string {
-			if EvalTruthy((IsSync())) {
-				return "[SYNC]"
-			}
-			return ""
-		}()
+		var prefix string
+		if EvalTruthy((IsSync())) {
+			prefix = "[SYNC]"
+		} else {
+			prefix = ""
+		}
 		var successMessage any = Add(Add(Add(Add(Add(Add(Add(Add("[", this.Lang), "]"), prefix), "[TEST_SUCCESS] "), ToString(sum)), " static "), typeVar), " tests passed.")
 		Dump(Add("[INFO]", successMessage))
 	}
@@ -3639,7 +3639,7 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	//  -----------------------------------------------------------------------------
 	//  --- Init of brokerId tests functions-----------------------------------------
 	//  -----------------------------------------------------------------------------
-	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
+	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestHyperliquidAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync(), this.TestBit2meAsync()}
 
 	r := <-promiseAll(promises)
 	if r.Err != nil {
@@ -3648,6 +3648,87 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	var successMessage any = Add(Add("[", this.Lang), "][TEST_SUCCESS] brokerId tests passed.")
 	Dump(Add("[INFO]", successMessage))
 	ExitScript(0)
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
+}
+func (this *testMainClass) TestBit2meAsync() <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.testBit2meBody(ch)
+	return ch
+}
+func (this *testMainClass) testBit2meBody(ch chan ccxt.AsyncResult[any]) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bit2me")
+	var id string = "CCXT"
+
+	r := <-exchange.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "bit2me - brokerId not in options")
+	var request any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC", "limit", "buy", 0.0001, 36000)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var clientOrderId any = GetValue(request, "clientOrderId")
+	Assert(StartsWith(clientOrderId, id+"-"), Add(Add(Add("bit2me - clientOrderId: ", clientOrderId), " does not start with the broker id "), id))
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC", "limit", "buy", 0.0001, 36000, map[string]any{
+				"clientOrderId": "my-order",
+			})
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var customClientOrderId any = GetValue(request, "clientOrderId")
+	Assert((customClientOrderId == "my-order"), Add(Add("bit2me - custom clientOrderId: ", customClientOrderId), " should be sent as given, the broker id is only added when none is provided"))
+	if !EvalTruthy(IsSync()) {
+
+		<-Close(exchange)
+	}
 
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
@@ -6128,24 +6209,53 @@ func (this *testMainClass) testBlofinBody(ch chan ccxt.AsyncResult[any]) any {
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }
+func (this *testMainClass) TestHyperliquidAsync() <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.testHyperliquidBody(ch)
+	return ch
+}
+func (this *testMainClass) testHyperliquidBody(ch chan ccxt.AsyncResult[any]) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("hyperliquid")
+	AddElementToObject(exchange.GetOptions(), "approvedBuilderFee", true)
+	var id string = strings.ToLower("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+	var request any = map[string]any{}
 
-// async testHyperliquid () {
-//     const exchange = this.initOfflineExchange ('hyperliquid');
-//     const id = '1';
-//     let request: NullableDict = undefined;
-//     try {
-//         await exchange.GetcreateOrder() ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-//     } catch (e) {
-//         request = jsonParse (exchange.Getlast_request_body());
-//     }
-//     const brokerId = (request['action']['brokerCode']).toString ();
-//     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-//     if (!isSync ()) {
-//         await close (exchange);
-//     }
-//     return true;
-// }
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
 
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("SOL/USDC:USDC", "limit", "buy", 1, 100)
+			if r.Err != nil {
+				panic(r.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var brokerId string = ToString((GetValue(GetValue(GetValue(request, "action"), "builder"), "b")))
+	Assert((brokerId == id), "hyperliquid - brokerId: "+brokerId+" does not start with id: "+id)
+	if !EvalTruthy(IsSync()) {
+
+		<-Close(exchange)
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
+}
 func (this *testMainClass) TestCoinbaseinternationalAsync() <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.testCoinbaseinternationalBody(ch)

@@ -595,7 +595,7 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var stored any = this.Positions
+	var stored ccxt.WsArrayCache = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	var newPositions []any = []any{}
@@ -611,7 +611,7 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 		}
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
-		stored.(ccxt.Appender).Append(position)
+		stored.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
@@ -668,13 +668,13 @@ func (this *Extended) HandleOrders(client any, message map[string]any) {
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrders any = this.SafeList(data, "orders")
+	var rawOrders []any = ccxt.SafeListTyped(data, "orders")
 	var symbols map[string]any = map[string]any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
 	if first == nil {
 		return
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
+	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
@@ -763,13 +763,13 @@ func (this *Extended) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var fundingRate any = this.ParseWsFundingRate(data, nil, message)
+	var fundingRate map[string]any = this.ParseWsFundingRate(data, nil, message)
 	var symbol string = *this.SafeString(fundingRate, "symbol", "")
-	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+	this.FundingRates[symbol] = fundingRate
 	var messageHash string = "fundingRate:" + symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) any {
+func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var message map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)

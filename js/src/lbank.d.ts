@@ -100,7 +100,7 @@ export default class lbank extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseBalance(response: Dict): Balances;
-    parseFundingRate(ticker: any, market?: Market): FundingRate;
+    parseFundingRate(ticker: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name lbank#fetchFundingRate

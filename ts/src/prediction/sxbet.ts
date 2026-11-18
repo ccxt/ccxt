@@ -239,13 +239,13 @@ export default class sxbet extends Exchange {
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    async fetchRawMarketsPaged (extra: Dict = {}, userLimit: Int = undefined): Promise<any[]> {
+    async fetchRawMarketsPaged (extra: Dict = {}, userLimit: Int = undefined): Promise<Dict[]> {
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 100);
         const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
-        const rawMarkets: any[] = [];
+        const rawMarkets: Dict[] = [];
         const collectCap = this.safeInteger ({ 'limit': userLimit }, 'limit');
         let paginationKey: Str = undefined;
-        let page = this.parseToInt (0);
+        let page = 0;
         while (true) {
             const request: Dict = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -259,7 +259,7 @@ export default class sxbet extends Exchange {
                 rawMarkets.push (pageMarkets[i]);
             }
             paginationKey = this.safeString (result, 'nextKey');
-            page = this.parseToInt (page + 1);
+            page = page + 1;
             const collectedLength = this.parseToInt (rawMarkets.length);
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
@@ -277,8 +277,8 @@ export default class sxbet extends Exchange {
      * @param {string} sportXeventId the fixture id to keep
      * @returns {object[]} the raw markets of that fixture only
      */
-    filterRawMarketsByFixture (rawMarkets: any[], sportXeventId: string): any[] {
-        const result: any[] = [];
+    filterRawMarketsByFixture (rawMarkets: Dict[], sportXeventId: string): Dict[] {
+        const result: Dict[] = [];
         const rawMarketsLength = rawMarkets.length;
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
@@ -443,7 +443,7 @@ export default class sxbet extends Exchange {
             queries.push (tags[i]);
         }
         const rest = this.omit (params, [ 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        let rawMarkets: any[];
+        let rawMarkets: Dict[];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': eventId }, rest), undefined);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -460,7 +460,7 @@ export default class sxbet extends Exchange {
         }
         const queriesLength = queries.length;
         if (queriesLength > 0) {
-            const filtered: any[] = [];
+            const filtered: Dict[] = [];
             const preFilterLength = rawMarkets.length;
             for (let i = 0; i < preFilterLength; i++) {
                 if (this.matchesEventQuery (rawMarkets[i], queries)) {
@@ -576,7 +576,7 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent (fixtureId: string, rawMarkets: any[]): PredictionEvent {
+    parseEvent (fixtureId: string, rawMarkets: Dict[]): PredictionEvent {
         const marketsList: any[] = [];
         let anyActive = false;
         let earliestGameTime = this.safeInteger ({}, 'gameTime');
@@ -739,7 +739,7 @@ export default class sxbet extends Exchange {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase ();
         const hexLength = lowerHex.length;
-        let result = this.parseToInt (0);
+        let result = 0;
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
             const digitValue = this.parseToInt (digits.indexOf (ch));
@@ -1247,7 +1247,7 @@ export default class sxbet extends Exchange {
         } else {
             outcomeId = (marketHash + '-2');
         }
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const outcomeObj = this.safeOutcome (outcomeId, market);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const percentageOdds = this.safeString (order, 'percentageOdds');
@@ -1497,7 +1497,7 @@ export default class sxbet extends Exchange {
         } else {
             outcomeId = (marketHash + '-2');
         }
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const outcomeObj = this.safeOutcome (outcomeId, market);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const fillOdds = this.safeString (fill, 'fillOdds');
@@ -1753,7 +1753,7 @@ export default class sxbet extends Exchange {
         } else {
             outcomeId = (marketHash + '-2');
         }
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const outcomeObj = this.safeOutcome (outcomeId, market);
         const settlement = this.safeDict (trade, 'settlement', {});
         const winner = this.safeInteger (settlement, 'outcome');
         const isVoid = (winner === 0);
@@ -1844,7 +1844,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    async fetchSxbetBestOdds (marketHashes: string[], params: Dict = {}): Promise<any[]> {
+    async fetchSxbetBestOdds (marketHashes: string[], params: Dict = {}): Promise<Dict[]> {
         const request: Dict = { 'marketHashes': marketHashes.join (',') };
         const response = await this.sxbetPrivateGetOrdersV3OddsBest (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1984,8 +1984,7 @@ export default class sxbet extends Exchange {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        const marketAny = market as any;
-        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
         const marketHash = this.safeString (raw, 'marketHash');
         const isOutcomeOne = (outcomeId === marketHash);
@@ -2131,7 +2130,7 @@ export default class sxbet extends Exchange {
         this.options[group] = this.extend (this.safeDict (this.options, group, {}), entry);
     }
 
-    requestId (url: Str): number {
+    requestId (url: Str): int {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary ();

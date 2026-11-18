@@ -1786,25 +1786,25 @@ export default class deribit extends Exchange {
         let futureFee: Dict = {};
         let optionFee: Dict = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = fees[i];
-            const instrumentType = this.safeString (fee, 'instrument_type');
+            const feeEntry = fees[i];
+            const instrumentType = this.safeString (feeEntry, 'instrument_type');
             if (instrumentType === 'future') {
                 futureFee = {
-                    'info': fee,
-                    'maker': this.safeNumber (fee, 'maker_fee'),
-                    'taker': this.safeNumber (fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': this.safeNumber (feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber (feeEntry, 'taker_fee'),
                 };
             } else if (instrumentType === 'perpetual') {
                 perpetualFee = {
-                    'info': fee,
-                    'maker': this.safeNumber (fee, 'maker_fee'),
-                    'taker': this.safeNumber (fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': this.safeNumber (feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber (feeEntry, 'taker_fee'),
                 };
             } else if (instrumentType === 'option') {
                 optionFee = {
-                    'info': fee,
-                    'maker': this.safeNumber (fee, 'maker_fee'),
-                    'taker': this.safeNumber (fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': this.safeNumber (feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber (feeEntry, 'taker_fee'),
                 };
             }
         }
@@ -2252,7 +2252,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result: Dict = this.safeDict (response, 'result', {});
-        const order = this.extend (this.safeValue (result, 'order'), { 'trades': this.safeList (result, 'trades', []) });
+        const order = this.extend (this.safeDict (result, 'order'), { 'trades': this.safeList (result, 'trades', []) });
         return this.parseOrder (order, market);
     }
 
@@ -2301,7 +2301,7 @@ export default class deribit extends Exchange {
         }
         const response = await this.privateGetEdit (this.extend (request, paramsOmitted));
         const result: Dict = this.safeDict (response, 'result', {});
-        const order = this.extend (this.safeValue (result, 'order'), { 'trades': this.safeList (result, 'trades', []) });
+        const order = this.extend (this.safeDict (result, 'order'), { 'trades': this.safeList (result, 'trades', []) });
         return this.parseOrder (order);
     }
 
@@ -3382,7 +3382,7 @@ export default class deribit extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, sinceResolved, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3487,7 +3487,7 @@ export default class deribit extends Exchange {
         //
         const result: Dict = this.safeDict (response, 'result', {});
         const cursor = this.safeString (result, 'continuation');
-        const settlements = this.safeList (result, 'settlements', []);
+        const settlements: Dict[] = this.safeList (result, 'settlements', []);
         const settlementsWithCursor = this.addPaginationCursorToResult (cursor, settlements);
         return this.parseLiquidations (settlementsWithCursor, market, since, limit);
     }

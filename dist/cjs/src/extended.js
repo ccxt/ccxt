@@ -265,8 +265,11 @@ class extended extends extended$1["default"] {
                 },
             },
             'fees': {
-                'taker': this.parseNumber('0.002'),
-                'maker': this.parseNumber('0.002'),
+                'taker': this.parseNumber('0.00025'),
+                'maker': this.parseNumber('0'),
+                'rwa': {
+                    'taker': this.parseNumber('0.0001'),
+                },
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -379,6 +382,7 @@ class extended extends extended$1["default"] {
      * @name extended#fetchMarkets
      * @description retrieves data on all markets for extended
      * @see https://api.docs.extended.exchange/#get-markets
+     * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -554,6 +558,8 @@ class extended extends extended$1["default"] {
         const minAmount = this.safeNumber(tradingConfig, 'minOrderSize');
         const maxCost = this.safeNumber(tradingConfig, 'maxLimitOrderValue');
         const created = this.safeInteger(market, 'createdAt');
+        const category = this.safeStringLower(market, 'category');
+        const takerFees = (category === 'rwa') ? this.safeDict(this.fees, 'rwa', {}) : this.fees;
         let settleId = undefined;
         let settle = undefined;
         let symbol = base + '/' + quote;
@@ -596,7 +602,7 @@ class extended extends extended$1["default"] {
             'contract': !isSpot,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.safeNumber(this.fees, 'taker'),
+            'taker': this.safeNumber(takerFees, 'taker'),
             'maker': this.safeNumber(this.fees, 'maker'),
             'contractSize': contractSize,
             'expiry': undefined,

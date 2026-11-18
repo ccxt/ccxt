@@ -384,6 +384,7 @@ class binance extends binance$1["default"] {
                         'sub-account/universalTransfer': { 'cost': 0.1 },
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': { 'cost': 1 },
                         'sub-account/transaction-statistics': { 'cost': 0.40002 }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': { 'cost': 0.1 },
                         'managed-subaccount/accountSnapshot': { 'cost': 240 },
@@ -587,6 +588,8 @@ class binance extends binance$1["default"] {
                         'margin/max-leverage': { 'cost': 300 }, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': { 'cost': 0.1 },
                         'sub-account/virtualSubAccount': { 'cost': 0.1 },
+                        'sub-account/subAccountApi': { 'cost': 20.001 },
+                        'sub-account/subAccountApiPermission': { 'cost': 20.001 },
                         'sub-account/margin/transfer': { 'cost': 4.0002 }, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': { 'cost': 0.1 },
                         'sub-account/futures/enable': { 'cost': 0.1 },
@@ -727,6 +730,7 @@ class binance extends binance$1["default"] {
                         'broker/subAccountApi/ipRestriction/ipList': { 'cost': 1 },
                         'algo/spot/order': { 'cost': 0.1 },
                         'algo/futures/order': { 'cost': 0.1 },
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -746,6 +750,7 @@ class binance extends binance$1["default"] {
                     },
                     'post': {
                         'eth-staking/eth/stake': { 'cost': 15 }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow': { 'cost': 40.002 }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay': { 'cost': 40.002 }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -3202,7 +3207,7 @@ class binance extends binance$1["default"] {
         const responseCurrencies = this.safeValue(results, 0);
         let marginablesById = undefined;
         if (fetchMargins) {
-            const responseMarginables = this.safeValue(results, 1);
+            const responseMarginables = this.safeList(results, 1);
             marginablesById = this.indexBy(responseMarginables, 'assetName');
         }
         return this.parseCurrenciesCustom(responseCurrencies, marginablesById);
@@ -5017,7 +5022,7 @@ class binance extends binance$1["default"] {
     parseTickersForRolling(response, symbols) {
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString(this.safeValue(response, i), 'symbol');
+            const marketId = this.safeString(this.safeDict(response, i), 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, 'spot');
             const parsedTicker = this.parseTicker(this.safeValue(response, i));
             parsedTicker['symbol'] = tickerMarket['symbol'];
@@ -8137,7 +8142,8 @@ class binance extends binance$1["default"] {
                 response = await this.sapiGetMarginAllOrders(this.extend(request, paramsPaginate));
             }
             else if (stock) {
-                response = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                const equityResponse = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                response = this.safeList(equityResponse, 'rows', []);
             }
             else {
                 response = await this.privateGetAllOrders(this.extend(request, paramsPaginate));
@@ -8349,10 +8355,6 @@ class binance extends binance$1["default"] {
         //         ]
         //     }
         //
-        if (stock) {
-            const result = this.safeList(response, 'rows', []);
-            return this.parseOrders(result, market, since, limitResolved);
-        }
         return this.parseOrders(response, market, since, limitResolved);
     }
     /**
@@ -11233,8 +11235,8 @@ class binance extends binance$1["default"] {
             const linearFees = {};
             const feeTier = this.safeInteger(response, 'feeTier');
             const feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, 'linear'), 'trading'), 'tiers');
-            const maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
-            const taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
+            const maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11269,8 +11271,8 @@ class binance extends binance$1["default"] {
             const inverseFees = {};
             const feeTier = this.safeInteger(response, 'feeTier');
             const feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, 'inverse'), 'trading'), 'tiers');
-            const maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
-            const taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
+            const maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11392,7 +11394,7 @@ class binance extends binance$1["default"] {
         const request = {};
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsPaginate, 'type', defaultType);
@@ -11471,7 +11473,7 @@ class binance extends binance$1["default"] {
         const type = this.safeString(params, 'type', defaultType);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit(paramsSubType, 'type');
-        let response = undefined;
+        let response;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetPremiumIndex(query);
         }
@@ -11709,7 +11711,7 @@ class binance extends binance$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, this.safeValue(bracket, 0))) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -11939,7 +11941,7 @@ class binance extends binance$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, this.safeValue(bracket, 0))) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -14382,7 +14384,7 @@ class binance extends binance$1["default"] {
         //         ]
         //     }
         //
-        const rows = this.safeList(response, 'rows');
+        const rows = this.safeList(response, 'rows', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -16000,7 +16002,7 @@ class binance extends binance$1["default"] {
         }
         const type = 'swap';
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingIntervals', market, params, 'linear');
-        let response = undefined;
+        let response;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetFundingInfo(paramsSubType);
         }

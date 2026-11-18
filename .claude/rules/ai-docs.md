@@ -40,7 +40,8 @@ The `## Complete Method Reference` block is the same text in the TS, Python, PHP
   - `Tickers` is iterated through `.tickers`. A WS `IOrderBook` row is `IList<object>` (`[price, amount]`).
   - Configure through the constructor dictionary or by assigning properties; object initializers like `new Binance { ApiKey = ... }` don't compile.
 - **Python / PHP**: methods are snake_case, but `has` / `features` / `params` keys stay camelCase. `Ticker` has `baseVolume` / `quoteVolume`; there is no `volume`.
-- **Rust / Java**: typed layers with their own shapes (`Params::new().with_bool(...)`; `Map<String, Object>` params, nullable positional args). Copy from the existing skill or the generated code, not from the TS signature.
+- **Java**: typed sync overloads stop *before* `params` (`fetchOrderBook(symbol, limit)`, `createOrder(symbol, type, side, amount, price)`); pass `null` only to skip an optional positional arg. Any call that passes `params`, even `null`, picks the full-arity overload, which returns a `CompletableFuture`. Use `<method>Async(..., params).join()`. `Exchange.dynamicallyCreateInstance` returns `BaseExchange`, so cast it to `Exchange`. Typed fields are public (`ticker.last`, not `last()`), and `loadMarkets` takes a `boolean`.
+- **Rust**: `Params::new().with_bool(...)`; `Value::Str` holds a `Cow<'static, str>`, so build it with `"x".into()` (not `.to_string()`); WS methods live on `ccxt_pro::<Venue>`. Copy from the existing skill or the generated code, not from the TS signature.
 - **Withdraw** everywhere is `(code, amount, address, params)`, with `tag` / `network` in params.
 
 ## Compile recipes
@@ -64,6 +65,10 @@ npx tsx build/csharpTranspiler.ts --ws binance
 The console project needs `<ProjectReference Include="<repo>/cs/ccxt/ccxt.csproj" />`; put each snippet in its own file with its own `using` lines and run `dotnet build`. Check `git status` afterwards: the transpile should leave no tracked changes.
 
 **TypeScript**: snippets in their own folder, each importing `ccxt from '../ts/ccxt.js'`, with the exchange typed as `new ccxt.pro.binance ()`. Typing it as `any` hides every error. Then run `npx tsc -p <tsconfig>` with `"module": "esnext", "moduleResolution": "bundler", "noEmit": true, "skipLibCheck": true`. Errors reported in `ts/src/*` are pre-existing, so ignore those.
+
+**Java**: `cd java && ./gradlew :lib:jar -x test` builds `java/lib/build/libs/lib-<version>.jar` (print the runtime classpath with a small Gradle init script). Then put each snippet in its own class, with `import io.github.ccxt.*; import io.github.ccxt.types.*; import io.github.ccxt.errors.*;` plus `exchanges.Binance` or `exchanges.pro.Binance` (pick one per snippet, because the names clash), and run `javac -cp "<jar>:<classpath>" Snip*.java`.
+
+**Rust**: a scratch crate with path dependencies on `rust/ccxt`, `rust/ccxt-pro` and `rust/ccxt-prediction` (`default-features = false`, plus only the venues the snippets use, e.g. `features = ["binance", "kraken"]`), `rust/ccxt-base` (`features = ["engine"]`) and tokio. Put each snippet in its own `mod` and run `cargo build`. Root-level `use ccxt::{Binance, Config, TypedExchange, ...}` saves continuation snippets from failing on name resolution, which hides real type errors.
 
 **Python / PHP**: `ast.parse` each block (wrap it in `async def` if it uses top-level `await`) and run `php -l` on each block. For names, grep `def <name>` / `function <name>` in `python/ccxt/base/exchange.py` and `php/Exchange.php`.
 

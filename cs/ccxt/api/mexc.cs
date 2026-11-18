@@ -306,10 +306,10 @@ public partial class mexc : Exchange
     }
 
     /// <summary>Calls the spotPrivateGetMarginAllOrders endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> spotPrivateGetMarginAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> spotPrivateGetMarginAllOrders (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("spotPrivateGetMarginAllOrders",parameters);
+        return await this.callAsync<List<object>> ("spotPrivateGetMarginAllOrders",parameters);
     }
 
     /// <summary>Calls the spotPrivateGetMarginMyTrades endpoint.</summary>
@@ -649,10 +649,10 @@ public partial class mexc : Exchange
     }
 
     /// <summary>Calls the spotPrivateDeleteOpenOrders endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> spotPrivateDeleteOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> spotPrivateDeleteOpenOrders (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("spotPrivateDeleteOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("spotPrivateDeleteOpenOrders",parameters);
     }
 
     /// <summary>Calls the spotPrivateDeleteOrderAll endpoint.</summary>

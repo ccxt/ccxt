@@ -746,8 +746,8 @@ class opinion extends opinion$1["default"] {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = this.safeValue(responses, priceIndex);
-            const bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
+            const priceResponse = this.safeDict(responses, priceIndex);
+            const bookResponse = this.safeDict(responses, this.sum(priceIndex, 1));
             const response = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker(response, outcomeObj);
             const symbolKey = this.safeString(ticker, 'outcome');

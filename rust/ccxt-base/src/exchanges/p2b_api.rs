@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::p2b::P2bCore;
+use super::p2b::P2b;
 use crate::exchange::ExchangeRuntime;
 
-impl P2bCore {
+impl P2b {
     /// Auto-generated wrapper for the `publicGetMarkets` implicit endpoint.
     pub async fn public_get_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_markets".into()), optional_args).await

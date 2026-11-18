@@ -1033,7 +1033,7 @@ export default class gemini extends Exchange {
             'change': this.safeString(tickerB, 'change'),
             'percentage': this.safeString(tickerB, 'percentage'),
             'average': this.safeString(tickerB, 'average'),
-            'info': this.safeValue(tickerB, 'info'),
+            'info': this.safeDict(tickerB, 'info'),
         });
     }
     /**

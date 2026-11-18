@@ -108,7 +108,7 @@
                 "method": "fetchOpenOrder",
                 "url": "https://api.backpack.exchange/api/v1/order?orderId=8284661092&symbol=ETH_USDC",
                 "input": [
-                    8284661092,
+                    "8284661092",
                     "ETH/USDC"
                 ],
                 "output": null

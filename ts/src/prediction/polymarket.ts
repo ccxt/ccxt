@@ -1083,9 +1083,9 @@ export default class polymarket extends Exchange {
             const midpoints = responses[1];
             const lastTradesResponse = responses[2];
             const booksIsArray = Array.isArray (booksResponse);
-            const books = (booksIsArray) ? booksResponse : [];
+            const books: Dict[] = (booksIsArray) ? booksResponse : [];
             const lastTradesIsArray = Array.isArray (lastTradesResponse);
-            const lastTrades = (lastTradesIsArray) ? lastTradesResponse : [];
+            const lastTrades: Dict[] = (lastTradesIsArray) ? lastTradesResponse : [];
             const lastTradesByTokenId: Dict = {};
             const lastTradesLength = lastTrades.length;
             for (let li = 0; li < lastTradesLength; li++) {
@@ -1518,7 +1518,7 @@ export default class polymarket extends Exchange {
         const request: Dict = { 'market': conditionId };
         request['limit'] = this.safeInteger (this.options, 'tradesPageSize', 500);
         const response = await this.dataPublicGetTrades (this.extend (request, params));
-        const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        const rawTrades: Dict[] = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
@@ -1902,7 +1902,7 @@ export default class polymarket extends Exchange {
             'datetime': this.iso8601 (ts),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'outcome': mkt['outcome'],
+            'outcome': this.safeString (mkt, 'outcome'),
             'outcomeId': this.safeString (mkt, 'outcomeId'),
             'label': this.safeString (mkt, 'label'),
             'market': this.safeString (mkt, 'market'),
@@ -2499,7 +2499,7 @@ export default class polymarket extends Exchange {
                     detailedEvent = await this.gammaPublicGetEventsSlugSlug ({ 'slug': rawEventSlug });
                 }
                 if (detailedEvent !== undefined) {
-                    eventForParsing = this.safeValue (detailedEvent, 'event', detailedEvent);
+                    eventForParsing = this.safeDict (detailedEvent, 'event', detailedEvent);
                     ccxtMarkets = this.parseEventToMarkets (eventForParsing);
                 }
             }
@@ -2733,7 +2733,7 @@ export default class polymarket extends Exchange {
         if (!isArrayBody) {
             query = this.omit (params, this.extractParams (path));
         }
-        let bodyValue: any = undefined;
+        let bodyValue: Str = undefined;
         if (method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -3227,25 +3227,25 @@ export default class polymarket extends Exchange {
         const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
         const bids = orderbook['bids'] as any;
         const asks = orderbook['asks'] as any;
-        let bestBid = undefined;
-        let bestBidVolume = undefined;
+        let bestBid: Num = undefined;
+        let bestBidVolume: Num = undefined;
         let bidsLength = 0;
         if (bids !== undefined) {
             bidsLength = bids.length;
         }
         if ((bids !== undefined) && (bidsLength > 0)) {
-            bestBid = bids[0][0];
-            bestBidVolume = bids[0][1];
+            bestBid = this.safeNumber (bids[0], 0);
+            bestBidVolume = this.safeNumber (bids[0], 1);
         }
-        let bestAsk = undefined;
-        let bestAskVolume = undefined;
+        let bestAsk: Num = undefined;
+        let bestAskVolume: Num = undefined;
         let asksLength = 0;
         if (asks !== undefined) {
             asksLength = asks.length;
         }
         if ((asks !== undefined) && (asksLength > 0)) {
-            bestAsk = asks[0][0];
-            bestAskVolume = asks[0][1];
+            bestAsk = this.safeNumber (asks[0], 0);
+            bestAskVolume = this.safeNumber (asks[0], 1);
         }
         let mid: Num = undefined;
         if ((bestBid !== undefined) && (bestAsk !== undefined)) {

@@ -37,7 +37,7 @@ public class TestFetchLastPrices extends BaseTest {
         List<Object> values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Boolean atLeastOnePassed = false;
-        for (var i = 0; i < ((List<?>)values).size(); i++)
+        for (var i = 0; i < values.size(); i++)
         {
             // todo: symbol check here
             TestLastPrice.testLastPrice(exchange, skippedProperties, method, (values == null || i < 0 || i >= values.size() ? null : values.get(i)), (String) (((String)checkedSymbol)));

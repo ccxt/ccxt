@@ -3260,7 +3260,7 @@ class myriad extends Exchange {
         ));
     }
 
-    public function request_id(?string $url): float {
+    public function request_id(?string $url): int {
         $existing = $this->safe_value($this->options, 'requestId');
         if ($existing === null) {
             $this->options['requestId'] = $this->create_safe_dictionary();
@@ -3724,11 +3724,11 @@ class myriad extends Exchange {
         return $this->filter_by_array($tickers, 'outcome', $resolvedSymbols, true);
     }
 
-    public function watch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
     }
 
-    private function do_watch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * streams OHLCV candles for an $outcome, synthesised from the live $trades channel
          *

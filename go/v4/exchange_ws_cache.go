@@ -65,8 +65,8 @@ func (this *BaseExchange) ApplyOrderBookSnapshot(stored any, snapshot any) bool 
 	if !bookIsMap || orderBook == nil {
 		return false
 	}
-	deltas, deltasAreList := (*orderBook.GetCache()).([]any)
-	if !deltasAreList {
+	deltas := orderBook.GetCache()
+	if deltas == nil {
 		return false
 	}
 	index := ToFloat64(this.DerivedExchange.GetCacheIndex(book, deltas))

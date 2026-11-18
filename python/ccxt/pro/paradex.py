@@ -85,11 +85,12 @@ class paradex(ccxt.async_support.paradex):
         })
 
     def get_ws_url(self) -> str:
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         if not self.safe_bool(self.options, 'sbe', True):
             return url
-        schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
+        else:
+            schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
 
     def get_order_book_channel(self, marketId: Str, deltas: bool = False) -> str:
         if deltas:
@@ -100,7 +101,7 @@ class paradex(ccxt.async_support.paradex):
             return 'order_book.' + marketId + '.deltas'
         return 'order_book.' + marketId + '.snapshot@15@100ms'
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
@@ -445,7 +446,7 @@ class paradex(ccxt.async_support.paradex):
         self.clean_cache(subscription)
         client.resolve(True, unsubHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1997,7 +1998,7 @@ class paradex(ccxt.async_support.paradex):
                 return None
             entryLength = self.parse_to_int(self.sbe_read_uint(frameHex, position, 2))
             numInGroup = self.parse_to_int(self.sbe_read_uint(frameHex, position + 2, 2))
-            position = self.parse_to_int(position + 4)
+            position = position + 4
             if (entryLength < 16) or (self.parse_to_int(self.sum(position, numInGroup * entryLength)) > frameEnd):
                 return None
             for j in range(0, numInGroup):

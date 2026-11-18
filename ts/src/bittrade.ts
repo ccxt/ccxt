@@ -1781,7 +1781,7 @@ export default class bittrade extends Exchange {
         } else {
             success = this.safeList (orders, 'success', []);
         }
-        const failed = this.safeList2 (orders, 'errors', 'failed', []);
+        const failed: Dict[] = this.safeList2 (orders, 'errors', 'failed', []);
         const result: List = [];
         for (let i = 0; i < success.length; i++) {
             const order = this.safeString (success, i);
@@ -2122,8 +2122,7 @@ export default class bittrade extends Exchange {
             if (method !== 'POST') {
                 request = this.extend (request, query);
             }
-            const requestSorted = this.keysort (request);
-            let auth = this.urlencode (requestSorted);
+            let auth = this.urlencode (this.keysort (request));
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             const payload = method + "\n" + this.hostname + "\n" + url + "\n" + auth;

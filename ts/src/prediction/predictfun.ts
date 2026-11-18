@@ -550,7 +550,7 @@ export default class predictfun extends Exchange {
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             result.push (parsedEvent);
-            const parsedMarkets = this.safeList (parsedEvent, 'markets', []) as any[];
+            const parsedMarkets: Dict[] = this.safeList (parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
@@ -682,7 +682,7 @@ export default class predictfun extends Exchange {
             // a term can match a market whose category row is not in the response - those rows are
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
-            const rawMarkets = this.safeList (data, 'markets', []) as any[];
+            const rawMarkets: Dict[] = this.safeList (data, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             for (let mi = 0; mi < rawMarketsLength; mi++) {
                 const rawMarket = rawMarkets[mi];
@@ -3327,7 +3327,7 @@ export default class predictfun extends Exchange {
      * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
      * @returns {int} the next request id
      */
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const previous = this.safeInteger (this.options, 'requestId', 0);
         const next = this.sum (previous, 1);
@@ -3345,7 +3345,7 @@ export default class predictfun extends Exchange {
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    outcomeForToken (tokenId: Str, market: any = undefined): any {
+    outcomeForToken (tokenId: Str, market: Market = undefined): any {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
         // back to it on any cache miss, which stamped the requested outcome onto rows from other
@@ -3915,8 +3915,6 @@ export default class predictfun extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        const existingHeaders = {};
-        const headersValue: any = existingHeaders;
         const authHeaders: Dict = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3959,7 +3957,7 @@ export default class predictfun extends Exchange {
             authHeaders['Content-Type'] = 'application/json';
             bodyValue = this.json (params);
         }
-        const headersExtended: any = this.extend (headersValue, authHeaders);
+        const headersExtended: any = this.extend ({}, authHeaders);
         return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }

@@ -58,7 +58,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
@@ -146,7 +146,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -159,13 +159,13 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbolValue = this.safeString(market, "symbol", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ("ohlcv:" + symbolValue);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "prices" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "granularity", this.parseNumber(interval) },
         };
-        request = this.deepExtend(request, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash, request));
         Int64? limitResolved = limit;
@@ -235,7 +235,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -246,12 +246,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbolValue = this.safeString(market, "symbol", "");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string messageHash = ("ticker:" + symbolValue);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "ticker" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        request = this.deepExtend(request, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
@@ -355,7 +355,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -366,12 +366,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbolValue = this.safeString(market, "symbol", "");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string messageHash = ("trades:" + symbolValue);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "trades" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        request = this.deepExtend(request, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
@@ -421,7 +421,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -466,7 +466,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -702,7 +702,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -712,7 +712,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbol);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string? type = this.safeString(parameters, "type", "l2");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "type");
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -861,7 +861,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         }
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");

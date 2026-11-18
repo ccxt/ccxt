@@ -83,12 +83,13 @@ export default class paradex extends paradexRest {
     }
 
     getWsUrl (): string {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         if (!this.safeBool (this.options, 'sbe', true)) {
             return url;
+        } else {
+            const schemaVersion = this.safeString (this.options, 'sbeSchemaVersion', '3');
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
         }
-        const schemaVersion = this.safeString (this.options, 'sbeSchemaVersion', '3');
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
     }
 
     getOrderBookChannel (marketId: Str, deltas: boolean = false): string {
@@ -102,7 +103,7 @@ export default class paradex extends paradexRest {
         return 'order_book.' + marketId + '.snapshot@15@100ms';
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
@@ -525,7 +526,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1652,14 +1653,14 @@ export default class paradex extends paradexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const position = this.parsePosition (data);
         const symbol = position['symbol'];
         const newPositions = [];
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
         const side = this.safeString (position, 'side');
-        const cached = this.filterBySymbolSinceLimit (cache, symbol, undefined, undefined, true);
+        const cached: Dict[] = this.filterBySymbolSinceLimit (cache, symbol, undefined, undefined, true);
         for (let i = 0; i < cached.length; i++) {
             const previous = cached[i];
             const previousSide = this.safeString (previous, 'side');
@@ -2245,7 +2246,7 @@ export default class paradex extends paradexRest {
             }
             const entryLength = this.parseToInt (this.sbeReadUint (frameHex, position, 2));
             const numInGroup = this.parseToInt (this.sbeReadUint (frameHex, position + 2, 2));
-            position = this.parseToInt (position + 4);
+            position = position + 4;
             if ((entryLength < 16) || (this.parseToInt (this.sum (position, numInGroup * entryLength)) > frameEnd)) {
                 return undefined;
             }

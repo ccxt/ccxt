@@ -1824,7 +1824,7 @@ class woofipro extends woofipro$1["default"] {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
-        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const paramsChildOrders = this.safeList(params, 'childOrders');
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
@@ -2062,7 +2062,7 @@ class woofipro extends woofipro$1["default"] {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const paramsChildOrders = this.safeList(params, 'childOrders');
         const isConditional = (triggerPrice !== undefined) || (paramsChildOrders !== undefined);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
@@ -2730,7 +2730,8 @@ class woofipro extends woofipro$1["default"] {
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return [currency, this.safeList(data, 'rows', [])];
+        const rows = this.safeList(data, 'rows', []);
+        return rows;
     }
     parseLedgerEntry(item, currency = undefined) {
         const currencyId = this.safeString(item, 'token');
@@ -2778,9 +2779,11 @@ class woofipro extends woofipro$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2874,9 +2877,11 @@ class woofipro extends woofipro$1["default"] {
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         //
         //     {
         //         "rows":[],
@@ -2888,11 +2893,7 @@ class woofipro extends woofipro$1["default"] {
         //         "success":true
         //     }
         //
-        let rowsList = [];
-        if (rows !== undefined) {
-            rowsList = rows;
-        }
-        return this.parseTransactions(rowsList, currency, since, limit, params);
+        return this.parseTransactions(rows, currency, since, limit, params);
     }
     async getWithdrawNonce(params = {}) {
         const response = await this.v1PrivateGetWithdrawNonce(params);
@@ -3477,10 +3478,8 @@ class woofipro extends woofipro$1["default"] {
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
-            let apiKey = this.apiKey;
-            if (this.apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + this.apiKey;
-            }
+            const hasKeyPrefix = this.apiKey.indexOf('ed25519:') >= 0;
+            const apiKey = (hasKeyPrefix) ? this.apiKey : ('ed25519:' + this.apiKey);
             const authHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,

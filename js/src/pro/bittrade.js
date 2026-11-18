@@ -47,7 +47,7 @@ export default class bittrade extends bittradeRest {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -74,10 +74,10 @@ export default class bittrade extends bittradeRest {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': market['symbol'],
             'params': params,
@@ -147,10 +147,10 @@ export default class bittrade extends bittradeRest {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'params': params,
@@ -235,10 +235,10 @@ export default class bittrade extends bittradeRest {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'timeframe': timeframe,
@@ -321,10 +321,10 @@ export default class bittrade extends bittradeRest {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'limit': limitValue,
@@ -393,19 +393,19 @@ export default class bittrade extends bittradeRest {
             const requestId = this.requestId();
             const request = {
                 'req': messageHash,
-                'id': requestId,
+                'id': requestId.toString(),
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             const snapshotSubscription = {
-                'id': requestId,
+                'id': requestId.toString(),
                 'messageHash': messageHash,
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
                 'method': this.handleOrderBookSnapshot,
             };
-            const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
         }
         catch (e) {

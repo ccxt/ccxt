@@ -81,7 +81,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -154,7 +154,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -187,7 +187,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -336,7 +336,7 @@ public partial class derive : ccxt.derive
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -369,7 +369,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -521,7 +521,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -548,7 +548,7 @@ public partial class derive : ccxt.derive
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbol, since, limitResolved, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -641,7 +641,7 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -677,7 +677,7 @@ public partial class derive : ccxt.derive
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -779,7 +779,7 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -817,7 +817,7 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -853,7 +853,7 @@ public partial class derive : ccxt.derive
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -893,7 +893,7 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -929,16 +929,16 @@ public partial class derive : ccxt.derive
      * @param {boolean} [params.fetchBalanceSnapshot] default true, the channel only streams changed totals, so an initial snapshot is loaded over rest before subscribing
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
-        IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);
+        IDictionary<string, object> paramsSnapshot = (fetchSnapshotparamsSnapshotVariable.Item2);
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchBalance", paramsSnapshot);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
         IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
@@ -993,7 +993,7 @@ public partial class derive : ccxt.derive
      * @param {boolean} [params.fetchPositionsSnapshot] default true, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1001,24 +1001,22 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, true);
-        (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
-        IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);
+        IDictionary<string, object> paramsSnapshot = (fetchSnapshotparamsSnapshotVariable.Item2);
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchPositions", paramsSnapshot);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
         IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
-        if ((this.positions == null))
+        if (this.isEmpty(this.positionsByType))
         {
-            Dictionary<string, object> emptyCaches = new Dictionary<string, object>() {};
-            this.positions = emptyCaches;
             Dictionary<string, object> emptySnapshots = new Dictionary<string, object>() {};
             this.options["loadedPositionsSnapshots"] = emptySnapshots;
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         string subaccountIdKey = this.numberToString(subaccountId);
-        if (!((((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey))))
+        if (!((this.positionsByType != null && this.positionsByType.ContainsKey(subaccountIdKey))))
         {
-            ((IDictionary<string,object>)this.positions)[subaccountIdKey] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[subaccountIdKey] = new ArrayCacheBySymbolBySide();
         }
         IDictionary<string, object> loadedSnapshots = this.safeDict(this.options, "loadedPositionsSnapshots", new Dictionary<string, object>() {});
         if ((fetchSnapshot == true) && !(((subaccountIdKey != null) && (loadedSnapshots?.ContainsKey(subaccountIdKey) == true))))
@@ -1028,10 +1026,10 @@ public partial class derive : ccxt.derive
             };
             Dictionary<string, object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
             List<object> positionsSnapshot = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, snapshotParams));
-            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, subaccountIdKey));
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positionsByType, subaccountIdKey));
             for (int i = 0; i < (positionsSnapshot?.Count ?? 0); i++)
             {
-                object snapshotPosition = this.safeValue(positionsSnapshot, i);
+                IDictionary<string, object> snapshotPosition = this.safeDict(positionsSnapshot, i);
                 cache.append(snapshotPosition);
             }
             loadedSnapshots[(string)subaccountIdKey] = true;
@@ -1056,7 +1054,7 @@ public partial class derive : ccxt.derive
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, subaccountIdKey)), symbolsResolved, since, limit, true));
     }
 
     public virtual IDictionary<string, object> handlePositionDelta(object subaccountIdKey, object entry)
@@ -1068,7 +1066,7 @@ public partial class derive : ccxt.derive
         bool isShort = Precise.stringLt(newSize, "0");
         string side = isShort ? "short" : "long";
         string? contracts = Precise.stringAbs(newSize);
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, subaccountIdKey));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positionsByType, subaccountIdKey));
         IDictionary<string, object> symbolPositions = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         // a fill through zero flattens the opposite side first
         string oppositeSide = isShort ? "long" : "short";
@@ -1141,7 +1139,7 @@ public partial class derive : ccxt.derive
             if ((name?.IndexOf("-", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (((this.positions != null)) && ((((IDictionary<string,object>)this.positions) != null && subaccountIdKey != null && ((IDictionary<string,object>)this.positions).ContainsKey(subaccountIdKey))))
+                if ((this.positionsByType != null && this.positionsByType.ContainsKey(subaccountIdKey)))
                 {
                     IDictionary<string, object> position = this.handlePositionDelta(subaccountIdKey, entry);
                     positionUpdates.Add(position);
