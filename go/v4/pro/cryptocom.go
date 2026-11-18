@@ -304,8 +304,8 @@ func (this *Cryptocom) HandleDelta(bookside any, delta any) {
 	var count *int64 = this.SafeInteger(delta, 2)
 	bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, count})
 }
-func (this *Cryptocom) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Cryptocom) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
@@ -397,8 +397,8 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 			}
 		}
 	}
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(books, "asks", []any{}))
-	this.HandleDeltas(orderbook.GetBids(), this.SafeList(books, "bids", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(books, "asks", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(books, "bids", []any{}))
 	orderbook.SetNonce(nonce)
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
@@ -812,7 +812,7 @@ func (this *Cryptocom) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1016,7 +1016,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 		var tickers map[string]any = map[string]any{}
 		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 		if newTickersSymbol != nil {
-			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			tickers[*newTickersSymbol] = newTickers
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -1690,7 +1690,7 @@ func (this *Cryptocom) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 			panic(r.Err)
 		}
 	}
-	var paramsValue any = this.EditOrderRequest(id, symbol, amount, price, params)
+	var paramsValue any = this.EditOrderRequest(&id, symbol, amount, price, params)
 	var request map[string]any = map[string]any{
 		"method": "private/amend-order",
 		"params": paramsValue,
@@ -1797,13 +1797,14 @@ func (this *Cryptocom) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Ord
 		}
 	}
 	var market map[string]any = nil
-	var request map[string]any = map[string]any{
-		"method": "private/cancel-all-orders",
-		"params": this.Extend(map[string]any{}, params),
-	}
+	var requestParams map[string]any = this.Extend(map[string]any{}, params)
 	if symbol != nil {
 		market = this.Market(symbol)
-		ccxt.AddElementToObject(request["params"], "instrument_name", market["id"])
+		requestParams["instrument_name"] = market["id"]
+	}
+	var request map[string]any = map[string]any{
+		"method": "private/cancel-all-orders",
+		"params": requestParams,
 	}
 	var messageHash int64 = this.IncrementingNonce()
 

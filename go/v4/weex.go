@@ -2306,19 +2306,21 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeStringLower(trade, "side")
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
 	if isBuyer != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	} else if isBuyerMaker != nil {
-		side = SafeStringPtr(func() string {
+		sideStr2 := func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr2
 	}
 	var tradeMarketId *string = this.SafeString(trade, "symbol")
 	var realizedPnl *string = this.SafeString(trade, "realizedPnl")
@@ -2358,14 +2360,16 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	} else if isBuyerMaker != nil {
-		takerOrMaker = SafeStringPtr("taker")
+		takerOrMakerStr2 := "taker"
+		takerOrMaker = &takerOrMakerStr2
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2654,7 +2658,8 @@ func (this *Weex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	// the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
 	var typeVar *string = marketType
 	if (sandboxMode != nil && *sandboxMode) && (requestedType == nil) {
-		typeVar = SafeStringPtr("swap")
+		typeVarStr := "swap"
+		typeVar = &typeVarStr
 	}
 	var response any = nil
 	if typeVar != nil && *typeVar == "spot" {
@@ -2735,7 +2740,8 @@ func (this *Weex) ParseBalanceList(response any) map[string]any {
 		var entry map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(entry, "asset")
 		if (sandboxMode != nil && *sandboxMode) && (currencyId != nil && *currencyId == "SUSDT") {
-			currencyId = SafeStringPtr("USDT") // demo trading balances are denominated in the demo asset SUSDT
+			currencyIdStr := "USDT"
+			currencyId = &currencyIdStr // demo trading balances are denominated in the demo asset SUSDT
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3009,7 +3015,8 @@ func (this *Weex) CreateSpotOrderRequest(symbol string, typeVar string, side str
 	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 	if clientOrderId == nil {
 		var partner string = *this.SafeString(paramsOmitted, "partner", "b-WEEX111125")
-		clientOrderId = SafeStringPtr(partner + "-" + this.Uuid22())
+		clientOrderIdStr := partner + "-" + this.Uuid22()
+		clientOrderId = &clientOrderIdStr
 	}
 	request["newClientOrderId"] = clientOrderId
 	// timeInForce is passed directly from params
@@ -3165,7 +3172,8 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
 		var partner string = *this.SafeString(params, "partner", "b-WEEX111125")
-		clientOrderId = SafeStringPtr(partner + "-" + this.Uuid22())
+		clientOrderIdStr := partner + "-" + this.Uuid22()
+		clientOrderId = &clientOrderIdStr
 	}
 	var callerMethodName *string = this.SafeString(params, "callerMethodName")
 	if isTrigger {
@@ -3222,9 +3230,11 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			}
 			params["triggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 			if isMarketOrder {
-				orderType = SafeStringPtr("STOP_MARKET")
+				orderTypeStr := "STOP_MARKET"
+				orderType = &orderTypeStr
 			} else {
-				orderType = SafeStringPtr("STOP")
+				orderTypeStr2 := "STOP"
+				orderType = &orderTypeStr2
 			}
 		} else if isTakeProfit {
 			var takeProfitPriceType *string = this.SafeString2(params, "takeProfitPriceType", "triggerPriceType")
@@ -3233,9 +3243,11 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			}
 			params["triggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 			if isMarketOrder {
-				orderType = SafeStringPtr("TAKE_PROFIT_MARKET")
+				orderTypeStr3 := "TAKE_PROFIT_MARKET"
+				orderType = &orderTypeStr3
 			} else {
-				orderType = SafeStringPtr("TAKE_PROFIT")
+				orderTypeStr4 := "TAKE_PROFIT"
+				orderType = &orderTypeStr4
 			}
 		}
 		params["type"] = orderType
@@ -4759,7 +4771,8 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var isContractEntry bool = (transferReason != nil)
 	if isContractEntry {
 		if (rawType != nil && *rawType == "withdraw") || (rawType != nil && *rawType == "deposit") {
-			rawType = SafeStringPtr("transfer")
+			rawTypeStr := "transfer"
+			rawType = &rawTypeStr
 		}
 	}
 	return this.SafeLedgerEntry(map[string]any{

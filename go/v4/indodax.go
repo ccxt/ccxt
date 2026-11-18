@@ -2025,9 +2025,11 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)
-		url = SafeStringPtr(*apiUrl + requestPath)
+		urlStr := *apiUrl + requestPath
+		url = &urlStr
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
-			url = SafeStringPtr(*apiUrl + requestPath + "?" + this.UrlencodeWithArrayRepeat(query))
+			urlStr2 := *apiUrl + requestPath + "?" + this.UrlencodeWithArrayRepeat(query)
+			url = &urlStr2
 		}
 	} else {
 		this.CheckRequiredCredentials()

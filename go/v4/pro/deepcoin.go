@@ -100,7 +100,7 @@ func (this *Deepcoin) Ping(client any) any {
 	}
 	return "ping"
 }
-func (this *Deepcoin) HandlePong(client any, message any) any {
+func (this *Deepcoin) HandlePong(client any, message string) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
@@ -115,7 +115,8 @@ func (this *Deepcoin) CreatePublicRequest(market map[string]any, requestId any, 
 	_ = unWatch
 	var marketId *string = this.SafeString(market, "symbol", "") // spot markets use symbol with slash
 	if this.SafeString(market, "type") != nil && *this.SafeString(market, "type") == "swap" {
-		marketId = ccxt.SafeStringPtr(*this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")) // swap markets use symbol without slash
+		marketIdStr := *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
+		marketId = &marketIdStr // swap markets use symbol without slash
 	}
 	var action string = "1" // subscribe
 	if unWatch == true {
@@ -1657,8 +1658,8 @@ func (this *Deepcoin) ParseWsMarginMode(marginMode *string) *string {
 	}
 	return this.SafeString(modes, marginMode, marginMode)
 }
-func (this *Deepcoin) HandleTextMessage(client any, message any) {
-	if ccxt.IsEqual(message, "pong") {
+func (this *Deepcoin) HandleTextMessage(client any, message string) {
+	if message == "pong" {
 		this.HandlePong(client, message)
 	}
 }

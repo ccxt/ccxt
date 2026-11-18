@@ -262,7 +262,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan ccxt.AsyncResult[map[stri
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1011,9 +1011,10 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 							"currency": this.SafeString(trade["fee"], "currency"),
 						})
 					}
-					var previousOrderFee map[string]any = ccxt.SafeMapTyped(previousOrder, "fee")
+					var previousOrderFee map[string]any = this.SafeDictMap(previousOrder, "fee", map[string]any{})
 					if (this.SafeNumber(previousOrderFee, "cost") != nil) && (this.SafeNumber(trade["fee"], "cost") != nil) {
-						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(trade["fee"], "cost"))))
+						ccxt.AddElementToObject(previousOrderFee, "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(trade["fee"], "cost"))))
+						ccxt.AddElementToObject(previousOrder, "fee", previousOrderFee)
 					}
 					// update the newUpdates count
 					orders.Append(previousOrder)
@@ -1067,7 +1068,8 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) map[s
 	if (amount != nil) && (remaining != nil) {
 		filled = ccxt.Precise.StringSub(amount, remaining)
 	} else if typeVar != nil && *typeVar == "received" {
-		filled = ccxt.SafeStringPtr("0")
+		filledStr := "0"
+		filled = &filledStr
 		if amount != nil {
 			remaining = ccxt.Precise.StringSub(amount, filled)
 		}
@@ -1191,8 +1193,8 @@ func (this *Coinbaseexchange) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeNumber(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Coinbaseexchange) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Coinbaseexchange) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }

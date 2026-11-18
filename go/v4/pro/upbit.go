@@ -165,7 +165,7 @@ func (this *Upbit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		var tickers map[string]any = map[string]any{}
 		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 		if newTickersSymbol != nil {
-			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			tickers[*newTickersSymbol] = newTickers
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -726,9 +726,11 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var id *string = this.SafeString(order, "uuid")
 	var side *string = this.SafeStringLower(order, "ask_bid")
 	if side != nil && *side == "bid" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "ask" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var timestamp *int64 = this.SafeInteger(order, "order_timestamp")
 	var rawStatus *string = this.SafeString(order, "state")
@@ -790,9 +792,11 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	_ = market
 	var side *string = this.SafeStringLower(trade, "ask_bid")
 	if side != nil && *side == "bid" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "ask" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var timestamp *int64 = this.SafeInteger(trade, "trade_timestamp")
 	var marketId *string = this.SafeString(trade, "code")
@@ -807,12 +811,13 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool(trade, "is_maker")
 	if isMaker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "trade_fee")

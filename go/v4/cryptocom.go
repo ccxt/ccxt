@@ -1122,18 +1122,22 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		var typeVar *string = nil
 		var contract any = nil
 		if inst_type != nil && *inst_type == "CCY_PAIR" {
-			typeVar = SafeStringPtr("spot")
+			typeVarStr := "spot"
+			typeVar = &typeVarStr
 			contract = false
 		} else if inst_type != nil && *inst_type == "PERPETUAL_SWAP" {
-			typeVar = SafeStringPtr("swap")
+			typeVarStr2 := "swap"
+			typeVar = &typeVarStr2
 			symbol = *base + "/" + *quote + ":" + *quote
 			contract = true
 		} else if inst_type != nil && *inst_type == "FUTURE" {
-			typeVar = SafeStringPtr("future")
+			typeVarStr3 := "future"
+			typeVar = &typeVarStr3
 			symbol = *base + "/" + *quote + ":" + *quote + "-" + this.Yymmdd(expiry)
 			contract = true
 		} else if inst_type != nil && *inst_type == "WARRANT" {
-			typeVar = SafeStringPtr("option")
+			typeVarStr4 := "option"
+			typeVar = &typeVarStr4
 			var symbolOptionType string
 			if optionType != nil && *optionType == "call" {
 				symbolOptionType = "C"
@@ -1931,9 +1935,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol string, typeVar string, side st
 	var broker *string = this.SafeString(this.Options, "broker", "CCXT")
 	request["broker_id"] = broker
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
-	marginModeparamsValueVariable := this.CustomHandleMarginModeAndParams("createOrder", paramsMarketType)
-	var marginMode *string = SafeStringPtr(marginModeparamsValueVariable[0])
-	var paramsValue map[string]any = marginModeparamsValueVariable[1].(map[string]any)
+	marginMode, paramsValue := this.CustomHandleMarginModeAndParams("createOrder", paramsMarketType)
 	if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"
 	} else if marketType != nil && *marketType == "spot" {
@@ -2322,12 +2324,12 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
  * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Cryptocom) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Cryptocom) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2343,7 +2345,7 @@ func (this *Cryptocom) editOrderBody(ch chan AsyncResult[Order], id string, symb
 			panic(r.Err)
 		}
 	}
-	var request map[string]any = this.EditOrderRequest(id, symbol, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(&id, symbol, amount, price, params)
 
 	r1 := <-this.V1PrivatePostPrivateAmendOrder(request)
 	if r1.Err != nil {
@@ -2355,13 +2357,13 @@ func (this *Cryptocom) editOrderBody(ch chan AsyncResult[Order], id string, symb
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
 }
-func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) map[string]any {
+func (this *Cryptocom) EditOrderRequest(id *string, symbol string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	if !IsEqual(id, nil) {
+	if id != nil {
 		request["order_id"] = id
 	} else {
 		var originalClientOrderId *string = this.SafeString2(params, "orig_client_oid", "clientOrderId")
@@ -2372,7 +2374,7 @@ func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optional
 		}
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
-		if IsEqual(id, nil) {
+		if id == nil {
 			return this.OmitDict(params, []any{"orig_client_oid", "clientOrderId"})
 		}
 		return params
@@ -3583,7 +3585,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Tr
 		"fee":         fee,
 	})
 }
-func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName string, optionalArgs ...any) []any {
+func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName string, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -3605,10 +3607,11 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName string, option
 		}
 	} else {
 		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin) {
-			marginMode = SafeStringPtr("cross")
+			marginModeStr := "cross"
+			marginMode = &marginModeStr
 		}
 	}
-	return []any{marginMode, paramsMarginMode}
+	return marginMode, paramsMarginMode
 }
 func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any {
 	//
@@ -4036,7 +4039,8 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	typeVar, paramsMarketType = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
 	if typeVar != nil && *typeVar == "option" {
-		typeVar = SafeStringPtr("WARRANT")
+		typeVarStr := "WARRANT"
+		typeVar = &typeVarStr
 	}
 	var request map[string]any = map[string]any{
 		"instrument_type": strings.ToUpper(*typeVar),

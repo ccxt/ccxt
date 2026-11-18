@@ -647,7 +647,8 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if id == nil {
 		// public trades
 		side = this.SafeStringLower(trade, "takerSide")
-		takerOrMaker = SafeStringPtr("taker")
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 	} else {
 		// private trades
 		side = this.SafeStringLower(trade, "side")
@@ -839,9 +840,11 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawSide *string = this.SafeString(order, "side")
 	var side *string = nil
 	if rawSide != nil && *rawSide == "BID" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if rawSide != nil && *rawSide == "ASK" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var amount *string = this.SafeString(order, "totalQuantity")
 	var remaining *string = this.SafeString(order, "availableQuantity")
@@ -1003,13 +1006,13 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var sideInternal int = 0
-	if IsEqual(side, "sell") {
+	if side == "sell" {
 		sideInternal = 0
-	} else if IsEqual(side, "buy") {
+	} else if side == "buy" {
 		sideInternal = 1
 	}
 	// Converting them to internal representation:
@@ -1042,7 +1045,7 @@ func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate an
 	var feeRatePadded string = (strings.Repeat("0", max(16-len(feeRateInternal16), 0)) + feeRateInternal16)[max(len(feeRateInternal16)-16, 0):]
 	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
 	var encodedPrice []byte = this.BinaryConcat()
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		var priceStr *string = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), "1e"+*this.SafeString(info, "settlementDecimals", "")), underlying), one, 0)
 		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
@@ -1094,7 +1097,7 @@ func (this *Hibachi) CreateOrderRequest(nonce int64, symbol *string, typeVar *st
 			priceInternal = nil
 		}
 	}
-	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
+	var message any = this.OrderMessage(market, nonce, feeRate, *typeVar, *side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"symbol":         this.SafeString(market, "id"),
@@ -1246,24 +1249,24 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(ret)}
 	return nil
 }
-func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol *string, typeVar *string, side *string, optionalArgs ...any) map[string]any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
 	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFee), this.NumberToString(makerFee)))
-	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
+	var message any = this.OrderMessage(market, nonce, feeRate, *typeVar, *side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"orderId":         id,
@@ -1290,12 +1293,12 @@ func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol any, typeV
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hibachi) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1312,7 +1315,7 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		}
 	}
 	var nonce int64 = this.IncrementingNonce()
-	var request map[string]any = this.EditOrderRequest(nonce, &id, symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(nonce, &id, &symbol, &typeVar, &side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
 	r1 := <-this.PrivatePutTradeOrder(request)
@@ -1696,8 +1699,8 @@ func (this *Hibachi) SignMessage(message any, privateKey string) string {
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-		var hash any = this.Hash(message, sha256, "hex")
-		var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+		var hash string = this.HashString(message, sha256, "hex")
+		var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 		var r string = *this.SafeString(signature, "r", "")
 		var s string = *this.SafeString(signature, "s", "")
 		var v string = this.IntToBase16(signature["v"])
@@ -2457,7 +2460,8 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 	if transactionType == nil {
 		// response from TradeAccountTradingHistory
 		timestamp = this.SafeIntegerProduct(item, "timestamp", 1000)
-		typeVar = SafeStringPtr("trade")
+		typeVarStr := "trade"
+		typeVar = &typeVarStr
 		var amountStr *string = this.SafeString(item, "realizedPnl")
 		if Precise.StringLt(amountStr, "0") {
 			direction = "out"
@@ -2470,7 +2474,8 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 			"currency": "USDT",
 			"cost":     this.SafeNumber(item, "fee"),
 		}
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 	} else {
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)

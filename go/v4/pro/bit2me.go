@@ -322,12 +322,13 @@ func (this *Bit2me) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var rawFee map[string]any = ccxt.SafeMapTyped(trade, "fee")
@@ -1137,7 +1138,7 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 		}
 		for i := 0; i < len(clientOrderIds); i++ {
 			var clientOrderId string = clientOrderIds[i]
-			if ccxt.IsEqual(ccxt.GetValue(pending, clientOrderId), marketId) {
+			if ccxt.IsEqual(pending[clientOrderId], marketId) {
 				this.SettleRequest(client, "added-order:"+clientOrderId, nil, exception)
 				this.Options["pendingWsOrders"] = this.Omit(this.Options["pendingWsOrders"], clientOrderId)
 			}

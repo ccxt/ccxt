@@ -445,7 +445,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 				var m any = parsed[j]
 				flatMarkets = append(flatMarkets, m)
 				if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
-					var eventKey any = this.ShortenSlug(eventTitle)
+					var eventKey string = this.ShortenSlug(eventTitle)
 					if !(ccxt.InOp(eventsDict, eventKey)) {
 						ccxt.AddElementToObject(eventsDict, eventKey, map[string]any{
 							"id":      eventTicker,
@@ -655,13 +655,14 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		}
 		var baseTicker *string = outcomeSymbol
 		if strings.HasSuffix(*outcomeSymbol, "-NO") {
-			baseTicker = ccxt.SafeStringPtr(func() string {
+			baseTickerStr := func() string {
 				if outcomeSymbol == nil {
 					return ""
 				}
 				str := *outcomeSymbol
 				return str[0 : len(str)-3]
-			}())
+			}()
+			baseTicker = &baseTickerStr
 		}
 		if !(func() bool {
 			if baseTicker == nil {
@@ -839,7 +840,8 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		var eventPartsLength int = len(eventParts)
 		if eventPartsLength > 1 {
 			var seriesParts []any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
-			seriesTicker = ccxt.SafeStringPtr(ccxt.Join(seriesParts, "-"))
+			seriesTickerStr := ccxt.Join(seriesParts, "-")
+			seriesTicker = &seriesTickerStr
 		}
 	}
 	// market symbol (no outcome suffix)
@@ -1854,19 +1856,21 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var side *string = nil
 	if (rawSide != nil && *rawSide == "yes") || (rawSide != nil && *rawSide == "no") {
 		if (requestedOutcomeLabel != nil && *requestedOutcomeLabel == "yes") || (requestedOutcomeLabel != nil && *requestedOutcomeLabel == "no") {
-			side = ccxt.SafeStringPtr(func() string {
+			sideStr := func() string {
 				if rawSide == requestedOutcomeLabel || (rawSide != nil && requestedOutcomeLabel != nil && *rawSide == *requestedOutcomeLabel) {
 					return "buy"
 				}
 				return "sell"
-			}())
+			}()
+			side = &sideStr
 		} else {
-			side = ccxt.SafeStringPtr(func() string {
+			sideStr2 := func() string {
 				if rawSide != nil && *rawSide == "yes" {
 					return "buy"
 				}
 				return "sell"
-			}())
+			}()
+			side = &sideStr2
 		}
 	}
 	var cost any = nil
@@ -1991,7 +1995,8 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var sideLeg *string = this.SafeStringLower(fill, "side")
 	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = ccxt.SafeStringPtr(*ticker + "-NO")
+		outcomeKeyStr := *ticker + "-NO"
+		outcomeKey = &outcomeKeyStr
 	}
 	var mkt map[string]any = this.SafeOutcome(outcomeKey, market)
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
@@ -2359,12 +2364,13 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var positionSide *string = nil
 	var contractsValue *float64 = nil
 	if yesContracts != nil {
-		positionSide = ccxt.SafeStringPtr(func() string {
+		positionSideStr := func() string {
 			if *yesContracts >= 0 {
 				return "long"
 			}
 			return "short"
-		}())
+		}()
+		positionSide = &positionSideStr
 		contractsValue = this.ParseNumber(ccxt.Precise.StringAbs(this.NumberToString(yesContracts)))
 	}
 	return this.SafePredictionPosition(map[string]any{
@@ -2623,7 +2629,8 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 	var sideLeg *string = this.SafeStringLower(order, "side")
 	var outcomeKey *string = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = ccxt.SafeStringPtr(*ticker + "-NO")
+		outcomeKeyStr := *ticker + "-NO"
+		outcomeKey = &outcomeKeyStr
 	}
 	var mkt map[string]any = this.SafeOutcome(outcomeKey, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
@@ -2632,9 +2639,11 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 	var action *string = this.SafeStringLower(order, "action")
 	var side *string = nil
 	if action != nil && *action == "buy" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if action != nil && *action == "sell" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	// price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
 	// legacy returned yes_price/no_price in cents
@@ -2855,12 +2864,12 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) EditOrderAsync(id string, outcome any, typeVar any, side any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Kalshi) EditOrderAsync(id string, outcome string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.editOrderBody(ch, id, outcome, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, outcome any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, outcome string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
@@ -2890,7 +2899,7 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 		panic(r1.Err)
 	}
 
-	r2 := <-this.CreateOrderAsync(ccxt.StringArg(outcome), ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params)
+	r2 := <-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3430,7 +3439,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]
 		var cursor *string = nil
 		for page := 0; int64(page) < maxPages; page++ {
 			var reqLimit int64 = pageLimit
-			if hasLimit && (!ccxt.IsEqual(limitValue, nil)) {
+			if hasLimit {
 				var collectedSoFar int = len(rawEvents)
 				var remaining int64 = this.ParseToInt(limitValue - int64(collectedSoFar))
 				if remaining < reqLimit {

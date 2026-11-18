@@ -942,7 +942,8 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	base = SafeStringPtr(strings.Replace(*base, " ", "", 1)) // replace space for junction codes, eg. `1000 SHIB`
+	baseStr := strings.Replace(*base, " ", "", 1)
+	base = &baseStr // replace space for junction codes, eg. `1000 SHIB`
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var inverse bool = false
 	if settleId != quoteId && (settleId == nil || quoteId == nil || *settleId != *quoteId) {
@@ -1906,11 +1907,9 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var last any = this.FromEp(this.SafeString2(ticker, "lastEp", "closeRp"), marketResolved)
 	var quoteVolume any = this.FromEr(this.SafeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved)
-	var baseVolume any
-	if derefPtr := this.SafeString(ticker, "volume"); derefPtr != nil {
-		baseVolume = *derefPtr
-	}
-	if IsEqual(baseVolume, nil) {
+	var volume *string = this.SafeString(ticker, "volume")
+	var baseVolume any = volume
+	if volume == nil {
 		baseVolume = this.FromEv(this.SafeString2(ticker, "volumeEv", "volumeRq"), marketResolved)
 	}
 	var open any = this.FromEp(this.SafeString(ticker, "openEp"), marketResolved)
@@ -2420,18 +2419,21 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {
 				side = sideId
 			} else if sideId != nil {
-				side = SafeStringPtr(func() string {
+				sideStr := func() string {
 					if sideId != nil && *sideId == "1" {
 						return "buy"
 					}
 					return "sell"
-				}())
+				}()
+				side = &sideStr
 			}
 			var ordType *string = this.SafeString(trade, "ordType")
 			if ordType != nil && *ordType == "1" {
-				typeVar = SafeStringPtr("market")
+				typeVarStr := "market"
+				typeVar = &typeVarStr
 			} else if ordType != nil && *ordType == "2" {
-				typeVar = SafeStringPtr("limit")
+				typeVarStr2 := "limit"
+				typeVar = &typeVarStr2
 			}
 			if derefPtr := this.SafeString(trade, "execPriceRp"); derefPtr != nil {
 				priceString = *derefPtr
@@ -2461,7 +2463,8 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 				var ptFeeRv *string = this.OmitZero(this.SafeString(trade, "ptFeeRv"))
 				if ptFeeRv != nil {
 					feeCostString = ptFeeRv
-					feeCurrencyCode = SafeStringPtr("PT")
+					feeCurrencyCodeStr := "PT"
+					feeCurrencyCode = &feeCurrencyCodeStr
 				}
 			}
 		} else {
@@ -2469,7 +2472,8 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			typeVar = this.ParseOrderType(this.SafeString(trade, "ordType"))
 			var execStatus *string = this.SafeString(trade, "execStatus")
 			if execStatus != nil && *execStatus == "MakerFill" {
-				takerOrMaker = SafeStringPtr("maker")
+				takerOrMakerStr := "maker"
+				takerOrMaker = &takerOrMakerStr
 			}
 			priceString = this.FromEp(this.SafeString(trade, "execPriceEp"), marketResolved)
 			amountString = this.FromEv(this.SafeString(trade, "execBaseQtyEv"), marketResolved)
@@ -2494,7 +2498,8 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 					feeCostString = nil
 				}
 				if !IsEqual(feeCostString, nil) {
-					feeCurrencyCode = SafeStringPtr("PT")
+					feeCurrencyCodeStr2 := "PT"
+					feeCurrencyCode = &feeCurrencyCodeStr2
 				}
 			}
 		}
@@ -3134,11 +3139,9 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]an
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "ordStatus"))
 	var side *string = this.ParseOrderSide(this.SafeStringLower(order, "side"))
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "orderType"))
-	var price any
-	if derefPtr := this.SafeString(order, "priceRp"); derefPtr != nil {
-		price = *derefPtr
-	}
-	if IsEqual(price, nil) {
+	var priceRp *string = this.SafeString(order, "priceRp")
+	var price any = priceRp
+	if priceRp == nil {
 		price = this.FromEp(this.SafeString(order, "priceEp"), marketResolved)
 	}
 	var amount *float64 = this.SafeNumber2(order, "orderQty", "orderQtyRq")
@@ -3301,7 +3304,8 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		var qtyType *string = this.SafeString(orderParams, "qtyType", "ByBase")
 		if (typeValue == "Market") || (typeValue == "Stop") || (typeValue == "MarketIfTouched") {
 			if price != nil {
-				qtyType = SafeStringPtr("ByQuote")
+				qtyTypeStr := "ByQuote"
+				qtyType = &qtyTypeStr
 			}
 		}
 		if triggerPrice != nil {
@@ -3359,14 +3363,16 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				if flipSide {
 					orderParams = this.Omit(orderParams, "reduceOnly")
 				}
-				posSide = SafeStringPtr(func() string {
+				posSideStr := func() string {
 					if sideResolved == "buy" {
 						return "Long"
 					}
 					return "Short"
-				}())
+				}()
+				posSide = &posSideStr
 			} else {
-				posSide = SafeStringPtr("Merged")
+				posSideStr2 := "Merged"
+				posSide = &posSideStr2
 			}
 		}
 		var posSideCapitalized string = this.Capitalize(posSide)
@@ -3607,12 +3613,12 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Phemex) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -4789,7 +4795,8 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	}
 	var fee map[string]any = nil
 	if feeCost != nil {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": code,
@@ -4873,16 +4880,19 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositions", market, paramsSettle)
 	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
-		code = SafeStringPtr("USDT")
+		codeStr := "USDT"
+		code = &codeStr
 	} else if settle != nil && *settle == "BTC" {
-		code = SafeStringPtr("BTC")
+		codeStr2 := "BTC"
+		code = &codeStr2
 	} else if code == nil {
-		code = SafeStringPtr(func() string {
+		codeStr3 := func() string {
 			if subType != nil && *subType == "linear" {
 				return "USD"
 			}
 			return "BTC"
-		}())
+		}()
+		code = &codeStr3
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -5199,12 +5209,13 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = nil
 	if rawSide != nil {
 		var isLong bool = ((rawSide != nil && *rawSide == "Buy") || (rawSide != nil && *rawSide == "1"))
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isLong {
 				return "long"
 			}
 			return "short"
-		}())
+		}()
+		side = &sideStr
 	}
 	// Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
 	// Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -5968,7 +5979,8 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 				}
 			}
 			payload = this.Json(params)
-			requestBody = SafeStringPtr(payload)
+			requestBodyStr := payload
+			requestBody = &requestBodyStr
 			privateHeaders["Content-Type"] = "application/json"
 		}
 		var auth string = requestPath + queryString + expiryString + payload
@@ -6324,11 +6336,15 @@ func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 	var fromId *string = nil
 	var toId *string = nil
 	if side != nil && *side == 1 {
-		fromId = SafeStringPtr("swap")
-		toId = SafeStringPtr("spot")
+		fromIdStr := "swap"
+		fromId = &fromIdStr
+		toIdStr := "spot"
+		toId = &toIdStr
 	} else if side != nil && *side == 2 {
-		fromId = SafeStringPtr("spot")
-		toId = SafeStringPtr("swap")
+		fromIdStr2 := "spot"
+		fromId = &fromIdStr2
+		toIdStr2 := "swap"
+		toId = &toIdStr2
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
 	return TransferEntryFromMap(map[string]any{
@@ -6405,11 +6421,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes510619 []any = r1.Value
-		if retRes510619 == nil {
+		var retRes510819 []any = r1.Value
+		if retRes510819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes510619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes510819)}
 		}
 		return nil
 	}
@@ -6515,18 +6531,14 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = nil
+	var networkId *string = nil
 	if networkCode != nil {
-		if derefPtr := this.NetworkCodeToId(networkCode, code); derefPtr != nil {
-			networkId = *derefPtr
-		} else {
-			networkId = nil
-		}
+		networkId = this.NetworkCodeToId(networkCode, code)
 	}
 	var stableCoins any = this.SafeList(this.Options, "stableCoins", []any{})
 	if networkId == nil {
 		if !(this.InArray(code, stableCoins)) {
-			networkId = currency["id"]
+			networkId = this.SafeString(currency, "id", currency["id"])
 		} else {
 			panic(ArgumentsRequired(this.Id + " withdraw () requires an extra argument params[\"network\"]"))
 		}
@@ -6535,7 +6547,7 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		"currency":  currency["id"],
 		"address":   address,
 		"amount":    amount,
-		"chainName": ToUpper(networkId),
+		"chainName": strings.ToUpper(*networkId),
 	}
 	if tagWithdrawTag != nil {
 		request["addressTag"] = *tagWithdrawTag
@@ -7032,16 +7044,19 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsADLRank", market, paramsSettle)
 	var isUSDTSettled bool = (settle != nil && *settle == "USDT")
 	if isUSDTSettled {
-		code = SafeStringPtr("USDT")
+		codeStr := "USDT"
+		code = &codeStr
 	} else if settle != nil && *settle == "BTC" {
-		code = SafeStringPtr("BTC")
+		codeStr2 := "BTC"
+		code = &codeStr2
 	} else if code == nil {
-		code = SafeStringPtr(func() string {
+		codeStr3 := func() string {
 			if subType != nil && *subType == "linear" {
 				return "USD"
 			}
 			return "BTC"
-		}())
+		}()
+		code = &codeStr3
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{

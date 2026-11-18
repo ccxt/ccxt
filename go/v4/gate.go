@@ -2070,13 +2070,14 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	var expiry *string = this.SafeString(optionParts, 1, "")
 	if GetIndexOf(symbol, "/") == -1 {
 		base = this.SafeString(marketIdBase, 0, "")
-		expiry = SafeStringPtr(func() string {
+		expiryStr := func() string {
 			if expiry == nil {
 				return ""
 			}
 			str := *expiry
 			return str[2:min(8, len(str))]
-		}()) // convert 20230728 to 230728
+		}()
+		expiry = &expiryStr // convert 20230728 to 230728
 	}
 	var strike string = *this.SafeString(optionParts, 2, "")
 	var optionType string = *this.SafeString(optionParts, 3, "")
@@ -2578,7 +2579,8 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 	var contractSize *string = this.SafeString(market, "quanto_multiplier")
 	// exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
 	if contractSize != nil && *contractSize == "0" {
-		contractSize = SafeStringPtr("1") // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+		contractSizeStr := "1"
+		contractSize = &contractSizeStr // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
 	}
 	var status string = *this.SafeString(market, "status", "trading") // or "suspend"
 	var amountPrecision *float64 = this.ParseNumber("1")
@@ -2893,9 +2895,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) []any {
 	_ = trigger
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	marginModequeryVariable := this.GetMarginMode(trigger, params)
-	var marginMode *string = SafeStringPtr(marginModequeryVariable[0])
-	var query map[string]any = MapTyped(marginModequeryVariable[1])
+	marginMode, query := this.GetMarginMode(trigger, params)
 	var request map[string]any = map[string]any{}
 	if !(trigger == true) {
 		if market == nil {
@@ -2923,9 +2923,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) []any {
 	_ = trigger
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	marginModequeryVariable := this.GetMarginMode(trigger, params)
-	var marginMode *string = SafeStringPtr(marginModequeryVariable[0])
-	var query map[string]any = MapTyped(marginModequeryVariable[1])
+	marginMode, query := this.GetMarginMode(trigger, params)
 	var request map[string]any = map[string]any{
 		"account": marginMode,
 	}
@@ -2939,7 +2937,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) []any {
 	}
 	return []any{request, query}
 }
-func (this *Gate) GetMarginMode(trigger any, params any) []any {
+func (this *Gate) GetMarginMode(trigger any, params any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -2953,16 +2951,20 @@ func (this *Gate) GetMarginMode(trigger any, params any) []any {
 	var marginMode *string = this.SafeStringLower2(params, "marginMode", "account", defaultMarginMode)
 	var paramsOmitted any = this.Omit(params, []any{"marginMode", "account"})
 	if marginMode != nil && *marginMode == "cross" {
-		marginMode = SafeStringPtr("cross_margin")
+		marginModeStr := "cross_margin"
+		marginMode = &marginModeStr
 	} else if marginMode != nil && *marginMode == "isolated" {
-		marginMode = SafeStringPtr("margin")
+		marginModeStr2 := "margin"
+		marginMode = &marginModeStr2
 	} else if marginMode != nil && *marginMode == "" {
-		marginMode = SafeStringPtr("spot")
+		marginModeStr3 := "spot"
+		marginMode = &marginModeStr3
 	}
 	if trigger == true {
 		if marginMode != nil && *marginMode == "spot" {
 			// gate spot trigger orders use the term normal instead of spot
-			marginMode = SafeStringPtr("normal")
+			marginModeStr4 := "normal"
+			marginMode = &marginModeStr4
 		}
 		if marginMode != nil && *marginMode == "cross_margin" {
 			panic(BadRequest(this.Id + " getMarginMode() does not support trigger orders for cross margin"))
@@ -2970,9 +2972,10 @@ func (this *Gate) GetMarginMode(trigger any, params any) []any {
 	}
 	isUnifiedAccount, paramsUnifiedAccount := this.HandleOptionBoolAndParams(paramsOmitted, "getMarginMode", "unifiedAccount", false)
 	if isUnifiedAccount {
-		marginMode = SafeStringPtr("unified")
+		marginModeStr5 := "unified"
+		marginMode = &marginModeStr5
 	}
-	return []any{marginMode, paramsUnifiedAccount}
+	return marginMode, paramsUnifiedAccount
 }
 func (this *Gate) GetSettlementCurrencies(typeVar string, method string) any {
 	var options map[string]any = SafeMapTyped(this.Options, typeVar) // [ 'BTC', 'USDT' ] unified codes
@@ -3905,6 +3908,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[stri
 		},
 		"networks": map[string]any{},
 	}
+	var networkFees map[string]any = map[string]any{}
 	if withdrawFixOnChains != nil {
 		var chainKeys []string = nil
 		if withdrawFixOnChains != nil {
@@ -3919,7 +3923,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[stri
 			var code *string = this.SafeCurrencyCode(currencyId, currency)
 			var networkCode *string = this.NetworkIdToCode(chainKey, code)
 			if networkCode != nil {
-				AddElementToObject(result["networks"], networkCode, map[string]any{
+				networkFees[*networkCode] = map[string]any{
 					"withdraw": map[string]any{
 						"fee":        this.ParseNumber(withdrawFixOnChains[chainKey]),
 						"percentage": false,
@@ -3928,10 +3932,11 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[stri
 						"fee":        nil,
 						"percentage": nil,
 					},
-				})
+				}
 			}
 		}
 	}
+	result["networks"] = networkFees
 	return result
 }
 
@@ -4424,11 +4429,13 @@ func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var baseVolume *string = this.SafeString2(ticker, "base_volume", "volume_24h_base")
 	if baseVolume != nil && *baseVolume == "nan" {
-		baseVolume = SafeStringPtr("0")
+		baseVolumeStr := "0"
+		baseVolume = &baseVolumeStr
 	}
 	var quoteVolume *string = this.SafeString2(ticker, "quote_volume", "volume_24h_quote")
 	if quoteVolume != nil && *quoteVolume == "nan" {
-		quoteVolume = SafeStringPtr("0")
+		quoteVolumeStr := "0"
+		quoteVolume = &quoteVolumeStr
 	}
 	var percentage *string = this.SafeString(ticker, "change_percentage")
 	return this.SafeTicker(map[string]any{
@@ -4602,9 +4609,7 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
 	var request map[string]any = requestrequestParamsVariable[0].(map[string]any)
 	var requestParams map[string]any = requestrequestParamsVariable[1].(map[string]any)
-	marginModerequestQueryVariable := this.GetMarginMode(false, requestParams)
-	var marginMode *string = SafeStringPtr(marginModerequestQueryVariable[0])
-	var requestQuery map[string]any = MapTyped(marginModerequestQueryVariable[1])
+	marginMode, requestQuery := this.GetMarginMode(false, requestParams)
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		AddElementToObject(request, "currency_pair", market["id"])
@@ -4905,7 +4910,9 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			result = this.MergeBalanceAccount(result, *quoteCode, this.ParseBalanceHelper(quote))
 		} else {
 			var code *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
-			AddElementToObject(result, code, this.ParseBalanceHelper(entry))
+			if code != nil {
+				result[*code] = this.ParseBalanceHelper(entry)
+			}
 		}
 	}
 
@@ -4962,11 +4969,11 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes352819 []any = r1.Value
-		if retRes352819 == nil {
+		var retRes353019 []any = r1.Value
+		if retRes353019 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes352819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes353019)}
 		}
 		return nil
 	}
@@ -4976,11 +4983,11 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes353119 []any = OHLCVsToList(r2.Value)
-		if retRes353119 == nil {
+		var retRes353319 []any = OHLCVsToList(r2.Value)
+		if retRes353319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes353119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes353319)}
 		}
 		return nil
 	}
@@ -5150,11 +5157,11 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes361919 []any = r2.Value
-		if retRes361919 == nil {
+		var retRes362119 []any = r2.Value
+		if retRes362119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes361919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes362119)}
 		}
 		return nil
 	}
@@ -5283,11 +5290,11 @@ func (this *Gate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes372819 []any = r1.Value
-		if retRes372819 == nil {
+		var retRes373019 []any = r1.Value
+		if retRes373019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes372819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes373019)}
 		}
 		return nil
 	}
@@ -5451,7 +5458,7 @@ func (this *Gate) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes385915 []any = TradesToList(r1.Value)
+	var retRes386115 []any = TradesToList(r1.Value)
 	//
 	//      [
 	//          {
@@ -5471,10 +5478,10 @@ func (this *Gate) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	//          }
 	//      ]
 	//
-	if retRes385915 == nil {
+	if retRes386115 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes385915)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes386115)}
 	}
 	return nil
 }
@@ -5539,11 +5546,11 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes389419 []any = r2.Value
-		if retRes389419 == nil {
+		var retRes389619 []any = r2.Value
+		if retRes389619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes389419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes389619)}
 		}
 		return nil
 	}
@@ -5573,9 +5580,7 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if market != nil {
 			AddElementToObject(request, "currency_pair", market["id"]) // Should always be set for non-trigger
 		}
-		marginModequeryVariable := this.GetMarginMode(false, paramsMarketType)
-		marginMode = SafeStringPtr(marginModequeryVariable[0])
-		query = marginModequeryVariable[1]
+		marginMode, query = this.GetMarginMode(false, paramsMarketType)
 		AddElementToObject(request, "account", marginMode)
 	}
 	if limit != nil {
@@ -5796,13 +5801,14 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var msString *string = this.SafeString(trade, "create_time_ms")
 	if msString != nil {
 		msString = Precise.StringMul(msString, "1000")
-		msString = SafeStringPtr(func() string {
+		msStringStr := func() string {
 			if msString == nil {
 				return ""
 			}
 			str := *msString
 			return str[0:min(13, len(str))]
-		}())
+		}()
+		msString = &msStringStr
 		timestamp = this.ParseToInt(msString)
 	} else {
 		timestamp = this.SafeTimestamp2(trade, "time", "create_time")
@@ -5911,11 +5917,11 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes419819 []any = r1.Value
-		if retRes419819 == nil {
+		var retRes420019 []any = r1.Value
+		if retRes420019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes419819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes420019)}
 		}
 		return nil
 	}
@@ -5988,11 +5994,11 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes423819 []any = r1.Value
-		if retRes423819 == nil {
+		var retRes424019 []any = r1.Value
+		if retRes424019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes423819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes424019)}
 		}
 		return nil
 	}
@@ -6179,12 +6185,13 @@ func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	if id != nil {
 		if strings.HasPrefix(*id, "b") {
 			// GateCode handling
-			typeVar = SafeStringPtr(func() string {
+			typeVarStr := func() string {
 				if Precise.StringGt(amountString, "0") {
 					return "deposit"
 				}
 				return "withdrawal"
-			}())
+			}()
+			typeVar = &typeVarStr
 			amountString = Precise.StringAbs(amountString)
 		} else {
 			typeVar = this.ParseTransactionType(GetValue(id, 0))
@@ -6299,7 +6306,7 @@ func (this *Gate) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var isTakeProfitOrder bool = (takeProfitPrice != nil)
 	var isTpsl bool = isStopLossOrder || isTakeProfitOrder
 	var nonTriggerOrder bool = !isTpsl && (trigger == nil)
-	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
+	var orderRequest map[string]any = this.CreateOrderRequest(symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if (*this.SafeBool(market, "spot", false)) || (*this.SafeBool(market, "margin", false)) {
 		if nonTriggerOrder {
@@ -6524,19 +6531,19 @@ func (this *Gate) IsGateFuturesContractWithDecimalSize(market map[string]any) bo
 	var enableDecimal *bool = this.SafeBool(info, "enable_decimal", false)
 	return (isSwap != nil && *isSwap) && (enableDecimal != nil && *enableDecimal)
 }
-func (this *Gate) GetGateFuturesSignedAmount(symbol any, side any, amount any) *string {
+func (this *Gate) GetGateFuturesSignedAmount(symbol any, side string, amount any) *string {
 	var amountString *string = this.AmountToPrecision(symbol, amount)
-	if IsEqual(side, "sell") {
+	if side == "sell" {
 		return Precise.StringNeg(amountString)
 	}
 	return amountString
 }
-func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Gate) CreateOrderRequest(symbol any, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
 	if side == nil {
@@ -6556,7 +6563,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var exchangeSpecificTimeInForce *string = this.SafeStringLowerN(params, []any{"timeInForce", "tif", "time_in_force"})
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
+	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var timeInForce *string = this.HandleTimeInForce(paramsPostOnly)
@@ -6568,11 +6575,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 	// this is because the other params will get extended into the request
 	var clientOrderIdRaw *string = this.SafeString2(paramsPostOnly, "text", "clientOrderId")
 	var clientOrderId *string = clientOrderIdRaw
-	var query any = this.Omit(paramsPostOnly, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"})
-	var isLimitOrder bool = (IsEqual(typeVar, "limit"))
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var query map[string]any = this.OmitDict(paramsPostOnly, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"})
+	var isLimitOrder bool = (typeVar != nil && *typeVar == "limit")
+	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	if isLimitOrder && (price == nil) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder () requires a price argument for ", typeVar), " orders")))
+		panic(ArgumentsRequired(this.Id + " createOrder () requires a price argument for " + *typeVar + " orders"))
 	}
 	if isMarketOrder {
 		if (timeInForce != nil && *timeInForce == "poc") || (timeInForce != nil && *timeInForce == "gtc") {
@@ -6595,7 +6602,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 	if contract != nil && *contract == true {
 		var isClose *bool = this.SafeBool(query, "close", false)
 		if !(isClose != nil && *isClose) {
-			signedAmount = this.GetGateFuturesSignedAmount(symbol, side, amount)
+			signedAmount = this.GetGateFuturesSignedAmount(symbol, *side, amount)
 			useGateFuturesDecimalSize = this.IsGateFuturesContractWithDecimalSize(market)
 			if !useGateFuturesDecimalSize {
 				contractAmount = ParseInt(signedAmount)
@@ -6642,9 +6649,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			}
 		} else {
 			var marginMode any = nil
-			marginModequeryVariable := this.GetMarginMode(false, query)
-			marginMode = GetValue(marginModequeryVariable, 0)
-			query = GetValue(marginModequeryVariable, 1)
+			var marginModePtr *string = nil
+			marginModePtr, query = this.GetMarginMode(false, query)
+			if marginModePtr != nil {
+				marginMode = *marginModePtr
+			}
 			// spot order
 			request = map[string]any{
 				"currency_pair": market["id"],
@@ -6657,7 +6666,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 				var createMarketBuyOrderRequiresPrice bool = true
 				createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				var cost *float64 = this.SafeNumber(query, "cost")
-				query = this.Omit(query, "cost")
+				query = this.OmitDict(query, "cost")
 				if cost != nil {
 					quoteAmount = this.CostToPrecision(symbol, cost)
 				} else if createMarketBuyOrderRequiresPrice {
@@ -6692,9 +6701,10 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			if len(*clientOrderIdRaw) > 28 {
 				panic(BadRequest(this.Id + " createOrder () clientOrderId or text param must be up to 28 characters"))
 			}
-			query = this.Omit(query, "textIsRequired")
+			query = this.OmitDict(query, "textIsRequired")
 			if !strings.HasPrefix(*clientOrderIdRaw, "t") {
-				clientOrderId = SafeStringPtr("t-" + *clientOrderIdRaw)
+				clientOrderIdStr := "t-" + *clientOrderIdRaw
+				clientOrderId = &clientOrderIdStr
 			}
 			request["text"] = clientOrderId
 		} else {
@@ -6717,7 +6727,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			} else {
 				initial["size"] = amountResolved
 			}
-			if IsEqual(typeVar, "market") {
+			if typeVar != nil && *typeVar == "market" {
 				initial["price"] = "0"
 			} else {
 				initial["price"] = func() any {
@@ -6766,7 +6776,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 				if (priceType == nil || *priceType < 0) || (priceType != nil && *priceType > 2) {
 					panic(BadRequest(this.Id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price"))
 				}
-				query = this.Omit(query, []any{"price_type"})
+				query = this.OmitDict(query, []any{"price_type"})
 				request["trigger"] = map[string]any{
 					"price_type": priceType,
 					"price":      this.PriceToPrecision(symbol, triggerOrderPrice),
@@ -6777,9 +6787,12 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			// spot conditional order
 			var options map[string]any = SafeMapTyped(this.Options, "createOrder")
 			var marginMode any = nil
-			marginModequeryVariable := this.GetMarginMode(true, query)
-			marginMode = GetValue(marginModequeryVariable, 0)
-			query = GetValue(marginModequeryVariable, 1)
+			var marginModePtr *string = nil
+			marginModePtr, query = this.GetMarginMode(true, query)
+			marginMode = nil
+			if marginModePtr != nil {
+				marginMode = *marginModePtr
+			}
 			if timeInForce == nil {
 				timeInForceValue := "gtc"
 				timeInForce = &timeInForceValue
@@ -6882,7 +6895,7 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
 	ch <- AsyncResult[Order]{Value: r2.Value}
 	return nil
 }
-func (this *Gate) EditOrderRequest(id string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Gate) EditOrderRequest(id string, symbol string, typeVar string, side string, optionalArgs ...any) map[string]any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -6899,10 +6912,10 @@ func (this *Gate) EditOrderRequest(id string, symbol any, typeVar any, side any,
 		}
 		return accountParsed
 	}()
-	var isLimitOrder bool = (IsEqual(typeVar, "limit"))
+	var isLimitOrder bool = (typeVar == "limit")
 	if IsEqual(account, "spot") {
 		if !isLimitOrder {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" editOrder() does not support ", typeVar), " orders for "), marketType), " markets")))
+			panic(InvalidOrder(Add(Add(this.Id+" editOrder() does not support "+typeVar+" orders for ", marketType), " markets")))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -6947,12 +6960,12 @@ func (this *Gate) EditOrderRequest(id string, symbol any, typeVar any, side any,
  * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Gate) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Gate) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Gate) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -7264,7 +7277,8 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 	typeVar = this.SafeString(order, "type", typeVar)
 	timeInForce = this.SafeStringUpper2(order, "time_in_force", "tif", timeInForce)
 	if timeInForce != nil && *timeInForce == "POC" {
-		timeInForce = SafeStringPtr("PO")
+		timeInForceStr := "PO"
+		timeInForce = &timeInForceStr
 	}
 	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	amount = this.SafeString2(order, "amount", "size", amount)
@@ -7276,22 +7290,25 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 	var average *float64 = this.SafeNumber2(order, "avg_deal_price", "fill_price")
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		remainingString = amount
-		cost = SafeStringPtr("0")
+		costStr := "0"
+		cost = &costStr
 	}
 	if (contract != nil) && (contract == nil || *contract != "") {
 		var isMarketOrder bool = Precise.StringEquals(price, "0") && (timeInForce != nil && *timeInForce == "IOC")
-		typeVar = SafeStringPtr(func() string {
+		typeVarStr := func() string {
 			if isMarketOrder {
 				return "market"
 			}
 			return "limit"
-		}())
-		side = SafeStringPtr(func() string {
+		}()
+		typeVar = &typeVarStr
+		sideStr := func() string {
 			if Precise.StringGt(amount, "0") {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	}
 	var rawStatus *string = this.SafeStringN(order, []any{"finish_as", "status", "open"})
 	var timestampStr *string = this.SafeString(order, "create_time_ms")
@@ -7420,7 +7437,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":   order,
 	}, market)
 }
-func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) []any {
+func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) (map[string]any, map[string]any) {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7457,7 +7474,7 @@ func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) []any {
 	request := GetValue(requestrequestParamsVariable, 0)
 	requestParams := GetValue(requestrequestParamsVariable, 1)
 	AddElementToObject(request, "order_id", ToString(orderId))
-	return []any{request, requestParams}
+	return MapTyped(request), MapTyped(requestParams)
 }
 
 /**
@@ -7511,9 +7528,7 @@ func (this *Gate) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	}
 	typeVar, _ := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	var trigger *bool = this.SafeBoolN(params, []any{"trigger", "is_stop_order", "stop"}, false)
-	requestrequestParamsVariable := this.FetchOrderRequest(id, symbol, params)
-	var request map[string]any = MapTyped(requestrequestParamsVariable[0])
-	var requestParams map[string]any = MapTyped(requestrequestParamsVariable[1])
+	request, requestParams := this.FetchOrderRequest(id, symbol, params)
 	var response map[string]any = nil
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		if trigger != nil && *trigger {
@@ -7614,11 +7629,11 @@ func (this *Gate) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes553615 []any = OrdersToList(r.Value)
-	if retRes553615 == nil {
+	var retRes553815 []any = OrdersToList(r.Value)
+	if retRes553815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes553615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes553815)}
 	}
 	return nil
 }
@@ -7682,12 +7697,12 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes557119 []any = r2.Value
+		var retRes557319 []any = r2.Value
 		// see https://github.com/ccxt/ccxt/issues/22825
-		if retRes557119 == nil {
+		if retRes557319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes557119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes557319)}
 		}
 		return nil
 	}
@@ -7710,11 +7725,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes558219 []any = OrdersToList(r3.Value)
-		if retRes558219 == nil {
+		var retRes558419 []any = OrdersToList(r3.Value)
+		if retRes558419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes558219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes558419)}
 		}
 		return nil
 	}
@@ -7740,7 +7755,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
-func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) []any {
+func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -7799,7 +7814,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	if lastId != nil {
 		AddElementToObject(request, "last_id", lastId)
 	}
-	return []any{request, finalParams}
+	return MapTyped(request), finalParams
 }
 func (this *Gate) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
@@ -7842,9 +7857,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status a
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
 	typeVar, _ := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	// don't omit here, omits done in prepareOrdersByStatusRequest
-	requestrequestParamsVariable := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
-	var request map[string]any = MapTyped(requestrequestParamsVariable[0])
-	var requestParams map[string]any = MapTyped(requestrequestParamsVariable[1])
+	request, requestParams := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
 	var spot bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
 	var openStatus bool = (IsEqual(status, "open"))
 	var openSpotOrders bool = spot && openStatus && (trigger == nil || *trigger != true)
@@ -8348,11 +8361,11 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes602119 []any = OrdersToList(r2.Value)
-		if retRes602119 == nil {
+		var retRes602319 []any = OrdersToList(r2.Value)
+		if retRes602319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes602119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes602319)}
 		}
 		return nil
 	}
@@ -8748,7 +8761,8 @@ func (this *Gate) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	var marginMode *string = this.SafeString(query, "marginMode", defaultMarginMode)
 	var stringifiedMargin *string = this.NumberToString(leverage)
 	if crossLeverageLimit != nil {
-		marginMode = SafeStringPtr("cross")
+		marginModeStr := "cross"
+		marginMode = &marginModeStr
 		stringifiedMargin = crossLeverageLimit
 	}
 	if (marginMode != nil && *marginMode == "cross") || (marginMode != nil && *marginMode == "cross_margin") {
@@ -8899,9 +8913,11 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = this.SafeString(position, "side")
 	if side == nil {
 		if Precise.StringGt(size, "0") {
-			side = SafeStringPtr("long")
+			sideStr := "long"
+			side = &sideStr
 		} else if Precise.StringLt(size, "0") {
-			side = SafeStringPtr("short")
+			sideStr2 := "short"
+			side = &sideStr2
 		}
 	}
 	var notional *string = this.SafeString(position, "value")
@@ -8909,9 +8925,11 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) Position {
 	var marginMode *string = nil
 	if leverage != nil {
 		if leverage != nil && *leverage == "0" {
-			marginMode = SafeStringPtr("cross")
+			marginModeStr := "cross"
+			marginMode = &marginModeStr
 		} else {
-			marginMode = SafeStringPtr("isolated")
+			marginModeStr2 := "isolated"
+			marginMode = &marginModeStr2
 		}
 	}
 	// gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
@@ -10234,11 +10252,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes739419 []any = r1.Value
-		if retRes739419 == nil {
+		var retRes739619 []any = r1.Value
+		if retRes739619 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes739419)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes739619)}
 		}
 		return nil
 	}
@@ -10666,11 +10684,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes771719 []any = r1.Value
-		if retRes771719 == nil {
+		var retRes771919 []any = r1.Value
+		if retRes771919 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes771719)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes771919)}
 		}
 		return nil
 	}
@@ -10995,7 +11013,8 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[[]string], optio
 	marketTypeRaw, paramsMarketType := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
 	var marketType *string = marketTypeRaw
 	if (marketTypeRaw == nil) || (marketTypeRaw != nil && *marketTypeRaw == "spot") {
-		marketType = SafeStringPtr("option")
+		marketTypeStr := "option"
+		marketType = &marketTypeStr
 	}
 	if marketType == nil || *marketType != "option" {
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
@@ -11276,15 +11295,19 @@ func (this *Gate) ParseLiquidation(liquidation any, optionalArgs ...any) any {
 	var optPos *string = this.SafeStringLower(liquidation, "side")
 	var side *string = nil
 	if optPos != nil && *optPos == "long" {
-		side = SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if optPos != nil && *optPos == "short" {
-		side = SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	} else {
 		if size != nil {
 			if Precise.StringGt(size, "0") {
-				side = SafeStringPtr("sell")
+				sideStr3 := "sell"
+				side = &sideStr3
 			} else if Precise.StringLt(size, "0") {
-				side = SafeStringPtr("buy")
+				sideStr4 := "buy"
+				side = &sideStr4
 			}
 		}
 	}

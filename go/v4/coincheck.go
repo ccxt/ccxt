@@ -775,9 +775,11 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var liquidity *string = this.SafeString(trade, "liquidity")
 	if liquidity != nil {
 		if liquidity != nil && *liquidity == "T" {
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr := "taker"
+			takerOrMaker = &takerOrMakerStr
 		} else if liquidity != nil && *liquidity == "M" {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr2 := "maker"
+			takerOrMaker = &takerOrMakerStr2
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")
 		amountString = this.SafeString(funds, baseId)
@@ -1399,7 +1401,8 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			if hasQuery {
 				queryString = this.Urlencode(this.Keysort(query))
-				bodySigned = SafeStringPtr(queryString)
+				bodySignedStr := queryString
+				bodySigned = &bodySignedStr
 			}
 		}
 		var auth string = nonce + url + queryString

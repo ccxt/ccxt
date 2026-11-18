@@ -598,7 +598,7 @@ func (this *Okx) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		var symbol *string = this.SafeString(fundingRate, "symbol")
 		var result map[string]any = map[string]any{}
 		if symbol != nil {
-			ccxt.AddElementToObject(result, symbol, fundingRate)
+			result[*symbol] = fundingRate
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}
@@ -1026,7 +1026,7 @@ func (this *Okx) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		var tickers map[string]any = map[string]any{}
 		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 		if newTickersSymbol != nil {
-			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			tickers[*newTickersSymbol] = newTickers
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -1173,9 +1173,11 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt
 	var channel string = "liquidation-orders"
 	var typeVar *string = marketType
 	if marketType != nil && *marketType == "spot" {
-		typeVar = ccxt.SafeStringPtr("SWAP")
+		typeVarStr := "SWAP"
+		typeVar = &typeVarStr
 	} else if marketType != nil && *marketType == "future" {
-		typeVar = ccxt.SafeStringPtr("futures")
+		typeVarStr2 := "futures"
+		typeVar = &typeVarStr2
 	}
 	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchLiquidationsForSymbols() type is required"))
@@ -1869,13 +1871,17 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	var depth *string = depthOption
 	if limit != nil {
 		if limit != nil && *limit == 1 {
-			depth = ccxt.SafeStringPtr("bbo-tbt")
+			depthStr := "bbo-tbt"
+			depth = &depthStr
 		} else if (*limit > 1) && (*limit <= 5) {
-			depth = ccxt.SafeStringPtr("books5")
+			depthStr2 := "books5"
+			depth = &depthStr2
 		} else if limit != nil && *limit == 50 {
-			depth = ccxt.SafeStringPtr("books50-l2-tbt") // Make sure you have VIP4 and above
+			depthStr3 := "books50-l2-tbt"
+			depth = &depthStr3 // Make sure you have VIP4 and above
 		} else if limit != nil && *limit == 400 {
-			depth = ccxt.SafeStringPtr("books")
+			depthStr4 := "books"
+			depth = &depthStr4
 		}
 	}
 	if (depth != nil && *depth == "books-l2-tbt") || (depth != nil && *depth == "books50-l2-tbt") {
@@ -2075,8 +2081,8 @@ func (this *Okx) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Okx) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Okx) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -2613,7 +2619,8 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolResolved)
 	}
 	if typeVar != nil && *typeVar == "future" {
-		typeVar = ccxt.SafeStringPtr("futures")
+		typeVarStr := "futures"
+		typeVar = &typeVarStr
 	}
 	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() type is required"))
@@ -2831,7 +2838,8 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	}
 	var messageHash *string = channel
 	if symbol != nil {
-		messageHash = ccxt.SafeStringPtr(*channel + "::" + *symbol)
+		messageHashStr := *channel + "::" + *symbol
+		messageHash = &messageHashStr
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, messageHash)
 }
@@ -2901,7 +2909,8 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		typeVar = this.SafeString(market, "type")
 	}
 	if typeVar != nil && *typeVar == "future" {
-		typeVar = ccxt.SafeStringPtr("futures")
+		typeVarStr := "futures"
+		typeVar = &typeVarStr
 	}
 	if typeVar == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() type is required"))
@@ -3634,8 +3643,8 @@ func (this *Okx) HandleErrorMessage(client any, message map[string]any) any {
 	}
 	return true
 }
-func (this *Okx) HandleTextMessage(client any, message any) {
-	if ccxt.IsEqual(message, "pong") {
+func (this *Okx) HandleTextMessage(client any, message string) {
+	if message == "pong" {
 		this.HandlePong(client, message)
 	}
 }

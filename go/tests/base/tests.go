@@ -463,13 +463,19 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// extend related skips
 	// - if 'timestamp' is skipped, we should do so for 'datetime' too
 	// - if 'bid' is skipped, skip 'ask' too
-	if (func() bool { _, ok := finalSkips["timestamp"]; return ok }()) && !(func() bool { _, ok := finalSkips["datetime"]; return ok }()) {
+	_, has3 := finalSkips["timestamp"]
+	_, has4 := finalSkips["datetime"]
+	if has3 && !has4 {
 		finalSkips["datetime"] = finalSkips["timestamp"]
 	}
-	if (func() bool { _, ok := finalSkips["bid"]; return ok }()) && !(func() bool { _, ok := finalSkips["ask"]; return ok }()) {
+	_, has5 := finalSkips["bid"]
+	_, has6 := finalSkips["ask"]
+	if has5 && !has6 {
 		finalSkips["ask"] = finalSkips["bid"]
 	}
-	if (func() bool { _, ok := finalSkips["baseVolume"]; return ok }()) && !(func() bool { _, ok := finalSkips["quoteVolume"]; return ok }()) {
+	_, has7 := finalSkips["baseVolume"]
+	_, has8 := finalSkips["quoteVolume"]
+	if has7 && !has8 {
 		finalSkips["quoteVolume"] = finalSkips["baseVolume"]
 	}
 	return finalSkips

@@ -2645,12 +2645,13 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketType *string = this.SafeString(market, "type")
 	var hasSpotKeys bool = (this.SafeString(ticker, "cv") != nil) || (this.SafeString(ticker, "aq") != nil)
 	if marketType == nil {
-		marketType = SafeStringPtr(func() string {
+		marketTypeStr := func() string {
 			if hasSpotKeys {
 				return "spot"
 			}
 			return "contract"
-		}())
+		}()
+		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -3072,25 +3073,28 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketType *string = this.SafeString(market, "type")
 	var hasSpotKeys bool = (this.SafeBool(trade, "b") != nil) || (this.SafeString(trade, "bizType") != nil) || (this.SafeString(trade, "oi") != nil)
 	if marketType == nil {
-		marketType = SafeStringPtr(func() string {
+		marketTypeStr := func() string {
 			if hasSpotKeys {
 				return "spot"
 			}
 			return "contract"
-		}())
+		}()
+		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", marketType)
 	var side *string = nil
 	var takerOrMaker *string = nil
 	var isBuyerMaker *bool = this.SafeBool(trade, "b")
 	if isBuyerMaker != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
-		takerOrMaker = SafeStringPtr("taker") // public trades always taker
+		}()
+		side = &sideStr
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr // public trades always taker
 	} else {
 		var takerMaker *string = this.SafeStringLower(trade, "takerMaker")
 		if takerMaker != nil {
@@ -3098,12 +3102,13 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			if isMaker != nil {
-				takerOrMaker = SafeStringPtr(func() string {
+				takerOrMakerStr2 := func() string {
 					if isMaker != nil && *isMaker {
 						return "maker"
 					}
 					return "taker"
-				}())
+				}()
+				takerOrMaker = &takerOrMakerStr2
 			}
 		}
 		var orderSide *string = this.SafeStringLower(trade, "orderSide")
@@ -3112,12 +3117,13 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			var bidOrAsk *string = this.SafeString(trade, "m")
 			if bidOrAsk != nil {
-				side = SafeStringPtr(func() string {
+				sideStr2 := func() string {
 					if bidOrAsk != nil && *bidOrAsk == "BID" {
 						return "buy"
 					}
 					return "sell"
-				}())
+				}()
+				side = &sideStr2
 			}
 		}
 	}
@@ -3403,7 +3409,10 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = SafeStringPtr(market["symbol"])
 	if *this.SafeBool(market, "spot", false) {
-		var isTrailing bool = (func() bool { _, ok := params["trailingPercent"]; return ok }()) || (func() bool { _, ok := params["trailingAmount"]; return ok }()) || (func() bool { _, ok := params["trailingTriggerPrice"]; return ok }())
+		_, has1 := params["trailingPercent"]
+		_, has2 := params["trailingAmount"]
+		_, has3 := params["trailingTriggerPrice"]
+		var isTrailing bool = has1 || has2 || has3
 		if isTrailing {
 			panic(NotSupported(this.Id + " createOrder() trailing orders are only supported on swap markets"))
 		}
@@ -3501,7 +3510,8 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
-		timeInForce = SafeStringPtr("GTX")
+		timeInForceStr := "GTX"
+		timeInForce = &timeInForceStr
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "postOnly"})
 	if (side == "sell") || (typeVar == "limit") {
@@ -3558,7 +3568,8 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
-		timeInForce = SafeStringPtr("GTX")
+		timeInForceStr := "GTX"
+		timeInForce = &timeInForceStr
 	}
 	var paramsOmitted4 map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "postOnly"})
 	if timeInForce != nil {
@@ -5310,7 +5321,8 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 	if timeInForce != nil {
 		if timeInForce != nil && *timeInForce == "GTX" {
 			// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-			timeInForce = SafeStringPtr("PO")
+			timeInForceStr := "PO"
+			timeInForce = &timeInForceStr
 		}
 		postOnly = (timeInForce != nil && *timeInForce == "PO")
 	}
@@ -5323,9 +5335,11 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 		var positionSide *string = this.SafeString(order, "positionSide")
 		if positionSide != nil {
 			if positionSide != nil && *positionSide == "LONG" {
-				side = SafeStringPtr("sell")
+				sideStr := "sell"
+				side = &sideStr
 			} else {
-				side = SafeStringPtr("buy")
+				sideStr2 := "buy"
+				side = &sideStr2
 			}
 		}
 	}
@@ -7667,12 +7681,12 @@ func (this *Xt) setMarginModeBody(ch chan AsyncResult[map[string]any], marginMod
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Xt) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Xt) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

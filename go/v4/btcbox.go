@@ -889,7 +889,8 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) Order {
 	// fetchOrders do not return status, use heuristic
 	if status == nil {
 		if Precise.StringEquals(remaining, "0") {
-			status = SafeStringPtr("closed")
+			statusStr := "closed"
+			status = &statusStr
 		}
 	}
 	var trades any = nil // todo: this.parseTrades (order['trades']);

@@ -470,7 +470,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	var bestAsk *float64 = nil
 	var usedMethod *string = nil
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
-		usedMethod = SafeStringPtr("fetchOrderBook")
+		usedMethodStr := "fetchOrderBook"
+		usedMethod = &usedMethodStr
 
 		r := <-exchange.(ccxt.IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol))
 		if r.Err != nil {
@@ -487,7 +488,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		bestBid = exchange.SafeNumber(bestBidArray, 0)
 		bestAsk = exchange.SafeNumber(bestAskArray, 0)
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), false)) {
-		usedMethod = SafeStringPtr("fetchBidsAsks")
+		usedMethodStr2 := "fetchBidsAsks"
+		usedMethod = &usedMethodStr2
 
 		r1 := <-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol})
 		if r1.Err != nil {
@@ -501,7 +503,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)) {
-		usedMethod = SafeStringPtr("fetchTicker")
+		usedMethodStr3 := "fetchTicker"
+		usedMethod = &usedMethodStr3
 
 		r2 := <-exchange.(ccxt.IFetchTicker).FetchTickerAsync(StringArg(symbol))
 		if r2.Err != nil {
@@ -514,7 +517,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)) {
-		usedMethod = SafeStringPtr("fetchTickers")
+		usedMethodStr4 := "fetchTickers"
+		usedMethod = &usedMethodStr4
 
 		r3 := <-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol})
 		if r3.Err != nil {

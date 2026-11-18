@@ -615,7 +615,7 @@ func (this *Toobit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1177,7 +1177,8 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 	var rawOrderType *string = this.SafeStringLower(order, "o")
 	var orderType *string = nil
 	if priceType != nil && *priceType == "market" {
-		orderType = ccxt.SafeStringPtr("market")
+		orderTypeStr := "market"
+		orderType = &orderTypeStr
 	} else {
 		orderType = rawOrderType
 	}

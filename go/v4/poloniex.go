@@ -959,11 +959,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		return nil
 	}
 
-	r3 := <-this.PublicGetMarketsSymbolCandles(this.Extend(requestUntil, paramsUntil))
-	if r3.Err != nil {
-		panic(r3.Err)
+	responseRecv := <-this.PublicGetMarketsSymbolCandles(this.Extend(requestUntil, paramsUntil))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r3.Raw
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         [
@@ -985,7 +985,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//     ]
 	//
 	var candles []any = []any{}
-	if IsArray(response) {
+	if response != nil {
 		candles = ArrayTyped(response)
 	}
 
@@ -2249,7 +2249,8 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) Order {
 	var errorCode *int64 = this.SafeInteger(order, "code")
 	if (status == nil) && (errorCode != nil) && (errorCode == nil || *errorCode != 200) {
 		// the batch endpoints report per-element failures with an error code instead of throwing
-		status = SafeStringPtr("rejected")
+		statusStr := "rejected"
+		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var rawType *string = this.SafeString(order, "type")
@@ -2722,7 +2723,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 			"symbol": marketInner["id"],
 			"side":   this.SafeStringUpper(rawOrder, "side"),
 		}
-		requestextendedParamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, extendedParams)
+		requestextendedParamsVariable := this.OrderRequest(symbol, *typeVar, *side, amount, request, price, extendedParams)
 		request = requestextendedParamsVariable[0]
 		extendedParams = GetValue(requestextendedParamsVariable, 1)
 		var merged map[string]any = this.Extend(request, extendedParams)
@@ -2788,7 +2789,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(results)}
 	return nil
 }
-func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any, request any, optionalArgs ...any) []any {
+func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, amount any, request any, optionalArgs ...any) []any {
 	// build the request on a copy: the caller keeps its own dict and reads ours
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
@@ -2825,7 +2826,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			}
 		}
 	}
-	var upperCaseType string = ToUpper(typeVar)
+	var upperCaseType string = strings.ToUpper(typeVar)
 	var isMarket bool = (upperCaseType == "MARKET")
 	var isPostOnly bool = this.IsPostOnly(isMarket, (upperCaseType == "LIMIT_MAKER"), query)
 	var queryOmitted any = this.Omit(query, []any{"postOnly", "triggerPrice", "stopPrice"})
@@ -2845,7 +2846,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	}
 	result["type"] = upperCaseType
 	if isMarket {
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, queryOmitted = this.HandleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -2920,12 +2921,12 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Poloniex) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -4473,7 +4474,7 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	var response []any = r1.Value
 	//
 	//     [
 	//         {
@@ -4499,7 +4500,7 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 	//
 	var data map[string]any = map[string]any{}
 	var entries []any = []any{}
-	if IsArray(response) {
+	if response != nil {
 		entries = ArrayTyped(response)
 	}
 	for i := 0; i < len(entries); i++ {
@@ -4553,7 +4554,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var feeInfo map[string]any = SafeMapTyped(response, currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
 			var currency map[string]any = this.Currency(code)
-			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
+			depositWithdrawFees[*code] = this.ParseDepositWithdrawFee(feeInfo, currency)
 			var parsedFee map[string]any = this.SafeDictMap(depositWithdrawFees, code, map[string]any{})
 			var childChains []any = SafeListTyped(feeInfo, "childChains")
 			var chainsLength int = len(childChains)

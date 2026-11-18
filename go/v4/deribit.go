@@ -2171,12 +2171,13 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if liquidity != nil {
 		// M = maker, T = taker, MT = both
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if liquidity != nil && *liquidity == "M" {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
@@ -2953,12 +2954,12 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deribit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deribit) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4263,7 +4264,7 @@ func (this *Deribit) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"address":  address,
 		"amount":   amount,
 	}
-	if this.Twofa != nil {
+	if this.Twofa != "" {
 		request["tfa"] = Totp(this.Twofa)
 	}
 

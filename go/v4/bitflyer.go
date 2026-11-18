@@ -510,7 +510,8 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		if contract {
 			maker = 0
 			taker = 0
-			settle = SafeStringPtr("JPY")
+			settleStr := "JPY"
+			settle = &settleStr
 			symbol = symbol + ":" + *settle
 			if future {
 				symbol = symbol + "-" + this.Yymmdd(expiry)
@@ -1835,7 +1836,8 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) map[string]any {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			if method != "GET" {
 				var body string = this.Json(params)
-				bodySigned = SafeStringPtr(body)
+				bodySignedStr := body
+				bodySigned = &bodySignedStr
 				auth += body
 			}
 		}

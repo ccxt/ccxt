@@ -785,7 +785,8 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 		base = this.SafeCurrencyCode(baseId)
 		quote = this.SafeCurrencyCode(quoteId)
 		if (base != nil) && (quote != nil) {
-			symbol = SafeStringPtr(*base + "/" + *quote)
+			symbolStr := *base + "/" + *quote
+			symbol = &symbolStr
 		}
 	} else if market != nil {
 		symbol = this.SafeString(market, "symbol")
@@ -796,14 +797,18 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 	var side *string = nil
 	if orderType != nil {
 		if strings.Index(*orderType, "Bid") >= 0 {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if strings.Index(*orderType, "Offer") >= 0 {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 		if strings.Index(*orderType, "Market") >= 0 {
-			orderType = SafeStringPtr("market")
+			orderTypeStr := "market"
+			orderType = &orderTypeStr
 		} else if strings.Index(*orderType, "Limit") >= 0 {
-			orderType = SafeStringPtr("limit")
+			orderTypeStr2 := "limit"
+			orderType = &orderTypeStr2
 		}
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
@@ -1107,9 +1112,11 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) Trade
 	var side *string = this.SafeString(trade, "OrderType")
 	if side != nil {
 		if strings.Index(*side, "Bid") >= 0 {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if strings.Index(*side, "Offer") >= 0 {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 	}
 	return this.SafeTrade(map[string]any{

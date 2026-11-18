@@ -1042,12 +1042,13 @@ func (this *Bit2me) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "feeAmount")
@@ -1382,7 +1383,8 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	if clientOrderId == nil {
 		var brokerId string = *this.SafeString(this.Options, "brokerId", "CCXT")
 		var prefix string = brokerId + "-"
-		clientOrderId = SafeStringPtr(prefix + this.Uuid())
+		clientOrderIdStr := prefix + this.Uuid()
+		clientOrderId = &clientOrderIdStr
 	}
 	var query any = this.Omit(params, []any{"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLimitPrice", "cost", "clientOrderId"})
 	var postOnly bool = false
@@ -2445,7 +2447,8 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		}()
 	} else {
 		// the trading wallet returned by deposit/withdraw, createdAt is the wallet creation date
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 	}
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
@@ -2503,7 +2506,8 @@ func (this *Bit2me) Sign(path string, optionalArgs ...any) map[string]any {
 				jsonText := this.Json(query)
 				requestBody = &jsonText
 			} else {
-				requestBody = SafeStringPtr("{}")
+				requestBodyStr := "{}"
+				requestBody = &requestBodyStr
 			}
 			message += ":" + *requestBody
 		}

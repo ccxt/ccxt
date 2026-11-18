@@ -1049,7 +1049,7 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	var accessList any = this.RlpEncodeList([]any{})
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
 	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
-	var hashHex any = this.Hash(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
+	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any
 	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
@@ -1116,16 +1116,16 @@ func (this *Myriad) ethRpcBody(ch chan ccxt.AsyncResult[any], rpcUrl any, method
 	ch <- ccxt.AsyncResult[any]{Value: this.SafeValue(response, "result")}
 	return nil
 }
-func (this *Myriad) EnsureErc20AllowanceAsync(rpcUrl *string, networkId *string, token *string, owner any, spender *string) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) EnsureErc20AllowanceAsync(rpcUrl *string, networkId *string, token *string, owner *string, spender *string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.ensureErc20AllowanceBody(ch, rpcUrl, networkId, token, owner, spender)
 	return ch
 }
-func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpcUrl *string, networkId *string, token *string, owner any, spender *string) any {
+func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpcUrl *string, networkId *string, token *string, owner *string, spender *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// allowance(owner, spender)
-	var allowanceData *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("0xdd62ed3e", this.PadHexAddress(owner)), this.PadHexAddress(spender)))
+	var allowanceData *string = ccxt.SafeStringPtr("0xdd62ed3e" + this.PadHexAddress(owner) + this.PadHexAddress(spender))
 
 	r := <-this.EthRpcAsync(rpcUrl, "eth_call", []any{map[string]any{
 		"to":   token,
@@ -1143,7 +1143,7 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpc
 	}
 	// approve(spender, maxUint256)
 	var maxUint string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-	var approveData *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("0x095ea7b3", this.PadHexAddress(spender)), maxUint))
+	var approveData *string = ccxt.SafeStringPtr("0x095ea7b3" + this.PadHexAddress(spender) + maxUint)
 
 	r1 := <-this.SendEvmTransactionAsync(rpcUrl, this.ParseToInt(networkId), owner, token, "0x0", approveData, "0x186a0")
 	if r1.Err != nil {
@@ -1199,7 +1199,7 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	var rest map[string]any = this.OmitDict(params, []any{"tradingModel"})
 	if tradingModel != nil && *tradingModel == "ob" {
 
-		r1 := <-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, price, rest)
+		r1 := <-this.CreateOrderbookOrderAsync(&outcome, &typeVar, &side, amount, price, rest)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1228,12 +1228,12 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
  * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateOrderbookOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CreateOrderbookOrderAsync(outcome *string, typeVar *string, side *string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderbookOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome *string, typeVar *string, side *string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1284,16 +1284,16 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.Predi
 	// the POST /orders response is minimal (hash + status), so backfill the known request values
 	// side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
 	var sideStr *string = func() *string {
-		if ccxt.IsEqual(side, nil) {
+		if side == nil {
 			return nil
 		}
-		return ccxt.SafeStringPtr(ccxt.ToLower(side))
+		return ccxt.SafeStringPtr(strings.ToLower(*side))
 	}()
 	var typeStr string
-	if ccxt.IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		typeStr = "limit"
 	} else {
-		typeStr = ccxt.ToLower(typeVar)
+		typeStr = strings.ToLower(*typeVar)
 	}
 	if this.SafeString(parsed, "side") == nil {
 		parsed["side"] = sideStr
@@ -1325,7 +1325,7 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.Predi
  * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
  * @returns {object} a dict with the signed order, signature, timeInForce and networkId
  */
-func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Myriad) BuildOrderbookOrder(outcome *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1340,12 +1340,12 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 	var outcomeId *int64 = this.SafeInteger(info, "outcomeId", 0)
 	var trader string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var typeStr string
-	if ccxt.IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		typeStr = "limit"
 	} else {
-		typeStr = ccxt.ToLower(typeVar)
+		typeStr = strings.ToLower(*typeVar)
 	}
-	var sideStr string = ccxt.ToLower(side)
+	var sideStr string = strings.ToLower(*side)
 	var sideInt int = func() int {
 		if sideStr == "buy" {
 			return 0
@@ -1485,12 +1485,12 @@ func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
  * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) EditOrderAsync(id string, outcome any, typeVar any, side any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) EditOrderAsync(id string, outcome string, typeVar string, side string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.editOrderBody(ch, id, outcome, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, outcome any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, outcome string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	amount := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1510,7 +1510,7 @@ func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 		panic(r1.Err)
 	}
 
-	r2 := <-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, price, params)
+	r2 := <-this.CreateOrderbookOrderAsync(&outcome, &typeVar, &side, amount, price, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1601,7 +1601,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var skipAllowance *bool = this.SafeBool(params, "skipAllowance", hasPreBroadcastTxHash)
 	if (sideStr == "buy") && (tokenAddress != nil) && (!(skipAllowance != nil && *skipAllowance)) {
 
-		r2 := <-this.EnsureErc20AllowanceAsync(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
+		r2 := <-this.EnsureErc20AllowanceAsync(rpcUrl, networkId, tokenAddress, &fromAddress, predictionMarket)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1686,12 +1686,12 @@ func (this *Myriad) SignOrderbookTypedData(types map[string]any, message map[str
 		"verifyingContract": exchangeAddress,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, types, message)
-	var digest any = this.Hash(encoded, ccxt.Keccak, "hex")
+	var digest string = this.HashString(encoded, ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(digest, this.Remove0xPrefix(this.PrivateKey), ccxt.Secp256k1, nil)
-	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
-	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
-	var r string = ccxt.PadStart(rRaw, 64, "0")
-	var s string = ccxt.PadStart(sRaw, 64, "0")
+	var rRaw string = *this.SafeString(signature, "r", "")
+	var sRaw string = *this.SafeString(signature, "s", "")
+	var r string = (strings.Repeat("0", max(64-len(rRaw), 0)) + rRaw)[max(len(rRaw)-64, 0):]
+	var s string = (strings.Repeat("0", max(64-len(sRaw), 0)) + sRaw)[max(len(sRaw)-64, 0):]
 	var v any = this.Sum(27, signature["v"])
 	var sigHex string = "0x" + r + s + this.IntToBase16(v)
 	return strings.ToLower(sigHex)
@@ -2895,7 +2895,7 @@ func (this *Myriad) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	var decimals *int64 = this.SafeInteger(params, "decimals", this.SafeInteger(chainConfig, "collateralDecimals", 18))
 	var owner string = this.WalletAddressFromKeys()
 	// ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
-	var callData *string = ccxt.SafeStringPtr(ccxt.Add("0x70a08231", this.PadHexAddress(owner)))
+	var callData *string = ccxt.SafeStringPtr("0x70a08231" + this.PadHexAddress(owner))
 	var callParams []any = []any{map[string]any{
 		"to":   token,
 		"data": callData,
@@ -4528,8 +4528,8 @@ func (this *Myriad) subscribeMyriadChannelBody(ch chan ccxt.AsyncResult[any], me
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Myriad) HandleTextMessage(client any, message any) {
-	var lines []string = ccxt.Split(message, "\n")
+func (this *Myriad) HandleTextMessage(client any, message string) {
+	var lines []string = strings.Split(message, "\n")
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
 		var line string = lines[i]
@@ -5457,19 +5457,21 @@ func (this *Myriad) HandlePosition(client any, data any) {
 		return str[0:min(1, len(str))]
 	}()
 	if firstChar == "+" {
-		deltaStr = ccxt.SafeStringPtr(func() string {
+		deltaStrStr := func() string {
 			if deltaStr == nil {
 				return ""
 			}
 			str := *deltaStr
 			return str[1:]
-		}())
+		}()
+		deltaStr = &deltaStrStr
 	}
 	var deltaShares *string = ccxt.Precise.StringDiv(deltaStr, "1000000000000000000")
 	var contracts *float64 = nil
 	var posId *string = nil
 	if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
-		posId = ccxt.SafeStringPtr(*networkId + ":" + *marketId + "/" + *outcomeId)
+		posIdStr := *networkId + ":" + *marketId + "/" + *outcomeId
+		posId = &posIdStr
 		var balances map[string]any = this.SafeDictMap(this.Options, "positionBalances", map[string]any{})
 		var prior *string = this.SafeString(balances, posId, "0")
 		var updated *string = ccxt.Precise.StringAdd(prior, deltaShares)
@@ -5876,7 +5878,7 @@ func (this *Myriad) CreateOrder(outcome string, typeVar string, side string, amo
  * @description signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateOrderbookOrder(outcome string, typeVar string, side string, amount float64, options ...CreateOrderbookOrderOptions) (ccxt.PredictionOrder, error) {
+func (this *Myriad) CreateOrderbookOrder(outcome *string, typeVar *string, side *string, amount float64, options ...CreateOrderbookOrderOptions) (ccxt.PredictionOrder, error) {
 
 	opts := CreateOrderbookOrderOptionsStruct{}
 

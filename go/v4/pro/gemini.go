@@ -189,9 +189,11 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 	if side == nil {
 		var marketSide *string = this.SafeStringLower(trade, "makerSide")
 		if marketSide != nil && *marketSide == "bid" {
-			side = ccxt.SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else if marketSide != nil && *marketSide == "ask" {
-			side = ccxt.SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	var marketId *string = this.SafeStringLower(trade, "symbol")
@@ -524,7 +526,10 @@ func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	return nil
 }
 func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
-	var isInitial bool = (func() bool { _, ok := message["auction_events"]; return ok }()) && (func() bool { _, ok := message["trades"]; return ok }()) && (func() bool { _, ok := message["changes"]; return ok }())
+	_, has1 := message["auction_events"]
+	_, has2 := message["trades"]
+	_, has3 := message["changes"]
+	var isInitial bool = has1 && has2 && has3
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)

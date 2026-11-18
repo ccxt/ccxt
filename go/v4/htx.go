@@ -2754,7 +2754,8 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 			linear = (business_type != nil)
 			inverse = !(linear == true)
 			if swap {
-				marketType = SafeStringPtr("swap")
+				marketTypeStr := "swap"
+				marketType = &marketTypeStr
 				var parts []string = strings.Split(*contractId, "-")
 				baseId = this.SafeStringLower(market, "symbol")
 				quoteId = this.SafeStringLower(parts, 1)
@@ -2764,7 +2765,8 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 					settleId = quoteId
 				}
 			} else if future {
-				marketType = SafeStringPtr("future")
+				marketTypeStr2 := "future"
+				marketType = &marketTypeStr2
 				baseId = this.SafeStringLower(market, "symbol")
 				if inverse == true {
 					quoteId = "USD"
@@ -2780,7 +2782,8 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 				}
 			}
 		} else {
-			marketType = SafeStringPtr("spot")
+			marketTypeStr3 := "spot"
+			marketType = &marketTypeStr3
 			var spotBaseId *string = this.SafeString(market, "base-currency")
 			var spotQuoteId *string = this.SafeString(market, "quote-currency")
 			if spotQuoteId == nil {
@@ -2792,7 +2795,8 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 			baseId = spotBaseId
 			quoteId = spotQuoteId
 			var spotId string = *spotBaseId + *spotQuoteId
-			id = SafeStringPtr(spotId)
+			idStr := spotId
+			id = &idStr
 			lowercaseId = strings.ToLower(spotId)
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -2873,7 +2877,8 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 				var yearPart string = *this.SafeString(createdArray, 0, "") + *this.SafeString(createdArray, 1, "") + *this.SafeString(createdArray, 2, "") + *this.SafeString(createdArray, 3, "")
 				var monthPart string = *this.SafeString(createdArray, 4, "") + *this.SafeString(createdArray, 5, "")
 				var dayPart string = *this.SafeString(createdArray, 6, "") + *this.SafeString(createdArray, 7, "")
-				createdDate = SafeStringPtr(yearPart + "-" + monthPart + "-" + dayPart + " 00:00:00")
+				createdDateStr := yearPart + "-" + monthPart + "-" + dayPart + " 00:00:00"
+				createdDate = &createdDateStr
 				created = this.Parse8601(createdDate)
 			}
 		}
@@ -3257,7 +3262,9 @@ func (this *Htx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	if first != nil {
 		market = this.Market(first)
 	}
-	var isSubTypeRequested bool = (func() bool { _, ok := params["subType"]; return ok }()) || (func() bool { _, ok := params["business_type"]; return ok }())
+	_, has1 := params["subType"]
+	_, has2 := params["business_type"]
+	var isSubTypeRequested bool = has1 || has2
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchTickers", market, paramsMarketType)
 	var request map[string]any = map[string]any{}
@@ -6770,7 +6777,8 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
 	var rejectedCreateOrders *string = this.SafeString2(order, "err_code", "err-code")
 	var status *string = this.ParseOrderStatus(this.SafeString2(order, "state", "status"))
 	if rejectedCreateOrders != nil {
-		status = SafeStringPtr("rejected")
+		statusStr := "rejected"
+		status = &statusStr
 	}
 	var id *string = this.SafeStringN(order, []any{"algo_id", "id", "order_id_str", "order-id", "order_id"})
 	var side *string = this.SafeString2(order, "direction", "side")
@@ -9047,7 +9055,8 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) Transact
 	var code *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"), currency)
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {
@@ -9206,7 +9215,8 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		var amountSubtractedString *string = Precise.StringSub(amountString, feeString)
 		var amountSubtractedParsed *string = amountSubtractedString
 		if amountSubtractedParsed == nil {
-			amountSubtractedParsed = SafeStringPtr("0")
+			amountSubtractedParsedStr := "0"
+			amountSubtractedParsed = &amountSubtractedParsedStr
 		}
 		var feeParsed *string = feeString
 		if feeParsed == nil {
@@ -9277,11 +9287,14 @@ func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
 	var statusRaw *string = this.SafeString(transfer, "status")
 	var status *string = nil
 	if statusRaw != nil && *statusRaw == "success" {
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 	} else if statusRaw != nil && *statusRaw == "pending" {
-		status = SafeStringPtr("pending")
+		statusStr2 := "pending"
+		status = &statusStr2
 	} else if statusRaw != nil && *statusRaw == "failed" {
-		status = SafeStringPtr("failed")
+		statusStr3 := "failed"
+		status = &statusStr3
 	}
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
@@ -9966,12 +9979,13 @@ func (this *Htx) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		var market map[string]any = this.Market(firstSymbol)
 		var isLinear *bool = SafeBoolPtr(market["linear"])
-		subType = SafeStringPtr(func() string {
+		subTypeStr := func() string {
 			if isLinear != nil && *isLinear == true {
 				return "linear"
 			}
 			return "inverse"
-		}())
+		}()
+		subType = &subTypeStr
 	}
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
@@ -10718,7 +10732,8 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) Position {
 		notional = Precise.StringMul(faceValue, lastPrice)
 	} else {
 		notional = Precise.StringDiv(faceValue, lastPrice)
-		marginMode = SafeStringPtr("cross")
+		marginModeStr := "cross"
+		marginMode = &marginModeStr
 	}
 	var intialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	var collateral *string = this.SafeString2(position, "margin_balance", "margin")
@@ -10819,7 +10834,8 @@ func (this *Htx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, paramsSubType)
 	var marketType *string = marketTypeOption
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
-		marketType = SafeStringPtr("future")
+		marketTypeStr := "future"
+		marketType = &marketTypeStr
 	}
 	var response map[string]any = nil
 	if subType != nil && *subType == "linear" {
@@ -12227,6 +12243,7 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[strin
 	var chains []any = SafeListTyped(fee, "chains")
 	var code *string = this.SafeString(currency, "code")
 	var result map[string]any = this.DepositWithdrawFee(fee)
+	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
 		var chainEntry map[string]any = SafeMapTyped(chains, j)
 		var networkId *string = this.SafeString(chainEntry, "chain")
@@ -12248,13 +12265,14 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[strin
 			}
 		}
 		if networkCode != nil {
-			AddElementToObject(result["networks"], networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"withdraw": withdrawResult,
 				"deposit": map[string]any{
 					"fee":        nil,
 					"percentage": nil,
 				},
-			})
+			}
+			result["networks"] = networks
 		}
 		this.AssignDefaultDepositWithdrawFees(result, currency)
 	}
@@ -12747,7 +12765,8 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositionsADLRank", market, paramsSubType)
 	var marketType *string = marketTypeOption
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
-		marketType = SafeStringPtr("future")
+		marketTypeStr := "future"
+		marketType = &marketTypeStr
 	}
 	var response map[string]any = nil
 	if subType != nil && *subType == "linear" {

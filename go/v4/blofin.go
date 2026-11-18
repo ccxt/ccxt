@@ -1592,7 +1592,8 @@ func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) FundingR
 	var intervalUnit *string = this.SafeString(intervalUnits, this.SafeString(contract, "fundingIntervalUnit"))
 	var intervalString *string = nil
 	if (fundingInterval != nil) && (intervalUnit != nil) {
-		intervalString = SafeStringPtr(*fundingInterval + *intervalUnit)
+		intervalStringStr := *fundingInterval + *intervalUnit
+		intervalString = &intervalStringStr
 	}
 	// > The current interest is 0.
 	return FundingRateFromMap(map[string]any{
@@ -1987,15 +1988,21 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 	var timeInForce *string = nil
 	if typeVar != nil && *typeVar == "post_only" {
 		postOnly = true
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	} else if typeVar != nil && *typeVar == "fok" {
-		timeInForce = SafeStringPtr("FOK")
-		typeVar = SafeStringPtr("limit")
+		timeInForceStr := "FOK"
+		timeInForce = &timeInForceStr
+		typeVarStr2 := "limit"
+		typeVar = &typeVarStr2
 	} else if typeVar != nil && *typeVar == "ioc" {
-		timeInForce = SafeStringPtr("IOC")
-		typeVar = SafeStringPtr("limit")
+		timeInForceStr2 := "IOC"
+		timeInForce = &timeInForceStr2
+		typeVarStr3 := "limit"
+		typeVar = &typeVarStr3
 	} else if typeVar != nil && *typeVar == "conditional" {
-		typeVar = SafeStringPtr("trigger")
+		typeVarStr4 := "trigger"
+		typeVar = &typeVarStr4
 	}
 	var marketId *string = this.SafeString(order, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
@@ -3158,13 +3165,14 @@ func (this *Blofin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 	_ = currency
 	var result map[string]any = this.DepositWithdrawFee(fee)
 	var chainsLength int = GetArrayLength(fee)
+	var networkFees map[string]any = map[string]any{}
 	for i := 0; i < chainsLength; i++ {
 		var chain map[string]any = SafeMapTyped(fee, i)
 		var networkCode any = this.ChainIdToNetworkCode(this.SafeString(chain, "chain"))
 		if networkCode == nil {
 			continue
 		}
-		AddElementToObject(result["networks"], networkCode, map[string]any{
+		AddElementToObject(networkFees, networkCode, map[string]any{
 			"withdraw": map[string]any{
 				"fee":        this.SafeNumber(chain, "withdrawFee"),
 				"percentage": false,
@@ -3175,6 +3183,7 @@ func (this *Blofin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 			},
 		})
 	}
+	result["networks"] = networkFees
 	if chainsLength == 1 {
 		// a single network means the currency-level fee is unambiguous
 		var networks map[string]any = SafeMapTyped(result, "networks")
@@ -3472,11 +3481,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes254019 []any = r1.Value
-		if retRes254019 == nil {
+		var retRes254219 []any = r1.Value
+		if retRes254219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254019)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254219)}
 		}
 		return nil
 	}
@@ -3751,7 +3760,7 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		}
 	}
 	var response map[string]any = nil
-	if IsEqual(method, "privatePostTradeCancelTpsl") {
+	if method == "privatePostTradeCancelTpsl" {
 
 		r1 := <-this.PrivatePostTradeCancelTpsl(request)
 		if r1.Err != nil {
@@ -4088,9 +4097,11 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	if pos != nil {
 		if side != nil && *side == "net" {
 			if Precise.StringGt(pos, "0") {
-				side = SafeStringPtr("long")
+				sideStr := "long"
+				side = &sideStr
 			} else if Precise.StringLt(pos, "0") {
-				side = SafeStringPtr("short")
+				sideStr2 := "short"
+				side = &sideStr2
 			} else {
 				side = nil
 			}
@@ -4531,11 +4542,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332219 []any = r1.Value
-		if retRes332219 == nil {
+		var retRes332419 []any = r1.Value
+		if retRes332419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332419)}
 		}
 		return nil
 	}
@@ -4969,7 +4980,8 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			if !this.IsEmpty(query) {
 				sign_body = this.Json(query)
-				signedBody = SafeStringPtr(sign_body)
+				signedBodyStr := sign_body
+				signedBody = &signedBodyStr
 			}
 			signedHeaders["Content-Type"] = "application/json"
 		}

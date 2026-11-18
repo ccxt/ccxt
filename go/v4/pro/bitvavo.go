@@ -1129,8 +1129,8 @@ func (this *Bitvavo) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Bitvavo) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Bitvavo) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1151,8 +1151,8 @@ func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook c
 	var nonce *int64 = this.SafeInteger(message, "nonce")
 	var currentNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (nonce != nil) && (currentNonce != nil) && (*nonce > *currentNonce) {
-		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(message, "asks", []any{}))
-		this.HandleDeltas(orderbook.GetBids(), this.SafeList(message, "bids", []any{}))
+		this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(message, "asks", []any{}))
+		this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(message, "bids", []any{}))
 		orderbook.SetNonce(nonce)
 	}
 	return orderbook
@@ -1328,12 +1328,12 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		}
 	}
 }
-func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels []any, subMessageHashes any, subscriptionArgs map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels []any, subMessageHashes []any, subscriptionArgs map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchChannelsBody(ch, topic, channels, subMessageHashes, subscriptionArgs, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic string, channels []any, subMessageHashes any, subscriptionArgs map[string]any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic string, channels []any, subMessageHashes []any, subscriptionArgs map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1344,7 +1344,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic s
 		"channels": channels,
 	}
 	var unsubHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(subMessageHashes); i++ {
+	for i := 0; i < len(subMessageHashes); i++ {
 		unsubHashes = append(unsubHashes, "unsubscribe:"+*this.SafeString(subMessageHashes, i, ""))
 	}
 	var subscription map[string]any = this.Extend(map[string]any{
@@ -1686,7 +1686,7 @@ func (this *Bitvavo) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.CancelOrderRequest(id, symbol, params)
+	var request any = this.CancelOrderRequest(&id, symbol, params)
 
 	r2 := <-this.WatchRequestAsync("privateCancelOrder", request)
 	if r2.Err != nil {
@@ -1731,7 +1731,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	}
 	var request map[string]any = map[string]any{}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
-	operatorId := ccxt.GetValue(operatorIdparamsOperatorIdVariable, 0)
+	operatorId := operatorIdparamsOperatorIdVariable[0]
 	var paramsOperatorId map[string]any = ccxt.MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
@@ -2095,7 +2095,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan ccxt.AsyncResult[ccxt.Transaction], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+	var request any = this.WithdrawRequest(&code, amount, address, tagWithdrawTag, paramsWithdrawTag)
 
 	r2 := <-this.WatchRequestAsync("privateWithdrawAssets", request)
 	if r2.Err != nil {
@@ -2234,7 +2234,7 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 			panic(r.Err)
 		}
 	}
-	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
+	var request any = this.FetchOHLCVRequest(&symbol, timeframe, since, limit, params)
 	var action string = "getCandles"
 
 	r1 := <-this.WatchRequestAsync(action, request)

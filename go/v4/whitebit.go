@@ -814,7 +814,8 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 	var baseId *string = this.SafeString(market, "stock")
 	var quoteId *string = this.SafeString(market, "money")
 	if quoteId != nil && *quoteId == "PERP" {
-		quoteId = SafeStringPtr("USDT")
+		quoteIdStr := "USDT"
+		quoteId = &quoteIdStr
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
@@ -2137,9 +2138,11 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if method == nil {
 		// if the user did not specify a method, choose it based on market type and symbols
 		if onlyContractSymbols || (marketType != nil && *marketType == "swap") {
-			method = SafeStringPtr("v4PublicGetFutures")
+			methodStr := "v4PublicGetFutures"
+			method = &methodStr
 		} else {
-			method = SafeStringPtr("v4PublicGetTicker")
+			methodStr2 := "v4PublicGetTicker"
+			method = &methodStr2
 		}
 	}
 	var response any = nil
@@ -2524,12 +2527,13 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker *string = nil
 	if role != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if role != nil && *role == 1 {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "fee")
@@ -2618,12 +2622,12 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var endTime any = nil
 		if until != nil {
-			endTime = this.Sum(this.ParseToInt(float64(*until)/1000), duration)
+			endTime = this.ParseToInt(this.ParseToInt(float64(*until)/1000) + duration)
 		}
 		if since != nil {
 			var start int64 = this.ParseToInt(float64(*since) / 1000)
 			request["start"] = start
-			var rangeEnd any = this.Sum(start, Multiply(duration, cappedLimit))
+			var rangeEnd int64 = this.ParseToInt(this.Sum(start, Multiply(duration, cappedLimit)))
 			if (endTime == nil) || (IsLessThan(rangeEnd, endTime)) {
 				endTime = rangeEnd
 			}
@@ -3011,12 +3015,12 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Whitebit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Whitebit) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3050,7 +3054,7 @@ func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	if isStopOrder {
 		request["activation_price"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var isLimitOrder bool = (IsEqual(typeVar, "limit"))
+	var isLimitOrder bool = (typeVar == "limit")
 	var total *float64 = this.SafeNumber(params, "total")
 	if total != nil {
 		request["total"] = this.AmountToPrecision(symbol, total)
@@ -3058,7 +3062,7 @@ func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		if isLimitOrder {
 			// Limit orders always use amount parameter
 			request["amount"] = this.AmountToPrecision(symbol, amount)
-		} else if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
+		} else if (typeVar == "market") && (side == "buy") {
 			// Market buy orders use total parameter
 			request["total"] = this.AmountToPrecision(symbol, amount)
 		} else {
@@ -3719,9 +3723,11 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) Order {
 	var ioc *bool = this.SafeBool(order, "ioc", false)
 	var timeInForce *string = nil
 	if ioc != nil && *ioc {
-		timeInForce = SafeStringPtr("IOC")
+		timeInForceStr := "IOC"
+		timeInForce = &timeInForceStr
 	} else if postOnly != nil && *postOnly == true {
-		timeInForce = SafeStringPtr("PO")
+		timeInForceStr2 := "PO"
+		timeInForce = &timeInForceStr2
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,

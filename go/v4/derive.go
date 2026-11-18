@@ -809,9 +809,7 @@ func (this *Derive) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalAr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("fetchAccounts", params)
-	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
-	var paramsDeriveWalletAddress map[string]any = deriveWalletAddressparamsDeriveWalletAddressVariable[1].(map[string]any)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("fetchAccounts", params)
 	var request map[string]any = map[string]any{
 		"wallet": deriveWalletAddress,
 	}
@@ -1218,7 +1216,8 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 	var optionLetter *string = nil
 	if typeVar != nil && *typeVar == "erc20" {
 		spot = true
-		marketType = SafeStringPtr("spot")
+		marketTypeStr := "spot"
+		marketType = &marketTypeStr
 	} else if typeVar != nil && *typeVar == "perp" {
 		margin = false
 		settleId = "USDC"
@@ -1229,13 +1228,15 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		swap = true
 		linear = true
 		inverse = false
-		marketType = SafeStringPtr("swap")
+		marketTypeStr2 := "swap"
+		marketType = &marketTypeStr2
 	} else if typeVar != nil && *typeVar == "option" {
 		settleId = "USDC"
 		settle = this.SafeCurrencyCode(settleId)
 		margin = false
 		option = true
-		marketType = SafeStringPtr("option")
+		marketTypeStr3 := "option"
+		marketType = &marketTypeStr3
 		var optionDetails map[string]any = SafeMapTyped(market, "option_details")
 		expiry = this.SafeTimestamp(optionDetails, "expiry")
 		strike = this.SafeNumber(optionDetails, "strike") // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
@@ -1244,9 +1245,11 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 			symbol = Add(Add(Add(*base+"/"+*quote+":"+*settle+"-"+this.Yymmdd(expiry)+"-", this.NumberToString(strike)), "-"), optionLetter)
 		}
 		if optionLetter != nil && *optionLetter == "P" {
-			optionType = SafeStringPtr("put")
+			optionTypeStr := "put"
+			optionType = &optionTypeStr
 		} else {
-			optionType = SafeStringPtr("call")
+			optionTypeStr2 := "call"
+			optionType = &optionTypeStr2
 		}
 		linear = true
 		inverse = false
@@ -2554,7 +2557,7 @@ func (this *Derive) HashOrderMessage(order []any) any {
 	}
 	var binaryDomainSeparator []byte = this.Base16ToBinary(DOMAIN_SEPARATOR)
 	var prefix []byte = this.Base16ToBinary("1901")
-	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
+	return this.HashString(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
 func (this *Derive) SignOrder(order []any, privateKey string) string {
 	var hashOrder any = this.HashOrderMessage(order)
@@ -2584,7 +2587,7 @@ func (this *Derive) HashMessage(message any) any {
 	var x19 []byte = this.Base16ToBinary("19")
 	var newline []byte = this.Base16ToBinary("0a")
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
-	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
+	return "0x" + this.HashString(this.BinaryConcat(prefix, binaryMessage), keccak, "hex")
 }
 func (this *Derive) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
@@ -2672,9 +2675,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var amountString *string = this.NumberToString(amount)
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
-	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
-	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
-	var paramsDeriveWalletAddress map[string]any = deriveWalletAddressparamsDeriveWalletAddressVariable[1].(map[string]any)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"instrument_name":      market["id"],
@@ -2817,12 +2818,12 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Derive) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Derive) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2845,8 +2846,8 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var reduceOnly *bool = this.SafeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force")
 	var postOnly *bool = this.SafeBool(paramsDeriveSubaccountId, "postOnly")
-	var orderType string = ToLower(typeVar)
-	var orderSide string = ToLower(side)
+	var orderType string = strings.ToLower(typeVar)
+	var orderSide string = strings.ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce string = this.NonceString()
 	var signatureExpiry *float64 = this.SafeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", this.Seconds()+7776000)
@@ -2857,9 +2858,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var amountString *string = this.NumberToString(amount)
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
-	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
-	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
-	var paramsDeriveWalletAddress map[string]any = deriveWalletAddressparamsDeriveWalletAddressVariable[1].(map[string]any)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"instrument_name":      market["id"],
@@ -3686,9 +3685,11 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	var side *string = this.SafeString(order, "direction")
 	if side == nil {
 		if isBid != nil && *isBid {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 	}
 	var triggerType *string = this.SafeString(order, "trigger_type")
@@ -4369,9 +4370,7 @@ func (this *Derive) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList([]any{subaccountResult}))}
 		return nil
 	}
-	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
-	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
-	var paramsDeriveWalletAddress map[string]any = deriveWalletAddressparamsDeriveWalletAddressVariable[1].(map[string]any)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("fetchBalance", params)
 	var request map[string]any = map[string]any{
 		"wallet": deriveWalletAddress,
 	}
@@ -4736,9 +4735,7 @@ func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var TRANSFER_MODULE_ADDRESS string = "0x01259207A40925b794C8ac320456F7F6c8FE2636" // shared across mainnet and testnet in v3
 	var transferModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"uint", "uint", "address", "uint", "uint", "uint"}, []any{toId, newSubaccountManager, assetAddress, 0, this.ConvertToBigInt(this.ParseUnits(amountString)), this.ConvertToBigInt(this.ParseUnits(maxFeeUsd))}), keccak, "binary")
-	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("transfer", paramsOmitted)
-	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
-	var paramsDeriveWalletAddress map[string]any = deriveWalletAddressparamsDeriveWalletAddressVariable[1].(map[string]any)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("transfer", paramsOmitted)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, fromId, this.ConvertToBigInt(nonce), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"subaccount_id":          fromId,
@@ -4934,7 +4931,7 @@ func (this *Derive) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]
 	}
 	var currency map[string]any = this.Currency(code)
 	var riskUniverseIdparamsUniverseVariable []any = this.HandleOptionAndParams(params, "fetchBorrowRateHistory", "risk_universe_id", 1)
-	riskUniverseId := GetValue(riskUniverseIdparamsUniverseVariable, 0)
+	riskUniverseId := riskUniverseIdparamsUniverseVariable[0]
 	var paramsUniverse map[string]any = MapTyped(riskUniverseIdparamsUniverseVariable[1])
 	var request map[string]any = map[string]any{
 		"currency":         currency["id"],
@@ -5174,9 +5171,7 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var WITHDRAWAL_MODULE_ADDRESS string = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083" // shared across mainnet and testnet in v3
 	var withdrawalModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "address", "uint", "bool"}, []any{assetAddress, this.ConvertToBigInt(this.ParseUnits(maxFeeUsd)), address, this.ConvertToBigInt(amountScaled), forceBatch}), keccak, "binary")
-	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("withdraw", paramsOmitted)
-	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
-	var paramsDeriveWalletAddress map[string]any = deriveWalletAddressparamsDeriveWalletAddressVariable[1].(map[string]any)
+	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("withdraw", paramsOmitted)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), WITHDRAWAL_MODULE_ADDRESS, withdrawalModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"subaccount_id":        subaccountId,
@@ -5471,7 +5466,7 @@ func (this *Derive) ParseTransactionStatus(status *string) *string {
 }
 func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []any {
 	var derivesubAccountIdparamsSubaccountIdVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
-	derivesubAccountId := GetValue(derivesubAccountIdparamsSubaccountIdVariable, 0)
+	derivesubAccountId := derivesubAccountIdparamsSubaccountIdVariable[0]
 	paramsSubaccountId := derivesubAccountIdparamsSubaccountIdVariable[1]
 	if (derivesubAccountId != nil) && (derivesubAccountId != "") {
 		// the venue rejects a string subaccount_id ("expected i64"), so coerce early
@@ -5489,19 +5484,19 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []an
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID."))
 }
-func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) []any {
+func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) (*string, map[string]any) {
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	if (deriveWalletAddress != nil) && (deriveWalletAddress == nil || *deriveWalletAddress != "") {
 		this.Options["deriveWalletAddress"] = deriveWalletAddress
-		return []any{deriveWalletAddress, this.Extend(paramsDeriveWalletAddress)}
+		return deriveWalletAddress, this.Extend(paramsDeriveWalletAddress)
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "deriveWalletAddress")
 	if (optionsWallet != nil) && (optionsWallet == nil || *optionsWallet != "") {
-		return []any{optionsWallet, this.Extend(paramsDeriveWalletAddress)}
+		return optionsWallet, this.Extend(paramsDeriveWalletAddress)
 	}
 	// v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
 	if this.WalletAddress != "" {
-		return []any{this.WalletAddress, this.Extend(paramsDeriveWalletAddress)}
+		return SafeStringPtr(this.WalletAddress), this.Extend(paramsDeriveWalletAddress)
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS."))
 }

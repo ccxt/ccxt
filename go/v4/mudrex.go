@@ -706,19 +706,21 @@ func (this *Mudrex) ParseMarket(asset any) map[string]any {
 	var ms *string = this.SafeString(asset, "symbol")
 	var base *string = ms
 	if (ms != nil) && strings.HasSuffix(*ms, "USDT") {
-		base = SafeStringPtr(func() string {
+		baseStr := func() string {
 			if ms == nil {
 				return ""
 			}
 			str := *ms
 			return str[0 : len(str)-4]
-		}())
+		}()
+		base = &baseStr
 	}
 	var quote string = "USDT"
 	var settle string = "USDT"
 	var symbol *string = nil
 	if base != nil {
-		symbol = SafeStringPtr(*base + "/" + quote + ":" + settle)
+		symbolStr := *base + "/" + quote + ":" + settle
+		symbol = &symbolStr
 	}
 	var priceStep string = *this.SafeString(asset, "price_step", "0.01")
 	var qtyStep string = *this.SafeString(asset, "quantity_step", "0.001")
@@ -827,7 +829,8 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	}
 	var currency *string = requested
 	if currency == nil {
-		currency = SafeStringPtr("USDT")
+		currencyStr := "USDT"
+		currency = &currencyStr
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))
@@ -1105,12 +1108,12 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mudrex) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1127,7 +1130,7 @@ func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		}
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
+	if true {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -1175,9 +1178,11 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawSide *string = this.SafeStringUpper(order, "order_type")
 	var side *string = nil
 	if rawSide != nil && *rawSide == "LONG" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if rawSide != nil && *rawSide == "SHORT" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	// stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
 	var isRiskOrder bool = (rawSide != nil && *rawSide == "STOPLOSS") || (rawSide != nil && *rawSide == "TAKEPROFIT")
@@ -1198,9 +1203,11 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
 	var trig *string = this.SafeStringUpper(order, "trigger_type")
 	var typ *string = nil
 	if trig != nil && *trig == "MARKET" {
-		typ = SafeStringPtr("market")
+		typStr := "market"
+		typ = &typStr
 	} else if trig != nil && *trig == "LIMIT" {
-		typ = SafeStringPtr("limit")
+		typStr2 := "limit"
+		typ = &typStr2
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
@@ -1664,9 +1671,11 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) Position {
 	var rawSide *string = this.SafeStringUpper2(position, "order_type", "position_type")
 	var side *string = nil
 	if rawSide != nil && *rawSide == "LONG" {
-		side = SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if rawSide != nil && *rawSide == "SHORT" {
-		side = SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(position, "updated_at"))
 	if ts == nil {
@@ -2005,7 +2014,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	for i := 0; i < len(transactions); i++ {
 		var rebate *string = nil
 		for j := 0; j < len(rebateKeys); j++ {
-			if DerefScalar(rebateKeys[j]) == GetValue(transactionKeys, i) {
+			if rebateKeys[j] == GetValue(transactionKeys, i) {
 				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				AddElementToObject(rebateKeys, j, "")
@@ -2050,15 +2059,18 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeStringLower(trade, "order_type")
 	var tradeSide *string = nil
 	if side != nil && *side == "long" {
-		tradeSide = SafeStringPtr("buy")
+		tradeSideStr := "buy"
+		tradeSide = &tradeSideStr
 	} else if side != nil && *side == "short" {
-		tradeSide = SafeStringPtr("sell")
+		tradeSideStr2 := "sell"
+		tradeSide = &tradeSideStr2
 	}
 	var trig *string = this.SafeStringUpper(trade, "trigger_type")
 	var takerOrMaker *string = nil
 	if trig != nil && *trig == "MARKET" {
 		// a market execution always takes liquidity, a limit execution can be either
-		takerOrMaker = SafeStringPtr("taker")
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee_amount")

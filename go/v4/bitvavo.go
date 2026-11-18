@@ -1135,12 +1135,13 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker *string = nil
 	if taker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if taker != nil && *taker {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
@@ -1386,7 +1387,7 @@ func (this *Bitvavo) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	_ = market
 	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
-func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) FetchOHLCVRequest(symbol *string, optionalArgs ...any) map[string]any {
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	since := GetArg(optionalArgs, 1, nil)
@@ -1474,7 +1475,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 		return nil
 	}
-	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
+	var request map[string]any = this.FetchOHLCVRequest(&symbol, timeframe, since, limit, paramsPaginate)
 
 	responseRecv := <-this.PublicGetMarketCandles(request)
 	if responseRecv.Err != nil {
@@ -1854,11 +1855,13 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var fromAccount *string = nil
 	var toAccount *string = nil
 	if direction != nil && *direction == "masterToSub" {
-		fromAccount = SafeStringPtr("master")
+		fromAccountStr := "master"
+		fromAccount = &fromAccountStr
 		toAccount = subaccountId
 	} else if direction != nil && *direction == "subToMaster" {
 		fromAccount = subaccountId
-		toAccount = SafeStringPtr("master")
+		toAccountStr := "master"
+		toAccount = &toAccountStr
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createdAt")
 	if timestamp == nil {
@@ -2016,7 +2019,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 		request["postOnly"] = true
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
-	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
+	operatorId := operatorIdparamsOperatorIdVariable[0]
 	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
@@ -2129,7 +2132,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, side string, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -2185,12 +2188,12 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitvavo) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2218,7 +2221,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) CancelOrderRequest(id *string, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2235,7 +2238,7 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]
 		request["orderId"] = id
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
-	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
+	operatorId := operatorIdparamsOperatorIdVariable[0]
 	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
@@ -2275,7 +2278,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CancelOrderRequest(id, symbol, params)
+	var request map[string]any = this.CancelOrderRequest(&id, symbol, params)
 
 	r1 := <-this.PrivateDeleteOrder(request)
 	if r1.Err != nil {
@@ -2327,7 +2330,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["market"] = market["id"]
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
-	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
+	operatorId := operatorIdparamsOperatorIdVariable[0]
 	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
@@ -3075,7 +3078,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 		"fee":              fee,
 	}, currencyResolved)
 }
-func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) WithdrawRequest(code *string, amount any, address any, optionalArgs ...any) map[string]any {
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3131,7 +3134,7 @@ func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var request map[string]any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+	var request map[string]any = this.WithdrawRequest(&code, amount, address, tagWithdrawTag, paramsWithdrawTag)
 
 	r1 := <-this.PrivatePostWithdrawal(request)
 	if r1.Err != nil {
@@ -3460,12 +3463,14 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
 		networkId = currencyCode
 	}
 	var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
+	var networkFees map[string]any = map[string]any{}
 	if networkCode != nil {
-		AddElementToObject(result["networks"], networkCode, map[string]any{
+		networkFees[*networkCode] = map[string]any{
 			"deposit":  result["deposit"],
 			"withdraw": result["withdraw"],
-		})
+		}
 	}
+	result["networks"] = networkFees
 	return result
 }
 
@@ -3550,7 +3555,8 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 		if !getOrDelete {
 			if !this.IsEmpty(query) {
 				payload = this.Json(query)
-				requestBody = SafeStringPtr(payload)
+				requestBodyStr := payload
+				requestBody = &requestBodyStr
 			}
 		}
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)

@@ -2166,9 +2166,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	orderTypeparamsOrderTypeVariable := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
-	var orderType *string = SafeStringPtr(orderTypeparamsOrderTypeVariable[0])
-	var paramsOrderType map[string]any = orderTypeparamsOrderTypeVariable[1].(map[string]any)
+	orderType, paramsOrderType := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],
 		"side":    side,
@@ -2230,15 +2228,19 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 		var reduceOnly *bool = this.SafeBool(paramsMrgPosition, "reduceOnly", false)
 		if reduceOnly != nil && *reduceOnly {
 			if side == "buy" {
-				posSide = SafeStringPtr("short")
+				posSideStr := "short"
+				posSide = &posSideStr
 			} else if side == "sell" {
-				posSide = SafeStringPtr("long")
+				posSideStr2 := "long"
+				posSide = &posSideStr2
 			}
 		} else {
 			if side == "buy" {
-				posSide = SafeStringPtr("long")
+				posSideStr3 := "long"
+				posSide = &posSideStr3
 			} else if side == "sell" {
-				posSide = SafeStringPtr("short")
+				posSideStr4 := "short"
+				posSide = &posSideStr4
 			}
 		}
 		request["posSide"] = posSide
@@ -2326,19 +2328,19 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol string, typeVar string, s
 	request["mrgPosition"] = mrgPositionOption
 	return this.Extend(request, paramsMrgPosition)
 }
-func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params any) []any {
+func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params any) (*string, map[string]any) {
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (typeVar == "post_only"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var timeInForce *string = this.HandleTimeInForce(paramsPostOnly)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, "timeInForce")
 	if timeInForce != nil && *timeInForce == "IOC" {
-		return []any{"ioc", paramsOmitted}
+		return SafeStringPtr("ioc"), paramsOmitted
 	}
 	if postOnly {
-		return []any{"post_only", paramsOmitted}
+		return SafeStringPtr("post_only"), paramsOmitted
 	}
-	return []any{typeVar, paramsOmitted}
+	return SafeStringPtr(typeVar), paramsOmitted
 }
 
 /**
@@ -3164,12 +3166,12 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deepcoin) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deepcoin) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3190,7 +3192,7 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	}
 	var market map[string]any = nil
 	var symbolResolved any = nil
-	if !IsEqual(symbol, nil) {
+	if true {
 		market = this.Market(symbol)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " editOrder() is not supported for spot markets"))

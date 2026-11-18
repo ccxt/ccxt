@@ -278,7 +278,7 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
+func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) any {
 	// we will consider it a fail
 	var firstElement map[string]any = ccxt.SafeMapTyped(deltas, 0)
 	var firstElementNonce *int64 = this.SafeInteger(firstElement, "microtimestamp")
@@ -289,14 +289,14 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 	if (nonce == nil) || (firstElementNonce != nil && (nonce == nil || *nonce < *firstElementNonce)) {
 		return int64(-1)
 	}
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+	for i := 0; i < len(deltas); i++ {
 		var delta map[string]any = ccxt.SafeMapTyped(deltas, i)
 		var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 		if deltaNonce == nonce || (deltaNonce != nil && nonce != nil && *deltaNonce == *nonce) {
 			return i + 1
 		}
 	}
-	return ccxt.GetArrayLength(deltas)
+	return len(deltas)
 }
 
 /**
@@ -957,18 +957,26 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var orderType *string = nil
 	var timeInForce *string = nil
 	if orderSubTypeRaw != nil && *orderSubTypeRaw == "0" {
-		orderType = ccxt.SafeStringPtr("limit")
+		orderTypeStr := "limit"
+		orderType = &orderTypeStr
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "2" {
-		orderType = ccxt.SafeStringPtr("market")
+		orderTypeStr2 := "market"
+		orderType = &orderTypeStr2
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "4" {
-		orderType = ccxt.SafeStringPtr("limit")
-		timeInForce = ccxt.SafeStringPtr("IOC")
+		orderTypeStr3 := "limit"
+		orderType = &orderTypeStr3
+		timeInForceStr := "IOC"
+		timeInForce = &timeInForceStr
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "6" {
-		orderType = ccxt.SafeStringPtr("limit")
-		timeInForce = ccxt.SafeStringPtr("FOK")
+		orderTypeStr4 := "limit"
+		orderType = &orderTypeStr4
+		timeInForceStr2 := "FOK"
+		timeInForce = &timeInForceStr2
 	} else if orderSubTypeRaw != nil && *orderSubTypeRaw == "8" {
-		orderType = ccxt.SafeStringPtr("limit")
-		timeInForce = ccxt.SafeStringPtr("GTD")
+		orderTypeStr5 := "limit"
+		orderType = &orderTypeStr5
+		timeInForceStr3 := "GTD"
+		timeInForce = &timeInForceStr3
 	}
 	var price *string = this.SafeString(order, "price_str")
 	var amountLeft *string = this.SafeString(order, "amount_str")
@@ -986,9 +994,11 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var event *string = this.SafeString(order, "event")
 	var status *string = nil
 	if ccxt.Precise.StringEq(filled, amount) {
-		status = ccxt.SafeStringPtr("closed")
+		statusStr := "closed"
+		status = &statusStr
 	} else if event != nil && *event == "order_deleted" {
-		status = ccxt.SafeStringPtr("canceled")
+		statusStr2 := "canceled"
+		status = &statusStr2
 	}
 	var triggerPrice *string = this.SafeString(order, "stop_price")
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")

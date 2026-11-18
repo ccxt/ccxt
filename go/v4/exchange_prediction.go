@@ -540,7 +540,7 @@ func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optiona
 	var outcomeObjValue map[string]any = this.SafeOutcome(outcomeIdOrSymbol)
 	return outcomeObjValue["outcome"]
 }
-func (this *PredictionExchange) ShortenSlug(slug any) any {
+func (this *PredictionExchange) ShortenSlug(slug any) string {
 	var replacements map[string]any = map[string]any{
 		"federal-reserve":         "fed",
 		"interest-rates":          "rates",
@@ -727,7 +727,8 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 					var idLen int = len(*ocId)
 					var suffix *string = ocId
 					if idLen > 6 {
-						suffix = SafeStringPtr(Slice(ocId, idLen-6, nil))
+						suffixStr := Slice(ocId, idLen-6, nil)
+						suffix = &suffixStr
 					}
 					ocSymbol = Add(Add(ocSymbol, "_"), strings.ToUpper(*suffix))
 				}
@@ -1816,10 +1817,12 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var feeList []any = []any{}
 	if tradesLength > 0 {
 		if filled == nil {
-			filled = SafeStringPtr("0")
+			filledStr := "0"
+			filled = &filledStr
 		}
 		if cost == nil {
-			cost = SafeStringPtr("0")
+			costStr := "0"
+			cost = &costStr
 		}
 		for i := 0; i < tradesLength; i++ {
 			var trade map[string]any = MapTyped(trades[i])
@@ -1887,10 +1890,12 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var derivedPostOnly any = nil
 	if timeInForce == nil {
 		if orderType != nil && *orderType == "market" {
-			timeInForce = SafeStringPtr("IOC")
+			timeInForceStr := "IOC"
+			timeInForce = &timeInForceStr
 		}
 		if postOnlyValue != nil && *postOnlyValue == true {
-			timeInForce = SafeStringPtr("PO")
+			timeInForceStr2 := "PO"
+			timeInForce = &timeInForceStr2
 		}
 	} else if postOnlyValue == nil {
 		derivedPostOnly = (timeInForce != nil && *timeInForce == "PO")
@@ -2270,7 +2275,7 @@ func (this *PredictionExchange) PadHexToEven(hex any) any {
 	}
 	return hex
 }
-func (this *PredictionExchange) PadHexAddress(address any) any {
+func (this *PredictionExchange) PadHexAddress(address any) string {
 	if IsEqual(address, nil) {
 		return ""
 	}

@@ -1204,10 +1204,12 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 	if isInverse != nil {
 		if isInverse != nil && *isInverse {
 			isLinear = false
-			subType = SafeStringPtr("inverse")
+			subTypeStr := "inverse"
+			subType = &subTypeStr
 		} else {
 			isLinear = true
-			subType = SafeStringPtr("linear")
+			subTypeStr2 := "linear"
+			subType = &subTypeStr2
 		}
 	}
 	var filtersList []any = SafeListTyped(market, "filters")
@@ -1610,7 +1612,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["limit"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsMarketType, methodName, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if until != nil {
 		request["endTime"] = until
@@ -1723,33 +1725,37 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	}
 	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool2(trade, "isMaker", "isMarker")
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var isBuyerMaker *bool = this.SafeBool(trade, "ibm")
 	// if public trade
 	if isBuyerMaker != nil {
-		takerOrMaker = SafeStringPtr("taker")
-		side = SafeStringPtr(func() string {
+		takerOrMakerStr2 := "taker"
+		takerOrMaker = &takerOrMakerStr2
+		sideStr2 := func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr2
 	}
 	var feeCost *string = this.SafeString(trade, "commission")
 	var feeCurrncyId *string = this.SafeString(trade, "commissionAsset")
@@ -1848,7 +1854,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		request["limit"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsPaginate, methodName, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
 	if until != nil {
 		request["endTime"] = until
@@ -2649,11 +2655,13 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	if status == nil {
 		var success *bool = this.SafeBool(transaction, "success", false) // for withdraw
 		if success != nil && *success {
-			status = SafeStringPtr("ok")
+			statusStr := "ok"
+			status = &statusStr
 		} else {
 			var addressUrl *string = this.SafeString(transaction, "addressUrl") // for fetchWithdrawals
 			if addressUrl != nil {
-				status = SafeStringPtr("ok")
+				statusStr2 := "ok"
+				status = &statusStr2
 			}
 		}
 	}
@@ -2775,7 +2783,8 @@ func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var status *string = nil
 	var success *bool = this.SafeBool(transfer, "success", false)
 	if success != nil && *success {
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 	}
 	return TransferEntryFromMap(map[string]any{
 		"id":          this.SafeString(transfer, "orderId"),
@@ -3350,7 +3359,8 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar string, side
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var timeInForce *string = timeInForceParam
 	if postOnly {
-		timeInForce = SafeStringPtr("LIMIT_MAKER")
+		timeInForceStr := "LIMIT_MAKER"
+		timeInForce = &timeInForceStr
 	}
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
@@ -4018,10 +4028,8 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]Order], optio
 		"symbol": market["id"],
 	}
 	var isTrigger bool = false
-	var isTriggerTriggerparamsTriggerVariable []any = this.HandleOptionBoolAndParams2Nullable(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger)
-	isTriggerTrigger := isTriggerTriggerparamsTriggerVariable[0]
-	var paramsTrigger map[string]any = MapTyped(isTriggerTriggerparamsTriggerVariable[1])
-	if isTriggerTrigger.(*bool) != nil && *isTriggerTrigger.(*bool) {
+	isTriggerTrigger, paramsTrigger := this.HandleOptionBoolAndParams2Nullable(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger)
+	if isTriggerTrigger != nil && *isTriggerTrigger {
 		request["type"] = "STOP"
 	} else {
 		request["type"] = "LIMIT"
@@ -4180,14 +4188,14 @@ func (this *Hashkey) CheckTypeParam(methodName string, params any) {
 func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) []any {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
-	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", defaultValue)
+	var isTriggerStopPtr *bool = nil
+	isTriggerStopPtr, paramsStop := this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", defaultValue)
 	isTriggerStop := func() any {
-		if p, _ := isTriggerStopparamsStopVariable[0].(*bool); p != nil {
-			return *p
+		if isTriggerStopPtr != nil {
+			return *isTriggerStopPtr
 		}
 		return nil
 	}()
-	var paramsStop map[string]any = MapTyped(isTriggerStopparamsStopVariable[1])
 	return []any{isTriggerStop, paramsStop}
 }
 func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {

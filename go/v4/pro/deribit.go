@@ -323,7 +323,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		var tickers map[string]any = map[string]any{}
 		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 		if newTickersSymbol != nil {
-			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			tickers[*newTickersSymbol] = newTickers
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -429,7 +429,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		var tickers map[string]any = map[string]any{}
 		var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 		if newTickersSymbol != nil {
-			ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+			tickers[*newTickersSymbol] = newTickers
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -957,8 +957,8 @@ func (this *Deribit) HandleDelta(bookside any, delta any) {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 0})
 	}
 }
-func (this *Deribit) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Deribit) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }

@@ -176,12 +176,12 @@ func (this *Coinbaseinternational) Ping(client any) any {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the subscription result
  */
-func (this *Coinbaseinternational) SubscribeAsync(channels any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbaseinternational) SubscribeAsync(channels []any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, channels, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], channels any, messageHashes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], channels []any, messageHashes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -212,7 +212,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
 		"id": this.RequestId(),
 	}
 	var extendedRequest map[string]any = this.DeepExtend(request, paramsResolved)
-	var channelsLength int = ccxt.GetArrayLength(channels)
+	var channelsLength int = len(channels)
 	if channelsLength == 1 {
 
 		r1 := <-this.Watch(url, this.SafeString(messageHashes, 0, ""), extendedRequest, this.SafeString(channels, 0, ""), extendedRequest)
@@ -244,12 +244,12 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {boolean} true when unsubscription has been requested
  */
-func (this *Coinbaseinternational) UnSubscribeAsync(channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Coinbaseinternational) UnSubscribeAsync(channels []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, channels, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channels any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channels []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -269,7 +269,7 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 		}
 	}
 	var unWatchMessageHashes []any = []any{}
-	var channelsLength int = ccxt.GetArrayLength(channels)
+	var channelsLength int = len(channels)
 	for i := 0; i < channelsLength; i++ {
 		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+*this.SafeString(channels, i, ""))
 	}
@@ -1065,7 +1065,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -2057,8 +2057,8 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
-		this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
-		this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+		this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
+		this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2129,8 +2129,8 @@ func (this *Coinbaseinternational) HandleDelta(bookside any, delta any) {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 0})
 	}
 }
-func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas any) {
-	var deltasLength int = ccxt.GetArrayLength(deltas)
+func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas []any) {
+	var deltasLength int = len(deltas)
 	for i := 0; i < deltasLength; i++ {
 		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}

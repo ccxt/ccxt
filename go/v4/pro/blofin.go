@@ -481,7 +481,7 @@ func (this *Blofin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var tickers map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+			tickers[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -580,7 +580,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		var tickers map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+			tickers[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -1439,8 +1439,8 @@ func (this *Blofin) GetSubscriptionRequest(args []any) map[string]any {
 		"args": args,
 	}
 }
-func (this *Blofin) HandleTextMessage(client any, message any) {
-	if ccxt.IsEqual(message, "pong") {
+func (this *Blofin) HandleTextMessage(client any, message string) {
+	if message == "pong" {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
 }

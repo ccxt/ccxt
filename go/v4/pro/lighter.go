@@ -206,15 +206,15 @@ func (this *Lighter) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, "size")
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Lighter) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Lighter) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
 func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	var data map[string]any = ccxt.SafeMapTyped(message, "order_book")
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
-	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
 	orderbook.SetNonce(this.SafeInteger(data, "offset"))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	orderbook.SetTimestamp(timestamp)
@@ -595,7 +595,7 @@ func (this *Lighter) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1024,33 +1024,38 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 	if accountIndex != nil {
 		if bidAccountId == accountIndex || (bidAccountId != nil && accountIndex != nil && *bidAccountId == *accountIndex) {
 			// Own trades should use the account's order side
-			side = ccxt.SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 			order = this.SafeString(trade, "bid_id")
-			takerOrMaker = ccxt.SafeStringPtr(func() string {
+			takerOrMakerStr := func() string {
 				if isMakerAsk != nil && *isMakerAsk {
 					return "taker"
 				}
 				return "maker"
-			}())
+			}()
+			takerOrMaker = &takerOrMakerStr
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
-			side = ccxt.SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 			order = this.SafeString(trade, "ask_id")
-			takerOrMaker = ccxt.SafeStringPtr(func() string {
+			takerOrMakerStr2 := func() string {
 				if isMakerAsk != nil && *isMakerAsk {
 					return "maker"
 				}
 				return "taker"
-			}())
+			}()
+			takerOrMaker = &takerOrMakerStr2
 		}
 	}
 	// public trades use Lighter's taker-side convention
 	if side == nil {
-		side = ccxt.SafeStringPtr(func() string {
+		sideStr3 := func() string {
 			if isMakerAsk != nil && *isMakerAsk {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr3
 	}
 	var fee map[string]any = nil
 	if takerOrMaker != nil {
@@ -1781,7 +1786,7 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
 	var messageHash string = "jsonapi/sendtx:" + requestId
-	r := <-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params)
+	r := <-this.SignAndCreateOrderAsync("createOrderWs", &symbol, &typeVar, &side, amount, price, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1842,7 +1847,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
 	var messageHash string = "jsonapi/sendtx:" + requestId
-	r := <-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params)
+	r := <-this.SignAndCancelOrderAsync("cancelOrderWs", &id, symbol, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

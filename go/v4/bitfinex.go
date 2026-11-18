@@ -1943,12 +1943,13 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		symbol = this.SafeSymbol(marketId)
 		orderId = this.SafeString(tradeList, 3)
 		var maker *int64 = this.SafeInteger(tradeList, 8)
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if maker != nil && *maker == 1 {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 		var feeCostString *string = this.SafeString(tradeList, 9)
 		feeCostString = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(tradeList, 10)
@@ -3500,13 +3501,16 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		}
 		var withdrawId *int64 = this.SafeInteger(data, 0)
 		id = withdrawId
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 		if withdrawId != nil && *withdrawId == 0 {
 			id = nil
-			status = SafeStringPtr("failed")
+			statusStr2 := "failed"
+			status = &statusStr2
 		}
 		tag = this.SafeString(data, 3)
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 		var networkId *string = this.SafeString(data, 2)
 		network = this.NetworkIdToCode(strings.ToUpper(*networkId), code) // withdraw returns in lowercase
 	} else if transactionLength == 22 {
@@ -3530,9 +3534,11 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		amount = Precise.StringAbs(signedAmount)
 		if signedAmount != nil {
 			if Precise.StringLt(signedAmount, "0") {
-				typeVar = SafeStringPtr("withdrawal")
+				typeVarStr2 := "withdrawal"
+				typeVar = &typeVarStr2
 			} else {
-				typeVar = SafeStringPtr("deposit")
+				typeVarStr3 := "deposit"
+				typeVar = &typeVarStr3
 			}
 		}
 		feeCost = this.SafeString(transaction, 13)
@@ -5333,12 +5339,12 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitfinex) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -5364,7 +5370,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			amountString = *derefPtr
 		}
 		amountString = func() any {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				return amountString
 			}
 			return Precise.StringNeg(amountString)
@@ -5382,12 +5388,12 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	} else if triggerPrice != nil {
 		// request['price'] is taken as triggerPrice for stop orders
 		request["price"] = this.PriceToPrecision(symbol, triggerPrice)
-		if IsEqual(typeVar, "limit") {
+		if typeVar == "limit" {
 			request["price_aux_limit"] = this.PriceToPrecision(symbol, price)
 		}
 	}
 	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam) || (timeInForce != nil && *timeInForce == "PO"))
-	if (!IsEqual(typeVar, "market")) && (triggerPrice == nil) {
+	if (typeVar != "market") && (triggerPrice == nil) {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	// flag values may be summed to combine flags

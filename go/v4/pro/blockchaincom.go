@@ -903,8 +903,8 @@ func (this *Blockchaincom) HandleDelta(bookside any, delta any) {
 	var bookArray []any = this.ParseOrderBookBidAsk(delta, "px", "qty", "num")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bookArray)
 }
-func (this *Blockchaincom) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Blockchaincom) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }

@@ -715,13 +715,15 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 	var marketId *string = this.SafeString(market, "name")
 	var baseId *string = this.SafeString(market, "assetName", "")
 	if strings.Index(*baseId, "SPOT") >= 0 {
-		baseId = SafeStringPtr(strings.Replace(*baseId, "SPOT", "", 1))
+		baseIdStr := strings.Replace(*baseId, "SPOT", "", 1)
+		baseId = &baseIdStr
 	}
 	var quoteId *string = this.SafeString(market, "collateralAssetName")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if quoteId != nil && *quoteId == "USD" {
-		quote = SafeStringPtr("USDC")
+		quoteStr := "USDC"
+		quote = &quoteStr
 	}
 	if (base == nil) || (quote == nil) {
 		return nil
@@ -755,7 +757,8 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 	if typeVar != nil && *typeVar == "spot" {
 		isSpot = true
 	} else {
-		typeVar = SafeStringPtr("swap")
+		typeVarStr := "swap"
+		typeVar = &typeVarStr
 		settleId = quoteId
 		settle = quote
 		symbol += ":" + *settle
@@ -895,11 +898,13 @@ func (this *Extended) ParseCurrency(currency any) map[string]any {
 	//
 	var currencyId *string = this.SafeString(currency, "symbol")
 	if (currencyId != nil) && (strings.Index(*currencyId, "SPOT") >= 0) {
-		currencyId = SafeStringPtr(strings.Replace(*currencyId, "SPOT", "", 1))
+		currencyIdStr := strings.Replace(*currencyId, "SPOT", "", 1)
+		currencyId = &currencyIdStr
 	}
 	var code *string = this.SafeCurrencyCode(currencyId)
 	if currencyId != nil && *currencyId == "USD" {
-		code = SafeStringPtr("USDC")
+		codeStr := "USDC"
+		code = &codeStr
 	}
 	var name *string = this.SafeString(currency, "name")
 	var precision int64 = *this.SafeInteger(currency, "precision", 0)
@@ -1604,12 +1609,13 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
 	var takerOrMaker *string = nil
 	if isTaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isTaker != nil && *isTaker {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           this.SafeString2(trade, "i", "id"),
@@ -1669,11 +1675,14 @@ func (this *Extended) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	var candleType *string = this.SafeString(params, "candleType")
 	if candleType == nil {
 		if price != nil && *price == "mark" {
-			candleType = SafeStringPtr("mark-prices")
+			candleTypeStr := "mark-prices"
+			candleType = &candleTypeStr
 		} else if price != nil && *price == "index" {
-			candleType = SafeStringPtr("index-prices")
+			candleTypeStr2 := "index-prices"
+			candleType = &candleTypeStr2
 		} else {
-			candleType = SafeStringPtr("trades")
+			candleTypeStr3 := "trades"
+			candleType = &candleTypeStr3
 		}
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2163,12 +2172,13 @@ func (this *Extended) ParseAccount(account any) map[string]any {
 	var accountIndex *int64 = this.SafeInteger(account, "accountIndex")
 	var typeVar *string = nil
 	if accountIndex != nil {
-		typeVar = SafeStringPtr(func() string {
+		typeVarStr := func() string {
 			if accountIndex != nil && *accountIndex == 0 {
 				return "main"
 			}
 			return "subaccount"
-		}())
+		}()
+		typeVar = &typeVarStr
 	}
 	return map[string]any{
 		"id":   this.SafeString2(account, "accountId", "id"),
@@ -2281,12 +2291,13 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	var amountString *string = this.SafeString(item, "amount")
 	var direction *string = nil
 	if amountString != nil {
-		direction = SafeStringPtr(func() string {
+		directionStr := func() string {
 			if Precise.StringLt(amountString, "0") {
 				return "out"
 			}
 			return "in"
-		}())
+		}()
+		direction = &directionStr
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(item, "fee")
@@ -2817,12 +2828,13 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 	var validSignature *bool = this.SafeBool(transfer, "validSignature")
 	var status *string = nil
 	if validSignature != nil {
-		status = SafeStringPtr(func() string {
+		statusStr := func() string {
 			if validSignature != nil && *validSignature {
 				return "ok"
 			}
 			return "failed"
-		}())
+		}()
+		status = &statusStr
 	} else {
 		status = this.ParseTransactionStatus(this.SafeString(transfer, "status"))
 	}
@@ -2854,7 +2866,8 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId *string, optionalArgs 
 	}
 	var code *string = this.SafeCurrencyCode(assetId)
 	if code != nil && *code == "USD" {
-		code = SafeStringPtr("USDC")
+		codeStr := "USDC"
+		code = &codeStr
 	}
 	return code
 }
@@ -3621,22 +3634,22 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency ma
 	}
 	return settlement
 }
-func (this *Extended) CreateExtendedOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Extended) CreateExtendedOrderRequestAsync(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createExtendedOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[string]any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[string]any], symbol *string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 
@@ -3645,8 +3658,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var uppercaseType string = ToUpper(typeVar)
-	var uppercaseSide string = ToUpper(side)
+	var uppercaseType string = strings.ToUpper(typeVar)
+	var uppercaseSide string = strings.ToUpper(side)
 	if (*this.SafeBool(market, "spot", false)) && (uppercaseType != "LIMIT") {
 		panic(BadRequest(this.Id + " createOrder() supports limit orders for spot markets only"))
 	}
@@ -3662,12 +3675,13 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	if timeInForce == nil {
-		timeInForce = SafeStringPtr(func() string {
+		timeInForceStr := func() string {
 			if uppercaseType == "MARKET" {
 				return "IOC"
 			}
 			return "GTT"
-		}())
+		}()
+		timeInForce = &timeInForceStr
 	}
 	var fee *string = this.SafeString(params, "fee", "0.0005")
 	var builderFeeRate *string = nil
@@ -3924,7 +3938,7 @@ func (this *Extended) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	_ = params
 	this.CheckRequiredCredentials()
 
-	r := <-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, price, params)
+	r := <-this.CreateExtendedOrderRequestAsync(&symbol, typeVar, side, amount, price, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3969,12 +3983,12 @@ func (this *Extended) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Extended) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Extended) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -4040,7 +4054,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		"expiryEpochMillis": expiryEpochMillis,
 	})
 
-	r1 := <-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amountValue, priceValue, requestParams)
+	r1 := <-this.CreateExtendedOrderRequestAsync(&symbol, typeVar, side, amountValue, priceValue, requestParams)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5621,7 +5635,7 @@ func (this *Extended) FetchExtendedAccount(params ...any) (map[string]any, error
 	var res map[string]any = r.Value
 	return res, nil
 }
-func (this *Extended) CreateExtendedOrderRequest(symbol string, typeVar string, side string, amount float64, options ...CreateExtendedOrderRequestOptions) (map[string]any, error) {
+func (this *Extended) CreateExtendedOrderRequest(symbol *string, typeVar string, side string, amount float64, options ...CreateExtendedOrderRequestOptions) (map[string]any, error) {
 
 	opts := CreateExtendedOrderRequestOptionsStruct{}
 

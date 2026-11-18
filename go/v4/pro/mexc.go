@@ -294,7 +294,7 @@ func (this *Mexc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -526,7 +526,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		var tickers map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+			tickers[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -1030,7 +1030,7 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.SetCache([]any{})
 }
-func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
+func (this *Mexc) GetCacheIndex(orderbook any, cache []any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
@@ -1041,7 +1041,7 @@ func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 	if (nonce != nil) && (firstDeltaNonce != nil) && (*nonce < *firstDeltaNonce-1) {
 		return int64(-1)
 	}
-	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
+	for i := 0; i < len(cache); i++ {
 		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
 		var deltaNonce *int64 = this.SafeIntegerN(delta, []any{"r", "version", "fromVersion"})
 		if deltaNonce == nil {
@@ -1051,7 +1051,7 @@ func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 			return i
 		}
 	}
-	return ccxt.GetArrayLength(cache)
+	return len(cache)
 }
 func (this *Mexc) HandleOrderBook(client any, message any) {
 	//
@@ -2730,8 +2730,8 @@ func (this *Mexc) HandleProtobufMessage(client any, message any) bool {
 	}
 	return true
 }
-func (this *Mexc) HandleTextMessage(client any, message any) {
-	if ccxt.IsEqual(message, "Invalid listen key") {
+func (this *Mexc) HandleTextMessage(client any, message string) {
+	if message == "Invalid listen key" {
 		error := ccxt.AuthenticationError(this.Id + " invalid listen key")
 		client.(ccxt.ClientInterface).Reject(error)
 	}

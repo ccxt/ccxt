@@ -901,11 +901,13 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 	var ids *string = nil
 	if symbols == nil {
 		if this.Ids != nil {
-			ids = SafeStringPtr(Join(this.Ids, ","))
+			idsStr := Join(this.Ids, ",")
+			ids = &idsStr
 		}
 	} else {
 		var marketIds []string = this.MarketIdsStrings(symbols)
-		ids = SafeStringPtr(strings.Join(marketIds, ","))
+		idsStr2 := strings.Join(marketIds, ",")
+		ids = &idsStr2
 	}
 	var request map[string]any = map[string]any{
 		"markets": ids,
@@ -1264,9 +1266,11 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = nil
 	var askOrBid *string = this.SafeStringLower2(trade, "ask_bid", "side", "")
 	if askOrBid != nil && *askOrBid == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if askOrBid != nil && *askOrBid == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	var cost *string = this.SafeString(trade, "funds")
 	var price *string = this.SafeString2(trade, "trade_price", "price")
@@ -1641,7 +1645,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Upbit) CalcOrderPrice(symbol any, optionalArgs ...any) any {
+func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -1918,12 +1922,12 @@ func (this *Upbit) cancelOrderBody(ch chan AsyncResult[Order], id string, option
  * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Upbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Upbit) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1943,7 +1947,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	var prevClientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "newOrdType", "new_ord_type")
 	var clientOrderId *string = this.SafeString(params, "newClientOrderId")
-	var postOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
+	var postOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "newTimeInForce", "new_time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "new_smp_type")
 	if postOnly && (selfTradePrevention != nil) {
@@ -1957,15 +1961,15 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() is required id or clientOrderId."))
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		if (price == nil) || (amount == nil) {
 			panic(ArgumentsRequired(this.Id + " editOrder() is required price and amount to create limit type order."))
 		}
 		request["new_ord_type"] = "limit"
 		request["new_price"] = this.PriceToPrecision(symbol, price)
 		request["new_volume"] = this.AmountToPrecision(symbol, amount)
-	} else if IsEqual(typeVar, "market") {
-		if IsEqual(side, "buy") {
+	} else if typeVar == "market" {
+		if side == "buy" {
 			request["new_ord_type"] = "price"
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, paramsOmitted)
 			request["new_price"] = orderPrice
@@ -1987,7 +1991,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	}()
 	if customType != nil && *customType == "best" {
 		request["new_ord_type"] = "best"
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, paramsOrdType)
 			request["new_price"] = orderPrice
 		} else {
@@ -2379,7 +2383,8 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at", updatedRaw))
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -2496,9 +2501,11 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var id *string = this.SafeString(order, "uuid")
 	var side *string = this.SafeStringLower(order, "side")
 	if side != nil && *side == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var identifier *string = this.SafeString(order, "identifier")
 	var typeVar *string = this.SafeString(order, "ord_type")
@@ -2511,7 +2518,8 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var filled *string = this.SafeString(order, "executed_volume")
 	var cost *string = nil
 	if typeVar != nil && *typeVar == "price" {
-		typeVar = SafeStringPtr("market")
+		typeVarStr := "market"
+		typeVar = &typeVarStr
 		cost = price
 		price = nil
 	}
@@ -2532,9 +2540,11 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 		var getFeesFromTrades bool = false
 		if feeCost == nil {
 			getFeesFromTrades = true
-			feeCost = SafeStringPtr("0")
+			feeCostStr := "0"
+			feeCost = &feeCostStr
 		}
-		cost = SafeStringPtr("0")
+		costStr := "0"
+		cost = &costStr
 		for i := 0; i < numTrades; i++ {
 			var trade map[string]any = SafeMapTyped(trades, i)
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))

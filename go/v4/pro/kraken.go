@@ -126,7 +126,7 @@ func (this *Kraken) Describe() map[string]any {
 		},
 	})
 }
-func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string, request map[string]any, orderParams map[string]any, amount any, optionalArgs ...any) []any {
+func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string, request map[string]any, orderParams map[string]any, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -302,7 +302,7 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 	}
 	var paramsOmitted any = this.Omit(paramsPreset, []any{"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"})
 	request["params"] = orderParams
-	return []any{request, paramsOmitted}
+	return request, ccxt.MapTyped(paramsOmitted)
 }
 
 /**
@@ -357,9 +357,7 @@ func (this *Kraken) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 		"params": orderParams,
 		"req_id": requestId,
 	}
-	requestValueparamsValueVariable := this.OrderRequestWs("createOrderWs", symbol, typeVar, request, orderParams, amount, price, params)
-	var requestValue map[string]any = ccxt.MapTyped(requestValueparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(requestValueparamsValueVariable[1])
+	requestValue, paramsValue := this.OrderRequestWs("createOrderWs", symbol, typeVar, request, orderParams, amount, price, params)
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(requestValue, paramsValue), messageHash)
 	if r2.Err != nil {
@@ -453,9 +451,7 @@ func (this *Kraken) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 		"params": orderParams,
 		"req_id": requestId,
 	}
-	requestValueparamsValueVariable := this.OrderRequestWs("editOrderWs", symbol, typeVar, request, orderParams, amount, price, params)
-	var requestValue map[string]any = ccxt.MapTyped(requestValueparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(requestValueparamsValueVariable[1])
+	requestValue, paramsValue := this.OrderRequestWs("editOrderWs", symbol, typeVar, request, orderParams, amount, price, params)
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(requestValue, paramsValue), messageHash)
 	if r2.Err != nil {
@@ -898,7 +894,7 @@ func (this *Kraken) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -947,7 +943,7 @@ func (this *Kraken) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -2431,12 +2427,13 @@ func (this *Kraken) HandleMessage(client any, message map[string]any) {
 			var data []any = ccxt.SafeListTyped(message, "data")
 			var first map[string]any = ccxt.SafeMapTyped(data, 0)
 			var execType *string = this.SafeString(first, "exec_type")
-			channel = ccxt.SafeStringPtr(func() string {
+			channelStr := func() string {
 				if execType != nil && *execType == "trade" {
 					return "myTrades"
 				}
 				return "orders"
-			}())
+			}()
+			channel = &channelStr
 		}
 		var methods map[string]any = map[string]any{
 			"balances": this.HandleBalance,

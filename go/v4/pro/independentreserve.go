@@ -340,8 +340,8 @@ func (this *Independentreserve) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "Price", "Volume")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Independentreserve) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Independentreserve) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }

@@ -420,7 +420,8 @@ func (this *Bitbns) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		// INR markets don't need a _INR prefix
 		var uppercaseId *string = baseId
 		if usdt {
-			uppercaseId = SafeStringPtr((*baseId + "_" + *quoteId))
+			uppercaseIdStr := (*baseId + "_" + *quoteId)
+			uppercaseId = &uppercaseIdStr
 		}
 		result = append(result, map[string]any{
 			"id":             id,
@@ -698,7 +699,8 @@ func (this *Bitbns) ParseBalance(response any) map[string]any {
 			account["free"] = this.SafeString(data, key)
 			account["used"] = this.SafeString(data, "inorder"+usedCurrencyId)
 			if currencyId != nil && *currencyId == "Money" {
-				currencyId = SafeStringPtr("INR")
+				currencyIdStr := "INR"
+				currencyId = &currencyIdStr
 			}
 			var code *string = this.SafeCurrencyCode(currencyId)
 			if code != nil {
@@ -810,14 +812,17 @@ func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) Order {
 	var triggerPrice *string = this.SafeString(order, "t_rate")
 	var side *string = this.SafeString(order, "type")
 	if side != nil && *side == "0" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "1" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var data *string = this.SafeString(order, "data")
 	var status *string = this.SafeString(order, "status")
 	if data != nil && *data == "Successfully cancelled the order" {
-		status = SafeStringPtr("cancelled")
+		statusStr := "cancelled"
+		status = &statusStr
 	} else {
 		status = this.ParseStatus(status)
 	}
@@ -1230,9 +1235,11 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeStringLower(trade, "type")
 	if side != nil {
 		if strings.Index(*side, "buy") >= 0 {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if strings.Index(*side, "sell") >= 0 {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 	}
 	var factor *string = this.SafeString(trade, "factor")
@@ -1614,15 +1621,18 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) Trans
 			}
 			return strings.Index(*typeVar, "deposit")
 		}() >= 0 {
-			typeVar = SafeStringPtr("deposit")
-			status = SafeStringPtr("ok")
+			typeVarStr := "deposit"
+			typeVar = &typeVarStr
+			statusStr := "ok"
+			status = &statusStr
 		} else if (func() int {
 			if typeVar == nil {
 				return -1
 			}
 			return strings.Index(*typeVar, "withdraw")
 		}() >= 0) || (strings.Index(expTime, "withdraw") >= 0) {
-			typeVar = SafeStringPtr("withdrawal")
+			typeVarStr2 := "withdrawal"
+			typeVar = &typeVarStr2
 		}
 	}
 	// const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);

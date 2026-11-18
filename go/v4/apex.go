@@ -1783,13 +1783,16 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
 	if timeInForce == nil {
-		timeInForce = SafeStringPtr("GOOD_TIL_CANCEL")
+		timeInForceStr := "GOOD_TIL_CANCEL"
+		timeInForce = &timeInForceStr
 	}
 	if !isMarket {
 		if postOnly {
-			timeInForce = SafeStringPtr("POST_ONLY")
+			timeInForceStr2 := "POST_ONLY"
+			timeInForce = &timeInForceStr2
 		} else if timeInForce != nil && *timeInForce == "ioc" {
-			timeInForce = SafeStringPtr("IMMEDIATE_OR_CANCEL")
+			timeInForceStr3 := "IMMEDIATE_OR_CANCEL"
+			timeInForce = &timeInForceStr3
 		}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "timeInForce")

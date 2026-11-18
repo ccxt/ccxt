@@ -1238,14 +1238,14 @@ func (this *Backpack) HandleStockParams(methodName any, params any, optionalArgs
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var defaultStock *bool = this.SafeBool(market, "stock", false)
-	var stockqueryVariable []any = this.HandleOptionBoolAndParamsNullable(params, methodName, "stock", defaultStock)
+	var stockPtr *bool = nil
+	stockPtr, query := this.HandleOptionBoolAndParamsNullable(params, methodName, "stock", defaultStock)
 	stock := func() any {
-		if p, _ := stockqueryVariable[0].(*bool); p != nil {
-			return *p
+		if stockPtr != nil {
+			return *stockPtr
 		}
 		return nil
 	}()
-	var query map[string]any = MapTyped(stockqueryVariable[1])
 	if (market != nil) && EvalTruthy(stock) && !(*this.SafeBool(market, "stock", false)) {
 		panic(BadSymbol(Add(Add(this.Id+" ", methodName), "() requires a stock market")))
 	}
@@ -1726,12 +1726,13 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var isRfq bool = (market != nil) && (this.SafeString(marketInfo, "marketType") != nil && *this.SafeString(marketInfo, "marketType") == "RFQ")
 	if source == nil {
-		source = SafeStringPtr(func() string {
+		sourceStr := func() string {
 			if isRfq {
 				return "External"
 			}
 			return "Venue"
-		}())
+		}()
+		source = &sourceStr
 	}
 	if (source == nil || *source != "Venue") && (source == nil || *source != "External") {
 		panic(BadRequest(Add(Add(this.Id+" ", methodName), "() source must be Venue or External")))
@@ -2708,20 +2709,23 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	} else if isBuyerMaker != nil {
-		takerOrMaker = SafeStringPtr("taker")
-		side = SafeStringPtr(func() string {
+		takerOrMakerStr2 := "taker"
+		takerOrMaker = &takerOrMakerStr2
+		sideStr := func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	}
 	var orderId *string = this.SafeString2(trade, "orderId", "rfqId")
 	var fee map[string]any = nil
@@ -3382,7 +3386,7 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	})
 	if this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ" {
 
-		r1 := <-this.CreateRfqOrderAsync(symbol, typeVar, side, amount, price, orderParams)
+		r1 := <-this.CreateRfqOrderAsync(&symbol, typeVar, side, amount, price, orderParams)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -3423,12 +3427,12 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {int} [params.clientOrderId] requester client identifier
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) CreateRfqOrderAsync(symbol any, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Backpack) CreateRfqOrderAsync(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.createRfqOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol *string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3552,12 +3556,12 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol any, t
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) AcceptRfqQuoteAsync(id string, quoteId string, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Backpack) AcceptRfqQuoteAsync(id string, quoteId string, symbol *string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.acceptRfqQuoteBody(ch, id, quoteId, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, quoteId string, symbol any, optionalArgs ...any) any {
+func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, quoteId string, symbol *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4319,7 +4323,8 @@ func (this *Backpack) ParseOrder(order any, optionalArgs ...any) Order {
 	var symbol *string = this.SafeSymbol(marketId, marketResolved)
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	if (typeVar == nil) && (this.SafeString(order, "rfqId") != nil) && (this.SafeString(order, "price") != nil) {
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	}
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var side *string = this.ParseOrderSide(this.SafeString(order, "side"))
@@ -5355,7 +5360,7 @@ func (this *Backpack) CreateOrder(symbol string, typeVar string, side string, am
  * @param {int} [params.clientOrderId] requester client identifier
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) CreateRfqOrder(symbol string, typeVar string, side string, amount float64, options ...CreateRfqOrderOptions) (Order, error) {
+func (this *Backpack) CreateRfqOrder(symbol *string, typeVar string, side string, amount float64, options ...CreateRfqOrderOptions) (Order, error) {
 
 	opts := CreateRfqOrderOptionsStruct{}
 

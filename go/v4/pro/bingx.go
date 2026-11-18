@@ -358,7 +358,7 @@ func (this *Bingx) HandleTicker(client any, message map[string]any) {
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
 	var inverseUrl *string = this.SafeString(this.UrlsApi["ws"], "inverse")
-	var isInverse bool = (inverseUrl != nil) && (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), inverseUrl) == 0)
+	var isInverse bool = (inverseUrl != nil) && (strings.Index(client.(ccxt.ClientInterface).GetUrl(), *inverseUrl) == 0)
 	var ticker map[string]any = this.ParseWsTicker(data, market, isInverse)
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
@@ -1808,9 +1808,11 @@ func (this *Bingx) ParseWsPosition(position any, optionalArgs ...any) map[string
 		hedged = false
 		if !ccxt.Precise.StringEq(contracts, "0") {
 			if ccxt.Precise.StringLt(contracts, "0") {
-				positionSide = ccxt.SafeStringPtr("short")
+				positionSideStr := "short"
+				positionSide = &positionSideStr
 			} else {
-				positionSide = ccxt.SafeStringPtr("long")
+				positionSideStr2 := "long"
+				positionSide = &positionSideStr2
 			}
 		}
 	}
@@ -2230,7 +2232,8 @@ func (this *Bingx) HandleOrder(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var isSpot bool = (func() bool { _, ok := message["dataType"]; return ok }())
+	_, has1 := message["dataType"]
+	var isSpot bool = has1
 	var data map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2328,7 +2331,8 @@ func (this *Bingx) HandleMyTrades(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var isSpot bool = (func() bool { _, ok := message["dataType"]; return ok }())
+	_, has1 := message["dataType"]
+	var isSpot bool = has1
 	var result map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
@@ -2395,7 +2399,7 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp *int64 = this.SafeInteger2(message, "T", "E")
 	var spotUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
-	var isSpot bool = (spotUrl != nil) && (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), spotUrl) == 0)
+	var isSpot bool = (spotUrl != nil) && (strings.Index(client.(ccxt.ClientInterface).GetUrl(), *spotUrl) == 0)
 	var typeVar string = "swap"
 	if isSpot {
 		typeVar = "spot"
@@ -2427,8 +2431,8 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 }
 
 // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-func (this *Bingx) HandleTextMessage(client any, message any) {
-	if ccxt.IsEqual(message, "Ping") {
+func (this *Bingx) HandleTextMessage(client any, message string) {
+	if message == "Ping" {
 		this.Spawn(this.PongAsync, client, message)
 	}
 }

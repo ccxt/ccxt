@@ -193,7 +193,7 @@ func (this *Hyperliquid) OutcomeAssetId(encoding any) any {
  * @returns {string} the coin name
  */
 func (this *Hyperliquid) OutcomeCoin(encoding any) string {
-	return "#" + ccxt.ToString(encoding)
+	return "#" + strconv.FormatInt(this.ParseToInt(encoding), 10)
 }
 
 /**
@@ -205,7 +205,7 @@ func (this *Hyperliquid) OutcomeCoin(encoding any) string {
  * @returns {string} the token name
  */
 func (this *Hyperliquid) OutcomeToken(encoding any) string {
-	return "+" + ccxt.ToString(encoding)
+	return "+" + strconv.FormatInt(this.ParseToInt(encoding), 10)
 }
 
 /**
@@ -383,7 +383,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
 	if (name != nil) && (name != "") {
-		return ccxt.Add(ccxt.Add(this.ShortenSlug(name), "_"), ccxt.ToString(outcomeId))
+		return this.ShortenSlug(name) + "_" + ccxt.ToString(outcomeId)
 	}
 	return "OUTCOME_" + ccxt.ToString(outcomeId)
 }
@@ -549,9 +549,10 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeI
 				}
 				str := *ymd
 				return str[6:min(8, len(str))]
-			}() + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
+			}() + "T" + hm[0:min(2, len(hm))] + ":" + hm[2:min(4, len(hm))] + ":00Z"
 			expiryMs = this.Parse8601(isoStr)
-			expiryDatetime = ccxt.SafeStringPtr(isoStr)
+			expiryDatetimeStr := isoStr
+			expiryDatetime = &expiryDatetimeStr
 		}
 	}
 	// Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
@@ -686,7 +687,7 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
 	var intPart *string = ccxt.SafeStringPtr(parts[0])
 	var intPartLength int = len(*intPart)
 	var szDecimalsInt int64 = this.ParseToInt(szDecimals)
-	var maxDecimals int64 = 8 - szDecimalsInt
+	var maxDecimals int64 = this.ParseToInt(8 - szDecimalsInt)
 	// significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
 	var digitsLeft int = 0
 	if intPartLength <= 5 {
@@ -2637,9 +2638,10 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 				}
 				str := *ymd
 				return str[6:min(8, len(str))]
-			}() + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
+			}() + "T" + hm[0:min(2, len(hm))] + ":" + hm[2:min(4, len(hm))] + ":00Z"
 			expiryMs = this.Parse8601(isoStr)
-			expiryDatetime = ccxt.SafeStringPtr(isoStr)
+			expiryDatetimeStr := isoStr
+			expiryDatetime = &expiryDatetimeStr
 		}
 	}
 	var firstExpiry *int64 = this.SafeInteger(firstMarket, "expiry")
@@ -2652,7 +2654,8 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		if (expiryRaw != nil) && (expiryRaw == nil || *expiryRaw != "") {
 			titleSuffix = titleSuffix + " @ " + *expiryRaw
 		}
-		title = ccxt.SafeStringPtr(*underlying + titleSuffix)
+		titleStr := *underlying + titleSuffix
+		title = &titleStr
 	}
 	var endValue any = func() any {
 		if expiryMs != nil {
@@ -2705,16 +2708,16 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	return ccxt.SafeStringPtr(this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode))
 }
 func (this *Hyperliquid) HashMessage(message any) any {
-	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
+	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
 func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
-	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
-	var r string = ccxt.PadStart(rRaw, 64, "0")
-	var s string = ccxt.PadStart(sRaw, 64, "0")
+	var rRaw string = *this.SafeString(signature, "r", "")
+	var sRaw string = *this.SafeString(signature, "s", "")
+	var r string = (strings.Repeat("0", max(64-len(rRaw), 0)) + rRaw)[max(len(rRaw)-64, 0):]
+	var s string = (strings.Repeat("0", max(64-len(sRaw), 0)) + sRaw)[max(len(sRaw)-64, 0):]
 	return map[string]any{
 		"r": "0x" + r,
 		"s": "0x" + s,

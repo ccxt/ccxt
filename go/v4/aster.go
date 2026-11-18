@@ -1700,32 +1700,35 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 		if side == nil {
 			var isBuyer *bool = this.SafeBool(trade, "buyer")
 			if isBuyer != nil {
-				side = SafeStringPtr(func() string {
+				sideStr := func() string {
 					if isBuyer != nil && *isBuyer {
 						return "buy"
 					}
 					return "sell"
-				}())
+				}()
+				side = &sideStr
 			}
 		}
 	}
 	var isBuyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 	if isBuyerMaker != nil {
-		side = SafeStringPtr(func() string {
+		sideStr2 := func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr2
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1791,7 +1794,8 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	}
 	var response []any = nil
 	var sinceDefined bool = (since != nil)
-	var untilDefined bool = (func() bool { _, ok := params["until"]; return ok }())
+	_, has1 := params["until"]
+	var untilDefined bool = has1
 	if sinceDefined {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -2336,9 +2340,9 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice]
 	var rows []any = this.ToArray(response)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var marketId *string = this.SafeString(DerefScalar(rows[i]), "symbol")
+		var marketId *string = this.SafeString(rows[i], "symbol")
 		var safeMarket map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-		var priceData map[string]any = this.Extend(this.ParseLastPrice(DerefScalar(rows[i]), safeMarket), paramsMarketType)
+		var priceData map[string]any = this.Extend(this.ParseLastPrice(rows[i], safeMarket), paramsMarketType)
 		results = append(results, priceData)
 	}
 	var symbolsNormalized2 []string = this.MarketSymbols(symbolsNormalized)
@@ -2470,7 +2474,8 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) FundingRa
 	var interval *string = this.SafeString(contract, "fundingIntervalHours")
 	var intervalString *string = nil
 	if interval != nil {
-		intervalString = SafeStringPtr(*interval + "h")
+		intervalStringStr := *interval + "h"
+		intervalString = &intervalStringStr
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
@@ -4842,18 +4847,21 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var collateralString *string = nil
 	var marginMode *string = this.SafeString(position, "marginType")
 	if (marginMode == nil) && (isolatedMarginString != nil) {
-		marginMode = SafeStringPtr(func() string {
+		marginModeStr := func() string {
 			if Precise.StringEq(isolatedMarginString, "0") {
 				return "cross"
 			}
 			return "isolated"
-		}())
+		}()
+		marginMode = &marginModeStr
 	}
 	var side *string = nil
 	if Precise.StringGt(notionalString, "0") {
-		side = SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if Precise.StringLt(notionalString, "0") {
-		side = SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
 	var entryPrice *float64 = this.ParseNumber(entryPriceString)
@@ -4902,7 +4910,8 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		collateralString = this.SafeString(position, "isolatedMargin")
 	}
 	if collateralString == nil {
-		collateralString = SafeStringPtr("0")
+		collateralStringStr := "0"
+		collateralString = &collateralStringStr
 	}
 	var collateral *float64 = this.ParseNumber(collateralString)
 	var markPrice *float64 = this.ParseNumber(this.OmitZero(this.SafeString(position, "markPrice")))
@@ -5082,7 +5091,8 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if options == nil {
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {
-			defaultMethod = SafeStringPtr("positionRisk")
+			defaultMethodStr := "positionRisk"
+			defaultMethod = &defaultMethodStr
 		}
 	}
 	if defaultMethod != nil && *defaultMethod == "positionRisk" {
@@ -5181,7 +5191,8 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		}
 	}
 	// as oppose to notionalValue
-	var usdm bool = (func() bool { _, ok := position["notional"]; return ok }())
+	_, has1 := position["notional"]
+	var usdm bool = has1
 	var maintenanceMarginString *string = this.SafeString(position, "maintMargin")
 	var maintenanceMargin *float64 = this.ParseNumber(maintenanceMarginString)
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
@@ -5246,12 +5257,13 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
 	} else {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if Precise.StringLt(notionalString, "0") {
 				return "short"
 			}
 			return "long"
-		}())
+		}()
+		side = &sideStr
 		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
 		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))
 		if usdm {
@@ -5473,7 +5485,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 	return nil
 }
 func (this *Aster) KeccakMessage(message any) any {
-	return Add("0x", this.Hash(message, keccak, "hex"))
+	return "0x" + this.HashString(message, keccak, "hex")
 }
 func (this *Aster) SignMessage(message any, privateKey string) string {
 	return this.SignHash(this.KeccakMessage(message), privateKey[max(len(privateKey)-64, 0):])
@@ -5670,9 +5682,11 @@ func (this *Aster) transferBody(ch chan AsyncResult[TransferEntry], code string,
 	var fromId string = ToUpper(this.ConvertTypeToAccount(fromAccount))
 	var toId string = ToUpper(this.ConvertTypeToAccount(toAccount))
 	if (fromId == "SPOT") && (toId == "FUTURE") {
-		typeVar = SafeStringPtr("SPOT_FUTURE")
+		typeVarStr := "SPOT_FUTURE"
+		typeVar = &typeVarStr
 	} else if (fromId == "FUTURE") && (toId == "SPOT") {
-		typeVar = SafeStringPtr("FUTURE_SPOT")
+		typeVarStr2 := "FUTURE_SPOT"
+		typeVar = &typeVarStr2
 	}
 	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE"))
@@ -5719,7 +5733,7 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 	var x19 []byte = this.Base16ToBinary("19")
 	var newline []byte = this.Base16ToBinary("0a")
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
-	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
+	return "0x" + this.HashString(this.BinaryConcat(prefix, binaryMessage), keccak, "hex")
 }
 func (this *Aster) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
@@ -5753,7 +5767,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) map[string]any {
 		var zeroAddress *string = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId *int64 = this.SafeInteger(this.Options, "v3ChainId", 1666)
 		var walletAddress *string = this.SafeString(this.Options, "cachedWalletAddress")
-		var privateKeyHash any = this.Hash(this.Encode(this.PrivateKey), keccak, "hex")
+		var privateKeyHash string = this.HashString(this.Encode(this.PrivateKey), keccak, "hex")
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
 		if (walletAddress == nil) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
 			ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)

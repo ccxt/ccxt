@@ -217,7 +217,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 		"info":          ticker,
 	}))
 }
-func (this *Phemex) HandleTicker(client any, message any) {
+func (this *Phemex) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "spot_market24h": {
@@ -294,13 +294,13 @@ func (this *Phemex) HandleTicker(client any, message any) {
 	//    }
 	//
 	var tickers []any = []any{}
-	if ccxt.InOp(message, "market24h") {
+	if _, ok := message["market24h"]; ok {
 		var ticker map[string]any = this.SafeDictMap(message, "market24h", map[string]any{})
 		tickers = append(tickers, this.ParseSwapTicker(ticker))
-	} else if ccxt.InOp(message, "spot_market24h") {
+	} else if _, ok := message["spot_market24h"]; ok {
 		var ticker map[string]any = this.SafeDictMap(message, "spot_market24h", map[string]any{})
 		tickers = append(tickers, ccxt.TickerToMap(this.ParseTicker(ticker)))
-	} else if ccxt.InOp(message, "data") {
+	} else if _, ok := message["data"]; ok {
 		var data []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(data); i++ {
 			tickers = append(tickers, this.ParsePerpetualTicker(data[i]))
@@ -411,11 +411,9 @@ func (this *Phemex) HandleBalance(typeVar string, client any, message any) {
 		var currency map[string]any = ccxt.SafeMapTyped(this.Currencies, code)
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account map[string]any = this.Account()
-		var used any
-		if derefPtr := this.SafeString(balance, "totalUsedBalanceRv"); derefPtr != nil {
-			used = *derefPtr
-		}
-		if ccxt.IsEqual(used, nil) {
+		var usedRv *string = this.SafeString(balance, "totalUsedBalanceRv")
+		var used any = usedRv
+		if usedRv == nil {
 			var usedEv *string = this.SafeString(balance, "totalUsedBalanceEv")
 			if usedEv == nil {
 				var lockedTradingBalanceEv *string = this.SafeString(balance, "lockedTradingBalanceEv")
@@ -424,11 +422,9 @@ func (this *Phemex) HandleBalance(typeVar string, client any, message any) {
 			}
 			used = this.FromEn(usedEv, scale)
 		}
-		var total any
-		if derefPtr := this.SafeString(balance, "accountBalanceRv"); derefPtr != nil {
-			total = *derefPtr
-		}
-		if ccxt.IsEqual(total, nil) {
+		var totalRv *string = this.SafeString(balance, "accountBalanceRv")
+		var total any = totalRv
+		if totalRv == nil {
 			var totalEv *string = this.SafeString2(balance, "accountBalanceEv", "balanceEv")
 			total = this.FromEn(totalEv, scale)
 		}
@@ -442,7 +438,7 @@ func (this *Phemex) HandleBalance(typeVar string, client any, message any) {
 	var messageHash string = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Phemex) HandleTrades(client any, message any) {
+func (this *Phemex) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "sequence": 1795484727,
@@ -489,7 +485,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Phemex) HandleOHLCV(client any, message any) {
+func (this *Phemex) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "kline": [
@@ -681,7 +677,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1045,7 +1041,7 @@ func (this *Phemex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Phemex) HandleUnSubscription(client any, message any) {
+func (this *Phemex) HandleUnSubscription(client any, message map[string]any) {
 	//
 	// phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
 	//
@@ -1088,7 +1084,7 @@ func (this *Phemex) CustomHandleDeltas(bookside any, deltas []any, optionalArgs 
 		this.CustomHandleDelta(bookside, ccxt.DerefScalar(deltas[i]), market)
 	}
 }
-func (this *Phemex) HandleOrderBook(client any, message any) {
+func (this *Phemex) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "book": {
@@ -1873,7 +1869,7 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, marketValue))
 }
-func (this *Phemex) HandleMessage(client any, message any) {
+func (this *Phemex) HandleMessage(client any, message map[string]any) {
 	// private spot update
 	// {
 	//     "orders": { closed: [ ], fills: [ ], open: [] },
@@ -1978,34 +1974,49 @@ func (this *Phemex) HandleMessage(client any, message any) {
 			return
 		}
 	}
-	if (ccxt.InOp(message, "result")) || (ccxt.InOp(message, "error")) {
+	_, has2 := message["result"]
+	_, has3 := message["error"]
+	if has2 || has3 {
 		this.HandleUnSubscription(client, message)
 		return
 	}
 	var methodName string = *this.SafeString(message, "method", "")
-	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (strings.Index(methodName, "perp_market24h_pack_p") >= 0) {
+	_, has4 := message["market24h"]
+	_, has5 := message["spot_market24h"]
+	_, has6 := message["trades"]
+	_, has7 := message["trades_p"]
+	_, has8 := message["kline"]
+	_, has9 := message["kline_p"]
+	_, has10 := message["book"]
+	_, has11 := message["orderbook_p"]
+	if has4 || has5 || (strings.Index(methodName, "perp_market24h_pack_p") >= 0) {
 		this.HandleTicker(client, message)
 		return
-	} else if (ccxt.InOp(message, "trades")) || (ccxt.InOp(message, "trades_p")) {
+	} else if has6 || has7 {
 		this.HandleTrades(client, message)
 		return
-	} else if (ccxt.InOp(message, "kline")) || (ccxt.InOp(message, "kline_p")) {
+	} else if has8 || has9 {
 		this.HandleOHLCV(client, message)
 		return
-	} else if (ccxt.InOp(message, "book")) || (ccxt.InOp(message, "orderbook_p")) {
+	} else if has10 || has11 {
 		this.HandleOrderBook(client, message)
 		return
 	}
-	if (ccxt.InOp(message, "orders")) || (ccxt.InOp(message, "orders_p")) {
+	_, has12 := message["orders"]
+	_, has13 := message["orders_p"]
+	if has12 || has13 {
 		var orders map[string]any = ccxt.SafeDict2Typed(message, "orders", "orders_p", map[string]any{})
 		this.HandleOrders(client, orders)
 	}
-	if (ccxt.InOp(message, "accounts")) || (ccxt.InOp(message, "accounts_p")) || (ccxt.InOp(message, "wallets")) {
+	_, has14 := message["accounts"]
+	_, has15 := message["accounts_p"]
+	_, has16 := message["wallets"]
+	if has14 || has15 || has16 {
 		var typeVar string = "spot"
-		if ccxt.InOp(message, "accounts") {
+		if _, ok := message["accounts"]; ok {
 			typeVar = "swap"
 		}
-		if ccxt.InOp(message, "accounts_p") {
+		if _, ok := message["accounts_p"]; ok {
 			typeVar = "perpetual"
 		}
 		var accounts any = this.SafeListN(message, []any{"accounts", "accounts_p", "wallets"}, []any{})

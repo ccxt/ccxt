@@ -810,7 +810,8 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	}
 	var response map[string]any = r1.Value
 	var id *string = this.SafeString(market, "id", "")
-	id = SafeStringPtr(strings.ToLower(*id))
+	idStr := strings.ToLower(*id)
+	id = &idStr
 	var prices map[string]any = SafeMapTyped(response, "prices")
 	//
 	//     {

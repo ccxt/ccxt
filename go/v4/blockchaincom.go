@@ -1380,10 +1380,12 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	var depositId *string = this.SafeString(transaction, "depositId")
 	var withdrawalId *string = this.SafeString(transaction, "withdrawalId")
 	if depositId != nil {
-		typeVar = SafeStringPtr("deposit")
+		typeVarStr := "deposit"
+		typeVar = &typeVarStr
 		id = depositId
 	} else if withdrawalId != nil {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr2 := "withdrawal"
+		typeVar = &typeVarStr2
 		id = withdrawalId
 	}
 	var feeCost *float64 = func() *float64 {

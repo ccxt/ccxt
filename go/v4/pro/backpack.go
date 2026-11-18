@@ -85,14 +85,14 @@ func (this *Backpack) PrepareWsStockParamsAsync(methodName string, params any) <
 func (this *Backpack) prepareWsStockParamsBody(ch chan ccxt.AsyncResult[any], methodName string, params any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var stockqueryVariable []any = this.HandleOptionBoolAndParamsNullable(params, methodName, "stock")
+	var stockPtr *bool = nil
+	stockPtr, query := this.HandleOptionBoolAndParamsNullable(params, methodName, "stock")
 	stock := func() any {
-		if p, _ := stockqueryVariable[0].(*bool); p != nil {
-			return *p
+		if stockPtr != nil {
+			return *stockPtr
 		}
 		return nil
 	}()
-	var query map[string]any = ccxt.MapTyped(stockqueryVariable[1])
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -199,12 +199,13 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		var isRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 		var source *string = explicitSource
 		if source == nil {
-			source = ccxt.SafeStringPtr(func() string {
+			sourceStr := func() string {
 				if isRfq && !(bidAsk == true) {
 					return "External"
 				}
 				return "Venue"
-			}())
+			}()
+			source = &sourceStr
 		}
 		var requestParams map[string]any = this.Extend(marketParams, map[string]any{
 			"stock":  marketStock,
@@ -1494,11 +1495,14 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var side *string = nil
 	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
-		takerOrMaker = ccxt.SafeStringPtr("taker")
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 		if isBuyerMaker != nil && *isBuyerMaker {
-			side = ccxt.SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else {
-			side = ccxt.SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	var price *string = this.SafeString(trade, "p")
@@ -1803,13 +1807,13 @@ func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
+func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
 	//
 	// {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
 	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
-	var cacheLength int = ccxt.GetArrayLength(cache)
+	var cacheLength int = len(cache)
 	if nonce == nil {
 		return cacheLength
 	}

@@ -1569,7 +1569,8 @@ func (this *Derive) HandleMessage(client any, message map[string]any) {
 				event = this.SafeString(parsedChannel, 1)
 				// {subaccount_id}.trades
 				if event != nil && *event == "trades" {
-					event = ccxt.SafeStringPtr("mytrades")
+					eventStr := "mytrades"
+					event = &eventStr
 				}
 			} else {
 				event = this.SafeString(parsedChannel, 0)

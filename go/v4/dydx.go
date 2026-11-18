@@ -1579,7 +1579,7 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	return nil
 }
 func (this *Dydx) HashMessage(message any) any {
-	return this.Hash(message, keccak, "hex")
+	return this.HashString(message, keccak, "hex")
 }
 func (this *Dydx) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
@@ -2422,9 +2422,11 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var direction *string = nil
 	if typeVar != nil {
 		if (typeVar != nil && *typeVar == "TRANSFER_IN") || (typeVar != nil && *typeVar == "DEPOSIT") {
-			direction = SafeStringPtr("in")
+			directionStr := "in"
+			direction = &directionStr
 		} else if (typeVar != nil && *typeVar == "TRANSFER_OUT") || (typeVar != nil && *typeVar == "WITHDRAWAL") {
-			direction = SafeStringPtr("out")
+			directionStr2 := "out"
+			direction = &directionStr2
 		}
 	}
 	var amount *string = this.SafeString(item, "size")

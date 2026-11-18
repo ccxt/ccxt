@@ -136,7 +136,7 @@ func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 			panic(r.Err)
 		}
 	}
-	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
+	requestoperationTypeVariable := this.CreateOrderRequest(&symbol, typeVar, &side, amount, price, params)
 	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	operationType := requestoperationTypeVariable[1]
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -977,9 +977,7 @@ func (this *Pacifica) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("watchMyTrades", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsOriginAndSingleAddressVariable[0])
-	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(userAddressparamsOriginAndSingleAddressVariable[1])
+	userAddress, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("watchMyTrades", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1059,9 +1057,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only"))
 	}
-	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("unWatchMyTrades", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsOriginAndSingleAddressVariable[0])
-	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(userAddressparamsOriginAndSingleAddressVariable[1])
+	userAddress, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("unWatchMyTrades", params)
 	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
@@ -1430,13 +1426,17 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var fee *string = this.SafeString(trade, "f")
 	var side *string = this.SafeString2(trade, "ts", "d")
 	if side != nil && *side == "open_long" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "close_long" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	} else if side != nil && *side == "open_short" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr3 := "sell"
+		side = &sideStr3
 	} else if side != nil && *side == "close_short" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr4 := "buy"
+		side = &sideStr4
 	}
 	var eventType *string = this.SafeString(trade, "te")
 	var takerOrMaker any = nil
@@ -1703,9 +1703,7 @@ func (this *Pacifica) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 			panic(r.Err)
 		}
 	}
-	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("watchOrders", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsOriginAndSingleAddressVariable[0])
-	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(userAddressparamsOriginAndSingleAddressVariable[1])
+	userAddress, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("watchOrders", params)
 	var market map[string]any = nil
 	var messageHash string = "order"
 	var symbolResolved *string = nil
@@ -1792,9 +1790,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	userAddressparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("unWatchOrders", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsOriginAndSingleAddressVariable[0])
-	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(userAddressparamsOriginAndSingleAddressVariable[1])
+	userAddress, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("unWatchOrders", params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"params": map[string]any{

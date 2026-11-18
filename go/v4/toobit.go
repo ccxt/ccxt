@@ -1523,12 +1523,13 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -1749,8 +1750,10 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	for i := 0; i < len(response); i++ {
 		var ticker any = GetValue(response, i)
 		var marketId *string = this.SafeString(ticker, "s")
-		if (marketId != nil) && (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
-			rows = append(rows, ticker)
+		if (marketId != nil) && (this.Markets_by_id != nil) {
+			if _, ok := this.Markets_by_id[*marketId]; ok {
+				rows = append(rows, ticker)
+			}
 		}
 	}
 
@@ -3035,7 +3038,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	for i := 0; i < len(responseList); i++ {
 		ordersList = append(ordersList, map[string]any{
-			"result": DerefScalar(responseList[i]),
+			"result": responseList[i],
 		})
 	}
 
@@ -4159,7 +4162,8 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var requestBody *string = nil
 		if isPost || isDelete {
-			requestBody = SafeStringPtr(privateBody)
+			requestBodyStr := privateBody
+			requestBody = &requestBodyStr
 		}
 		return map[string]any{
 			"url":     url,

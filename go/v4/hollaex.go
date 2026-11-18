@@ -1222,10 +1222,8 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	var paginate bool = false
 	var maxLimit int = 500
-	var paginateOptionparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOHLCV", "paginate", paginate)
-	paginateOption := paginateOptionparamsPaginateVariable[0]
-	var paramsPaginate map[string]any = MapTyped(paginateOptionparamsPaginateVariable[1])
-	if paginateOption.(*bool) != nil && *paginateOption.(*bool) {
+	paginateOption, paramsPaginate := this.HandleOptionBoolAndParamsNullable(params, "fetchOHLCV", "paginate", paginate)
+	if paginateOption != nil && *paginateOption {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
 		if r1.Err != nil {

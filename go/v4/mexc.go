@@ -2202,7 +2202,8 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		priceString = this.SafeString(trade, "p")
 		amountString = this.SafeString(trade, "v")
 		side = this.ParseOrderSide(this.SafeString(trade, "T"))
-		takerOrMaker = SafeStringPtr("taker")
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 	} else {
 		//
 		// spot: fetchTrades (for aggTrades)
@@ -2270,12 +2271,13 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 			}
 			var isTaker *bool = this.SafeBool2(trade, "isTaker", "taker", false)
-			takerOrMaker = SafeStringPtr(func() string {
+			takerOrMakerStr2 := func() string {
 				if isTaker != nil && *isTaker {
 					return "taker"
 				}
 				return "maker"
-			}())
+			}()
+			takerOrMaker = &takerOrMakerStr2
 		} else {
 			timestamp = this.SafeInteger2(trade, "time", "T")
 			amountString = this.SafeString2(trade, "qty", "q")
@@ -2284,29 +2286,33 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			var buyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 			if isMaker != nil {
-				takerOrMaker = SafeStringPtr(func() string {
+				takerOrMakerStr3 := func() string {
 					if isMaker != nil && *isMaker {
 						return "maker"
 					}
 					return "taker"
-				}())
+				}()
+				takerOrMaker = &takerOrMakerStr3
 			}
 			if isBuyer != nil {
-				side = SafeStringPtr(func() string {
+				sideStr := func() string {
 					if isBuyer != nil && *isBuyer {
 						return "buy"
 					}
 					return "sell"
-				}())
+				}()
+				side = &sideStr
 			}
 			if buyerMaker != nil {
-				side = SafeStringPtr(func() string {
+				sideStr2 := func() string {
 					if buyerMaker != nil && *buyerMaker {
 						return "sell"
 					}
 					return "buy"
-				}())
-				takerOrMaker = SafeStringPtr("taker")
+				}()
+				side = &sideStr2
+				takerOrMakerStr4 := "taker"
+				takerOrMaker = &takerOrMakerStr4
 			}
 			var feeAsset *string = this.SafeString(trade, "commissionAsset")
 			if feeAsset != nil {
@@ -3307,7 +3313,8 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	}
 	var volString *string = this.AmountToPrecision(symbol, amount)
 	if volString == nil {
-		volString = SafeStringPtr("0")
+		volStringStr := "0"
+		volString = &volStringStr
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
@@ -3318,7 +3325,8 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	if (orderType != 5) && (orderType != 6) {
 		var priceString *string = this.PriceToPrecision(symbol, price)
 		if priceString == nil {
-			priceString = SafeStringPtr("0")
+			priceStringStr := "0"
+			priceString = &priceStringStr
 		}
 		request["price"] = this.ParseNumber(priceString)
 	}
@@ -5853,7 +5861,8 @@ func (this *Mexc) ParseFundingRate(contract any, optionalArgs ...any) FundingRat
 	var interval *string = this.SafeString(contract, "collectCycle")
 	var intervalString *string = nil
 	if interval != nil {
-		intervalString = SafeStringPtr(*interval + "h")
+		intervalStringStr := *interval + "h"
+		intervalString = &intervalStringStr
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
@@ -7874,12 +7883,13 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[stri
 	_ = currency
 	var networkList []any = SafeListTyped(fee, "networkList")
 	var result map[string]any = this.DepositWithdrawFee(fee)
+	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
 		var networkEntry map[string]any = SafeMapTyped(networkList, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 		if networkCode != nil {
-			AddElementToObject(result["networks"], networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"withdraw": map[string]any{
 					"fee":        this.SafeNumber(networkEntry, "withdrawFee"),
 					"percentage": nil,
@@ -7888,9 +7898,10 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[stri
 					"fee":        nil,
 					"percentage": nil,
 				},
-			})
+			}
 		}
 	}
+	result["networks"] = networks
 	return this.AssignDefaultDepositWithdrawFees(result)
 }
 
@@ -7980,12 +7991,13 @@ func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 		} else if positionType != nil && *positionType == 2 {
 			shortLeverage = this.SafeInteger(entry, "leverage")
 		}
-		marginMode = SafeStringPtr(func() string {
+		marginModeStr := func() string {
 			if openType != nil && *openType == 1 {
 				return "isolated"
 			}
 			return "cross"
-		}())
+		}()
+		marginMode = &marginModeStr
 	}
 	return LeverageFromMap(map[string]any{
 		"info":          leverage,
@@ -8279,7 +8291,8 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			var payload string = ""
 			if method == "POST" {
 				payload = this.Json(paramsOmitted)
-				requestBody = SafeStringPtr(payload)
+				requestBodyStr := payload
+				requestBody = &requestBodyStr
 			} else {
 				var paramsSorted map[string]any = this.Keysort(paramsOmitted)
 				if len(paramsSorted) > 0 {

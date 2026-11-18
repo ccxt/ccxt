@@ -1791,7 +1791,8 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 			var rawTransactionTime *string = this.SafeString(parts, 1, "")
 			var transactionTime *string = rawTransactionTime
 			if len(*rawTransactionTime) < 8 {
-				transactionTime = SafeStringPtr("0" + *rawTransactionTime)
+				transactionTimeStr := "0" + *rawTransactionTime
+				transactionTime = &transactionTimeStr
 			}
 			var kstTimestamp *int64 = this.Parse8601(*transactionDate + " " + *transactionTime)
 			timestamp = kstTimestamp
@@ -1809,9 +1810,11 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var typeVar any = nil
 	var side *string = this.SafeStringLower2(trade, "ask_bid", "type")
 	if side != nil && *side == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	} else {
 		side = nil
 	}
@@ -2703,9 +2706,11 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var sideProperty *string = this.SafeString2(order, "type", "side")
 	var side *string = nil
 	if sideProperty != nil && *sideProperty == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if sideProperty != nil && *sideProperty == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString2(order, "order_status", "state"))
 	var price *string = this.SafeString2(order, "order_price", "price")
@@ -2713,9 +2718,11 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var progressCount *string = this.SafeString(order, "progress_count")
 	if (typeVar == nil) && (price != nil) && (progressCount == nil) {
 		if Precise.StringEquals(price, "0") {
-			typeVar = SafeStringPtr("market")
+			typeVarStr := "market"
+			typeVar = &typeVarStr
 		} else {
-			typeVar = SafeStringPtr("limit")
+			typeVarStr2 := "limit"
+			typeVar = &typeVarStr2
 		}
 	}
 	var amount any = this.FixCommaNumber(this.SafeStringN(order, []any{"order_qty", "units", "volume"}))
@@ -2733,7 +2740,8 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base != nil) && (quote != nil) {
-		symbol = SafeStringPtr(*base + "/" + *quote)
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any
@@ -2763,7 +2771,8 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var postOnly any = nil
 	var timeInForce *string = this.SafeStringUpper(order, "time_in_force")
 	if timeInForce != nil && *timeInForce == "POST_ONLY" {
-		timeInForce = SafeStringPtr("PO")
+		timeInForceStr := "PO"
+		timeInForce = &timeInForceStr
 		postOnly = true
 	}
 	return this.SafeOrder(map[string]any{
@@ -3150,12 +3159,12 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-	var paramsOmitted any = this.Omit(paramsGeneration, "twap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "twap")
 	var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
 	var useClientOrderId bool = !(twap != nil && *twap) && (generation == 2) && (clientOrderId != nil)
-	var paramsRequest any = paramsOmitted
+	var paramsRequest map[string]any = paramsOmitted
 	if useClientOrderId {
-		paramsRequest = this.Omit(paramsOmitted, []any{"clientOrderId"})
+		paramsRequest = this.OmitDict(paramsOmitted, []any{"clientOrderId"})
 	}
 	if twap != nil && *twap {
 		request["algo_order_id"] = id
@@ -3191,7 +3200,8 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		if (base == nil) || (quote == nil) {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a market with defined base and quote"))
 		}
-		var side_in_params bool = (InOp(paramsRequest, "side"))
+		_, has1 := paramsRequest["side"]
+		var side_in_params bool = has1
 		if !side_in_params {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a `side` parameter (sell or buy)"))
 		}
@@ -3201,7 +3211,7 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		} else {
 			side = "ask"
 		}
-		var paramsSide any = this.Omit(paramsRequest, "side")
+		var paramsSide map[string]any = this.OmitDict(paramsRequest, "side")
 		// https://github.com/ccxt/ccxt/issues/6771
 		request["type"] = side
 		request["order_currency"] = base
@@ -4140,7 +4150,8 @@ func (this *Bithumb) FixCommaNumber(numberStr *string) any {
 	}
 	var finalNumberStr *string = numberStr
 	for strings.Index(*finalNumberStr, ",") > -1 {
-		finalNumberStr = SafeStringPtr(strings.Replace(*finalNumberStr, ",", "", 1))
+		finalNumberStrStr := strings.Replace(*finalNumberStr, ",", "", 1)
+		finalNumberStr = &finalNumberStrStr
 	}
 	return finalNumberStr
 }
@@ -4243,7 +4254,8 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}, query))
 			// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
 			var bodyParts []string = strings.Split(encodedBody, "%20")
-			requestBody = SafeStringPtr(strings.Join(bodyParts, "+"))
+			requestBodyStr := strings.Join(bodyParts, "+")
+			requestBody = &requestBodyStr
 			var nonce *string = this.NumberToString(this.Nonce())
 			var authPayload string = endpoint + "//" + "0" + *requestBody + "//" + "0" + *nonce // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(authPayload), this.Encode(this.Secret), sha512)

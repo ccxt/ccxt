@@ -833,9 +833,11 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if side == nil {
 		var isBuyer *bool = this.SafeBool(trade, "isBuyer", false)
 		if isBuyer != nil && *isBuyer {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 	}
 	var amount *string = this.SafeString(trade, "amount")
@@ -856,9 +858,11 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isTaker != nil {
 		if isTaker != nil && *isTaker {
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr := "taker"
+			takerOrMaker = &takerOrMakerStr
 		} else {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr2 := "maker"
+			takerOrMaker = &takerOrMakerStr2
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -1324,7 +1328,8 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) Order {
 	if side == nil {
 		panic(ExchangeError(this.Id + " parseOrder() returned no side"))
 	}
-	side = SafeStringPtr(strings.ToLower(*side))
+	sideStr := strings.ToLower(*side)
+	side = &sideStr
 	var amount *string = this.SafeString2(order, "amount", "originalAmount")
 	var price *string = this.SafeString(order, "price")
 	var marketId *string = this.SafeString(order, "pair")
@@ -2501,7 +2506,8 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) map[string]any {
 	var signedBody string = this.Json(params)
 	var requestBody *string = nil
 	if isSignedBody {
-		requestBody = SafeStringPtr(signedBody)
+		requestBodyStr := signedBody
+		requestBody = &requestBodyStr
 	}
 	requestHeaders["X-BITOPRO-API"] = "ccxt"
 	if apiName == "private" {

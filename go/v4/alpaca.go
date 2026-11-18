@@ -757,7 +757,8 @@ func (this *Alpaca) ParseMarket(asset any) map[string]any {
 	// Us equity markets do not include quote in symbol.
 	// We can safely coerce us_equity quote to USD
 	if (quote == nil) && (assetClass != nil && *assetClass == "us_equity") {
-		quote = SafeStringPtr("USD")
+		quoteStr := "USD"
+		quote = &quoteStr
 	}
 	if (base == nil) || (quote == nil) {
 		return nil
@@ -2010,12 +2011,12 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Alpaca) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Alpaca) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2035,7 +2036,7 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		"order_id": id,
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
+	if true {
 		market = this.Market(symbol)
 	}
 	if amount != nil {
@@ -2128,7 +2129,8 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) Order {
 	if orderType != nil {
 		if strings.Index(*orderType, "limit") >= 0 {
 			// might be limit or stop-limit
-			orderType = SafeStringPtr("limit")
+			orderTypeStr := "limit"
+			orderType = &orderTypeStr
 		}
 	}
 	var datetime *string = this.SafeString(order, "submitted_at")
@@ -2319,9 +2321,11 @@ func (this *Alpaca) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var alpacaSide *string = this.SafeString(trade, "tks")
 	var side *string = this.SafeString(trade, "side")
 	if alpacaSide != nil && *alpacaSide == "B" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if alpacaSide != nil && *alpacaSide == "S" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "s", "qty")
@@ -2516,11 +2520,11 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 			"activity_types": "CSD,CSW,TRANS",
 		}
 
-		r1 := <-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		activitiesRecv := <-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params))
+		if activitiesRecv.Err != nil {
+			panic(activitiesRecv.Err)
 		}
-		activities := r1.Raw
+		var activities []any = activitiesRecv.Value
 		//
 		//     [
 		//         {
@@ -2534,7 +2538,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		//
 		var filtered []any = []any{}
 		var ledger []any = []any{}
-		if IsArray(activities) {
+		if activities != nil {
 			ledger = ArrayTyped(activities)
 		}
 		for i := 0; i < len(ledger); i++ {
@@ -2555,11 +2559,11 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		return nil
 	}
 
-	r2 := <-this.TraderPrivateGetV2WalletsTransfers(params)
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseRecv := <-this.TraderPrivateGetV2WalletsTransfers(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r2.Raw
+	var response []any = responseRecv.Value
 	//
 	//     {
 	//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2579,7 +2583,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 	//
 	var results []any = []any{}
 	var transfers []any = []any{}
-	if IsArray(response) {
+	if response != nil {
 		transfers = ArrayTyped(response)
 	}
 	for i := 0; i < len(transfers); i++ {
@@ -2771,12 +2775,13 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		var date string = *this.SafeString(transaction, "date", "")
 		timestamp = this.Parse8601(date + "T00:00:00Z")
 		datetime = this.Iso8601(timestamp)
-		typeVar = SafeStringPtr(func() string {
+		typeVarStr := func() string {
 			if isIncoming {
 				return "deposit"
 			}
 			return "withdrawal"
-		}())
+		}()
+		typeVar = &typeVarStr
 		amount = this.ParseNumber(Precise.StringAbs(netAmount))
 		// cash ledger rows carry no per-entry asset field and are USD, while crypto
 		// TRANS entries may carry symbol/asset - never blindly adopt the caller's

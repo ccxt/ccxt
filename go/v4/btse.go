@@ -1189,15 +1189,18 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	var paramsPeriod map[string]any = nil
 	period, paramsPeriod = this.HandleOptionStringAndParams(params, "fetchFundingRateHistory", "period")
 	if period == nil {
-		period = SafeStringPtr("7D")
+		periodStr := "7D"
+		period = &periodStr
 		if since != nil {
 			var now int64 = this.Milliseconds()
 			var twoWeeksAgo int64 = now - 1209600000 // 14 days in ms
 			var oneWeekAgo int64 = now - 604800000   // 7 days in ms
 			if *since < twoWeeksAgo {
-				period = SafeStringPtr("1M")
+				periodStr2 := "1M"
+				period = &periodStr2
 			} else if *since < oneWeekAgo {
-				period = SafeStringPtr("2W")
+				periodStr3 := "2W"
+				period = &periodStr3
 			}
 		}
 	}
@@ -1945,7 +1948,8 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) FundingRat
 	// hour rounds to the same string, and the vocabulary has no minutes
 	if (fundingIntervalMinutes != nil) && (*fundingIntervalMinutes >= 60) {
 		var hours int64 = this.ParseToInt(float64(*fundingIntervalMinutes) / 60)
-		interval = SafeStringPtr(strconv.FormatInt(hours, 10) + "h")
+		intervalStr := strconv.FormatInt(hours, 10) + "h"
+		interval = &intervalStr
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
@@ -3045,12 +3049,12 @@ func (this *Btse) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, opti
  * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btse) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Btse) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3495,7 +3499,8 @@ func (this *Btse) ParseOrder(order any, optionalArgs ...any) Order {
 		// market orders never rest on the book, the exchange reports the
 		// partially filled code on them when a residual quote dust amount
 		// cannot fill, observed live, such orders are finished
-		status = SafeStringPtr("closed")
+		statusStr := "closed"
+		status = &statusStr
 	}
 	var rawTimeInForce *string = this.SafeString2(order, "time_in_force", "timeInForce")
 	return this.SafeOrder(map[string]any{
@@ -4968,7 +4973,8 @@ func (this *Btse) Sign(path string, optionalArgs ...any) map[string]any {
 		if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
 			bodyString = ""
 		} else {
-			requestBody = SafeStringPtr(bodyString)
+			requestBodyStr := bodyString
+			requestBody = &requestBodyStr
 		}
 		// the signed urlpath is the path relative to the base url of the product, the
 		// spot and futures apis of every generation mount under /spot and /futures and

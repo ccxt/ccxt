@@ -705,19 +705,15 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < len(symbols); i++ {
 			var s *string = SafeStringPtr(symbols[i])
-			if func() bool {
-				if s == nil {
-					return false
+			if s != nil {
+				if _, ok := result[*s]; ok {
+					AddElementToObject(filtered, s, func() any {
+						if s == nil {
+							return nil
+						}
+						return result[*s]
+					}())
 				}
-				_, ok := result[*s]
-				return ok
-			}() {
-				AddElementToObject(filtered, s, func() any {
-					if s == nil {
-						return nil
-					}
-					return result[*s]
-				}())
 			}
 		}
 
@@ -2021,12 +2017,12 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
  * @param {string[]} [params.executionInstructions] e.g. ['post_only']
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Revolutx) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id

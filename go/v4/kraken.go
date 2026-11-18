@@ -1865,18 +1865,20 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if this.SafeString(trade, 3) != nil && *this.SafeString(trade, 3) == "s" {
 				return "sell"
 			}
 			return "buy"
-		}())
-		typeVar = SafeStringPtr(func() string {
+		}()
+		side = &sideStr
+		typeVarStr := func() string {
 			if this.SafeString(trade, 4) != nil && *this.SafeString(trade, 4) == "l" {
 				return "limit"
 			}
 			return "market"
-		}())
+		}()
+		typeVar = &typeVarStr
 		price = this.SafeString(trade, 0)
 		amount = this.SafeString(trade, 1)
 		var tradeLength int = GetArrayLength(trade)
@@ -1923,12 +1925,13 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
@@ -2582,10 +2585,11 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		} else {
 			descriptionType = Add(Add(part4, " "), part5) // eg. stop loss, take profit, trailing stop
 		}
-		if IsEqual(descriptionType, "stop loss") || IsEqual(descriptionType, "take profit") {
+		// split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+		if ((part4 != nil && *part4 == "stop") && (part5 != nil && *part5 == "loss")) || ((part4 != nil && *part4 == "take") && (part5 != nil && *part5 == "profit")) {
 			triggerPrice = this.SafeString(parts, 6)
 			price = this.SafeString(parts, 9)
-		} else if IsEqual(descriptionType, "limit") {
+		} else if part4 != nil && *part4 == "limit" {
 			price = this.SafeString(parts, 5)
 		}
 	}
@@ -2691,12 +2695,13 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	// for "space-delimited" orders we dont have market/limit suffixes, their format is
 	// eg: `stop loss > limit 123`, so we need to parse them manually
 	if this.InArray(typeParsed, []any{"stop loss", "take profit"}) {
-		typeParsed = SafeStringPtr(func() string {
+		typeParsedStr := func() string {
 			if price == nil {
 				return "market"
 			}
 			return "limit"
-		}())
+		}()
+		typeParsed = &typeParsedStr
 	}
 	var amendId *string = this.SafeString(orderOmitted, "amend_id")
 	if amendId != nil {
@@ -2905,12 +2910,12 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
  * @param {string} [params.clientOrderId] the orders client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kraken) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2944,7 +2949,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request["cl_ord_id"] = *clientOrderId
 		request = this.OmitDict(request, "txid")
 	}
-	var isMarket bool = (IsEqual(typeVar, "market"))
+	var isMarket bool = (typeVar == "market")
 	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0].(bool)
@@ -3966,7 +3971,8 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var isCancellationRequest bool = (statusProp != nil && *statusProp == "cancel-pending")
 	var isOnHoldWithdrawal bool = (statusProp != nil && *statusProp == "onhold")
 	if isOnHoldDeposit || isCancellationRequest || isOnHoldWithdrawal {
-		status = SafeStringPtr("pending")
+		statusStr := "pending"
+		status = &statusStr
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
@@ -4188,11 +4194,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322019 []any = r1.Value
-		if retRes322019 == nil {
+		var retRes322119 []any = r1.Value
+		if retRes322119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322119)}
 		}
 		return nil
 	}
@@ -4779,7 +4785,7 @@ func (this *Kraken) transferBody(ch chan AsyncResult[TransferEntry], code string
 		"asset":  currency["id"],
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
-		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
+		panic(BadRequest(this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."))
 	}
 
 	r1 := <-this.PrivatePostWalletTransfer(this.Extend(request, params))

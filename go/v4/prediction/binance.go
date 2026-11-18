@@ -279,7 +279,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 	var offset int = 0
 	for true {
 		var collectedLength int = len(collected)
-		var remaining int64 = maxTopicsResolved - int64(collectedLength)
+		var remaining int64 = this.ParseToInt(maxTopicsResolved - int64(collectedLength))
 		var reqLimit int64
 		if remaining < pageLimit {
 			reqLimit = remaining
@@ -528,7 +528,8 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 			// server-side equivalent and stays in params so the base
 			// applyEventFetchParams sorts it client-side instead
 			if sortBy != nil && *sortBy == "NEWEST" {
-				sortBy = ccxt.SafeStringPtr("CREATED_TIME")
+				sortByStr := "CREATED_TIME"
+				sortBy = &sortByStr
 			} else if sortBy != nil && *sortBy == "LIQUIDITY" {
 				sortBy = nil
 			}
@@ -1295,15 +1296,8 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[st
 		var marketId *string = this.SafeString(order, "marketId")
 		var outcome *string = this.SafeStringUpper(order, "outcome")
 		var market map[string]any = this.SafeMarket(marketId)
-		var outcomeName any
-		if derefPtr := this.SafeString(market, "market"); derefPtr != nil {
-			outcomeName = *derefPtr
-		}
-		if ccxt.IsEqual(outcomeName, nil) {
-			outcomeName = marketId
-		}
-		outcomeName = ccxt.Add(outcomeName, ccxt.Add(":", outcome))
-		outcomeObjResolved = this.SafeOutcome(outcomeName)
+		var marketName *string = this.SafeString(market, "market", marketId)
+		outcomeObjResolved = this.SafeOutcome(ccxt.Add(ccxt.Add(marketName, ":"), outcome))
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var timestamp *int64 = this.SafeInteger(order, "createTime")
@@ -1393,11 +1387,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes107119 []any = r.Value
-		if retRes107119 == nil {
+		var retRes106719 []any = r.Value
+		if retRes106719 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes107119)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes106719)}
 		}
 		return nil
 	}
@@ -1521,11 +1515,11 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes115419 []any = r.Value
-		if retRes115419 == nil {
+		var retRes115019 []any = r.Value
+		if retRes115019 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes115419)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes115019)}
 		}
 		return nil
 	}
@@ -1815,15 +1809,8 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 		var marketId *string = this.SafeString(position, "marketId")
 		var outcome *string = this.SafeStringUpper(position, "outcomeName")
 		var market map[string]any = this.SafeMarket(marketId)
-		var outcomeName any
-		if derefPtr := this.SafeString(market, "market"); derefPtr != nil {
-			outcomeName = *derefPtr
-		}
-		if ccxt.IsEqual(outcomeName, nil) {
-			outcomeName = marketId
-		}
-		outcomeName = ccxt.Add(outcomeName, ccxt.Add(":", outcome))
-		outcomeObjResolved = this.SafeOutcome(outcomeName)
+		var marketName *string = this.SafeString(market, "market", marketId)
+		outcomeObjResolved = this.SafeOutcome(ccxt.Add(ccxt.Add(marketName, ":"), outcome))
 	}
 	var timestamp *int64 = this.SafeInteger(position, "createdTime")
 	var totalCost *float64 = this.ParseNumber(this.SafeString(position, "totalCost"))
@@ -1901,11 +1888,11 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes142019 []any = r.Value
-		if retRes142019 == nil {
+		var retRes141219 []any = r.Value
+		if retRes141219 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes142019)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes141219)}
 		}
 		return nil
 	}
@@ -2039,15 +2026,8 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(trade, "marketId")
 		var outcome *string = this.SafeStringUpper(trade, "outcome")
 		var market map[string]any = this.SafeMarket(marketId)
-		var outcomeName any
-		if derefPtr := this.SafeString(market, "market"); derefPtr != nil {
-			outcomeName = *derefPtr
-		}
-		if ccxt.IsEqual(outcomeName, nil) {
-			outcomeName = marketId
-		}
-		outcomeName = ccxt.Add(outcomeName, ccxt.Add(":", outcome))
-		outcomeObjResolved = this.SafeOutcome(outcomeName)
+		var marketName *string = this.SafeString(market, "market", marketId)
+		outcomeObjResolved = this.SafeOutcome(ccxt.Add(ccxt.Add(marketName, ":"), outcome))
 	}
 	var timestamp *int64 = this.SafeInteger(trade, "createTime")
 	var filled *string = this.SafeString(trade, "filledShareQty")
@@ -2307,7 +2287,8 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 			// the amountIn represents USDT for buy order
 			var feeRateBps *string = this.SafeString(params, "feeRateBps", "200")
 			if typeUpper == "LIMIT" {
-				feeRateBps = ccxt.SafeStringPtr("0")
+				feeRateBpsStr := "0"
+				feeRateBps = &feeRateBpsStr
 			} else {
 				if price == nil {
 					panic(ccxt.ArgumentsRequired(this.Id + " createOrder requires price for " + side + " order"))
@@ -2606,7 +2587,8 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	if (method == "GET") || (method == "DELETE") {
 		url = url + "?" + querystring
 	} else {
-		bodyValue = ccxt.SafeStringPtr(querystring)
+		bodyValueStr := querystring
+		bodyValue = &bodyValueStr
 		headersValue["Content-Type"] = "application/x-www-form-urlencoded"
 	}
 	return map[string]any{

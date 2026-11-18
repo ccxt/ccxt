@@ -310,7 +310,7 @@ func (this *Weex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -786,13 +786,15 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var side *string = nil
 	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
-		side = ccxt.SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
-		takerOrMaker = ccxt.SafeStringPtr("taker") // a public trade is reported from the aggressor's side, same as parseTrade
+		}()
+		side = &sideStr
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr // a public trade is reported from the aggressor's side, same as parseTrade
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1467,7 +1469,7 @@ func (this *Weex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}

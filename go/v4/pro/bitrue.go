@@ -418,7 +418,8 @@ func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		var quoteIdLower string = *this.SafeStringLower(market, "quoteId", "")
 		var wsId string = "e_" + baseIdLower + quoteIdLower
 		channel = "market_" + wsId + "_depth_step0"
-		cbId = ccxt.SafeStringPtr(wsId)
+		cbIdStr := wsId
+		cbId = &cbIdStr
 		url = wsUrls["futurePublic"]
 	} else {
 		var marketIdLowercase *string = this.SafeStringLower(market, "id", "")

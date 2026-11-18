@@ -1318,7 +1318,8 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}()
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, params)
-	var hasEnd bool = (func() bool { _, ok := request["end_at"]; return ok }())
+	_, has1 := request["end_at"]
+	var hasEnd bool = has1
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, []any{"price"})
 	// exchange has undocumented limit slightly above, but 1000 is reliable limit
 	var limitResolved int64
@@ -1693,7 +1694,8 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) Funding
 	// zero hours is not an interval, and a caller annualising a rate divides by it
 	var interval *string = nil
 	if (hours != nil) && Precise.StringGt(hours, "0") {
-		interval = SafeStringPtr(*hours + "h")
+		intervalStr := *hours + "h"
+		interval = &intervalStr
 	}
 	return FundingRateFromMap(map[string]any{
 		"info": contract,
@@ -2052,8 +2054,8 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) OpenIn
 	}, marketResolved)
 }
 func (this *Paradex) HashMessage(message any) any {
-	var hashed any = this.Hash(message, keccak, "hex")
-	return Add("0x", hashed)
+	var hashed string = this.HashString(message, keccak, "hex")
+	return "0x" + hashed
 }
 func (this *Paradex) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
@@ -2362,9 +2364,11 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString(order, "status")
 	if cancelReason != nil {
 		if (cancelReason != nil && *cancelReason == "NOT_ENOUGH_MARGIN") || (cancelReason != nil && *cancelReason == "ORDER_EXCEEDS_POSITION_LIMIT") {
-			status = SafeStringPtr("rejected")
+			statusStr := "rejected"
+			status = &statusStr
 		} else {
-			status = SafeStringPtr("canceled")
+			statusStr2 := "canceled"
+			status = &statusStr2
 		}
 	}
 	var side *string = this.SafeStringLower(order, "side")
@@ -2473,21 +2477,22 @@ func (this *Paradex) EncodeTimeInForce(timeInForce string) *string {
 	}
 	return instruction
 }
-func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Paradex) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType string = ToUpper(typeVar)
-	var orderSide string = ToUpper(side)
+	var reduceOnlyParam *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
+	var reduceOnly bool = (reduceOnlyParam != nil && *reduceOnlyParam == true)
+	var orderType string = strings.ToUpper(*typeVar)
+	var orderSide string = strings.ToUpper(*side)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"side":   orderSide,
@@ -2528,7 +2533,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["client_id"] = clientOrderId
 	}
 	var recvWindowparamsRecvWindowVariable []any = this.HandleOptionAndParams2(params, "createOrder", "recvWindow", "recv_window")
-	recvWindow := GetValue(recvWindowparamsRecvWindowVariable, 0)
+	recvWindow := recvWindowparamsRecvWindowVariable[0]
 	var paramsRecvWindow map[string]any = MapTyped(recvWindowparamsRecvWindowVariable[1])
 	if recvWindow != nil {
 		request["recv_window"] = this.ParseToInt(recvWindow)
@@ -2579,7 +2584,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["trigger_price"] = stopPrice
 	}
 	request["size"] = sizeString
-	if IsEqual(reduceOnly, true) {
+	if reduceOnly == true {
 		request["flags"] = []any{"REDUCE_ONLY"}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsRecvWindow, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
@@ -2729,7 +2734,7 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 
 	r2 := <-this.SignOrderRequestAsync(request)
 	if r2.Err != nil {
@@ -2798,12 +2803,12 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {float} [params.takeProfitPrice] the price a take profit order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Paradex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Paradex) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2815,7 +2820,7 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
-	var isMarket bool = (!IsEqual(typeVar, nil)) && (ToUpper(typeVar) == "MARKET")
+	var isMarket bool = (true) && (strings.ToUpper(typeVar) == "MARKET")
 	if (price == nil) && !isMarket {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument for limit orders"))
 	}
@@ -2832,7 +2837,7 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	request = this.Omit(request, []any{"instruction", "client_id", "flags", "recv_window"})
 	AddElementToObject(request, "order_id", id)
 	AddElementToObject(request, "id", id)
@@ -3148,11 +3153,14 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 		var status *string = this.SafeString(result, "status")
 		var orderStatus *string = nil
 		if status != nil && *status == "QUEUED_FOR_CANCELLATION" {
-			orderStatus = SafeStringPtr("canceled")
+			orderStatusStr := "canceled"
+			orderStatus = &orderStatusStr
 		} else if status != nil && *status == "ALREADY_CLOSED" {
-			orderStatus = SafeStringPtr("closed")
+			orderStatusStr2 := "closed"
+			orderStatus = &orderStatusStr2
 		} else if status != nil && *status == "NOT_FOUND" {
-			orderStatus = SafeStringPtr("rejected")
+			orderStatusStr3 := "rejected"
+			orderStatus = &orderStatusStr3
 		}
 		orders = append(orders, OrderToMap(this.SafeOrder(map[string]any{
 			"info":          result,
@@ -3360,11 +3368,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes235219 []any = r2.Value
-		if retRes235219 == nil {
+		var retRes235319 []any = r2.Value
+		if retRes235319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes235219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes235319)}
 		}
 		return nil
 	}
@@ -3640,11 +3648,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes253619 []any = r2.Value
-		if retRes253619 == nil {
+		var retRes253719 []any = r2.Value
+		if retRes253719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes253619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes253719)}
 		}
 		return nil
 	}
@@ -4272,11 +4280,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes296119 []any = r2.Value
-		if retRes296119 == nil {
+		var retRes296219 []any = r2.Value
+		if retRes296219 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes296119)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes296219)}
 		}
 		return nil
 	}
@@ -4354,11 +4362,15 @@ func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var fromAccount *string = nil
 	var toAccount *string = nil
 	if kind != nil && *kind == "DEPOSIT" {
-		fromAccount = SafeStringPtr("external")
-		toAccount = SafeStringPtr("account")
+		fromAccountStr := "external"
+		fromAccount = &fromAccountStr
+		toAccountStr := "account"
+		toAccount = &toAccountStr
 	} else if kind != nil && *kind == "WITHDRAWAL" {
-		fromAccount = SafeStringPtr("account")
-		toAccount = SafeStringPtr("external")
+		fromAccountStr2 := "account"
+		fromAccount = &fromAccountStr2
+		toAccountStr2 := "external"
+		toAccount = &toAccountStr2
 	}
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
@@ -4400,12 +4412,13 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
 	var updated *int64 = this.SafeInteger(transaction, "last_updated_at")
 	var typeVar *string = this.SafeString(transaction, "kind")
-	typeVar = SafeStringPtr(func() string {
+	typeVarStr := func() string {
 		if typeVar != nil && *typeVar == "DEPOSIT" {
 			return "deposit"
 		}
 		return "withdrawal"
-	}())
+	}()
+	typeVar = &typeVarStr
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	return TransactionFromMap(map[string]any{
@@ -4560,7 +4573,7 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	}
 	var market map[string]any = this.Market(symbol)
 	var leverageOptionparamsLeverageVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "leverage")
-	leverageOption := GetValue(leverageOptionparamsLeverageVariable, 0)
+	leverageOption := leverageOptionparamsLeverageVariable[0]
 	var paramsLeverage map[string]any = MapTyped(leverageOptionparamsLeverageVariable[1])
 	var leverage any = leverageOption
 	if IsEqual(leverage, nil) {
@@ -4995,11 +5008,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes348519 []any = r2.Value
-		if retRes348519 == nil {
+		var retRes348619 []any = r2.Value
+		if retRes348619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes348519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes348619)}
 		}
 		return nil
 	}

@@ -1748,7 +1748,8 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var direction *string = this.SafeString(trade, "direction")
 		if orderType != nil {
 			if orderType != nil && *orderType == "0" {
-				typeVar = SafeStringPtr("limit")
+				typeVarStr := "limit"
+				typeVar = &typeVarStr
 			}
 		}
 		if tradeRole != nil && *tradeRole == "1" {
@@ -1760,16 +1761,20 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		if (side != nil && *side == "1") || (direction != nil && *direction == "1") {
 			// side = 'open long';
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if (side != nil && *side == "2") || (direction != nil && *direction == "2") {
 			// side = 'open short';
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		} else if (side != nil && *side == "3") || (direction != nil && *direction == "3") {
 			// side = 'close long';
-			side = SafeStringPtr("sell")
+			sideStr3 := "sell"
+			side = &sideStr3
 		} else if (side != nil && *side == "4") || (direction != nil && *direction == "4") {
 			// side = 'close short';
-			side = SafeStringPtr("buy")
+			sideStr4 := "buy"
+			side = &sideStr4
 		}
 	} else {
 		if side == nil {
@@ -1779,7 +1784,8 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		side = this.SafeString(parts, 0)
 		typeVar = this.SafeString(parts, 1)
 		if typeVar == nil {
-			typeVar = SafeStringPtr("limit")
+			typeVarStr2 := "limit"
+			typeVar = &typeVarStr2
 		}
 		var isMaker *bool = this.SafeBool(trade, "is_maker", false)
 		takerOrMaker = func() string {
@@ -3058,11 +3064,14 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) Order {
 		var orderType *int64 = this.SafeInteger(order, "order_type")
 		if orderType != nil {
 			if (orderType != nil && *orderType == 9) || (orderType != nil && *orderType == 10) || (orderType != nil && *orderType == 11) || (orderType != nil && *orderType == 12) || (orderType != nil && *orderType == 15) {
-				timeInForce = SafeStringPtr("FOK")
+				timeInForceStr := "FOK"
+				timeInForce = &timeInForceStr
 			} else if (orderType != nil && *orderType == 1) || (orderType != nil && *orderType == 2) || (orderType != nil && *orderType == 3) || (orderType != nil && *orderType == 4) || (orderType != nil && *orderType == 13) {
-				timeInForce = SafeStringPtr("IOC")
+				timeInForceStr2 := "IOC"
+				timeInForce = &timeInForceStr2
 			} else if (orderType != nil && *orderType == 6) || (orderType != nil && *orderType == 7) || (orderType != nil && *orderType == 8) || (orderType != nil && *orderType == 14) {
-				timeInForce = SafeStringPtr("GTC")
+				timeInForceStr3 := "GTC"
+				timeInForce = &timeInForceStr3
 			}
 			if (orderType != nil && *orderType == 0) || (orderType != nil && *orderType == 1) || (orderType != nil && *orderType == 4) || (orderType != nil && *orderType == 5) || (orderType != nil && *orderType == 9) || (orderType != nil && *orderType == 10) {
 				typeVar = "limit"
@@ -3550,7 +3559,7 @@ func (this *Digifinex) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 		}
 		return this.SafeValue(data, 0)
 	}()
-	if IsEqual(order, nil) {
+	if order == nil {
 		panic(OrderNotFound(this.Id + " fetchOrder() order " + *idValue + " not found"))
 	}
 
@@ -4252,11 +4261,15 @@ func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) Transfer
 	var data any = this.SafeDict(transfer, "data", transfer)
 	var typeVar *int64 = this.SafeInteger(data, "type")
 	if typeVar != nil && *typeVar == 1 {
-		fromAccount = SafeStringPtr("spot")
-		toAccount = SafeStringPtr("swap")
+		fromAccountStr := "spot"
+		fromAccount = &fromAccountStr
+		toAccountStr := "swap"
+		toAccount = &toAccountStr
 	} else if typeVar != nil && *typeVar == 2 {
-		fromAccount = SafeStringPtr("swap")
-		toAccount = SafeStringPtr("spot")
+		fromAccountStr2 := "swap"
+		fromAccount = &fromAccountStr2
+		toAccountStr2 := "spot"
+		toAccount = &toAccountStr2
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	return TransferEntryFromMap(map[string]any{
@@ -5043,7 +5056,8 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchPositions", paramsMarketType)
 	if marginMode != nil {
-		marketType = SafeStringPtr("margin")
+		marketTypeStr := "margin"
+		marketType = &marketTypeStr
 	}
 	if market != nil {
 		var marketIdRequest string = "symbol"
@@ -5171,7 +5185,8 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol a
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchPosition", paramsMarketType)
 	if marginMode != nil {
-		marketType = SafeStringPtr("margin")
+		marketTypeStr := "margin"
+		marketType = &marketTypeStr
 	}
 	var marketIdRequest string = "symbol"
 	if marketType != nil && *marketType == "swap" {
@@ -5316,21 +5331,25 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var marginMode *string = this.SafeString(position, "margin_mode")
 	if marginMode != nil {
-		marginMode = SafeStringPtr(func() string {
+		marginModeStr := func() string {
 			if marginMode != nil && *marginMode == "crossed" {
 				return "cross"
 			}
 			return "isolated"
-		}())
+		}()
+		marginMode = &marginModeStr
 	} else {
-		marginMode = SafeStringPtr("cross")
+		marginModeStr2 := "cross"
+		marginMode = &marginModeStr2
 	}
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
 	var side *string = this.SafeString(position, "side")
 	if side != nil && *side == "go_long" {
-		side = SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if side != nil && *side == "go_short" {
-		side = SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	var positionMargin *string = this.SafeString(position, "margin")
 	var unrealizedPnl *string = this.SafeString(position, "unrealized_pnl")
@@ -5431,12 +5450,13 @@ func (this *Digifinex) setLeverageBody(ch chan AsyncResult[map[string]any], leve
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var marginMode *string = this.SafeStringLower2(params, "marginMode", "defaultMarginMode", defaultMarginMode)
 	if marginMode != nil {
-		marginMode = SafeStringPtr(func() string {
+		marginModeStr := func() string {
 			if marginMode != nil && *marginMode == "cross" {
 				return "crossed"
 			}
 			return "isolated"
-		}())
+		}()
+		marginMode = &marginModeStr
 		request["margin_mode"] = marginMode
 	}
 	var omitKeys []any = []any{}
@@ -6268,7 +6288,8 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) map[string]any {
 		var hasPostBody bool = (method == "POST") && (urlencoded != "")
 		var requestBody *string = nil
 		if hasPostBody {
-			requestBody = SafeStringPtr(urlencoded)
+			requestBodyStr := urlencoded
+			requestBody = &requestBodyStr
 		}
 		var privateHeaders map[string]any = map[string]any{
 			"ACCESS-KEY":       this.ApiKey,

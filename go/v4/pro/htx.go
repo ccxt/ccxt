@@ -903,8 +903,8 @@ func (this *Htx) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Htx) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Htx) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1262,7 +1262,8 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 		var marginMode string = *this.SafeString(paramsOmitted, "margin", "cross")
 		var marginPrefix *string = prefix
 		if marginMode == "cross" {
-			marginPrefix = ccxt.SafeStringPtr(*prefix + "_cross")
+			marginPrefixStr := *prefix + "_cross"
+			marginPrefix = &marginPrefixStr
 		}
 		messageHash = marginPrefix
 		if marketCode != nil {
@@ -1968,12 +1969,13 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var aggressor *bool = this.SafeBool(trade, "aggressor")
 	var takerOrMaker *string = nil
 	if aggressor != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if aggressor != nil && *aggressor {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2232,7 +2234,8 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
 		if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
-			marginMode = ccxt.SafeStringPtr(defaultMarginMode)
+			marginModeStr := defaultMarginMode
+			marginMode = &marginModeStr
 		}
 		var cache ccxt.WsArrayCache = this.PositionsByType[*marginMode]
 		if cache == nil {
@@ -3396,12 +3399,13 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var aggressor *bool = this.SafeBool(trade, "aggressor")
 	var takerOrMaker *string = nil
 	if aggressor != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if aggressor != nil && *aggressor {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	} else {
 		takerOrMaker = this.SafeStringLower(trade, "role")
 	}

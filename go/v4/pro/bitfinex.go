@@ -799,14 +799,16 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 			}
 			return strings.Index(*typeVar, "LIMIT")
 		}() > -1 {
-			typeVar = ccxt.SafeStringPtr("limit")
+			typeVarStr := "limit"
+			typeVar = &typeVarStr
 		} else if func() int {
 			if typeVar == nil {
 				return -1
 			}
 			return strings.Index(*typeVar, "MARKET")
 		}() > -1 {
-			typeVar = ccxt.SafeStringPtr("market")
+			typeVarStr2 := "market"
+			typeVar = &typeVarStr2
 		}
 	}
 	var orderId *string = nil
@@ -820,12 +822,13 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	var amount *float64 = this.ParseNumber(ccxt.Precise.StringAbs(amountString))
 	var side *string = nil
 	if amount != nil {
-		side = ccxt.SafeStringPtr(func() string {
+		sideStr := func() string {
 			if ccxt.Precise.StringGt(amountString, "0") {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	}
 	var symbol *string = this.SafeSymbol(marketId, marketResolved)
 	var feeValue *string = this.SafeString(trade, 9)
@@ -841,12 +844,13 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	var maker *int64 = this.SafeInteger(trade, 8)
 	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if maker != nil && *maker == int64(-1) {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1717,14 +1721,16 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		}
 		return strings.Index(*typeVar, "LIMIT")
 	}() > -1 {
-		typeVar = ccxt.SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	} else if func() int {
 		if typeVar == nil {
 			return -1
 		}
 		return strings.Index(*typeVar, "MARKET")
 	}() > -1 {
-		typeVar = ccxt.SafeStringPtr("market")
+		typeVarStr2 := "market"
+		typeVar = &typeVarStr2
 	}
 	var rawState string = *this.SafeString(order, 13, "")
 	var stateParts []string = strings.Split(rawState, " ")

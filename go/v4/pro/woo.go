@@ -473,8 +473,8 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 }
 func (this *Woo) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "asks", []any{}))
-	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "bids", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
@@ -485,8 +485,8 @@ func (this *Woo) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat2(delta, "quantity", 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Woo) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Woo) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1263,12 +1263,13 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var fee map[string]any = nil

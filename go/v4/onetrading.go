@@ -1192,7 +1192,7 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(DerefScalar(rawTickers[i])))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTickers[i]))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker

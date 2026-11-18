@@ -430,7 +430,7 @@ func (this *Cex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -550,7 +550,8 @@ func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[s
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = ccxt.SafeStringPtr(*base + "/" + *quote)
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var timestamp *int64 = this.SafeTimestamp(ticker, "timestamp")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -855,9 +856,11 @@ func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = ccxt.SafeStringPtr(*base + "/" + *quote)
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 		if side != nil && *side == "sell" {
-			symbol = ccxt.SafeStringPtr(*quote + "/" + *base)
+			symbolStr2 := *quote + "/" + *base
+			symbol = &symbolStr2
 		}
 	}
 	var amount *string = this.SafeString(trade, "amount")
@@ -1343,8 +1346,8 @@ func (this *Cex) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Cex) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Cex) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1460,7 +1463,7 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	}
 	var sorted []any = this.SortBy(data, 0)
 	for i := 0; i < len(sorted); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ccxt.DerefScalar(sorted[i]), market))
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(sorted[i], market))
 		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

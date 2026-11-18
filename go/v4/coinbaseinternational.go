@@ -1649,7 +1649,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 				panic(BadRequest(this.Id + " fetchOrderBook() limit must be between 1 and 10000"))
 			}
 			for i := 0; i < len(depths); i++ {
-				if *limit <= this.ParseToInt(DerefScalar(depths[i])) {
+				if *limit <= this.ParseToInt(depths[i]) {
 					request["depth"] = this.SafeInteger(depths, i, 0)
 					break
 				}
@@ -2344,9 +2344,11 @@ func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...a
 	var direction *string = this.SafeString(position, "direction")
 	var side *string = nil
 	if direction != nil && *direction == "buy" {
-		side = SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if direction != nil && *direction == "sell" {
-		side = SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	var initialMargin *string = this.SafeString(position, "initial_margin")
 	var maintenanceMargin *string = this.SafeString(position, "maintenance_margin")
@@ -3371,12 +3373,12 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan AsyncResult[[]Ord
  * @param {float} [params.triggerPrice] price to trigger stop orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseinternational) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbaseinternational) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)

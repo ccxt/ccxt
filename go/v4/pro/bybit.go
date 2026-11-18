@@ -323,7 +323,7 @@ func (this *Bybit) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbo
 			panic(r.Err)
 		}
 	}
-	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params, true)
+	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params, true)
 	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
@@ -395,7 +395,7 @@ func (this *Bybit) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 			panic(r.Err)
 		}
 	}
-	var orderRequest any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, params)
+	var orderRequest any = this.EditOrderRequest(&id, &symbol, &typeVar, &side, amount, price, params)
 	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
@@ -594,7 +594,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1577,8 +1577,8 @@ func (this *Bybit) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Bybit) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Bybit) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1878,12 +1878,13 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var takerOrMaker any = nil
 	var m any = this.SafeValue(trade, "m")
 	if side == nil {
-		side = ccxt.SafeStringPtr(func() string {
+		sideStr := func() string {
 			if m == true {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	} else {
 		// spot private
 		takerOrMaker = m
@@ -1984,7 +1985,8 @@ func (this *Bybit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	executionFast, paramsExecutionFast := this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	if executionFast {
-		topic = ccxt.SafeStringPtr("execution.fast")
+		topicStr := "execution.fast"
+		topic = &topicStr
 	}
 
 	r3 := <-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, paramsExecutionFast)
@@ -2057,7 +2059,8 @@ func (this *Bybit) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalA
 	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	executionFast, paramsExecutionFast := this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	if executionFast {
-		topic = ccxt.SafeStringPtr("execution.fast")
+		topicStr := "execution.fast"
+		topic = &topicStr
 	}
 
 	r3 := <-this.UnWatchTopicsAsync(url, "myTrades", []any{}, []any{messageHash}, []any{subHash}, []any{topic}, paramsExecutionFast)
@@ -2168,7 +2171,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 	// see https://github.com/ccxt/ccxt/issues/17244
 	// and https://github.com/ccxt/ccxt/issues/28181
 	var execTypeOption any = this.HandleOption("watchMyTrades", "execType")
-	if ccxt.IsEqual(execTypeOption, nil) {
+	if execTypeOption == nil {
 		execTypeOption = this.HandleOption("watchMyTrades", "filterExecTypes")
 	}
 	var execTypes any = nil
@@ -2187,9 +2190,10 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 			// filter unified trades
 			var execType *string = this.SafeString(rawTrade, "execType", "")
 			if executionFast {
-				execType = ccxt.SafeStringPtr("Trade")
+				execTypeStr := "Trade"
+				execType = &execTypeStr
 			}
-			if (!ccxt.IsEqual(execTypes, nil)) && !this.InArray(execType, execTypes) {
+			if (execTypes != nil) && !this.InArray(execType, execTypes) {
 				continue
 			}
 			parsed = ccxt.TradeToMap(this.ParseTrade(rawTrade))
@@ -2255,10 +2259,9 @@ func (this *Bybit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var messageHash string = ""
 	var symbolsNormalized any = symbols
 	if (symbols != nil) && !this.IsEmpty(symbols) {
-		symbolsNormalized = this.MarketSymbols(symbols)
-	}
-	if (!ccxt.IsEqual(symbolsNormalized, nil)) && !this.IsEmpty(symbolsNormalized) {
-		messageHash = "::" + ccxt.Join(symbolsNormalized, ",")
+		var marketSymbols []string = this.MarketSymbols(symbols)
+		symbolsNormalized = marketSymbols
+		messageHash = "::" + strings.Join(marketSymbols, ",")
 	}
 	var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 
@@ -2289,9 +2292,8 @@ func (this *Bybit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true))}
 		return nil
 	}
-	var topics []any = []any{"position"}
 
-	r4 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)
+	r4 := <-this.WatchTopicsAsync(url, []any{messageHash}, []any{"position"}, params)
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
@@ -2672,9 +2674,11 @@ func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs .
 	var positionSide *string = this.SafeStringLower2(liquidation, "side", "S")
 	var side *string = nil
 	if positionSide != nil && *positionSide == "buy" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if positionSide != nil && *positionSide == "sell" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,

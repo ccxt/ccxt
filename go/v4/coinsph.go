@@ -1700,22 +1700,24 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isBuyer *bool = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
 	var side *string = nil
 	if isBuyer != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	}
 	var isMaker *string = this.SafeString(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker == "true" {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var costString *string = nil
 	if orderId != nil {
@@ -2822,9 +2824,11 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var withdrawOrderId *string = this.SafeString(transaction, "withdrawOrderId")
 	var depositOrderId *string = this.SafeString(transaction, "depositOrderId")
 	if withdrawOrderId != nil {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	} else if depositOrderId != nil {
-		typeVar = SafeStringPtr("deposit")
+		typeVarStr2 := "deposit"
+		typeVar = &typeVarStr2
 	}
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")

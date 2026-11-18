@@ -118,7 +118,8 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 		var timestampString *string = this.NumberToString(timestamp)
 		var timestampEncoded *string = timestampString
 		if timestampString == nil {
-			timestampEncoded = ccxt.SafeStringPtr("")
+			timestampEncodedStr := ""
+			timestampEncoded = &timestampEncodedStr
 		}
 		var signature string = this.Hmac(this.Encode(timestampEncoded), this.Encode(this.Secret), ccxt.Sha256, "hex")
 		var request map[string]any = map[string]any{
@@ -300,7 +301,8 @@ func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any
 	var messageHashBase *string = this.SafeString(splitName, 0, "")
 	var messageHash *string = messageHashBase
 	if symbol != nil {
-		messageHash = ccxt.SafeStringPtr(*messageHashBase + "::" + *symbol)
+		messageHashStr := *messageHashBase + "::" + *symbol
+		messageHash = &messageHashStr
 	}
 	var requestId int64 = this.IncrementingNonce()
 	var subscribe map[string]any = map[string]any{
@@ -402,9 +404,11 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var speedValue string = *this.SafeString(params, "speed", "100") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"method", "defaultMethod", "depth", "speed"})
 	if name != nil && *name == "orderbook/{depth}/{speed}" {
-		name = ccxt.SafeStringPtr("orderbook/D" + depthValue + "/" + speedValue + "ms")
+		nameStr := "orderbook/D" + depthValue + "/" + speedValue + "ms"
+		name = &nameStr
 	} else if name != nil && *name == "orderbook/{depth}/{speed}/batch" {
-		name = ccxt.SafeStringPtr("orderbook/D" + depthValue + "/" + speedValue + "ms/batch")
+		nameStr2 := "orderbook/D" + depthValue + "/" + speedValue + "ms/batch"
+		name = &nameStr2
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -618,7 +622,7 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			var tickers map[string]any = map[string]any{}
 			var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 			if newTickersSymbol != nil {
-				ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+				tickers[*newTickersSymbol] = newTickers
 			}
 
 			ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -806,7 +810,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			var tickers map[string]any = map[string]any{}
 			var newTickersSymbol *string = this.SafeString(newTickers, "symbol")
 			if newTickersSymbol != nil {
-				ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
+				tickers[*newTickersSymbol] = newTickers
 			}
 
 			ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
@@ -2061,7 +2065,8 @@ func (this *Hitbtc) HandleMessage(client any, message map[string]any) {
 		if channel != nil && *channel == "orderbook" {
 			var channel2 *string = this.SafeString(splitChannel, 1)
 			if channel2 != nil && *channel2 == "top" {
-				channel = ccxt.SafeStringPtr("orderbook/top")
+				channelStr := "orderbook/top"
+				channel = &channelStr
 			}
 		}
 		var methods map[string]any = map[string]any{

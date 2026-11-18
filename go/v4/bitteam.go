@@ -1782,11 +1782,11 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 	}
 
-	r1 := <-this.PublicGetTradeApiCmcSummary()
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseRecv := <-this.PublicGetTradeApiCmcSummary()
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r1.Raw
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -1820,7 +1820,7 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//
 	var tickers []any = []any{}
 	var rawTickers []any = []any{}
-	if IsArray(response) {
+	if response != nil {
 		rawTickers = ArrayTyped(response)
 	}
 	for i := 0; i < len(rawTickers); i++ {
@@ -2519,9 +2519,11 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var order *string = nil
 	if takerOrMaker != nil && *takerOrMaker == "maker" {
 		if side != nil && *side == "sell" {
-			side = SafeStringPtr("buy")
+			sideStr := "buy"
+			side = &sideStr
 		} else if side != nil && *side == "buy" {
-			side = SafeStringPtr("sell")
+			sideStr2 := "sell"
+			side = &sideStr2
 		}
 		order = this.SafeString(trade, "makerOrderId")
 		feeInfo = this.SafeDictMap(trade, "feeMaker", map[string]any{})

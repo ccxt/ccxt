@@ -1398,12 +1398,13 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 		cost = this.SafeString(trade, costField)
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
-			takerOrMaker = SafeStringPtr(func() string {
+			takerOrMakerStr := func() string {
 				if liquidity != nil && *liquidity == "T" {
 					return "taker"
 				}
 				return "maker"
-			}())
+			}()
+			takerOrMaker = &takerOrMakerStr
 			feeRate = this.SafeString(marketResolved, takerOrMaker)
 		}
 	}
@@ -1854,7 +1855,8 @@ func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var doneReason *string = this.SafeString(order, "done_reason")
 	if (status != nil && *status == "closed") && (doneReason != nil && *doneReason == "canceled") {
-		status = SafeStringPtr("canceled")
+		statusStr := "canceled"
+		status = &statusStr
 	}
 	var price *string = this.SafeString(order, "price")
 	var filled *string = this.SafeString(order, "filled_size")
@@ -2957,7 +2959,8 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
 		"rate":     nil,
 	}
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 		address = this.SafeString(details, "sent_to_address", address)
 		var feeCost *float64 = this.SafeNumber(details, "fee")
 		if feeCost != nil {
@@ -3087,7 +3090,8 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) map[string]
 		if method != "GET" {
 			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				payload = this.Json(query)
-				requestBody = SafeStringPtr(payload)
+				requestBodyStr := payload
+				requestBody = &requestBodyStr
 			}
 		}
 		var what string = nonce + method + request + payload

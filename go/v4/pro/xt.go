@@ -229,7 +229,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 	ch <- ccxt.AsyncResult[*string]{Value: resolved1}
 	return nil
 }
-func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
+func (this *Xt) GetCacheIndex(orderbook any, cache []any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
@@ -237,14 +237,14 @@ func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 	if (nonce != nil) && (firstDeltaNonce != nil) && (*nonce < *firstDeltaNonce-1) {
 		return int64(-1)
 	}
-	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
+	for i := 0; i < len(cache); i++ {
 		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
 		var deltaNonce *int64 = this.SafeInteger2(delta, "i", "u")
 		if (deltaNonce != nil) && (nonce != nil) && (*deltaNonce >= *nonce) {
 			return i
 		}
 	}
-	return ccxt.GetArrayLength(cache)
+	return len(cache)
 }
 func (this *Xt) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger2(delta, "i", "u"))
@@ -2157,8 +2157,8 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)
 }
-func (this *Xt) HandleTextMessage(client any, message any) {
-	if ccxt.IsEqual(message, "pong") {
+func (this *Xt) HandleTextMessage(client any, message string) {
+	if message == "pong" {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
 }
@@ -2188,8 +2188,10 @@ func (this *Xt) HandleMessage(client any, message map[string]any) {
 			return this.SafeValue(methods, topic)
 		}()
 		if topic != nil && *topic == "trade" {
-			var data any = this.SafeDict(message, "data")
-			if (data != nil) && ((ccxt.InOp(data, "oi")) || (ccxt.InOp(data, "orderId"))) {
+			var data map[string]any = this.SafeDictMap(message, "data")
+			_, has1 := data["oi"]
+			_, has2 := data["orderId"]
+			if (data != nil) && (has1 || has2) {
 				method = this.HandleMyTrades
 			} else {
 				method = this.HandleTrade

@@ -257,15 +257,11 @@ func (this *Opinion) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 					flatMarkets = append(flatMarkets, childMarkets[ci])
 				}
 				var eventKey *string = this.SafeString(event, "event")
-				if (eventKey != nil) && (eventKey == nil || *eventKey != "") && !(func() bool {
-					if eventKey == nil {
-						return false
+				if (eventKey != nil) && (eventKey == nil || *eventKey != "") {
+					if _, ok := seenEvents[*eventKey]; !ok {
+						seenEvents[*eventKey] = true
+						eventsList = append(eventsList, event)
 					}
-					_, ok := seenEvents[*eventKey]
-					return ok
-				}()) {
-					seenEvents[*eventKey] = true
-					eventsList = append(eventsList, event)
 				}
 			} else {
 				flatMarkets = append(flatMarkets, this.ParseOpinionMarket(raw))
@@ -2193,7 +2189,7 @@ func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) 
 	})
 }
 func (this *Opinion) HashMessage(message any) any {
-	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
+	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
 func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)

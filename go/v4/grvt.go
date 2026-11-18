@@ -1069,7 +1069,8 @@ func (this *Grvt) ParseMarket(market any) map[string]any {
 	var typeVar *string = nil
 	var typeRaw *string = this.SafeString(market, "kind")
 	if typeRaw != nil && *typeRaw == "PERPETUAL" {
-		typeVar = SafeStringPtr("swap")
+		typeVarStr := "swap"
+		typeVar = &typeVarStr
 	}
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var isSwap bool = (typeVar != nil && *typeVar == "swap")
@@ -1468,9 +1469,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, params, 1000000)
 
 	r1 := <-this.PublicMarketPostFullV1TradeHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r1.Err != nil {
@@ -1675,9 +1674,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 
 	r2 := <-this.PublicMarketPostFullV1Kline(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r2.Err != nil {
@@ -1792,9 +1789,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 
 	r2 := <-this.PublicMarketPostFullV1Funding(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r2.Err != nil {
@@ -2015,9 +2010,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint {
 
@@ -2109,9 +2102,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, params, 1000000)
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint {
 
@@ -2393,9 +2384,7 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 
 	r3 := <-this.PrivateTradingPostFullV1TransferHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r3.Err != nil {
@@ -2811,23 +2800,25 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
-		clientOrderId = SafeStringPtr(strconv.FormatInt(this.Nonce(), 10) + "000" + strconv.FormatInt(this.RequestId(), 10))
+		clientOrderIdStr := strconv.FormatInt(this.Nonce(), 10) + "000" + strconv.FormatInt(this.RequestId(), 10)
+		clientOrderId = &clientOrderIdStr
 	}
 	var paramsOmitted3 map[string]any = this.OmitDict(params, []any{"clientOrderId"})
 	var isMarketOrder bool = (typeVar == "market")
 	var subAccountId string = this.GetSubAccountId(paramsOmitted3)
 	var isReduceOnly *bool = this.SafeBool(paramsOmitted3, "reduceOnly", false)
+	var orderMetadata map[string]any = map[string]any{
+		"client_order_id": clientOrderId,
+	}
 	var orderRequest map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
 		"time_in_force":  nil,
 		"legs":           []any{orderLeg},
 		"signature":      this.DefaultSignature(),
-		"metadata": map[string]any{
-			"client_order_id": clientOrderId,
-		},
-		"is_market":   isMarketOrder,
-		"post_only":   false,
-		"reduce_only": isReduceOnly,
+		"metadata":       orderMetadata,
+		"is_market":      isMarketOrder,
+		"post_only":      false,
+		"reduce_only":    isReduceOnly,
 	}
 	var timeInForce *string = this.SafeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOmitted3)
@@ -2835,7 +2826,8 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		orderRequest["post_only"] = true
 	}
 	if timeInForce == nil {
-		timeInForce = SafeStringPtr("GOOD_TILL_TIME")
+		timeInForceStr := "GOOD_TILL_TIME"
+		timeInForce = &timeInForceStr
 	} else {
 		var tifMap map[string]any = map[string]any{
 			"GTC": "GOOD_TILL_TIME",
@@ -2847,9 +2839,11 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	orderRequest["time_in_force"] = timeInForce
 	if !isMarketOrder {
 		if postOnly {
-			timeInForce = SafeStringPtr("POST_ONLY")
+			timeInForceStr2 := "POST_ONLY"
+			timeInForce = &timeInForceStr2
 		} else if timeInForce != nil && *timeInForce == "ioc" {
-			timeInForce = SafeStringPtr("IMMEDIATE_OR_CANCEL")
+			timeInForceStr3 := "IMMEDIATE_OR_CANCEL"
+			timeInForce = &timeInForceStr3
 		}
 	}
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted3, []any{"reduceOnly", "postOnly", "timeInForce"})
@@ -2874,19 +2868,21 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		var selectedType *string = nil
 		var isBuy bool = (side == "buy")
 		if stopLossPrice != nil {
-			selectedType = SafeStringPtr(func() string {
+			selectedTypeStr := func() string {
 				if isBuy {
 					return "STOP_LOSS"
 				}
 				return "TAKE_PROFIT"
-			}())
+			}()
+			selectedType = &selectedTypeStr
 		} else if takeProfitPrice != nil {
-			selectedType = SafeStringPtr(func() string {
+			selectedTypeStr2 := func() string {
 				if isBuy {
 					return "TAKE_PROFIT"
 				}
 				return "STOP_LOSS"
-			}())
+			}()
+			selectedType = &selectedTypeStr2
 		} else {
 			var triggerDirection *string = this.SafeString(paramsTriggerPrices, "triggerDirection")
 			if triggerDirection == nil {
@@ -2894,32 +2890,35 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			}
 			if triggerDirection != nil {
 				if triggerDirection != nil && *triggerDirection == "ascending" {
-					selectedType = SafeStringPtr(func() string {
+					selectedTypeStr3 := func() string {
 						if isBuy {
 							return "STOP_LOSS"
 						}
 						return "TAKE_PROFIT"
-					}())
+					}()
+					selectedType = &selectedTypeStr3
 				} else if triggerDirection != nil && *triggerDirection == "descending" {
-					selectedType = SafeStringPtr(func() string {
+					selectedTypeStr4 := func() string {
 						if isBuy {
 							return "TAKE_PROFIT"
 						}
 						return "STOP_LOSS"
-					}())
+					}()
+					selectedType = &selectedTypeStr4
 				}
 			}
 		}
 		// trigger by
 		var triggerPriceType *string = this.SafeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST")
-		AddElementToObject(orderRequest["metadata"], "trigger", map[string]any{
+		orderMetadata["trigger"] = map[string]any{
 			"trigger_type": selectedType,
 			"tpsl": map[string]any{
 				"trigger_by":     triggerPriceType,
 				"trigger_price":  selectedPrice,
 				"close_position": this.SafeBool(paramsTriggerPrices, "closePosition", false),
 			},
-		})
+		}
+		orderRequest["metadata"] = orderMetadata
 	}
 	var paramsTrigger any = paramsTriggerPrices
 	if isTriggerOrder {
@@ -3109,11 +3108,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes228319 []any = r1.Value
-		if retRes228319 == nil {
+		var retRes228519 []any = r1.Value
+		if retRes228519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228519)}
 		}
 		return nil
 	}
@@ -3132,9 +3131,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 
 	r2 := <-this.PrivateTradingPostFullV1FillHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r2.Err != nil {
@@ -3578,11 +3575,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262219 []any = r1.Value
-		if retRes262219 == nil {
+		var retRes262419 []any = r1.Value
+		if retRes262419 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes262219)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes262419)}
 		}
 		return nil
 	}
@@ -3601,9 +3598,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, paramsPaginate, 1000000)
 
 	r2 := <-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r2.Err != nil {
@@ -3707,9 +3702,7 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
 	}
-	requestUntilOptionStringparamsUntilOptionStringVariable := this.HandleUntilOptionString("end_time", request, params, 1000000)
-	var requestUntilOptionString map[string]any = MapTyped(requestUntilOptionStringparamsUntilOptionStringVariable[0])
-	var paramsUntilOptionString map[string]any = requestUntilOptionStringparamsUntilOptionStringVariable[1].(map[string]any)
+	requestUntilOptionString, paramsUntilOptionString := this.HandleUntilOptionString("end_time", request, params, 1000000)
 
 	r2 := <-this.PrivateTradingPostFullV1OrderHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))
 	if r2.Err != nil {
@@ -4115,12 +4108,13 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	if firstLeg != nil {
 		size = this.SafeString(firstLeg, "size")
 		var isBuyingAsset *bool = this.SafeBool(firstLeg, "is_buying_asset", false)
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuyingAsset != nil && *isBuyingAsset {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 		price = this.SafeString(firstLeg, "limit_price")
 		filled = this.SafeString(filledAmounts, primaryOrderIndex)
 		avgPrice = this.SafeString(avgPrices, primaryOrderIndex)
@@ -4384,7 +4378,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 		secretOrPrivkey = this.Secret
 	}
 	var privateKeyWithoutZero string = this.Remove0xPrefix(secretOrPrivkey)
-	var signature map[string]any = Ecdsa(this.Hash(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, nil)
+	var signature map[string]any = Ecdsa(this.HashString(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, nil)
 	request["signature"] = map[string]any{
 		"signer": func() any {
 			if signerAddress == nil {
@@ -4427,7 +4421,7 @@ func (this *Grvt) DefaultSignature() map[string]any {
 		}(),
 	}
 }
-func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) []any {
+func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var multiplier int64 = GetArgInt64(optionalArgs, 1, 1)
@@ -4435,9 +4429,9 @@ func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, op
 	var until *int64 = this.SafeInteger2(params, "until", "till")
 	if until != nil {
 		request[key] = this.NumberToString(this.ParseToInt(*until * multiplier))
-		return []any{request, this.Omit(params, []any{"until", "till"})}
+		return request, this.OmitDict(params, []any{"until", "till"})
 	}
-	return []any{request, params}
+	return request, params
 }
 func (this *Grvt) RequestId() int64 {
 	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
@@ -4476,7 +4470,8 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 		// an empty params dict must serialize as an empty json object, not an empty json array,
 		// php json_encode would produce [] here which the venue rejects with the same 1003 error
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) == 0 {
-			requestBody = SafeStringPtr("{}")
+			requestBodyStr := "{}"
+			requestBody = &requestBodyStr
 		} else {
 			jsonText := this.Json(params)
 			requestBody = &jsonText

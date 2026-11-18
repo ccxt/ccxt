@@ -579,14 +579,14 @@ func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
 	}
 }
-func (this *Onetrading) HandleBookDeltas(orderbook ccxt.OrderBookInterface, deltas any) {
+func (this *Onetrading) HandleBookDeltas(orderbook ccxt.OrderBookInterface, deltas []any) {
 	//
 	//    [
 	//       [ 'BUY', "0.053593", "0" ],
 	//       [ 'SELL', "0.053698", "0" ]
 	//    ]
 	//
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleBookDelta(orderbook, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1196,7 +1196,8 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 		var filled *string = this.SafeString(update, "filled_amount")
 		var status *string = this.ParseWsOrderStatus(updateType)
 		if (updateType != nil && *updateType == "ORDER_CLOSED") && ccxt.Precise.StringEq(filled, "0") {
-			status = ccxt.SafeStringPtr("canceled")
+			statusStr := "canceled"
+			status = &statusStr
 		}
 		var orderObject map[string]any = map[string]any{
 			"id":        orderId,

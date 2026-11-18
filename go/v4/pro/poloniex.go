@@ -1568,13 +1568,15 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))
 				}
 				ccxt.AddElementToObject(previousOrder, "cost", this.ParseNumber(totalCost))
-				if !ccxt.IsEqual(previousOrder["filled"], nil) {
+				var previousOrderFilledRaw *string = this.SafeString(previousOrder, "filled")
+				if previousOrderFilledRaw != nil {
 					var tradeAmount *string = this.NumberToString(trade["amount"])
-					var previousOrderFilled *string = this.NumberToString(ccxt.GetValue(previousOrder, "filled"))
+					var previousOrderFilled *string = this.NumberToString(previousOrder["filled"])
 					previousOrderFilled = ccxt.Precise.StringAdd(previousOrderFilled, tradeAmount)
 					ccxt.AddElementToObject(previousOrder, "filled", previousOrderFilled)
-					if !ccxt.IsEqual(previousOrder["amount"], nil) {
-						var previousOrderAmount *string = this.NumberToString(ccxt.GetValue(previousOrder, "amount"))
+					var previousOrderAmountRaw *string = this.SafeString(previousOrder, "amount")
+					if previousOrderAmountRaw != nil {
+						var previousOrderAmount *string = this.NumberToString(previousOrder["amount"])
 						ccxt.AddElementToObject(previousOrder, "remaining", this.ParseNumber(ccxt.Precise.StringSub(previousOrderAmount, previousOrderFilled)))
 					}
 				}

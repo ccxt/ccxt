@@ -723,9 +723,11 @@ func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) map[string]
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var side *string = this.SafeStringLower(trade, "side")
 	if side != nil && *side == "long" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "short" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "tid"),

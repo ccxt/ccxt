@@ -1196,15 +1196,19 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if side != nil {
 		if side == makerSide || (side != nil && makerSide != nil && *side == *makerSide) {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr := "maker"
+			takerOrMaker = &takerOrMakerStr
 		} else {
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr2 := "taker"
+			takerOrMaker = &takerOrMakerStr2
 		}
 	} else {
 		if makerSide != nil && *makerSide == "buy" {
-			side = SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	var amount *string = this.SafeString2(trade, "amount", "major")
@@ -1428,7 +1432,8 @@ func (this *Bitso) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-	var markerInParams bool = (func() bool { _, ok := params["marker"]; return ok }())
+	_, has1 := params["marker"]
+	var markerInParams bool = has1
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 	if (since != nil) && !markerInParams {
@@ -1771,7 +1776,8 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-	var markerInParams bool = (func() bool { _, ok := params["marker"]; return ok }())
+	_, has1 := params["marker"]
+	var markerInParams bool = has1
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 	if (since != nil) && !markerInParams {
@@ -2613,7 +2619,8 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) map[string]any {
 		if (method != "GET") && (method != "DELETE") {
 			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				var jsonBody string = this.Json(query)
-				requestBody = SafeStringPtr(jsonBody)
+				requestBodyStr := jsonBody
+				requestBody = &requestBodyStr
 				request += jsonBody
 			}
 		}

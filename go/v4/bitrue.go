@@ -2054,20 +2054,22 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var buyerMaker *bool = this.SafeBool(trade, "isBuyerMaker") // ignore "m" until Bitrue fixes api
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if buyerMaker != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if buyerMaker != nil && *buyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	}
 	if isBuyer != nil {
-		side = SafeStringPtr(func() string {
+		sideStr2 := func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
-		}()) // this is a true side
+		}()
+		side = &sideStr2 // this is a true side
 	}
 	var fee map[string]any = nil
 	if InOp(trade, "commission") {
@@ -2079,12 +2081,13 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2276,7 +2279,8 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) Order {
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "GTX") || (typeVar != nil && *typeVar == "post_only")
 	if typeVar != nil && *typeVar == "limit_maker" {
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	}
 	var triggerPrice *float64 = this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice")))
 	return this.SafeOrder(map[string]any{

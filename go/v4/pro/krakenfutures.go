@@ -343,7 +343,7 @@ func (this *Krakenfutures) watchTickersBody(ch chan ccxt.AsyncResult[map[string]
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -385,7 +385,7 @@ func (this *Krakenfutures) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -663,9 +663,11 @@ func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) ma
 	var balanceString *string = this.SafeString(position, "balance")
 	var side *string = nil
 	if ccxt.Precise.StringGt(balanceString, "0") {
-		side = ccxt.SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if ccxt.Precise.StringLt(balanceString, "0") {
-		side = ccxt.SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	return ccxt.PositionToMap(this.SafePosition(map[string]any{
 		"info":                        position,
@@ -1176,7 +1178,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			}
 			var previousFee map[string]any = this.SafeDictMap(previousOrder, "fee", map[string]any{})
 			if (!ccxt.IsEqual(previousFee["cost"], nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
-				var stringOrderCost *string = this.NumberToString(ccxt.GetValue(previousFee, "cost"))
+				var stringOrderCost *string = this.NumberToString(previousFee["cost"])
 				var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
 				ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 			}
@@ -1398,7 +1400,8 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) map[stri
 	if isCancelled != nil {
 		unparsedOrder = this.SafeDict(order, "order")
 		if isCancelled != nil && *isCancelled {
-			status = ccxt.SafeStringPtr("cancelled")
+			statusStr := "cancelled"
+			status = &statusStr
 		}
 	}
 	var marketId *string = this.SafeString(unparsedOrder, "instrument")

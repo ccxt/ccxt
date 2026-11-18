@@ -1202,23 +1202,26 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
 	var takerOrMaker *string = nil
 	if buyerMaker != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if buyerMaker != nil && *buyerMaker {
 				return "sell"
 			}
 			return "buy"
-		}()) // this is reversed intentionally
-		takerOrMaker = SafeStringPtr("taker")
+		}()
+		side = &sideStr // this is reversed intentionally
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 	} else if this.SafeString(trade, "side") != nil {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if this.SafeString(trade, "isBuyer") != nil {
-			side = SafeStringPtr(func() string {
+			sideStr2 := func() string {
 				if *this.SafeBool(trade, "isBuyer", false) {
 					return "buy"
 				}
 				return "sell"
-			}()) // this is a true side
+			}()
+			side = &sideStr2 // this is a true side
 		}
 	}
 	var fee map[string]any = nil
@@ -1229,20 +1232,22 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	if this.SafeString(trade, "isMaker") != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr2 := func() string {
 			if *this.SafeBool(trade, "isMaker", false) {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr2
 	}
 	if this.SafeString(trade, "maker") != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr3 := func() string {
 			if *this.SafeBool(trade, "maker", false) {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr3
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2065,9 +2070,11 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	var typeVar *string = this.ParseOrderType(rawOrderType)
 	var side *string = this.SafeStringLower(order, "side")
 	if side != nil && *side == "0" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "1" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var fills []any = SafeListTypedDefault(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clientId")
@@ -3120,13 +3127,14 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	}
 	var txid *string = this.SafeString(transaction, "txId")
 	if (txid != nil) && (strings.Index(*txid, "Internal transfer ") >= 0) {
-		txid = SafeStringPtr(func() string {
+		txidStr := func() string {
 			if txid == nil {
 				return ""
 			}
 			str := *txid
 			return str[18:]
-		}())
+		}()
+		txid = &txidStr
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -3136,10 +3144,12 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar == nil {
 		if (insertTime != nil) && (createTime == nil) {
-			typeVar = SafeStringPtr("deposit")
+			typeVarStr := "deposit"
+			typeVar = &typeVarStr
 			timestamp = insertTime
 		} else if (insertTime == nil) && (createTime != nil) {
-			typeVar = SafeStringPtr("withdrawal")
+			typeVarStr2 := "withdrawal"
+			typeVar = &typeVarStr2
 			timestamp = createTime
 		}
 	}
@@ -3162,7 +3172,8 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	if id == nil {
 		var data map[string]any = SafeMapTyped(transaction, "data")
 		id = this.SafeString(data, "withdrawId")
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr3 := "withdrawal"
+		typeVar = &typeVarStr3
 	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
@@ -3328,7 +3339,8 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 		if queryInUrl {
 			url += "?" + query
 		} else {
-			bodySigned = SafeStringPtr(query)
+			bodySignedStr := query
+			bodySigned = &bodySignedStr
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
 		return map[string]any{
@@ -3437,11 +3449,17 @@ func (this *Tokocrypto) CalculateRateLimiterCost(api any, method string, path st
 	_ = config
 	var paramsDict map[string]any = this.Extend(map[string]any{}, params)
 	var byLimit []any = SafeListTyped(config, "byLimit")
-	if (func() bool { _, ok := paramsDict["noCoin"]; return ok }()) && !(func() bool { _, ok := paramsDict["coin"]; return ok }()) {
+	_, has1 := paramsDict["noCoin"]
+	_, has2 := paramsDict["coin"]
+	_, has3 := paramsDict["noSymbol"]
+	_, has4 := paramsDict["symbol"]
+	_, has5 := paramsDict["noPoolId"]
+	_, has6 := paramsDict["poolId"]
+	if has1 && !has2 {
 		return this.SafeInteger(config, "noCoin")
-	} else if (func() bool { _, ok := paramsDict["noSymbol"]; return ok }()) && !(func() bool { _, ok := paramsDict["symbol"]; return ok }()) {
+	} else if has3 && !has4 {
 		return this.SafeInteger(config, "noSymbol")
-	} else if (func() bool { _, ok := paramsDict["noPoolId"]; return ok }()) && !(func() bool { _, ok := paramsDict["poolId"]; return ok }()) {
+	} else if has5 && !has6 {
 		return this.SafeInteger(config, "noPoolId")
 	} else if _, ok := paramsDict["limit"]; ok {
 		var limit *int64 = this.SafeInteger(paramsDict, "limit")

@@ -2860,7 +2860,8 @@ func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var code *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {

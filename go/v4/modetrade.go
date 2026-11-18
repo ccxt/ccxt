@@ -781,11 +781,14 @@ func (this *Modetrade) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	var data map[string]any = SafeMapTyped(response, "data")
 	var status *string = this.SafeString(data, "status")
 	if status == nil {
-		status = SafeStringPtr("error")
+		statusStr := "error"
+		status = &statusStr
 	} else if status != nil && *status == "0" {
-		status = SafeStringPtr("ok")
+		statusStr2 := "ok"
+		status = &statusStr2
 	} else {
-		status = SafeStringPtr("maintenance")
+		statusStr3 := "maintenance"
+		status = &statusStr3
 	}
 
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
@@ -1176,12 +1179,13 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -2318,12 +2322,13 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = SafeStringPtr(func() string {
+		statusStr := func() string {
 			if success != nil && *success {
 				return "NEW"
 			}
 			return "REJECTED"
-		}())
+		}()
+		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.OmitZero(this.SafeString2(order, "executed", "totalExecutedQuantity"))
@@ -2725,12 +2730,12 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Modetrade) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Modetrade) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Modetrade) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2781,10 +2786,10 @@ func (this *Modetrade) editOrderBody(ch chan AsyncResult[Order], id string, symb
 		response = r1.Value
 	} else {
 		request["symbol"] = market["id"]
-		if !IsEqual(side, nil) {
-			request["side"] = ToUpper(side)
+		if true {
+			request["side"] = strings.ToUpper(side)
 		}
-		var orderType string = ToUpper(typeVar)
+		var orderType string = strings.ToUpper(typeVar)
 		var timeInForce *string = this.SafeStringLower(paramsOmitted, "timeInForce")
 		var isMarket bool = (orderType == "MARKET")
 		var postOnly bool = this.IsPostOnly(isMarket, nil, paramsOmitted)
@@ -3807,12 +3812,13 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEnt
 	var side *string = this.SafeString(item, "side")
 	var direction *string = nil
 	if side != nil {
-		direction = SafeStringPtr(func() string {
+		directionStr := func() string {
 			if side != nil && *side == "DEPOSIT" {
 				return "in"
 			}
 			return "out"
-		}())
+		}()
+		direction = &directionStr
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
 	var feeCost *float64 = this.ParseNumber(this.SafeString(item, "fee"))
@@ -3916,7 +3922,8 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) Tr
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var movementDirection *string = this.SafeStringLower(transaction, "side")
 	if movementDirection != nil && *movementDirection == "withdraw" {
-		movementDirection = SafeStringPtr("withdrawal")
+		movementDirectionStr := "withdrawal"
+		movementDirection = &movementDirectionStr
 	}
 	var feeCost *float64 = this.ParseNumber(this.SafeString(transaction, "fee"))
 	var fee map[string]any = nil
@@ -4142,7 +4149,7 @@ func (this *Modetrade) getWithdrawNonceBody(ch chan AsyncResult[*float64], optio
 	return nil
 }
 func (this *Modetrade) HashMessage(message any) any {
-	return Add("0x", this.Hash(message, keccak, "hex"))
+	return "0x" + this.HashString(message, keccak, "hex")
 }
 func (this *Modetrade) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)

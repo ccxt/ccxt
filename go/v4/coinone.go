@@ -982,7 +982,8 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = SafeStringPtr(*base + "/" + *quote)
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1038,12 +1039,13 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isSellerMaker != nil && *isSellerMaker {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
@@ -1370,9 +1372,11 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 		side = this.SafeStringLower(order, "side") // in v2.1 rows the type field carries the order type, the side lives in side
 	}
 	if side != nil && *side == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if side != nil && *side == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	var remainingString *string = this.SafeString2(order, "remainQty", "remain_qty")
 	var amountString *string = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
@@ -1382,7 +1386,8 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 		if (remainingString != nil) && (amountString != nil) {
 			var isLessThan bool = Precise.StringLt(remainingString, amountString)
 			if isLessThan {
-				status = SafeStringPtr("canceled")
+				statusStr := "canceled"
+				status = &statusStr
 			}
 		}
 	}
@@ -1775,7 +1780,8 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 			"nonce":        nonce,
 		}, params))
 		var payload string = this.StringToBase64(json)
-		requestBody = SafeStringPtr(payload)
+		requestBodyStr := payload
+		requestBody = &requestBodyStr
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(strings.ToUpper(this.Secret)), sha512)
 		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",

@@ -248,7 +248,7 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -477,7 +477,7 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -600,7 +600,7 @@ func (this *Aster) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var parsed map[string]any = this.ParseWsTicker(message, ccxt.SafeStringPtr(marketType))
+	var parsed map[string]any = this.ParseWsTicker(message, &marketType)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if symbol != nil {
 		var messageHash string = "ticker:" + *symbol
@@ -710,7 +710,7 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
 		if newTickerSymbol != nil {
-			ccxt.AddElementToObject(result, newTickerSymbol, newTicker)
+			result[*newTickerSymbol] = newTicker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
@@ -1208,19 +1208,21 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
 		if side == nil {
-			side = ccxt.SafeStringPtr(func() string {
+			sideStr := func() string {
 				if *this.SafeBool(trade, "m", false) {
 					return "sell"
 				}
 				return "buy"
-			}()) // this is reversed intentionally
+			}()
+			side = &sideStr // this is reversed intentionally
 		}
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if *this.SafeBool(trade, "m", false) {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "n")
@@ -2423,9 +2425,11 @@ func (this *Aster) ParseWsPosition(position any, optionalArgs ...any) map[string
 		hedged = false
 		if !ccxt.Precise.StringEq(contracts, "0") {
 			if ccxt.Precise.StringLt(contracts, "0") {
-				positionSide = ccxt.SafeStringPtr("short")
+				positionSideStr := "short"
+				positionSide = &positionSideStr
 			} else {
-				positionSide = ccxt.SafeStringPtr("long")
+				positionSideStr2 := "long"
+				positionSide = &positionSideStr2
 			}
 		}
 	}
@@ -2833,7 +2837,8 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var timeInForce *string = this.SafeString(order, "f")
 	if timeInForce != nil && *timeInForce == "GTX" {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-		timeInForce = ccxt.SafeStringPtr("PO")
+		timeInForceStr := "PO"
+		timeInForce = &timeInForceStr
 	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,

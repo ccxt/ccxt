@@ -391,7 +391,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	var teamTwoName *string = this.SafeString(raw, "teamTwoName")
 	var outcomeOneName *string = this.SafeString(raw, "outcomeOneName")
 	var outcomeTwoName *string = this.SafeString(raw, "outcomeTwoName")
-	var eventSlug any = this.ShortenSlug(ccxt.Add(ccxt.Add(teamOneName, " "), teamTwoName))
+	var eventSlug string = this.ShortenSlug(ccxt.Add(ccxt.Add(teamOneName, " "), teamTwoName))
 	// one fixture carries many markets (moneyline, several spread/total lines, quarter/half
 	// variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
 	// slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -403,7 +403,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 		str := *marketHash
 		return str[max(len(str)-6, 0):]
 	}()
-	var marketSlug any = ccxt.Add(ccxt.Add(this.ShortenSlug(outcomeOneName), "_"), hashSuffix)
+	var marketSlug any = this.ShortenSlug(outcomeOneName) + "_" + hashSuffix
 	var marketSymbol any = this.SlugToMarketSymbol(eventSlug, marketSlug)
 	var status *string = this.SafeStringUpper(raw, "status")
 	var active bool = (status != nil && *status == "ACTIVE")
@@ -779,7 +779,8 @@ func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) map[string]any {
 	var title *string = nil
 	var eventSlug any = nil
 	if (teamOneName != nil) && (teamTwoName != nil) {
-		title = ccxt.SafeStringPtr(*teamOneName + " vs " + *teamTwoName)
+		titleStr := *teamOneName + " vs " + *teamTwoName
+		title = &titleStr
 		eventSlug = this.ShortenSlug(*teamOneName + " " + *teamTwoName)
 	} else {
 		eventSlug = this.ShortenSlug(fixtureId)
@@ -866,7 +867,7 @@ func (this *Sxbet) RoundOddsToLadder(probability *string, oddsLadderStepSize str
  * @returns {string} the 32-byte digest to ecdsa-sign, in '0x'-prefixed hex form
  */
 func (this *Sxbet) HashEip712Digest(encoded any) any {
-	return ccxt.Add("0x", this.Hash(encoded, ccxt.Keccak, "hex"))
+	return "0x" + this.HashString(encoded, ccxt.Keccak, "hex")
 }
 
 /**
@@ -882,10 +883,10 @@ func (this *Sxbet) SignDigest(digest any, privateKey string) string {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(digest, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign to bare locals before padStart — the php transpiler's str_pad regex only
 	// matches a simple identifier, an expression form leaks a raw padStart() call
-	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
-	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
-	var r string = ccxt.PadStart(rRaw, 64, "0")
-	var s string = ccxt.PadStart(sRaw, 64, "0")
+	var rRaw string = *this.SafeString(signature, "r", "")
+	var sRaw string = *this.SafeString(signature, "s", "")
+	var r string = (strings.Repeat("0", max(64-len(rRaw), 0)) + rRaw)[max(len(rRaw)-64, 0):]
+	var s string = (strings.Repeat("0", max(64-len(sRaw), 0)) + sRaw)[max(len(sRaw)-64, 0):]
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + r + s + v
 }
@@ -1069,7 +1070,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" approve() has no RPC endpoint configured for chainId ", this.NumberToString(chainId)), " - pass params.rpcUrl")))
 	}
 	var owner string = this.WalletAddress
-	var nonceCallData *string = ccxt.SafeStringPtr(ccxt.Add("0x7ecebe00", this.PadHexAddress(owner))) // nonces(address)
+	var nonceCallData *string = ccxt.SafeStringPtr("0x7ecebe00" + this.PadHexAddress(owner)) // nonces(address)
 
 	r4 := <-this.EthRpcAsync(rpcUrl, "eth_call", []any{map[string]any{
 		"to":   tokenAddress,
@@ -1373,21 +1374,25 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		}
 		var state *string = this.SafeStringUpper(matchOutcome, "state")
 		if (state != nil && *state == "RESTED") || (state != nil && *state == "PARTIAL_FILL_RESTED") {
-			orderStatus = ccxt.SafeStringPtr("open")
+			orderStatusStr := "open"
+			orderStatus = &orderStatusStr
 		} else if state != nil && *state == "FULLY_FILLED" {
-			orderStatus = ccxt.SafeStringPtr("closed")
+			orderStatusStr2 := "closed"
+			orderStatus = &orderStatusStr2
 		} else if state != nil && *state == "PARTIAL_FILL_DONE" {
 			// the unmatched remainder of an IOC was cancelled by the venue
-			orderStatus = ccxt.SafeStringPtr("canceled")
+			orderStatusStr3 := "canceled"
+			orderStatus = &orderStatusStr3
 		} else if state != nil && *state == "CANCELLED" {
 			// the documented field is cancelReason; 'reason' is kept for older responses
 			var reason *string = this.SafeStringUpper2(matchOutcome, "cancelReason", "reason")
-			orderStatus = ccxt.SafeStringPtr(func() string {
+			orderStatusStr4 := func() string {
 				if reason != nil && *reason == "EXPIRED" {
 					return "expired"
 				}
 				return "canceled"
-			}())
+			}()
+			orderStatus = &orderStatusStr4
 		}
 	}
 	var now int64 = this.Milliseconds()
@@ -2097,12 +2102,13 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(fill, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(fill, "id"),
@@ -2464,7 +2470,8 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	// resolve the winning side's human label through the cached market when available
 	var resultLabel *string = nil
 	if isVoid {
-		resultLabel = ccxt.SafeStringPtr("VOID")
+		resultLabelStr := "VOID"
+		resultLabel = &resultLabelStr
 	} else if winner != nil {
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var labelKey string = "outcomeTwoName"
@@ -3178,8 +3185,8 @@ func (this *Sxbet) subscribeSxbetChannelBody(ch chan ccxt.AsyncResult[ccxt.Array
 	ch <- ccxt.AsyncResult[ccxt.ArrayCacheInterface]{Value: ccxt.AsArrayCache(r1.Value)}
 	return nil
 }
-func (this *Sxbet) HandleTextMessage(client any, message any) {
-	var lines []string = ccxt.Split(message, "\n")
+func (this *Sxbet) HandleTextMessage(client any, message string) {
+	var lines []string = strings.Split(message, "\n")
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
 		var line string = lines[i]

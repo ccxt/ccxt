@@ -1509,7 +1509,8 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
 		url += this.Version + "/" + this.ImplodeParams(path, params)
 		if method == "POST" {
 			var jsonBody string = this.Json(query)
-			requestBody = SafeStringPtr(jsonBody)
+			requestBodyStr := jsonBody
+			requestBody = &requestBodyStr
 			auth += jsonBody
 		} else {
 			auth += "/" + this.Version + "/" + path

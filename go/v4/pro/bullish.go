@@ -261,7 +261,7 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 	var tradesList []any = this.ToArray(trades)
 	for i := 0; i < len(tradesList); i++ {
-		tradesArray.Append(ccxt.DerefScalar(tradesList[i]))
+		tradesArray.Append(tradesList[i])
 	}
 	this.Trades[*symbol] = tradesArray
 	var messageHash string = "trades::" + *this.SafeString(market, "symbol", "")

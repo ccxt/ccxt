@@ -2148,12 +2148,12 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Foxbit) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2163,7 +2163,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("editOrder", symbol, "symbol")
-	var typeValue string = ToUpper(typeVar)
+	var typeValue string = strings.ToUpper(typeVar)
 	if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "INSTANT") {
 		panic(InvalidOrder("Invalid order type: " + typeValue + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT."))
 	}
@@ -2178,7 +2178,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	this.CheckRequiredArgument("editOrder", side, "side")
 	var createRequest map[string]any = map[string]any{
 		"type":          typeValue,
-		"side":          ToUpper(side),
+		"side":          strings.ToUpper(side),
 		"market_symbol": market["id"],
 	}
 	if (typeValue == "LIMIT") || (typeValue == "MARKET") {

@@ -1136,19 +1136,22 @@ func (this *Polymarket) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.SafeInteger2(trade, "timestamp", "ts")
 	var side *string = this.SafeStringLower(trade, "side")
 	if side != nil && *side == "long" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "short" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var isTaker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker *string = nil
 	if isTaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isTaker != nil && *isTaker {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
@@ -1744,14 +1747,16 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 			panic(NotSupported(this.Id + " createOrder() does not support the " + *timeInForce + " timeInForce on market orders"))
 		}
 		if timeInForce == nil {
-			timeInForce = SafeStringPtr("IOC")
+			timeInForceStr := "IOC"
+			timeInForce = &timeInForceStr
 		}
 	} else {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit orders"))
 		}
 		if (timeInForce == nil) || (timeInForce != nil && *timeInForce == "PO") {
-			timeInForce = SafeStringPtr("GTC")
+			timeInForceStr2 := "GTC"
+			timeInForce = &timeInForceStr2
 		}
 	}
 	var tif string = strings.ToLower(*timeInForce)
@@ -2236,12 +2241,12 @@ func (this *Polymarket) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Polymarket) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2388,23 +2393,25 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 	var isBuy *bool = this.SafeBool(order, "buy")
 	var side *string = nil
 	if isBuy != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isBuy != nil && *isBuy {
 				return "buy"
 			}
 			return "sell"
-		}())
+		}()
+		side = &sideStr
 	}
 	var price *string = this.OmitZero(this.SafeString2(order, "price", "p"))
 	var typeVar *string = nil
 	var tif *string = this.SafeString(order, "tif")
 	if tif != nil {
-		typeVar = SafeStringPtr(func() string {
+		typeVarStr := func() string {
 			if price == nil {
 				return "market"
 			}
 			return "limit"
-		}())
+		}()
+		typeVar = &typeVarStr
 	}
 	var tpsl map[string]any = SafeMapTyped(order, "tpsl")
 	var stopLossPrice *string = nil
@@ -2624,22 +2631,24 @@ func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) Positio
 	var side *string = nil
 	if size != nil {
 		var isLong bool = Precise.StringGt(size, "0")
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if isLong {
 				return "long"
 			}
 			return "short"
-		}())
+		}()
+		side = &sideStr
 	}
 	var isCross *bool = this.SafeBool(position, "cross")
 	var marginMode *string = nil
 	if isCross != nil {
-		marginMode = SafeStringPtr(func() string {
+		marginModeStr := func() string {
 			if isCross != nil && *isCross {
 				return "cross"
 			}
 			return "isolated"
-		}())
+		}()
+		marginMode = &marginModeStr
 	}
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
 	var roe *string = this.SafeString(position, "return_on_equity")
@@ -3447,12 +3456,13 @@ func (this *Polymarket) ParseLeverage(leverage any, optionalArgs ...any) Leverag
 	var isCross *bool = this.SafeBool(leverage, "cross")
 	var marginMode *string = nil
 	if isCross != nil {
-		marginMode = SafeStringPtr(func() string {
+		marginModeStr := func() string {
 			if isCross != nil && *isCross {
 				return "cross"
 			}
 			return "isolated"
-		}())
+		}()
+		marginMode = &marginModeStr
 	}
 	var value *int64 = this.SafeInteger(leverage, "leverage")
 	return LeverageFromMap(map[string]any{
@@ -3756,7 +3766,7 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 	return nil
 }
 func (this *Polymarket) HashMessage(message any) any {
-	return Add("0x", this.Hash(message, keccak, "hex"))
+	return "0x" + this.HashString(message, keccak, "hex")
 }
 func (this *Polymarket) SignHash(hash any, privateKey any) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
@@ -3793,7 +3803,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 	// secret and unique per provisioning, the paradex stark-key idiom
 	var nonceMessage string = "polymarket-perps-proxy:" + strconv.FormatInt(this.Milliseconds(), 10) + ":" + strconv.FormatInt(this.RandNumber(9), 10)
 	var seedSignature string = this.SignMessage(nonceMessage, this.PrivateKey)
-	var proxyPrivateKey any = this.Hash(this.Encode(seedSignature), keccak, "hex")
+	var proxyPrivateKey string = this.HashString(this.Encode(seedSignature), keccak, "hex")
 	var proxyAddress string = this.EthGetAddressFromPrivateKey(proxyPrivateKey)
 	var owner string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var ts int64 = this.Milliseconds()
@@ -3890,7 +3900,7 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
 			ch <- AsyncResult[any]{Value: credentials}
 			return nil
 		}
-		var refreshAfter int64 = *expires - margin
+		var refreshAfter int64 = this.ParseToInt(*expires - margin)
 		if this.Milliseconds() < refreshAfter {
 
 			ch <- AsyncResult[any]{Value: credentials}

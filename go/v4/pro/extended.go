@@ -157,8 +157,8 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "b", []any{}))
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "a", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "b", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "a", []any{}))
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	orderbook.SetNonce(nonce)
@@ -169,8 +169,8 @@ func (this *Extended) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat2(delta, "c", "q")
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Extended) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Extended) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -1028,11 +1028,14 @@ func (this *Extended) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var candleType *string = this.SafeString(params, "candleType")
 	if candleType == nil {
 		if price != nil && *price == "mark" {
-			candleType = ccxt.SafeStringPtr("mark-prices")
+			candleTypeStr := "mark-prices"
+			candleType = &candleTypeStr
 		} else if price != nil && *price == "index" {
-			candleType = ccxt.SafeStringPtr("index-prices")
+			candleTypeStr2 := "index-prices"
+			candleType = &candleTypeStr2
 		} else {
-			candleType = ccxt.SafeStringPtr("trades")
+			candleTypeStr3 := "trades"
+			candleType = &candleTypeStr3
 		}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"candleType", "price"})
@@ -1177,7 +1180,9 @@ func (this *Extended) HandleMessage(client any, message map[string]any) {
 			this.HandlePositions(client, message)
 			isAccountUpdate = true
 		}
-		if (typeVar != nil && *typeVar == "BALANCE") || (func() bool { _, ok := data["balance"]; return ok }()) || (func() bool { _, ok := data["spotBalances"]; return ok }()) {
+		_, has4 := data["balance"]
+		_, has5 := data["spotBalances"]
+		if (typeVar != nil && *typeVar == "BALANCE") || has4 || has5 {
 			this.HandleBalance(client, message)
 			isAccountUpdate = true
 		}

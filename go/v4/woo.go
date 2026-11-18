@@ -1289,12 +1289,13 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString2(trade, "is_maker", "isMaker") != nil && *this.SafeString2(trade, "is_maker", "isMaker") == "1")
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -2099,12 +2100,12 @@ func (this *Woo) EncodeMarginMode(mode any) *string {
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woo) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Woo) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4127,7 +4128,8 @@ func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) Transact
 	var code *string = this.SafeString(currencyDefined, "code")
 	var movementDirection *string = this.SafeStringLowerN(transaction, []any{"token_side", "tokenSide", "type"})
 	if movementDirection != nil && *movementDirection == "withdraw" {
-		movementDirection = SafeStringPtr("withdrawal")
+		movementDirectionStr := "withdrawal"
+		movementDirection = &movementDirectionStr
 	}
 	var fee any = this.ParseTokenAndFeeTemp(transaction, []any{"fee_token", "feeToken"}, []any{"fee_amount", "feeAmount"})
 	var addressTo *string = this.SafeStringN(transaction, []any{"target_address", "targetAddress", "addressTo"})
@@ -4611,7 +4613,8 @@ func (this *Woo) Sign(path string, optionalArgs ...any) map[string]any {
 			auth = authBase
 			if (method == "POST") || (method == "PUT") {
 				var jsonBody string = this.Json(paramsSigned)
-				requestBody = SafeStringPtr(jsonBody)
+				requestBodyStr := jsonBody
+				requestBody = &requestBodyStr
 				auth = authBase + jsonBody
 				signedHeaders["content-type"] = "application/json"
 			} else {
@@ -4625,7 +4628,8 @@ func (this *Woo) Sign(path string, optionalArgs ...any) map[string]any {
 			var encodedParams string = this.Urlencode(paramsSigned)
 			auth = encodedParams
 			if (method == "POST") || (method == "PUT") || (method == "DELETE") {
-				requestBody = SafeStringPtr(encodedParams)
+				requestBodyStr2 := encodedParams
+				requestBody = &requestBodyStr2
 			} else {
 				if len(paramsSigned) > 0 {
 					url = urlPrefix + pathWithParams + "?" + encodedParams
@@ -4844,7 +4848,8 @@ func (this *Woo) ParseFundingRate(fundingRate any, optionalArgs ...any) FundingR
 	var intervalString *string = this.SafeString(fundingRate, "estFundingIntervalHours")
 	var interval *string = nil
 	if intervalString != nil {
-		interval = SafeStringPtr(*intervalString + "h")
+		intervalStr := *intervalString + "h"
+		interval = &intervalStr
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     fundingRate,

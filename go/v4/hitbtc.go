@@ -3220,12 +3220,12 @@ func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hitbtc) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hitbtc) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3246,13 +3246,13 @@ func (this *Hitbtc) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		"client_order_id": id,
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
-	if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLimit")) {
+	if (typeVar == "limit") || (typeVar == "stopLimit") {
 		if price == nil {
 			panic(ExchangeError(this.Id + " editOrder() limit order requires price"))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	if !IsEqual(symbol, nil) {
+	if true {
 		market = this.Market(symbol)
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("editOrder", market, params)
@@ -4118,7 +4118,8 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	marketTypeRaw, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", nil, params)
 	var marketType *string = marketTypeRaw
 	if marketTypeRaw != nil && *marketTypeRaw == "spot" {
-		marketType = SafeStringPtr("swap")
+		marketTypeStr := "swap"
+		marketType = &marketTypeStr
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchPositions", paramsMarketType)
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"marginMode", "margin"})
@@ -5099,6 +5100,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 	_ = currency
 	var networks []any = SafeListTyped(fee, "networks")
 	var result map[string]any = this.DepositWithdrawFee(fee)
+	var networkFees map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
 		var networkEntry map[string]any = SafeMapTyped(networks, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
@@ -5130,15 +5132,18 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 			result["withdraw"] = withdrawResult
 		}
 		if networkCode != nil {
-			AddElementToObject(result["networks"], networkCode, map[string]any{
-				"withdraw": withdrawResult,
-				"deposit": map[string]any{
-					"fee":        nil,
-					"percentage": nil,
-				},
-			})
+			if networkCode != nil {
+				networkFees[*networkCode] = map[string]any{
+					"withdraw": withdrawResult,
+					"deposit": map[string]any{
+						"fee":        nil,
+						"percentage": nil,
+					},
+				}
+			}
 		}
 	}
+	result["networks"] = networkFees
 	return result
 }
 

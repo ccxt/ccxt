@@ -738,12 +738,13 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var takerOrMaker *string = nil
 	var maker *bool = this.SafeBool(trade, "maker")
 	if maker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeValue *string = this.SafeString(trade, "fee")

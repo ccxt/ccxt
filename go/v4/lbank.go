@@ -1352,13 +1352,17 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var parts []string = strings.Split(*side, "_")
 		side = this.SafeString(parts, 0)
 		var typePart *string = this.SafeString(parts, 1)
-		typeVar = SafeStringPtr("limit")
-		takerOrMaker = SafeStringPtr("taker")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 		if typePart != nil {
 			if typePart != nil && *typePart == "market" {
-				typeVar = SafeStringPtr("market")
+				typeVarStr2 := "market"
+				typeVar = &typeVarStr2
 			} else if typePart != nil && *typePart == "maker" {
-				takerOrMaker = SafeStringPtr("maker")
+				takerOrMakerStr2 := "maker"
+				takerOrMaker = &takerOrMakerStr2
 			}
 		}
 	}
@@ -1764,7 +1768,8 @@ func (this *Lbank) ParseFundingRate(ticker any, optionalArgs ...any) FundingRate
 	var intervalString *string = nil
 	if positionFeeTime != nil {
 		var interval int64 = this.ParseToInt((float64(*positionFeeTime) / 60) / 60)
-		intervalString = SafeStringPtr(strconv.FormatInt(interval, 10) + "h")
+		intervalStringStr := strconv.FormatInt(interval, 10) + "h"
+		intervalString = &intervalStringStr
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     ticker,
@@ -2381,13 +2386,16 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	if typePart != nil && *typePart == "maker" {
 		postOnly = true
-		timeInForce = SafeStringPtr("PO")
+		timeInForceStr := "PO"
+		timeInForce = &timeInForceStr
 	}
 	if typePart != nil && *typePart == "ioc" {
-		timeInForce = SafeStringPtr("IOC")
+		timeInForceStr2 := "IOC"
+		timeInForce = &timeInForceStr2
 	}
 	if typePart != nil && *typePart == "fok" {
-		timeInForce = SafeStringPtr("FOK")
+		timeInForceStr3 := "FOK"
+		timeInForce = &timeInForceStr3
 	}
 	var price *string = this.SafeString(order, "price")
 	var costString *string = this.SafeString(order, "cummulativeQuoteQty")
@@ -3957,7 +3965,7 @@ func (this *Lbank) fetchPublicDepositWithdrawFeesBody(ch chan AsyncResult[map[st
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParsePublicDepositWithdrawFees(data, codes))}
 	return nil
 }
-func (this *Lbank) ParsePublicDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
+func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs ...any) map[string]any {
 	//
 	//    [
 	//        {
@@ -3977,8 +3985,8 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response any, optionalArgs ...
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var fee any = GetValue(response, i)
+	for i := 0; i < len(response); i++ {
+		var fee any = response[i]
 		var canWithdraw *bool = this.SafeBool(fee, "canWithDraw", false)
 		if canWithdraw != nil && *canWithdraw {
 			var code *string = this.SafeCurrencyCode(this.SafeString(fee, "assetCode"))

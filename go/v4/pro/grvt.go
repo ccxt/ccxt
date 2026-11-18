@@ -249,7 +249,7 @@ func (this *Grvt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		var tickers map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(tickers, tickerSymbol, ticker)
+			tickers[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}

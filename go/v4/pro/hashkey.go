@@ -811,20 +811,23 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
 		if isPublicTrade {
-			takerOrMaker = ccxt.SafeStringPtr("taker")
-			side = ccxt.SafeStringPtr(func() string {
+			takerOrMakerStr := "taker"
+			takerOrMaker = &takerOrMakerStr
+			sideStr := func() string {
 				if isBuyerMaker != nil && *isBuyerMaker {
 					return "sell"
 				}
 				return "buy"
-			}())
+			}()
+			side = &sideStr
 		} else {
-			takerOrMaker = ccxt.SafeStringPtr(func() string {
+			takerOrMakerStr2 := func() string {
 				if isBuyerMaker != nil && *isBuyerMaker {
 					return "maker"
 				}
 				return "taker"
-			}())
+			}()
+			takerOrMaker = &takerOrMakerStr2
 			side = this.SafeStringLower(trade, "S")
 		}
 	}

@@ -407,9 +407,11 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
 		if side != nil && *side == "ask" {
-			side = ccxt.SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else if side != nil && *side == "bid" {
-			side = ccxt.SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	var amount *string = this.SafeString(trade, "volume")
@@ -427,9 +429,11 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var takerOrMaker *string = nil
 	if isMaker != nil {
 		if isMaker != nil && *isMaker {
-			takerOrMaker = ccxt.SafeStringPtr("maker")
+			takerOrMakerStr := "maker"
+			takerOrMaker = &takerOrMakerStr
 		} else {
-			takerOrMaker = ccxt.SafeStringPtr("taker")
+			takerOrMakerStr2 := "taker"
+			takerOrMaker = &takerOrMakerStr2
 		}
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{

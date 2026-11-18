@@ -1098,22 +1098,28 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			if future || option {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 				if option {
-					typeVar = SafeStringPtr("option")
+					typeVarStr := "option"
+					typeVar = &typeVarStr
 					var letter string = "C"
-					optionType = SafeStringPtr("call")
+					optionTypeStr := "call"
+					optionType = &optionTypeStr
 					if putOptions {
 						letter = "P"
-						optionType = SafeStringPtr("put")
+						optionTypeStr2 := "put"
+						optionType = &optionTypeStr2
 					} else if moveOptions {
 						letter = "M"
-						optionType = SafeStringPtr("move")
+						optionTypeStr3 := "move"
+						optionType = &optionTypeStr3
 					}
 					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
 				} else {
-					typeVar = SafeStringPtr("future")
+					typeVarStr2 := "future"
+					typeVar = &typeVarStr2
 				}
 			} else {
-				typeVar = SafeStringPtr("swap")
+				typeVarStr3 := "swap"
+				typeVar = &typeVarStr3
 			}
 		}
 		var state *string = this.SafeString(market, "state")
@@ -1822,16 +1828,19 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeString(trade, "side")
 	if side == nil {
 		if sellerRole != nil && *sellerRole == "taker" {
-			side = SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else if sellerRole != nil && *sellerRole == "maker" {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var metaData map[string]any = SafeMapTyped(trade, "meta_data")
 	var typeVar *string = this.SafeString(metaData, "order_type")
 	if typeVar != nil {
-		typeVar = SafeStringPtr(strings.Replace(*typeVar, "_order", "", 1))
+		typeVarStr := strings.Replace(*typeVar, "_order", "", 1)
+		typeVar = &typeVarStr
 	}
 	var feeCostString *string = this.SafeString(trade, "commission")
 	var fee map[string]any = nil
@@ -2257,9 +2266,11 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = nil
 	if sizeString != nil {
 		if Precise.StringGt(sizeString, "0") {
-			side = SafeStringPtr("long")
+			sideStr := "long"
+			side = &sideStr
 		} else if Precise.StringLt(sizeString, "0") {
-			side = SafeStringPtr("short")
+			sideStr2 := "short"
+			side = &sideStr2
 		}
 	}
 	return this.SafePosition(map[string]any{
@@ -2384,7 +2395,8 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "order_type")
 	if typeVar != nil {
-		typeVar = SafeStringPtr(strings.Replace(*typeVar, "_order", "", 1))
+		typeVarStr := strings.Replace(*typeVar, "_order", "", 1)
+		typeVar = &typeVarStr
 	}
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "size")
@@ -2546,12 +2558,12 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Delta) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2573,7 +2585,8 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	if amount != nil {
 		var sizeString *string = this.AmountToPrecision(symbol, amount)
 		if sizeString == nil {
-			sizeString = SafeStringPtr("0")
+			sizeStringStr := "0"
+			sizeString = &sizeStringStr
 		}
 		request["size"] = this.ParseToInt(sizeString)
 	}
@@ -3194,9 +3207,11 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")
 	if (typeVar != nil && *typeVar == "deposit") || (typeVar != nil && *typeVar == "commission_rebate") || (typeVar != nil && *typeVar == "referral_bonus") || (typeVar != nil && *typeVar == "pnl") || (typeVar != nil && *typeVar == "withdrawal_cancellation") || (typeVar != nil && *typeVar == "promo_credit") {
-		direction = SafeStringPtr("in")
+		directionStr := "in"
+		direction = &directionStr
 	} else if (typeVar != nil && *typeVar == "withdrawal") || (typeVar != nil && *typeVar == "commission") || (typeVar != nil && *typeVar == "conversion") || (typeVar != nil && *typeVar == "perpetual_futures_funding") {
-		direction = SafeStringPtr("out")
+		directionStr2 := "out"
+		direction = &directionStr2
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
 	var currencyId *string = this.SafeString(item, "asset_id")

@@ -1270,17 +1270,20 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var makerBuyer *bool = this.SafeBool(trade, "makerBuyer", false)
 	var side *string = this.SafeString(trade, "direction")
 	if side == nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if makerBuyer != nil && *makerBuyer {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	} else {
 		if side != nil && *side == "TRADE_DIRECTION_BUY" {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		} else if side != nil && *side == "TRADE_DIRECTION_SELL" {
-			side = SafeStringPtr("sell")
+			sideStr3 := "sell"
+			side = &sideStr3
 		}
 	}
 	var isBuy bool = (side != nil && *side == "buy")
@@ -1708,9 +1711,11 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	var message *string = this.SafeString(order, "message")
 	if message != nil {
 		if strings.Index(*message, "cancel") >= 0 {
-			status = SafeStringPtr("canceled")
+			statusStr := "canceled"
+			status = &statusStr
 		} else if strings.Index(*message, "accept") >= 0 {
-			status = SafeStringPtr("open")
+			statusStr2 := "open"
+			status = &statusStr2
 		}
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")

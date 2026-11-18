@@ -822,11 +822,14 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	var data map[string]any = SafeMapTyped(response, "data")
 	var status *string = this.SafeString(data, "status")
 	if status == nil {
-		status = SafeStringPtr("error")
+		statusStr := "error"
+		status = &statusStr
 	} else if status != nil && *status == "0" {
-		status = SafeStringPtr("ok")
+		statusStr2 := "ok"
+		status = &statusStr2
 	} else {
-		status = SafeStringPtr("maintenance")
+		statusStr3 := "maintenance"
+		status = &statusStr3
 	}
 
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
@@ -1234,12 +1237,13 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -2412,12 +2416,13 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = SafeStringPtr(func() string {
+		statusStr := func() string {
 			if success != nil && *success {
 				return "NEW"
 			}
 			return "REJECTED"
-		}())
+		}()
+		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
@@ -2810,12 +2815,12 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Woofipro) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2871,8 +2876,8 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		response = r1.Value
 	} else {
 		request["symbol"] = market["id"]
-		request["side"] = ToUpper(side)
-		var orderType string = ToUpper(typeVar)
+		request["side"] = strings.ToUpper(side)
+		var orderType string = strings.ToUpper(typeVar)
 		var timeInForce *string = this.SafeStringLower(paramsOmitted, "timeInForce")
 		var isMarket bool = (orderType == "MARKET")
 		var postOnly bool = this.IsPostOnly(isMarket, nil, paramsOmitted)
@@ -3974,7 +3979,8 @@ func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var code *string = this.SafeString(transaction, "token")
 	var movementDirection *string = this.SafeStringLower(transaction, "token_side")
 	if movementDirection != nil && *movementDirection == "withdraw" {
-		movementDirection = SafeStringPtr("withdrawal")
+		movementDirectionStr := "withdrawal"
+		movementDirection = &movementDirectionStr
 	}
 	var fee any = this.ParseTokenAndFeeTemp(transaction, "fee_token", "fee_amount")
 	var addressTo *string = this.SafeString(transaction, "target_address")
@@ -4189,8 +4195,8 @@ func (this *Woofipro) getWithdrawNonceBody(ch chan AsyncResult[*float64], option
 	return nil
 }
 func (this *Woofipro) HashMessage(message any) any {
-	var hashed any = this.Hash(message, keccak, "hex")
-	return Add("0x", hashed)
+	var hashed string = this.HashString(message, keccak, "hex")
+	return "0x" + hashed
 }
 func (this *Woofipro) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)

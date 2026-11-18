@@ -1224,16 +1224,20 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var typeVar *string = nil
 		var subType *string = nil
 		if marketTypeRaw != nil && *marketTypeRaw == "SPOT" {
-			typeVar = SafeStringPtr("spot")
+			typeVarStr := "spot"
+			typeVar = &typeVarStr
 		} else if marketTypeRaw != nil && *marketTypeRaw == "PERPETUAL" {
-			typeVar = SafeStringPtr("swap")
+			typeVarStr2 := "swap"
+			typeVar = &typeVarStr2
 			settleId = quoteId
 			symbol = *base + "/" + *quote + ":" + *this.SafeString(market, "counter_currency", "")
 			var payoffType *string = this.SafeString(market, "payoff_type")
 			if payoffType != nil && *payoffType == "Linear" {
-				subType = SafeStringPtr("linear")
+				subTypeStr := "linear"
+				subType = &subTypeStr
 			} else if payoffType != nil && *payoffType == "Inverse" {
-				subType = SafeStringPtr("inverse")
+				subTypeStr2 := "inverse"
+				subType = &subTypeStr2
 			}
 		}
 		var isSpot bool = (typeVar != nil && *typeVar == "spot")
@@ -2279,7 +2283,7 @@ func (this *Bitstamp) ParseTradingFees(fees any) map[string]any {
 	}
 	var feesList []any = this.ToArray(fees)
 	for i := 0; i < len(feesList); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(DerefScalar(feesList[i])))
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(feesList[i]))
 		var symbol *string = SafeStringPtr(fee["symbol"])
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2472,6 +2476,7 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 	var result map[string]any = this.DepositWithdrawFee(fee)
 	var code *string = this.SafeString(currency, "code")
 	var feeEntries []any = this.ToArray(fee)
+	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(feeEntries); j++ {
 		var networkEntry map[string]any = SafeMapTyped(feeEntries, j)
 		var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "network"), code)
@@ -2481,7 +2486,7 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 			"percentage": nil,
 		}
 		if networkCode != nil {
-			AddElementToObject(result["networks"], networkCode, map[string]any{
+			networks[*networkCode] = map[string]any{
 				"withdraw": map[string]any{
 					"fee":        withdrawFee,
 					"percentage": nil,
@@ -2490,9 +2495,10 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 					"fee":        nil,
 					"percentage": nil,
 				},
-			})
+			}
 		}
 	}
+	result["networks"] = networks
 	return result
 }
 
@@ -2630,12 +2636,12 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitstamp) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitstamp) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitstamp) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3033,11 +3039,11 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes197719 []any = r.Value
-		if retRes197719 == nil {
+		var retRes197919 []any = r.Value
+		if retRes197919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes197719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes197919)}
 		}
 		return nil
 	}
@@ -3326,13 +3332,16 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		// from fetchDepositsWithdrawals
 		var rawType *string = this.SafeString(transaction, "type")
 		if rawType != nil && *rawType == "0" {
-			typeVar = SafeStringPtr("deposit")
+			typeVarStr := "deposit"
+			typeVar = &typeVarStr
 		} else if rawType != nil && *rawType == "1" {
-			typeVar = SafeStringPtr("withdrawal")
+			typeVarStr2 := "withdrawal"
+			typeVar = &typeVarStr2
 		}
 	} else {
 		// from fetchWithdrawals
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr3 := "withdrawal"
+		typeVar = &typeVarStr3
 	}
 	var tag *string = nil
 	var address *string = nil
@@ -3464,12 +3473,13 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) Order {
 	var clientOrderId *string = this.SafeString2(order, "client_order_id", "orig_client_order_id")
 	var side *string = this.SafeString2(order, "type", "order_type")
 	if side != nil {
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if side != nil && *side == "1" {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	}
 	// there is no timestamp from fetchOrder
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "datetime"))
@@ -4089,7 +4099,8 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = SafeStringPtr(postBody)
+		requestBodyStr := postBody
+		requestBody = &requestBodyStr
 	}
 	var privateHeaders map[string]any = map[string]any{}
 	if apiName == "public" {

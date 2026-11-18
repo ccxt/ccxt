@@ -599,17 +599,21 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			var exchangeType *string = this.SafeString(market, "type")
 			if exchangeType != nil && *exchangeType == "futures_inverse" {
 				settle = base
-				settleId = SafeStringPtr(baseId)
+				settleIdStr := baseId
+				settleId = &settleIdStr
 				inverse = true
 			} else {
 				settle = quote
-				settleId = SafeStringPtr(quoteId)
+				settleIdStr2 := quoteId
+				settleId = &settleIdStr2
 				inverse = false
 			}
 			linear = !(inverse == true)
-			symbol = SafeStringPtr(*base + "/" + *quote + ":" + *settle)
+			symbolStr := *base + "/" + *quote + ":" + *settle
+			symbol = &symbolStr
 			if future {
-				symbol = SafeStringPtr(*base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry))
+				symbolStr2 := *base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry)
+				symbol = &symbolStr2
 			}
 		}
 		result = append(result, map[string]any{
@@ -1170,7 +1174,8 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 	}
 	var priceType *string = this.SafeString(paramsPaginate, "price", "trade")
 	if priceType != nil && *priceType == "index" {
-		priceType = SafeStringPtr("spot") // the venue's name for index-price candles
+		priceTypeStr := "spot"
+		priceType = &priceTypeStr // the venue's name for index-price candles
 	} else if (priceType == nil || *priceType != "trade") && (priceType == nil || *priceType != "mark") && (priceType == nil || *priceType != "spot") {
 		panic(NotSupported(this.Id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\""))
 	}
@@ -1528,9 +1533,11 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var fillType *string = this.SafeString(trade, "fillType")
 	if fillType != nil {
 		if strings.Index(*fillType, "taker") >= 0 {
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr := "taker"
+			takerOrMaker = &takerOrMakerStr
 		} else if strings.Index(*fillType, "maker") >= 0 {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr2 := "maker"
+			takerOrMaker = &takerOrMakerStr2
 		}
 	}
 	var isHistoricalExecution bool = (InOp(trade, "takerOrder"))
@@ -1539,7 +1546,8 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var taker map[string]any = this.SafeDictMap(trade, "takerOrder", map[string]any{})
 		if taker != nil {
 			side = this.SafeStringLower(taker, "direction")
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr3 := "taker"
+			takerOrMaker = &takerOrMakerStr3
 		}
 	}
 	var fee map[string]any = nil
@@ -1597,13 +1605,17 @@ func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, s
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	if postOnly {
-		typeValue = SafeStringPtr("post")
+		typeValueStr := "post"
+		typeValue = &typeValueStr
 	} else if timeInForce != nil && *timeInForce == "ioc" {
-		typeValue = SafeStringPtr("ioc")
+		typeValueStr2 := "ioc"
+		typeValue = &typeValueStr2
 	} else if typeValue != nil && *typeValue == "limit" {
-		typeValue = SafeStringPtr("lmt")
+		typeValueStr3 := "lmt"
+		typeValue = &typeValueStr3
 	} else if typeValue != nil && *typeValue == "market" {
-		typeValue = SafeStringPtr("mkt")
+		typeValueStr4 := "mkt"
+		typeValue = &typeValueStr4
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1628,15 +1640,18 @@ func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, s
 		request["triggerSignal"] = triggerSignal
 	}
 	if isTriggerOrder {
-		typeValue = SafeStringPtr("stp")
+		typeValueStr5 := "stp"
+		typeValue = &typeValueStr5
 		request["stopPrice"] = this.PriceToPrecision(symbolValue, triggerPrice)
 	} else if isStopLossOrTakeProfitTrigger {
 		reduceOnly = true
 		if isStopLossTriggerOrder {
-			typeValue = SafeStringPtr("stp")
+			typeValueStr6 := "stp"
+			typeValue = &typeValueStr6
 			request["stopPrice"] = this.PriceToPrecision(symbolValue, stopLossTriggerPrice)
 		} else if isTakeProfitTriggerOrder {
-			typeValue = SafeStringPtr("take_profit")
+			typeValueStr7 := "take_profit"
+			typeValue = &typeValueStr7
 			request["stopPrice"] = this.PriceToPrecision(symbolValue, takeProfitTriggerPrice)
 		}
 	}
@@ -1867,12 +1882,12 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders
  * @param {object} [params] Exchange specific params
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Krakenfutures) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2496,7 +2511,8 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 	for i := 0; i < len(allOrders); i++ {
 		var order map[string]any = SafeMapTyped(allOrders, i)
 		var event map[string]any = SafeMapTyped(order, "event")
-		var isCancelledTriggerOrder bool = (func() bool { _, ok := event["OrderTriggerCancelled"]; return ok }())
+		_, has1 := event["OrderTriggerCancelled"]
+		var isCancelledTriggerOrder bool = has1
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerCancelled")
 		if orderPlaced != nil {
 			var innerOrder map[string]any = this.SafeDictMap(orderPlaced, "order", map[string]any{})
@@ -3019,7 +3035,8 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		average = Precise.StringDiv(vwapSum, filled2)
 		if (amount != nil) && (!isClosed) && isPrior && Precise.StringGe(filled2, amount) {
-			status = SafeStringPtr("closed")
+			statusStr := "closed"
+			status = &statusStr
 			isClosed = true
 		}
 		if isPrior {
@@ -3487,10 +3504,12 @@ func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) Ledge
 			amount = Precise.StringAdd(amount, feeCost)
 		}
 		if Precise.StringLt(amount, "0") {
-			direction = SafeStringPtr("out")
+			directionStr := "out"
+			direction = &directionStr
 			amount = Precise.StringAbs(amount)
 		} else {
-			direction = SafeStringPtr("in")
+			directionStr2 := "in"
+			direction = &directionStr2
 		}
 	}
 	return this.SafeLedgerEntry(map[string]any{
@@ -3647,7 +3666,8 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 	}
 	if typeVar == nil {
 		if symbol == nil {
-			typeVar = SafeStringPtr("flex")
+			typeVarStr := "flex"
+			typeVar = &typeVarStr
 		} else {
 			typeVar = symbol
 		}
@@ -3657,10 +3677,12 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 	var account map[string]any = SafeMapTyped(accounts, accountName)
 	if account == nil {
 		if typeVar == nil {
-			typeVar = SafeStringPtr("")
+			typeVarStr2 := ""
+			typeVar = &typeVarStr2
 		}
 		if symbol == nil {
-			symbol = SafeStringPtr("")
+			symbolStr := ""
+			symbol = &symbolStr
 		}
 		panic(BadRequest(this.Id + " fetchBalance has no account for " + *typeVar))
 	}
@@ -3870,14 +3892,18 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) Fun
 	var nextFundingRateString *string = this.SafeString(ticker, "fundingRatePrediction")
 	var nextFundingRateResult *string = Precise.StringDiv(nextFundingRateString, markPriceString)
 	if Precise.StringGt(fundingRateResult, "0.25") {
-		fundingRateResult = SafeStringPtr("0.25")
+		fundingRateResultStr := "0.25"
+		fundingRateResult = &fundingRateResultStr
 	} else if Precise.StringLt(fundingRateResult, "-0.25") {
-		fundingRateResult = SafeStringPtr("-0.25")
+		fundingRateResultStr2 := "-0.25"
+		fundingRateResult = &fundingRateResultStr2
 	}
 	if Precise.StringGt(nextFundingRateResult, "0.25") {
-		nextFundingRateResult = SafeStringPtr("0.25")
+		nextFundingRateResultStr := "0.25"
+		nextFundingRateResult = &nextFundingRateResultStr
 	} else if Precise.StringLt(nextFundingRateResult, "-0.25") {
-		nextFundingRateResult = SafeStringPtr("-0.25")
+		nextFundingRateResultStr2 := "-0.25"
+		nextFundingRateResult = &nextFundingRateResultStr2
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     ticker,
@@ -4253,9 +4279,11 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Posi
 			contracts = Precise.StringAbs(signedSize) // a reversal closes the whole old position
 		}
 		if Precise.StringGt(signedSize, "0") {
-			side = SafeStringPtr("long")
+			sideStr := "long"
+			side = &sideStr
 		} else if Precise.StringLt(signedSize, "0") {
-			side = SafeStringPtr("short")
+			sideStr2 := "short"
+			side = &sideStr2
 		}
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")

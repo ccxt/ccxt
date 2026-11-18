@@ -1361,27 +1361,31 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker *string = nil
 	if (takerSide != nil) && (side != nil) && (side == nil || *side != "SELF_TRADING") {
-		takerOrMaker = SafeStringPtr(func() string {
+		takerOrMakerStr := func() string {
 			if takerSide == side || (takerSide != nil && side != nil && *takerSide == *side) {
 				return "taker"
 			}
 			return "maker"
-		}())
+		}()
+		takerOrMaker = &takerOrMakerStr
 	}
 	if side == nil {
 		// taker side is not related to buy/sell side
 		// the following code is probably a mistake
-		side = SafeStringPtr(func() string {
+		sideStr := func() string {
 			if takerSide != nil && *takerSide == "ASK" {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	} else {
 		if side != nil && *side == "BID" {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		} else if side != nil && *side == "ASK" {
-			side = SafeStringPtr("sell")
+			sideStr3 := "sell"
+			side = &sideStr3
 		}
 	}
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
@@ -1774,9 +1778,11 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) Order {
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var side *string = this.SafeString(order, "side")
 	if side != nil && *side == "BID" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var triggerPrice *string = this.SafeString(order, "stop_price")
 	if Precise.StringEq(triggerPrice, "0") {
@@ -1785,7 +1791,8 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) Order {
 	var immediateOrCancel *bool = this.SafeBool(order, "immediate_or_cancel", false)
 	var timeInForce *string = nil
 	if immediateOrCancel != nil && *immediateOrCancel {
-		timeInForce = SafeStringPtr("IOC")
+		timeInForceStr := "IOC"
+		timeInForce = &timeInForceStr
 	}
 	var typeVar *string = this.ParseType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")

@@ -210,7 +210,7 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 	var channel any = ccxt.Add(messageType, ".order_place")
 	var url any = this.GetUrlByMarket(market)
 	params["textIsRequired"] = true
-	var request map[string]any = this.CreateOrderRequest(symbolValue, typeVar, &side, amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(symbolValue, &typeVar, &side, amount, price, params)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -515,9 +515,7 @@ func (this *Gate) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 	} else {
 		market = this.Market(symbol)
 	}
-	requestrequestParamsVariable := this.FetchOrderRequest(id, symbol, params)
-	var request map[string]any = ccxt.MapTyped(requestrequestParamsVariable[0])
-	var requestParams map[string]any = ccxt.MapTyped(requestrequestParamsVariable[1])
+	request, requestParams := this.FetchOrderRequest(id, symbol, params)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_status")
 	var url any = this.GetUrlByMarket(market)
@@ -665,10 +663,8 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
 	}
-	requestrequestParamsVariable := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
-	var request map[string]any = ccxt.MapTyped(requestrequestParamsVariable[0])
-	var requestParams map[string]any = ccxt.MapTyped(requestrequestParamsVariable[1])
-	var newRequest map[string]any = this.OmitDict(request, []any{"settle"})
+	request, requestParams := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
+	var newRequest map[string]any = ccxt.MapTyped(this.Omit(request, []any{"settle"}))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_list")
 	var url any = this.GetUrlByMarket(market)
@@ -712,7 +708,7 @@ func (this *Gate) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan
 func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -737,20 +733,17 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var messageType any = this.GetTypeByMarket(market)
 	var messageHash string = "orderbook" + ":" + symbolValue
 	// max 100 atm, max 50 for options
-	var defaultLimit int = 100
+	var limitResolved int64 = this.ParseToInt(100)
 	if (*this.SafeBool(market, "spot", false)) || (ccxt.IsEqual(messageType, "options")) {
-		defaultLimit = 50
+		limitResolved = this.ParseToInt(50)
 	}
-	var limitResolved any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return limit
-	}()
+	if limit != nil {
+		limitResolved = this.ParseToInt(limit)
+	}
 	if *this.SafeBool(market, "spot", false) {
 		// the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
 		var maxSpotLimit int64 = this.ParseToInt(this.HandleOption("fetchOrderBook", "maxSpotLimit", 1000))
-		limitResolved = ccxt.MathMin(limitResolved, maxSpotLimit)
+		limitResolved = this.ParseToInt(min(limitResolved, maxSpotLimit))
 	}
 	var payload []any = []any{}
 	var channel any = ""
@@ -760,14 +753,15 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	} else if *this.SafeBool(market, "spot", false) {
 		channel = "spot.obu"
 		var finalInterval *string = interval
-		if ccxt.IsEqual(limitResolved, 400) {
-			finalInterval = ccxt.SafeStringPtr("400")
+		if limitResolved == 400 {
+			finalIntervalStr := "400"
+			finalInterval = &finalIntervalStr
 		}
 		payload = []any{"ob." + *marketId + "." + *finalInterval}
 	} else {
 		channel = ccxt.Add(messageType, ".order_book_update")
 		payload = []any{marketId, interval}
-		var stringLimit string = ccxt.ToString(limitResolved)
+		var stringLimit string = strconv.FormatInt(limitResolved, 10)
 		payload = append(payload, stringLimit)
 	}
 	var subscription map[string]any = map[string]any{
@@ -823,17 +817,18 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	var interval string = intervalDefault
 	intervalOption, paramsInterval := this.HandleOptionStringAndParams(params, "watchOrderBook", "interval", interval)
 	var messageType any = this.GetTypeByMarket(market)
-	var limit any = this.SafeInteger(paramsInterval, "limit")
-	if ccxt.IsEqual(limit, nil) {
-		limit = func() int {
-			if *this.SafeBool(market, "spot", false) {
-				return 50
-			}
-			return 100
-		}() // max 100 atm
-		if ccxt.IsEqual(messageType, "options") {
-			limit = 50 // max 50 for options
+	var limitParam *int64 = this.SafeInteger(paramsInterval, "limit")
+	var limit int64 = this.ParseToInt(func() int {
+		if *this.SafeBool(market, "spot", false) {
+			return 50
 		}
+		return 100
+	}()) // max 100 atm
+	if ccxt.IsEqual(messageType, "options") {
+		limit = this.ParseToInt(50) // max 50 for options
+	}
+	if limitParam != nil {
+		limit = this.ParseToInt(limitParam)
 	}
 	var payload []any = []any{}
 	var channel any = ""
@@ -843,14 +838,15 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	} else if *this.SafeBool(market, "spot", false) {
 		channel = "spot.obu"
 		var finalInterval *string = intervalOption
-		if ccxt.IsEqual(limit, 400) {
-			finalInterval = ccxt.SafeStringPtr("400")
+		if limit == 400 {
+			finalIntervalStr := "400"
+			finalInterval = &finalIntervalStr
 		}
 		payload = []any{"ob." + *marketId + "." + *finalInterval}
 	} else {
 		channel = ccxt.Add(messageType, ".order_book_update")
 		payload = []any{marketId, intervalOption}
-		var stringLimit string = ccxt.ToString(limit)
+		var stringLimit string = strconv.FormatInt(limit, 10)
 		payload = append(payload, stringLimit)
 	}
 	var subMessageHash string = "orderbook" + ":" + symbolValue
@@ -1048,14 +1044,14 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
-func (this *Gate) GetCacheIndex(orderBook any, cache any) any {
+func (this *Gate) GetCacheIndex(orderBook any, cache []any) any {
 	var nonce *int64 = this.SafeInteger(orderBook, "nonce")
 	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
 	if (nonce != nil) && (firstDeltaStart != nil) && (*nonce < *firstDeltaStart) {
 		return int64(-1)
 	}
-	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
+	for i := 0; i < len(cache); i++ {
 		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
@@ -1063,7 +1059,7 @@ func (this *Gate) GetCacheIndex(orderBook any, cache any) any {
 			return i
 		}
 	}
-	return ccxt.GetArrayLength(cache)
+	return len(cache)
 }
 func (this *Gate) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
@@ -1299,7 +1295,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 		var items map[string]any = map[string]any{}
 		var tickerOrBidAskSymbol *string = this.SafeString(tickerOrBidAsk, "symbol")
 		if tickerOrBidAskSymbol != nil {
-			ccxt.AddElementToObject(items, tickerOrBidAskSymbol, tickerOrBidAsk)
+			items[*tickerOrBidAskSymbol] = tickerOrBidAsk
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(items)}
@@ -2981,22 +2977,18 @@ func (this *Gate) HandleSubscriptionStatus(client any, message map[string]any) {
 	if id == nil {
 		return
 	}
-	if func() bool {
-		if channel == nil {
-			return false
+	if channel != nil {
+		if _, ok := methods[*channel]; ok {
+			var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
+			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionHash)
+			var method any = func() any {
+				if channel == nil {
+					return nil
+				}
+				return methods[*channel]
+			}()
+			ccxt.CallDynamically(method, client, message, subscription)
 		}
-		_, ok := methods[*channel]
-		return ok
-	}() {
-		var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
-		var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionHash)
-		var method any = func() any {
-			if channel == nil {
-				return nil
-			}
-			return methods[*channel]
-		}()
-		ccxt.CallDynamically(method, client, message, subscription)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(id) {
 		if id != nil {

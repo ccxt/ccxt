@@ -1647,12 +1647,13 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	if status == nil {
 		var committed *bool = this.SafeBool(transaction, "committed", false)
-		status = SafeStringPtr(func() string {
+		statusStr := func() string {
 			if committed != nil && *committed {
 				return "ok"
 			}
 			return "pending"
-		}())
+		}()
+		status = &statusStr
 	}
 	var id *string = this.SafeString(transaction, "id")
 	var currencyId *string = this.SafeString(amountAndCurrencyObject, "currency")
@@ -1662,9 +1663,11 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var typeVar *string = resource
 	if !this.InArray(typeVar, []any{"deposit", "withdrawal"}) {
 		if Precise.StringGt(amountString, "0") {
-			typeVar = SafeStringPtr("deposit")
+			typeVarStr := "deposit"
+			typeVar = &typeVarStr
 		} else if Precise.StringLt(amountString, "0") {
-			typeVar = SafeStringPtr("withdrawal")
+			typeVarStr2 := "withdrawal"
+			typeVar = &typeVarStr2
 		}
 	}
 	var toObject map[string]any = SafeMapTyped(transaction, "to")
@@ -1822,9 +1825,11 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if (orderId == nil) && (entryId == nil) && (this.SafeString(trade, "resource") == nil) {
 		// public market trades carry the maker side, the unified side of a public trade is the taker side
 		if side != nil && *side == "buy" {
-			side = SafeStringPtr("sell")
+			sideStr := "sell"
+			side = &sideStr
 		} else if side != nil && *side == "sell" {
-			side = SafeStringPtr("buy")
+			sideStr2 := "buy"
+			side = &sideStr2
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -3626,7 +3631,9 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		var pagination map[string]any = SafeMapTyped(response, "pagination")
 		var cursor *string = this.SafeString(pagination, "next_starting_after")
 		if (cursor != nil) && (cursor == nil || *cursor != "") {
-			AddElementToObject(GetValue(last, "info"), "next_starting_after", cursor)
+			var lastInfo map[string]any = this.SafeDictMap(last, "info", map[string]any{})
+			lastInfo["next_starting_after"] = *cursor
+			AddElementToObject(last, "info", lastInfo)
 			AddElementToObject(ledger, lastIndex, last)
 		}
 	}
@@ -4184,12 +4191,13 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if typeVar == "limit" {
 		if isStop {
 			if stopDirection == nil {
-				stopDirection = SafeStringPtr(func() string {
+				stopDirectionStr := func() string {
 					if side == "buy" {
 						return "STOP_DIRECTION_STOP_DOWN"
 					}
 					return "STOP_DIRECTION_STOP_UP"
-				}())
+				}()
+				stopDirection = &stopDirectionStr
 			}
 			if (timeInForce != nil && *timeInForce == "GTD") || (endTime != nil) {
 				if endTime == nil {
@@ -4218,22 +4226,24 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			var tpslPrice *string = nil
 			if isStopLoss {
 				if stopDirection == nil {
-					stopDirection = SafeStringPtr(func() string {
+					stopDirectionStr2 := func() string {
 						if side == "buy" {
 							return "STOP_DIRECTION_STOP_UP"
 						}
 						return "STOP_DIRECTION_STOP_DOWN"
-					}())
+					}()
+					stopDirection = &stopDirectionStr2
 				}
 				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
 				if stopDirection == nil {
-					stopDirection = SafeStringPtr(func() string {
+					stopDirectionStr3 := func() string {
 						if side == "buy" {
 							return "STOP_DIRECTION_STOP_DOWN"
 						}
 						return "STOP_DIRECTION_STOP_UP"
-					}())
+					}()
+					stopDirection = &stopDirectionStr3
 				}
 				tpslPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 			}
@@ -4704,12 +4714,12 @@ func (this *Coinbase) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
  * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbase) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbase) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Coinbase) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4896,11 +4906,11 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes374019 []any = r1.Value
-		if retRes374019 == nil {
+		var retRes374219 []any = r1.Value
+		if retRes374219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes374019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes374219)}
 		}
 		return nil
 	}
@@ -5143,11 +5153,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes390619 []any = r1.Value
-		if retRes390619 == nil {
+		var retRes390819 []any = r1.Value
+		if retRes390819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes390619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes390819)}
 		}
 		return nil
 	}
@@ -5156,11 +5166,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes390815 []any = OrdersToList(r2.Value)
-	if retRes390815 == nil {
+	var retRes391015 []any = OrdersToList(r2.Value)
+	if retRes391015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes390815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes391015)}
 	}
 	return nil
 }
@@ -5208,11 +5218,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes393019 []any = r1.Value
-		if retRes393019 == nil {
+		var retRes393219 []any = r1.Value
+		if retRes393219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393219)}
 		}
 		return nil
 	}
@@ -5221,11 +5231,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes393215 []any = OrdersToList(r2.Value)
-	if retRes393215 == nil {
+	var retRes393415 []any = OrdersToList(r2.Value)
+	if retRes393415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393415)}
 	}
 	return nil
 }
@@ -5262,11 +5272,11 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes394715 []any = OrdersToList(r.Value)
-	if retRes394715 == nil {
+	var retRes394915 []any = OrdersToList(r.Value)
+	if retRes394915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394915)}
 	}
 	return nil
 }
@@ -5322,11 +5332,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes397719 []any = r1.Value
-		if retRes397719 == nil {
+		var retRes397919 []any = r1.Value
+		if retRes397919 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes397719)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes397919)}
 		}
 		return nil
 	}
@@ -5549,11 +5559,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes413419 []any = r1.Value
-		if retRes413419 == nil {
+		var retRes413619 []any = r1.Value
+		if retRes413619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes413419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes413619)}
 		}
 		return nil
 	}
@@ -6396,12 +6406,12 @@ func (this *Coinbase) fetchDepositMethodIdBody(ch chan AsyncResult[map[string]an
 	ch <- AsyncResult[map[string]any]{Value: this.ParseDepositMethodId(result)}
 	return nil
 }
-func (this *Coinbase) ParseDepositMethodIds(ids any, optionalArgs ...any) []any {
+func (this *Coinbase) ParseDepositMethodIds(ids []any, optionalArgs ...any) []any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
-		var id map[string]any = this.Extend(this.ParseDepositMethodId(GetValue(ids, i)), params)
+	for i := 0; i < len(ids); i++ {
+		var id map[string]any = this.Extend(this.ParseDepositMethodId(ids[i]), params)
 		result = append(result, id)
 	}
 	return result
@@ -6859,9 +6869,11 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) Position 
 	var rawSide *string = this.SafeString(position, "side")
 	var side *string = nil
 	if rawSide != nil && *rawSide == "LONG" {
-		side = SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if rawSide != nil && *rawSide == "SHORT" {
-		side = SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -7196,7 +7208,8 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 			if method != "GET" {
 				if queryLength > 0 {
 					payload = this.Json(query)
-					requestBody = SafeStringPtr(payload)
+					requestBodyStr := payload
+					requestBody = &requestBodyStr
 				}
 			} else {
 				if !isV3 {

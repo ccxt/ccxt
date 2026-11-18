@@ -465,8 +465,8 @@ func (this *Apex) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Apex) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Apex) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -562,7 +562,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		var result map[string]any = map[string]any{}
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
 		if tickerSymbol != nil {
-			ccxt.AddElementToObject(result, tickerSymbol, ticker)
+			result[*tickerSymbol] = ticker
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}

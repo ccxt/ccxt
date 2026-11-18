@@ -165,9 +165,7 @@ func (this *Hyperliquid) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order],
 			panic(r.Err)
 		}
 	}
-	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
-	var order map[string]any = orderglobalParamsVariable[0].(map[string]any)
-	var globalParams map[string]any = orderglobalParamsVariable[1].(map[string]any)
+	order, globalParams := this.ParseCreateEditOrderArgs(nil, &symbol, &typeVar, &side, amount, price, params)
 
 	r1 := <-this.CreateOrdersWsAsync([]any{order}, globalParams)
 	if r1.Err != nil {
@@ -230,9 +228,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	}
 	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(id, symbol, typeVar, side, amount, price, params)
-	var order map[string]any = orderglobalParamsVariable[0].(map[string]any)
-	var globalParams map[string]any = orderglobalParamsVariable[1].(map[string]any)
+	order, globalParams := this.ParseCreateEditOrderArgs(&id, &symbol, &typeVar, &side, amount, price, params)
 	var postRequest any = this.EditOrdersRequest([]any{order}, globalParams)
 	var wrapped map[string]any = this.WrapAsPostAction(postRequest)
 	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
@@ -683,11 +679,8 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
-	var request map[string]any = map[string]any{
-		"method": "subscribe",
-		"subscription": map[string]any{
-			"type": "allMids",
-		},
+	var subscription map[string]any = map[string]any{
+		"type": "allMids",
 	}
 	var defaultDex *string = this.SafeString(params, "dex")
 	var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
@@ -706,8 +699,12 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	}()
 	if defaultDex != nil {
 		messageHash = "tickers:" + *defaultDex
-		ccxt.AddElementToObject(request["subscription"], "type", "allMids")
-		ccxt.AddElementToObject(request["subscription"], "dex", defaultDex)
+		subscription["type"] = "allMids"
+		subscription["dex"] = defaultDex
+	}
+	var request map[string]any = map[string]any{
+		"method":       "subscribe",
+		"subscription": subscription,
 	}
 	// unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
 
@@ -1490,12 +1487,13 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) map[string
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
-		side = ccxt.SafeStringPtr(func() string {
+		sideStr := func() string {
 			if side != nil && *side == "A" {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	}
 	var fee *string = this.SafeString(trade, "fee")
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
@@ -2001,7 +1999,8 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	var currencyId *string = this.SafeString(balance, "coin")
 	var code *string = nil
 	if currencyId == nil {
-		code = ccxt.SafeStringPtr("USDC")
+		codeStr := "USDC"
+		code = &codeStr
 		var marginSummary map[string]any = ccxt.SafeMapTyped(balance, "marginSummary")
 		account["free"] = this.SafeString(balance, "withdrawable")
 		account["used"] = this.SafeString(marginSummary, "totalMarginUsed")
@@ -2544,47 +2543,49 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message map[string]any) 
  * @param {string} subHash the subscription hash the watch call is about to register
  * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
  */
-func (this *Hyperliquid) WaitForPendingUnsubscribeAsync(url any, subHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Hyperliquid) WaitForPendingUnsubscribeAsync(url *string, subHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.waitForPendingUnsubscribeBody(ch, url, subHash)
 	return ch
 }
-func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url any, subHash string) any {
+func (this *Hyperliquid) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url *string, subHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if ccxt.InOp(this.Clients, url) {
-		var client ccxt.ClientInterface = this.Client(url)
-		var unsubHash string = "unsubscribe:" + subHash
-		if client.(ccxt.ClientInterface).SubscriptionHas(unsubHash) {
-			// share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
-			var timeout *int64 = this.SafeInteger(this.Options, "unsubscribeTimeout", 10000)
-			this.Delay(timeout, this.ExpirePendingUnsubscribeAsync, client, subHash, unsubHash)
+	if url != nil {
+		if _, ok := this.Clients[*url]; ok {
+			var client ccxt.ClientInterface = this.Client(url)
+			var unsubHash string = "unsubscribe:" + subHash
+			if client.(ccxt.ClientInterface).SubscriptionHas(unsubHash) {
+				// share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+				var timeout *int64 = this.SafeInteger(this.Options, "unsubscribeTimeout", 10000)
+				this.Delay(timeout, this.ExpirePendingUnsubscribeAsync, client, subHash, unsubHash)
 
-			{
-				func(this *Hyperliquid) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *Hyperliquid) any {
-								// catch block:
-								if !(ccxt.IsInstance(e, ccxt.RequestTimeout)) {
-									panic(e)
+				{
+					func(this *Hyperliquid) (ret_ any) {
+						defer func() {
+							if e := recover(); e != nil {
+								if e == "break" {
+									return
 								}
-								return nil
-							}(this)
+								ret_ = func(this *Hyperliquid) any {
+									// catch block:
+									if !(ccxt.IsInstance(e, ccxt.RequestTimeout)) {
+										panic(e)
+									}
+									return nil
+								}(this)
+							}
+						}()
+						// try block:
+
+						r := <-client.(ccxt.ClientInterface).Future(unsubHash)
+						if r.Err != nil {
+							panic(r.Err)
 						}
-					}()
-					// try block:
+						return nil
+					}(this)
 
-					r := <-client.(ccxt.ClientInterface).Future(unsubHash)
-					if r.Err != nil {
-						panic(r.Err)
-					}
-					return nil
-				}(this)
-
+				}
 			}
 		}
 	}

@@ -113,7 +113,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,
 	}
-	var toAccountString *string = this.ParseTransferType(toAccount)
+	var toAccountString *string = this.ParseTransferType(&toAccount)
 	var response any = nil
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
@@ -124,7 +124,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 		}
 		response = r1.Value
 	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
-		request["payAccountType"] = this.ParseTransferType(fromAccount)
+		request["payAccountType"] = this.ParseTransferType(&fromAccount)
 
 		r2 := <-this.FuturesPrivatePostTransferIn(this.Extend(request, params))
 		if r2.Err != nil {
@@ -143,7 +143,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 	}))}
 	return nil
 }
-func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
+func (this *Kucoinfutures) ParseTransferType(transferType *string) *string {
 	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",

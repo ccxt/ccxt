@@ -1684,12 +1684,12 @@ func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}, marketResolved)
 }
-func (this *Bullish) SafeDeterministicCallAsync(method any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+func (this *Bullish) SafeDeterministicCallAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.safeDeterministicCallBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], method any, optionalArgs ...any) any {
+func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false
@@ -1705,8 +1705,8 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
 	maxRetries, paramsMaxRetries := this.HandleOptionIntegerAndParams(params, method, "maxRetries", 3)
-	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
-		panic(NotSupported(Add(Add(this.Id+" safeDeterministicCall() does not support the ", method), " method")))
+	if (method != "fetchOHLCV") && (method != "fetchFundingRateHistory") && (method != "fetchTrades") {
+		panic(NotSupported(this.Id + " safeDeterministicCall() does not support the " + method + " method"))
 	}
 	var errors int = 0
 	var paramsOmitted any = this.Omit(paramsMaxRetries, "until")
@@ -1735,7 +1735,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 					}
 				}()
 				// try block:
-				if IsEqual(method, "fetchOHLCV") {
+				if method == "fetchOHLCV" {
 
 					r := <-this.FetchOHLCVAsync(StringArg(symbol), timeframe, since, limit, paramsOmitted)
 					if r.Err != nil {
@@ -1750,7 +1750,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 						chSent = true
 					}
 					return nil
-				} else if IsEqual(method, "fetchFundingRateHistory") {
+				} else if method == "fetchFundingRateHistory" {
 
 					r1 := <-this.FetchFundingRateHistoryAsync(symbol, since, limit, paramsOmitted)
 					if r1.Err != nil {
@@ -2588,12 +2588,12 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bullish) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bullish) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2623,8 +2623,8 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	if !IsEqual(typeVar, nil) {
-		request["type"] = ToUpper(typeVar)
+	if true {
+		request["type"] = strings.ToUpper(typeVar)
 	}
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	if postOnly != nil && *postOnly {
@@ -2849,7 +2849,8 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) Order {
 	if status != nil && *status == "closed" {
 		var statusReason *string = this.SafeString(order, "statusReason")
 		if statusReason != nil && *statusReason == "User cancelled" {
-			status = SafeStringPtr("canceled")
+			statusStr := "canceled"
+			status = &statusStr
 		}
 	}
 	var timeInForce *string = this.SafeString(order, "timeInForce")
@@ -4137,7 +4138,7 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 			jsonText := this.Json(params)
 			requestBody = &jsonText
 			var payload string = timestamp + nonce + method + "/trading-api/" + path + *requestBody
-			var signature string = this.Hmac(this.Encode(this.Hash(this.Encode(payload), sha256, "hex")), this.Encode(this.Secret), sha256, "hex")
+			var signature string = this.Hmac(this.Encode(this.HashString(this.Encode(payload), sha256, "hex")), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
 				"BX-NONCE":     nonce,

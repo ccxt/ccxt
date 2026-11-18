@@ -1030,33 +1030,41 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 	if isNewOrder {
 		var tempStatus *int64 = this.SafeInteger(orderUnified, "status_type")
 		if (tempStatus != nil && *tempStatus == 0) || (tempStatus != nil && *tempStatus == 1) {
-			status = SafeStringPtr("open")
+			statusStr := "open"
+			status = &statusStr
 		} else if tempStatus != nil && *tempStatus == 5 {
-			status = SafeStringPtr("closed")
+			statusStr2 := "closed"
+			status = &statusStr2
 		}
 	} else {
 		var tempStatus *string = this.SafeString(orderUnified, "status")
 		if (tempStatus != nil && *tempStatus == "New") || (tempStatus != nil && *tempStatus == "Open") {
-			status = SafeStringPtr("open")
+			statusStr3 := "open"
+			status = &statusStr3
 		} else if tempStatus != nil && *tempStatus == "Completed" {
-			status = SafeStringPtr("closed")
+			statusStr4 := "closed"
+			status = &statusStr4
 		}
 	}
 	// bit2c order type:
 	// 0 = LMT,  1 = MKT
 	var typeVar *string = this.SafeString(orderUnified, "order_type")
 	if typeVar != nil && *typeVar == "0" {
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	} else if typeVar != nil && *typeVar == "1" {
-		typeVar = SafeStringPtr("market")
+		typeVarStr2 := "market"
+		typeVar = &typeVarStr2
 	}
 	// bit2c side:
 	// 0 = buy, 1 = sell
 	var side *string = this.SafeString(orderUnified, "type")
 	if side != nil && *side == "0" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "1" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var price *string = this.SafeString(orderUnified, "price")
 	var amount *string = nil
@@ -1257,12 +1265,13 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var marketByPair map[string]any = this.SafeMarket(marketId, market)
 		tradeMarket = this.SafeMarket(reference_parts[0], marketByPair)
 		var isMaker *bool = this.SafeBool(trade, "isMaker", false)
-		makerOrTaker = SafeStringPtr(func() string {
+		makerOrTakerStr := func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
 			return "taker"
-		}())
+		}()
+		makerOrTaker = &makerOrTakerStr
 		orderId = func() any {
 			if isMaker != nil && *isMaker {
 				return func() any {
@@ -1426,7 +1435,8 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 				url += "?" + auth
 			}
 		} else {
-			requestBody = SafeStringPtr(auth)
+			requestBodyStr := auth
+			requestBody = &requestBodyStr
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512, "base64")
 		requestHeaders = map[string]any{

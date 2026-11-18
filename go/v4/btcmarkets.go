@@ -619,7 +619,8 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) T
 	var lastUpdate *int64 = this.Parse8601(this.SafeString(transaction, "lastUpdate"))
 	var typeVar *string = this.ParseTransactionType(this.SafeStringLower(transaction, "type"))
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var cryptoPaymentDetail map[string]any = SafeMapTyped(transaction, "paymentDetail")
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
@@ -1192,9 +1193,11 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "Bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "Ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var id *string = this.SafeString(trade, "id")
 	var priceString *string = this.SafeString(trade, "price")
@@ -1602,9 +1605,11 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var side *string = this.SafeString(order, "side")
 	if side != nil && *side == "Bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "Ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var price *string = this.SafeString(order, "price")
@@ -2003,7 +2008,8 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		} else {
 			var jsonBody string = this.Json(query)
-			requestBody = SafeStringPtr(jsonBody)
+			requestBodyStr := jsonBody
+			requestBody = &requestBodyStr
 			auth = method + request + nonce + jsonBody
 		}
 		var signature string = this.Hmac(this.Encode(auth), secret, sha512, "base64")

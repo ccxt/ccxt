@@ -843,12 +843,13 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var side *string = firstPart
 	// reverse if it was 'maker'
 	if secondPart != nil && *secondPart == "maker" {
-		side = ccxt.SafeStringPtr(func() string {
+		sideStr := func() string {
 			if side != nil && *side == "buy" {
 				return "sell"
 			}
 			return "buy"
-		}())
+		}()
+		side = &sideStr
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,
@@ -1022,12 +1023,13 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var exchangeType *string = this.SafeString(typeParts, 1)
 	var typeVar *string = nil
 	if (rawType != "buy") && (rawType != "sell") {
-		typeVar = ccxt.SafeStringPtr(func() string {
+		typeVarStr := func() string {
 			if exchangeType != nil && *exchangeType == "market" {
 				return "market"
 			}
 			return "limit"
-		}())
+		}()
+		typeVar = &typeVarStr
 	}
 	var marketId *string = this.SafeString(order, "pair")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")

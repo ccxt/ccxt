@@ -303,8 +303,8 @@ func (this *Whitebit) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Whitebit) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
+func (this *Whitebit) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
@@ -692,16 +692,20 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var rawSide *int64 = this.SafeInteger(trade, 8)
 	var side *string = nil
 	if rawSide != nil && *rawSide == 1 {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if rawSide != nil && *rawSide == 2 {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	var role *int64 = this.SafeInteger(trade, 9)
 	var takerOrMaker *string = nil
 	if role != nil && *role == 1 {
-		takerOrMaker = ccxt.SafeStringPtr("maker")
+		takerOrMakerStr := "maker"
+		takerOrMaker = &takerOrMakerStr
 	} else if role != nil && *role == 2 {
-		takerOrMaker = ccxt.SafeStringPtr("taker")
+		takerOrMakerStr2 := "taker"
+		takerOrMaker = &takerOrMakerStr2
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           id,
@@ -865,7 +869,8 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var remaining *string = nil
 	if typeVar != nil && *typeVar == "market" {
 		amount = this.SafeString(order, "deal_stock")
-		remaining = ccxt.SafeStringPtr("0")
+		remainingStr := "0"
+		remaining = &remainingStr
 	} else {
 		remaining = this.SafeString(order, "left")
 		amount = this.SafeString(order, "amount")

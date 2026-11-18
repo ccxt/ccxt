@@ -1037,11 +1037,11 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetV1Symbols(params)
-	if r.Err != nil {
-		panic(r.Err)
+	marketIdsRawRecv := <-this.PublicGetV1Symbols(params)
+	if marketIdsRawRecv.Err != nil {
+		panic(marketIdsRawRecv.Err)
 	}
-	marketIdsRaw := r.Raw
+	var marketIdsRaw []any = marketIdsRawRecv.Value
 	//
 	//     [
 	//         "btcusd",
@@ -1054,7 +1054,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 	var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 	var marketIds []any = []any{}
 	var allMarketIds []any = []any{}
-	if IsArray(marketIdsRaw) {
+	if marketIdsRaw != nil {
 		allMarketIds = ArrayTyped(marketIdsRaw)
 	}
 	for i := 0; i < len(allMarketIds); i++ {
@@ -1072,11 +1072,11 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 			promises = append(promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
 		}
 
-		r1 := <-promiseAll(promises)
-		if r1.Err != nil {
-			panic(r1.Err)
+		r := <-promiseAll(promises)
+		if r.Err != nil {
+			panic(r.Err)
 		}
-		var responses []any = ListTyped(r1.Value)
+		var responses []any = ListTyped(r.Value)
 		for i := 0; i < len(responses); i++ {
 			var parsed map[string]any = this.ParseMarket(responses[i])
 			if parsed != nil {
@@ -1554,7 +1554,7 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var base *string = nil
 	var quote *string = nil
 	if (marketId != nil) && (marketResolved == nil) {
-		var idLength int64 = int64(GetLength(marketId)) - 0
+		var idLength int = len(*marketId)
 		if idLength == 7 {
 			baseId = func() string {
 				if marketId == nil {
@@ -2064,9 +2064,11 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) Order {
 	var average *string = this.SafeString(order, "avg_execution_price")
 	var typeVar *string = this.SafeString(order, "type")
 	if typeVar != nil && *typeVar == "exchange limit" {
-		typeVar = SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
 	} else if (typeVar != nil && *typeVar == "market buy") || (typeVar != nil && *typeVar == "market sell") {
-		typeVar = SafeStringPtr("market")
+		typeVarStr2 := "market"
+		typeVar = &typeVarStr2
 	} else {
 		typeVar = this.SafeString(order, "type")
 	}
@@ -2292,7 +2294,8 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
 	if clientOrderId == nil {
-		clientOrderId = SafeStringPtr(strconv.FormatInt(this.Milliseconds(), 10))
+		clientOrderIdStr := strconv.FormatInt(this.Milliseconds(), 10)
+		clientOrderId = &clientOrderIdStr
 	}
 	var market map[string]any = this.Market(symbol)
 	var amountString *string = this.AmountToPrecision(symbol, amount)
@@ -2987,11 +2990,11 @@ func (this *Gemini) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"symbol":    market["id"],
 	}
 
-	r1 := <-this.PublicGetV2CandlesSymbolTimeframe(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseRecv := <-this.PublicGetV2CandlesSymbolTimeframe(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r1.Raw
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -3000,7 +3003,7 @@ func (this *Gemini) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//     ]
 	//
 	var candles []any = []any{}
-	if IsArray(response) {
+	if response != nil {
 		candles = ArrayTyped(response)
 	}
 

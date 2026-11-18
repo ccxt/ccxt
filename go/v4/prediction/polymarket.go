@@ -637,7 +637,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 		var parsedEvent map[string]any = this.ParseEvent(rawEvent)
 		var eventSlug *string = this.SafeString(rawEvent, "slug")
 		if (eventSlug != nil) && (eventSlug == nil || *eventSlug != "") {
-			var eventKey any = this.ShortenSlug(eventSlug)
+			var eventKey string = this.ShortenSlug(eventSlug)
 			ccxt.AddElementToObject(eventsDict, eventKey, parsedEvent)
 		}
 	}
@@ -717,23 +717,23 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 		var firstEventsLength int = len(firstEvents)
 		var pagination map[string]any = ccxt.SafeMapTyped(first, "pagination")
 		var totalResults *int64 = this.SafeInteger(pagination, "totalResults", firstEventsLength)
-		var totalPages any = this.ParseToInt(math.Ceil(float64(*totalResults) / float64(*pageSize)))
+		var totalPages int64 = this.ParseToInt(math.Ceil(float64(*totalResults) / float64(*pageSize)))
 		// only page as far as `limit` needs (applyEventFetchParams slices to it afterwards)
 		// with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
 		if resultLimit != nil {
 			var limitPages int64 = this.ParseToInt(math.Ceil(float64(*resultLimit) / float64(*pageSize)))
-			if ccxt.IsLessThan(limitPages, totalPages) {
+			if limitPages < totalPages {
 				totalPages = limitPages
 			}
 		} else {
 			var optionMaxPages *int64 = this.SafeInteger(this.Options, "maxSearchPages", 5)
-			var maxSearchPages *int64 = this.SafeInteger(params, "maxSearchPages", optionMaxPages)
-			if ccxt.IsLessThan(maxSearchPages, totalPages) {
+			var maxSearchPages int64 = this.ParseToInt(this.SafeInteger(params, "maxSearchPages", optionMaxPages))
+			if maxSearchPages < totalPages {
 				totalPages = maxSearchPages
 			}
 		}
 		var remainingPages []any = []any{}
-		for p := 2; ccxt.IsLessThanOrEqual(p, totalPages); p++ {
+		for p := 2; int64(p) <= totalPages; p++ {
 			remainingPages = append(remainingPages, p)
 		}
 		var restPromises []any = []any{}
@@ -763,15 +763,11 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 		for ei := 0; ei < len(allEvents); ei++ {
 			var rawEvent any = allEvents[ei]
 			var eventId *string = this.SafeString(rawEvent, "id")
-			if ((eventId != nil) && (eventId == nil || *eventId != "")) && !(func() bool {
-				if eventId == nil {
-					return false
+			if (eventId != nil) && (eventId == nil || *eventId != "") {
+				if _, ok := seen[*eventId]; !ok {
+					seen[*eventId] = true
+					rawEvents = append(rawEvents, rawEvent)
 				}
-				_, ok := seen[*eventId]
-				return ok
-			}()) {
-				seen[*eventId] = true
-				rawEvents = append(rawEvents, rawEvent)
 			}
 		}
 	}
@@ -1837,7 +1833,8 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if !(ccxt.InOp(this.Timeframes, timeframe)) {
+	_, has1 := this.Timeframes[timeframe]
+	if !has1 {
 		var supportedKeys []string = ccxt.ObjectKeys(this.Timeframes)
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
@@ -1850,14 +1847,14 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	var fidelityMin *int64 = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
 	var nowS int64 = this.Seconds()
-	var startS any = nil
-	var endS any = nowS
+	var startS int64 = this.ParseToInt(0)
+	var endS int64 = this.ParseToInt(nowS)
 	if since != nil {
 		startS = this.ParseToInt(float64(*since) / 1000)
 		if limit != nil {
-			var endBound any = this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60))
-			endS = func() any {
-				if ccxt.IsLessThan(endBound, nowS) {
+			var endBound int64 = this.ParseToInt(this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60)))
+			endS = func() int64 {
+				if endBound < nowS {
 					return endBound
 				}
 				return nowS
@@ -1870,18 +1867,18 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 			}
 			return 100
 		}()
-		startS = ccxt.Subtract(nowS, (ccxt.Multiply(ccxt.Multiply(barCount, fidelityMin), 60)))
+		startS = this.ParseToInt(ccxt.Subtract(nowS, (ccxt.Multiply(ccxt.Multiply(barCount, fidelityMin), 60))))
 	}
 	// the venue rejects startTs/endTs spans over 15 days ("interval is too long")
 	// regardless of fidelity, so clamp the window to the cap: keep the requested
 	// `since` anchor (oldest chunk first, consistent with since/limit paging),
 	// or the most recent window when no `since` was given
-	var maxWindow *int64 = this.SafeInteger(this.Options, "maxPricesHistoryWindow", 1296000)
-	if ccxt.IsGreaterThan((ccxt.Subtract(endS, startS)), maxWindow) {
+	var maxWindow int64 = *this.SafeInteger(this.Options, "maxPricesHistoryWindow", 1296000)
+	if (endS - startS) > maxWindow {
 		if since != nil {
-			endS = this.Sum(startS, maxWindow)
+			endS = this.ParseToInt(startS + maxWindow)
 		} else {
-			startS = ccxt.Subtract(endS, maxWindow)
+			startS = this.ParseToInt(endS - maxWindow)
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -2240,13 +2237,13 @@ func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	}
 	request["limit"] = this.SafeInteger(this.Options, "tradesPageSize", 500)
 
-	r1 := <-this.DataPublicGetTrades(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseRecv := <-this.DataPublicGetTrades(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r1.Raw
+	var response []any = responseRecv.Value
 	var rawTrades any = func() any {
-		if ccxt.IsArray(response) {
+		if response != nil {
 			return response
 		}
 		return this.SafeList(response, "data", []any{})
@@ -2990,14 +2987,14 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		requests = append(requests, this.SafeDict(built, "request", map[string]any{}))
 	}
 
-	r2 := <-this.ClobPrivatePostOrders(bodies)
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseRecv := <-this.ClobPrivatePostOrders(bodies)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r2.Raw
+	var response []any = responseRecv.Value
 	var result []any = []any{}
-	if ccxt.IsArray(response) {
-		for i := 0; i < ccxt.GetArrayLength(response); i++ {
+	if response != nil {
+		for i := 0; i < len(response); i++ {
 			// request echo first so the response's real orderID/status win on overlap
 			var rawItem any = ccxt.GetValue(response, i)
 			var enriched map[string]any = this.Extend(func() any {
@@ -3050,22 +3047,27 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 		// otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
 		var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
 		if unifiedTif != nil && *unifiedTif == "GTC" {
-			orderTypeStr = ccxt.SafeStringPtr("GTC")
+			orderTypeStrStr := "GTC"
+			orderTypeStr = &orderTypeStrStr
 		} else if unifiedTif != nil && *unifiedTif == "FOK" {
-			orderTypeStr = ccxt.SafeStringPtr("FOK")
+			orderTypeStrStr2 := "FOK"
+			orderTypeStr = &orderTypeStrStr2
 		} else if unifiedTif != nil && *unifiedTif == "IOC" {
-			orderTypeStr = ccxt.SafeStringPtr("FAK") // fill-and-kill == immediate-or-cancel
+			orderTypeStrStr3 := "FAK"
+			orderTypeStr = &orderTypeStrStr3 // fill-and-kill == immediate-or-cancel
 		} else if unifiedTif != nil && *unifiedTif == "GTD" {
-			orderTypeStr = ccxt.SafeStringPtr("GTD")
+			orderTypeStrStr4 := "GTD"
+			orderTypeStr = &orderTypeStrStr4
 		}
 	}
 	if orderTypeStr == nil {
-		orderTypeStr = ccxt.SafeStringPtr(func() string {
+		orderTypeStrStr5 := func() string {
 			if isMarket {
 				return "FOK"
 			}
 			return "GTC"
-		}())
+		}()
+		orderTypeStr = &orderTypeStrStr5
 	}
 	var priceResolved any = price
 	if ccxt.IsEqual(priceResolved, nil) {
@@ -3366,12 +3368,12 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress st
 	// raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
 	var orderTypeHash any = this.Hash(this.Encode(orderTypeString), ccxt.Keccak, "binary")
 	var contentsData any = this.EthAbiEncode([]any{"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, []any{orderTypeHash, this.ConvertToBigInt(message["salt"]), message["maker"], message["signer"], this.ConvertToBigInt(message["tokenId"]), this.ConvertToBigInt(message["makerAmount"]), this.ConvertToBigInt(message["takerAmount"]), message["side"], message["signatureType"], this.ConvertToBigInt(message["timestamp"]), this.Base16ToBinary(this.Remove0xPrefix(message["metadata"])), this.Base16ToBinary(this.Remove0xPrefix(message["builder"]))})
-	var contentsHash *string = ccxt.SafeStringPtr(ccxt.Add("0x", this.Hash(contentsData, ccxt.Keccak, "hex")))
+	var contentsHash *string = ccxt.SafeStringPtr("0x" + this.HashString(contentsData, ccxt.Keccak, "hex"))
 	var domainTypeHash any = this.Hash(this.Encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), ccxt.Keccak, "binary")
 	var nameHash any = this.Hash(this.Encode(domainName), ccxt.Keccak, "binary")
 	var versionHash any = this.Hash(this.Encode(domainVersion), ccxt.Keccak, "binary")
 	var appDomainData any = this.EthAbiEncode([]any{"bytes32", "bytes32", "bytes32", "uint256", "address"}, []any{domainTypeHash, nameHash, versionHash, this.ConvertToBigInt(this.NumberToString(chainIdValue)), exchangeAddress})
-	var appDomainSep *string = ccxt.SafeStringPtr(ccxt.Add("0x", this.Hash(appDomainData, ccxt.Keccak, "hex")))
+	var appDomainSep *string = ccxt.SafeStringPtr("0x" + this.HashString(appDomainData, ccxt.Keccak, "hex"))
 	var typedDataSignStruct []any = []any{map[string]any{
 		"name": "contents",
 		"type": "Order",
@@ -4090,13 +4092,13 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 }
 func (this *Polymarket) HashMessage(message any) any {
-	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
+	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
 func (this *Polymarket) EthChecksumAddress(address *string) string {
 	// EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
 	// case-sensitively and stores addresses checksummed, so every address we send must be checksummed
 	var cleaned string = strings.ToLower(this.Remove0xPrefix(address))
-	var hashHex any = this.Hash(this.Encode(cleaned), ccxt.Keccak, "hex")
+	var hashHex string = this.HashString(this.Encode(cleaned), ccxt.Keccak, "hex")
 	var addrChars []string = this.StringToCharsArray(cleaned)
 	var hashChars []string = this.StringToCharsArray(hashHex)
 	var upperNibbles string = "89abcdef"
@@ -4120,10 +4122,10 @@ func (this *Polymarket) EthChecksumAddress(address *string) string {
 func (this *Polymarket) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
-	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
-	var r string = ccxt.PadStart(rRaw, 64, "0")
-	var s string = ccxt.PadStart(sRaw, 64, "0")
+	var rRaw string = *this.SafeString(signature, "r", "")
+	var sRaw string = *this.SafeString(signature, "s", "")
+	var r string = (strings.Repeat("0", max(64-len(rRaw), 0)) + rRaw)[max(len(rRaw)-64, 0):]
+	var s string = (strings.Repeat("0", max(64-len(sRaw), 0)) + sRaw)[max(len(sRaw)-64, 0):]
 	return map[string]any{
 		"r": "0x" + r,
 		"s": "0x" + s,
@@ -4377,7 +4379,7 @@ func (this *Polymarket) Ping(client any) any {
 	// keepAlive interval set in describe.streaming sends it on both the market and user channels
 	return "PING"
 }
-func (this *Polymarket) HandleTextMessage(client any, message any) {
+func (this *Polymarket) HandleTextMessage(client any, message string) {
 	// Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
 	// client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
 	// base keepalive treats the connection as stale and times it out after maxPingPongMisses.
