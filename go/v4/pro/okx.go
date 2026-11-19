@@ -48,6 +48,8 @@ func (this *Okx) Describe() map[string]any {
 			"watchFundingRates":             true,
 			"unWatchTicker":                 true,
 			"unWatchTickers":                true,
+			"unWatchMarkPrice":              true,
+			"unWatchMarkPrices":             true,
 			"unWatchOHLCV":                  true,
 			"unWatchOHLCVForSymbols":        true,
 			"unWatchOrderBook":              true,
@@ -844,6 +846,104 @@ func (this *Okx) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
+	return nil
+}
+
+/**
+ * @method
+ * @name okx#unWatchMarkPrice
+ * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+ * @description unWatches a mark price
+ * @param {string} symbol unified symbol of the market to stop watching the mark price for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Okx) UnWatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchMarkPriceBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Okx) unWatchMarkPriceBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.UnWatchMarkPricesAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name okx#unWatchMarkPrices
+ * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+ * @description unWatches mark prices
+ * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Okx) UnWatchMarkPricesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchMarkPricesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Okx) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
+	channel, _ := this.HandleOptionStringAndParams(params, "watchMarkPrices", "channel", "mark-price")
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = symbolsNormalized[i]
+		messageHashes = append(messageHashes, "unsubscribe:mark-price:"+symbol)
+		var marketId any = this.MarketId(symbol)
+		var topic map[string]any = map[string]any{
+			"channel": channel,
+			"instId":  marketId,
+		}
+		topics = append(topics, topic)
+	}
+	var request map[string]any = map[string]any{
+		"op":   "unsubscribe",
+		"args": topics,
+	}
+	var url string = this.GetUrl(channel, "public")
+
+	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -3779,6 +3879,14 @@ func (this *Okx) HandleUnsubscriptionTicker(client any, symbol string, channel s
 		delete(this.Tickers, symbol)
 	}
 }
+func (this *Okx) HandleUnsubscriptionMarkPrice(client any, symbol string, channel string) {
+	var subMessageHash string = channel + "::" + symbol
+	var messageHash string = "unsubscribe:mark-price:" + symbol
+	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	if _, ok := this.Tickers[symbol]; ok {
+		delete(this.Tickers, symbol)
+	}
+}
 func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
 	//
 	// {
@@ -3804,6 +3912,8 @@ func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
 		this.HandleUnSubscriptionTrades(client, *symbol, *channel)
 	} else if strings.HasPrefix(*channel, "bbo") || strings.HasPrefix(*channel, "book") {
 		this.HandleUnsubscriptionOrderBook(client, *symbol, *channel)
+	} else if channel != nil && *channel == "mark-price" {
+		this.HandleUnsubscriptionMarkPrice(client, *symbol, *channel)
 	} else if strings.Index(*channel, "tickers") > -1 {
 		this.HandleUnsubscriptionTicker(client, *symbol, *channel)
 	} else if strings.HasPrefix(*channel, "candle") {
@@ -4095,6 +4205,54 @@ func (this *Okx) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.T
 	}
 	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
+}
+
+/**
+ * @method
+ * @name okx#unWatchMarkPrice
+ * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+ * @description unWatches a mark price
+ * @param {string} symbol unified symbol of the market to stop watching the mark price for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Okx) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMarkPriceOptions) (any, error) {
+
+	opts := ccxt.UnWatchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchMarkPriceAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name okx#unWatchMarkPrices
+ * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+ * @description unWatches mark prices
+ * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Okx) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions) (any, error) {
+
+	opts := ccxt.UnWatchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchMarkPricesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**
