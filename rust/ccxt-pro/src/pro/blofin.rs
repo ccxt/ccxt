@@ -1360,7 +1360,8 @@ impl Blofin {
         }
         let mut rawSubscriptions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (symbols.is_some()) && (((symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64) > ((0i64) as f64)) {
+        let mut symbolsLength: i64 = (if (symbols.is_none()) { 0 } else { symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64 });
+        if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_177: bool = true;

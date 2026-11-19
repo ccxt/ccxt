@@ -780,7 +780,8 @@ class blofin extends blofin$1["default"] {
         }
         let rawSubscriptions = [];
         const messageHashes = [];
-        if ((symbols !== undefined) && (symbols.length > 0)) {
+        const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
+        if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
                 let market = undefined;

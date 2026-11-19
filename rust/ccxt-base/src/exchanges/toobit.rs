@@ -3573,7 +3573,7 @@ impl Toobit {
         let mut marketType: Option<String> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsUntil)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_deref() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrders() is not supported for ").into()), marketType.as_deref().unwrap_or("null")).into()), " markets")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchClosedOrders() is not supported for ").into()), marketType.as_deref().unwrap_or("null")).into()), " markets")));
         }  else {
             response = self.private_get_api_v1_futures_history_orders(&[Value::Dict(requestUntil)]).await;
         }
