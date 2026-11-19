@@ -19021,7 +19021,9 @@ function goJoinStringLocals (content: string): string {
                 continue;
             }
             const elems = (decl[3].trim () === '') ? [] : goGuardedReadSplitArgs (decl[3]);
-            const isString = (e: string) => { const o = goTypedStrOperand (e, func, masked, content); return (o !== undefined) && (o.kind === 'string') && (o.text === e); };
+            const isLeaf = (e: string) => { const o = goTypedStrOperand (e, func, masked, content); return (o !== undefined) && (o.kind === 'string') && (o.text === e); };
+            // a `+` sum of string leaves, a defaulted `*this.SafeString(.., "lit")` among them, is a string
+            const isString = (e: string) => isLeaf (e) || goJoinStringSum (e, isLeaf);
             if (!elems.every (isString)) {
                 continue;
             }
@@ -19061,6 +19063,26 @@ function goJoinStringLocals (content: string): string {
     return parts.join ('');
 }
 
+// `a + b + ..` where every term is a string leaf or a never-nil `*this.SafeString*(.., "lit")` read
+function goJoinStringSum (e: string, isLeaf: (t: string) => boolean): boolean {
+    const masked = goTextMaskLiteralsAndComments (e);
+    const terms = goAddSplitTop (e, masked, '+');
+    if ((terms === null) || (terms.length < 2)) {
+        return false;
+    }
+    return terms.every ((raw) => {
+        const t = raw.trim ();
+        if (GO_STRING_LITERAL_RX ().test (t) || isLeaf (t)) {
+            return true;
+        }
+        const call = /^\*this\.(\w+)\(/.exec (t);
+        const tm = goTextMaskLiteralsAndComments (t);
+        const parsed = (call === null) ? undefined : goSplitCallArgs (t, tm, call[0].length - 1);
+        return (call !== null) && (parsed !== undefined) && (parsed.end === t.length - 1)
+            && (goTypedStrSafeStringArity ()[call[1]] === parsed.args.length) && GO_STRING_LITERAL_RX ().test (parsed.args[parsed.args.length - 1].trim ());
+    });
+}
+
 // the join-pass self-test input: one method body behind a generated-file header, through both join passes
 function goJoinCheckInput (body: string): string {
     return goStdlibStringHelpers (goJoinStringLocals (goSelfTestHead (true) + 'func (this *X) F(n any) any {\n\tvar s string = "v"\n' + body + '}\n'));
@@ -19078,6 +19100,9 @@ function goJoinStringLocalsCheck (ok: SelfTestOk): void {
     ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n') === goStdlibStringHelpers (goJoinStringLocals (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n'))), 'idempotent');
     ok (f ('\tvar parts []any = []any{\"a\", s}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]string{\"a\", s}'), 'literal string elements');
     ok (f ('\tvar parts []any = []any{\"a\", n}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]any{\"a\", n}'), 'any literal element stays');
+    const sum = '\tvar parts []any = []any{}\n\tfor i := 0; i < 3; i++ {\n\t\tparts = append(parts, "%22"+*this.SafeString(n, i, "")+"%22")\n\t}\n\tvar j string = Join(parts, ",")\n\treturn j\n';
+    ok (f (sum).includes ('var parts []string = []string{}'), 'defaulted SafeString sum is a string');
+    ok (f (sum.replace ('i, "")', 'i)')).includes ('[]any = []any{}'), 'no-default SafeString sum stays []any');
     const sl = '\tvar ids []string = strings.Split(s, \"-\")\n\tvar parts []any = this.ArraySlice(ids, 1)\n\tvar j string = Join(parts, \"-\")\n';
     ok (f (sl + '\treturn j\n').includes ('var parts []string = ids[1:]') && f (sl + '\treturn j\n').includes ('strings.Join(parts, '), 'ArraySlice of []string joins natively');
     ok (f (sl + '\treturn parts\n').includes ('this.ArraySlice(ids, 1)'), 'returned slice stays []any');
