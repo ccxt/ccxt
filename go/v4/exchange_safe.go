@@ -218,6 +218,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	case *ArrayCacheByTimestamp:
 		if len(keys) > 0 && keys[0] != nil {
 			keyStr := fmt.Sprintf("%v", keys[0])
@@ -228,6 +229,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	case *ArrayCacheBySymbolById:
 		if len(keys) > 0 && keys[0] != nil {
 			keyStr := fmt.Sprintf("%v", keys[0])
@@ -238,6 +240,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	case *ArrayCacheBySymbolBySide:
 		if len(keys) > 0 && keys[0] != nil {
 			keyStr := fmt.Sprintf("%v", keys[0])
@@ -248,7 +251,12 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 				return v.Data
 			}
 		}
+		return getValueFromList(v.ToArray(), keys, defVal)
 	default:
+		// a cache reads its rows by index, as the TS Array subclass does
+		if cache, ok := obj.(ArrayCacheInterface); ok {
+			return getValueFromList(cache.ToArray(), keys, defVal)
+		}
 		// Handle orderbook interfaces
 		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
 			return ob.GetValue(derefScalar(keys[0]).(string), defVal)
