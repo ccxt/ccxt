@@ -5667,6 +5667,13 @@ export function installJavaLocalTypes (transpiler) {
             if (end === -1) {
                 return printed;
             }
+            // a union-typed parameter narrowed to Dict may still box a scalar / nil at runtime: answer null like TS, never throw
+            const narrowed = unwrapParens (node.expression);
+            const param = narrowed !== undefined && ts.isIdentifier (narrowed) ? printer.getChecker ().getSymbolAtLocation (narrowed)?.valueDeclaration?.resolve () : undefined;
+            if (venueType === JAVA_ARRAY_TYPE_MAP () && param !== undefined && ts.isParameterDeclaration (param) && param.type?.kind === ts.SyntaxKind.UnionType) {
+                const v = tail.slice (0, end).trim ();
+                return printed.slice (0, at + 'return '.length) + '((' + v + ' instanceof java.util.Map) ? ' + venueCast + ' (' + v + ') : null)' + tail.slice (end);
+            }
             // numeric boxes (sum/subtract may hand back Integer or Double) convert, not checkcast
             // a returned one-argument this.extend ({..}) keeps the `((T) call)` form, so its literal argument is still hoisted
             let returned = unwrapParens (node.expression);

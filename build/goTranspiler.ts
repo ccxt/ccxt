@@ -17146,7 +17146,9 @@ export function goTypedDictNarrowers (content: string, qual: string): string {
     const names: string[] = [];
     content = content.replace (def, ((_m: string, head: string, name: string, arg: string) => {
         names.push (name);
-        return head + ' map[string]any {\n\tif m, ok := ' + arg + '.(map[string]any); ok {\n\t\treturn m\n\t}\n\treturn map[string]any{}\n}';
+        // TS hands back the response itself: a non-map non-string non-list (nil, scalar) answers a nil map
+        const empty = (t: string) => '\tif _, ok := ' + arg + '.(' + t + '); ok {\n\t\treturn map[string]any{}\n\t}\n';
+        return head + ' map[string]any {\n\tif m, ok := ' + arg + '.(map[string]any); ok {\n\t\treturn m\n\t}\n' + empty ('string') + empty ('[]any') + '\treturn nil\n}';
     }) as any);
     for (const name of names) {
         content = content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => fn.replace (new RegExp ('\\n(\\t+)var (\\w+) any = (this\\.' + name + '\\(\\w+\\))\\n', 'g'), ((m: string, ind: string, local: string, call: string) => {
