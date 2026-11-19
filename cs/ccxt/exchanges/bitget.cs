@@ -6538,7 +6538,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> utaResult = new Dictionary<string, object>() {};
             for (int i = 0; i < rows.Count; i++)
             {
-                object entry = rows[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
                 string? entryMarketId = this.safeString(entry, "symbol");
                 if (((entryMarketId == null)) || ((this.markets_by_id == null)) || !(((entryMarketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(entryMarketId)))))
                 {
@@ -6652,7 +6652,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbol = this.safeSymbol(marketId, null, null, marketType);
             Dictionary<string, object> market = this.market(symbol);

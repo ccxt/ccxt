@@ -337,7 +337,7 @@ public partial class myriad : PredictionExchange
             List<object> found = ((List<object>)(((object)(responseIsArray ? response : this.safeList(response, "data", new List<object>() {})))));
             for (int j = 0; j < (found?.Count ?? 0); j++)
             {
-                object raw = found[j];
+                IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                 string networkId = this.safeString(raw, "networkId", "");
                 string? marketId = this.safeString(raw, "id", "");
                 string key = ((networkId + ":") + marketId);
@@ -539,7 +539,7 @@ public partial class myriad : PredictionExchange
             List<object> found = ((List<object>)(((object)(responseIsArray ? response : this.safeList(response, "data", new List<object>() {})))));
             for (int j = 0; j < (found?.Count ?? 0); j++)
             {
-                object raw = found[j];
+                IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                 string? questionId = this.safeString(raw, "id");
                 if (((questionId != null)) && !(((questionId != null) && seen.ContainsKey(questionId))))
                 {
@@ -591,7 +591,7 @@ public partial class myriad : PredictionExchange
             }
             for (int i = 0; i < rawQuestionsLength; i++)
             {
-                object rawQuestion = (rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null);
+                IDictionary<string, object> rawQuestion = ((IDictionary<string, object>)(rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null));
                 string? questionId = this.safeString(rawQuestion, "id");
                 if (((questionId != null)) && (((questionId != null) && seen.ContainsKey(questionId))))
                 {
@@ -3143,7 +3143,7 @@ public partial class myriad : PredictionExchange
         List<object> usablePoints = new List<object>() {};
         for (int i = 0; i < (points?.Count ?? 0); i++)
         {
-            object point = points[i];
+            IDictionary<string, object> point = ((IDictionary<string, object>)points[i]);
             double? pointOpen = this.safeNumber(point, "open");
             double? pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value"));
             Int64? pointTs = this.safeInteger(point, "timestamp");

@@ -2288,11 +2288,15 @@ public partial class coinbase : Exchange
             string? name = this.safeString(currency, "name");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networks") ? this.options["networks"] : null))[(string)code] = name.ToLower();
+                IDictionary<string, object> networksDict1 = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
+                networksDict1[(string)code] = name.ToLower();
+                this.options["networks"] = networksDict1;
             }
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networksById") ? this.options["networksById"] : null))[(string)code] = name.ToLower();
+                IDictionary<string, object> networksByIdDict2 = this.safeDict(this.options, "networksById", new Dictionary<string, object>() {});
+                networksByIdDict2[(string)code] = name.ToLower();
+                this.options["networksById"] = networksByIdDict2;
             }
             string type = "fiat";
             if ((assetId != null))

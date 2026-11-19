@@ -2610,14 +2610,14 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? marketType = null;
             string? baseId = null;
             string? quoteId = null;
             string? settleId = null;
             string? id = null;
             string? lowercaseId = null;
-            bool contract = (inOp(market, "contract_code"));
+            bool contract = (market.ContainsKey("contract_code"));
             bool spot = !contract;
             bool swap = false;
             bool future = false;
@@ -2890,12 +2890,16 @@ public partial class htx : Exchange
             }
             if (isEqual(constructedId, symbolOrMarketId))
             {
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("futureMarketIdsForSymbols") ? this.options["futureMarketIdsForSymbols"] : null))[(string)symbolOrMarketId] = marketSymbol;
+                IDictionary<string, object> futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, "futureMarketIdsForSymbols", new Dictionary<string, object>() {});
+                futureMarketIdsForSymbolsDict1[(string)symbolOrMarketId] = marketSymbol;
+                this.options["futureMarketIdsForSymbols"] = futureMarketIdsForSymbolsDict1;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("futureMarketIdsForSymbols") ? this.options["futureMarketIdsForSymbols"] : null))[(string)symbolOrMarketId] = symbolOrMarketId;
+        IDictionary<string, object> futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, "futureMarketIdsForSymbols", new Dictionary<string, object>() {});
+        futureMarketIdsForSymbolsDict2[(string)symbolOrMarketId] = symbolOrMarketId;
+        this.options["futureMarketIdsForSymbols"] = futureMarketIdsForSymbolsDict2;
         return symbolOrMarketId;
     }
 
@@ -4362,7 +4366,9 @@ public partial class htx : Exchange
             }
             if ((uniqueChainId != null))
             {
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkNamesByChainIds") ? this.options["networkNamesByChainIds"] : null))[(string)uniqueChainId] = title;
+                IDictionary<string, object> networkNamesByChainIdsDict3 = this.safeDict(this.options, "networkNamesByChainIds", new Dictionary<string, object>() {});
+                networkNamesByChainIdsDict3[(string)uniqueChainId] = title;
+                this.options["networkNamesByChainIds"] = networkNamesByChainIdsDict3;
             }
             string? networkCode = this.networkIdToCode(uniqueChainId, code);
             if ((networkCode != null))
@@ -7860,7 +7866,7 @@ public partial class htx : Exchange
         List<object> addresses = new List<object>() {};
         for (int i = 0; i < (allAddresses?.Count ?? 0); i++)
         {
-            object address = allAddresses[i];
+            IDictionary<string, object> address = ((IDictionary<string, object>)allAddresses[i]);
             bool noteMatch = ((note == null)) || ((this.safeString(address, "note") == note));
             bool networkMatch = ((networkCode == null)) || ((this.safeString(address, "network") == networkCode));
             if (noteMatch && networkMatch)

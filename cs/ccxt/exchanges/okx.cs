@@ -2943,7 +2943,7 @@ public partial class okx : Exchange
         List<object> marketsWithoutTest = new List<object>() {};
         for (int i = 0; i < (dataResponse?.Count ?? 0); i++)
         {
-            object data = dataResponse[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)dataResponse[i]);
             string? instId = this.safeString(data, "instId", "");
             if (instId == "")
             {

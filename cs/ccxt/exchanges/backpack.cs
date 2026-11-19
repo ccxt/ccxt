@@ -1256,8 +1256,7 @@ public partial class backpack : Exchange
             { "side", this.encodeOrderSide(side) },
             { "quantity", this.numberToString(amount) },
         };
-        string requestMethod = "publicGetApiV1StockIndicativeQuote";
-        return await ((Task<object>)callDynamically(this, requestMethod, new object[] { this.extend(query, request) }));
+        return await (this.publicGetApiV1StockIndicativeQuote(this.extend(query, request)));
     }
 
     /**
@@ -1635,7 +1634,7 @@ public partial class backpack : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
-            object entry = (entries != null && i < entries.Count ? entries[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(entries != null && i < entries.Count ? entries[i] : null));
             string? symbol = this.safeString(entry, "symbol");
             IDictionary<string, object> market = this.safeDict(this.markets, symbol);
             if ((this.safeBool(market, "stock", false) == true))
@@ -1933,7 +1932,6 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        int maxLimit = 2000;
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
@@ -1950,12 +1948,12 @@ public partial class backpack : Exchange
             request["endTime"] = this.parseToInt(((double?)until / 1000)); // convert milliseconds to seconds
         }
         int defaultLimit = 100;
-        object limitResolved = limit;
-        if (!(limitResolved == null))
+        Int64 windowLimit = ((limit == null)) ? defaultLimit : Math.Min(limit.Value, 2000);
+        Int64? limitResolved = null;
+        if ((limit != null))
         {
-            limitResolved = mathMin(limitResolved, maxLimit);
+            limitResolved = windowLimit;
         }
-        object windowLimit = ((limitResolved == null)) ? defaultLimit : limitResolved;
         Int64 now = this.milliseconds();
         object startTime = since;
         object untilValue = until;
@@ -1965,13 +1963,13 @@ public partial class backpack : Exchange
             {
                 untilValue = now;
             }
-            startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilValue, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(windowLimit, duration)));
+            startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilValue, ((windowLimit * duration)));
         }
         request["startTime"] = this.parseToInt(divide(startTime, 1000));
         // set until value
         if ((untilValue == null))
         {
-            object windowEnd = this.sum(startTime, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(windowLimit, duration));
+            object windowEnd = this.sum(startTime, (windowLimit * duration));
             untilValue = mathMin(now, windowEnd);
         }
         request["endTime"] = this.parseToInt(divide(untilValue, 1000));

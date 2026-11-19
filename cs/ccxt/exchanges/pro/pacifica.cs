@@ -883,7 +883,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object info = data[i];
+            IDictionary<string, object> info = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

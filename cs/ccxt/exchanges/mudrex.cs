@@ -1524,7 +1524,7 @@ public partial class mudrex : Exchange
             int dataLength = data.Count;
             for (int i = 0; i < data.Count; i++)
             {
-                object entry = data[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
                 allRows.Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
@@ -1555,7 +1555,7 @@ public partial class mudrex : Exchange
         List<object> transactionKeys = new List<object>() {};
         for (int i = 0; i < (allRows?.Count ?? 0); i++)
         {
-            object entry = allRows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)allRows[i]);
             string? feeType = this.safeString(entry, "fee_type");
             string pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
             if (feeType == "TRANSACTION")

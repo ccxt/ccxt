@@ -2394,7 +2394,7 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < 63; i++)
         {
             Int64 next = (i + 1L);
-            if (!isEqual(slice(raw, i, next), "0"))
+            if (!isEqual(((raw == null) ? null : raw[(int)(i < 0 ? raw.Length + i : i)..Math.Min((int)(next < 0 ? raw.Length + next : next), raw.Length)]), "0"))
             {
                 start = i;
                 break;

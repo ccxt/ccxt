@@ -1548,7 +1548,7 @@ public partial class coinone : Exchange
             }, parameters));
             string payload = this.stringToBase64(json);
             requestBody = payload;
-            string signature = this.hmac(payload, this.encode(this.secret.ToUpper()), sha512);
+            string signature = this.hmac(payload, this.secret.ToUpper(), sha512);
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-COINONE-PAYLOAD", payload },

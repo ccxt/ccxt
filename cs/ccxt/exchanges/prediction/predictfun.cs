@@ -593,7 +593,7 @@ public partial class predictfun : PredictionExchange
             int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
+                IDictionary<string, object> m = ((IDictionary<string, object>)(parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null));
                 // prediction market rows are keyed by the unified 'market' handle
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
@@ -1874,7 +1874,7 @@ public partial class predictfun : PredictionExchange
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, "Ethereum Signed Message:", newline, this.numberToString(binaryMessageLength));
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 

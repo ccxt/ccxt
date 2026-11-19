@@ -343,7 +343,7 @@ public partial class binance : PredictionExchange
         int rawTopicsLength = getArrayLength(rawTopics);
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            object rawTopic = getValue(rawTopics, i);
+            IDictionary<string, object> rawTopic = ((IDictionary<string, object>)getValue(rawTopics, i));
             List<object> rawMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
             int rawMarketsLength = rawMarkets.Count;
             bool hasOutcomes = false;

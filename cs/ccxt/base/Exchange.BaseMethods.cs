@@ -2223,10 +2223,10 @@ public partial class BaseExchange
             List<object> quoteCurrencies = new List<object>() {};
             for (int i = 0; i < (values?.Count ?? 0); i++)
             {
-                object market = values[i];
+                IDictionary<string, object> market = ((IDictionary<string, object>)values[i]);
                 double? defaultCurrencyPrecision = ((this.precisionMode == DECIMAL_PLACES)) ? 8 : this.parseNumber("1e-8");
                 IDictionary<string, object> marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
-                if (inOp(market, "base"))
+                if (market.ContainsKey("base"))
                 {
                     Dictionary<string, object> currency = this.safeCurrencyStructure(new Dictionary<string, object>() {
                         { "id", this.safeString2(market, "baseId", "base") },
@@ -2236,7 +2236,7 @@ public partial class BaseExchange
                     });
                     baseCurrencies.Add(currency);
                 }
-                if (inOp(market, "quote"))
+                if (market.ContainsKey("quote"))
                 {
                     Dictionary<string, object> currency = this.safeCurrencyStructure(new Dictionary<string, object>() {
                         { "id", this.safeString2(market, "quoteId", "quote") },
@@ -4800,7 +4800,7 @@ public partial class BaseExchange
         Int64? retryDelayMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.Item1;
         object paramsMaxRetriesOnFailureDelay = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.Item2;
         bool fetchDataCacheEnabled = (this.fetchHistoryCacheSize > 0);
-        for (int i = 0; (i < (retriesMaxRetriesOnFailure + 1)); i++)
+        for (int i = 0; (i <= retriesMaxRetriesOnFailure); i++)
         {
             Dictionary<string, object> fetchData = null;
             if (fetchDataCacheEnabled)
@@ -7073,8 +7073,9 @@ public partial class BaseExchange
         int numNetworks = networkKeys.Count;
         if ((numNetworks == 1))
         {
-            ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && 0 < networkKeys.Count ? networkKeys[0] : null)), "withdraw");
-            ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && 0 < networkKeys.Count ? networkKeys[0] : null)), "deposit");
+            IDictionary<string, object> networkFee = this.safeDict(getValue(fee, "networks"), (networkKeys != null && 0 < networkKeys.Count ? networkKeys[0] : null), new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)fee)["withdraw"] = (networkFee != null && networkFee.ContainsKey("withdraw") ? networkFee["withdraw"] : null);
+            ((IDictionary<string,object>)fee)["deposit"] = (networkFee != null && networkFee.ContainsKey("deposit") ? networkFee["deposit"] : null);
             return fee;
         }
         string? currencyCode = this.safeString(currency, "code");
@@ -7083,8 +7084,9 @@ public partial class BaseExchange
             string? network = ((string)(networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null));
             if ((network == currencyCode))
             {
-                ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null)), "withdraw");
-                ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null)), "deposit");
+                IDictionary<string, object> networkFee = this.safeDict(getValue(fee, "networks"), (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null), new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)fee)["withdraw"] = (networkFee != null && networkFee.ContainsKey("withdraw") ? networkFee["withdraw"] : null);
+                ((IDictionary<string,object>)fee)["deposit"] = (networkFee != null && networkFee.ContainsKey("deposit") ? networkFee["deposit"] : null);
             }
         }
         return fee;
@@ -7701,7 +7703,7 @@ public partial class BaseExchange
         Dictionary<string, object> uniqueResult = new Dictionary<string, object>() {};
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
-            object entry = (input != null && i < input.Count ? input[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(input != null && i < input.Count ? input[i] : null));
             string? id = this.safeString(entry, "id");
             if ((id == null))
             {

@@ -1092,7 +1092,7 @@ public partial class gemini : ccxt.gemini
         int urlParamsIndex = url.IndexOf("?", StringComparison.Ordinal);
         int urlLength = url.Length;
         int endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        string? request = slice(url, startIndex, endIndex);
+        string? request = ((url == null) ? null : url[(int)(startIndex < 0 ? url.Length + startIndex : startIndex)..Math.Min((int)(endIndex < 0 ? url.Length + endIndex : endIndex), url.Length)]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },
             { "nonce", this.incrementingNonce() },

@@ -1826,7 +1826,7 @@ public partial class nado : Exchange
         Dictionary<string, object> pairsById = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object rawPair = pairs[i];
+            IDictionary<string, object> rawPair = ((IDictionary<string, object>)pairs[i]);
             string? pairProductId = this.safeString(rawPair, "product_id");
             if ((pairProductId != null))
             {
@@ -1836,7 +1836,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsById = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object rawAsset = assets[i];
+            IDictionary<string, object> rawAsset = ((IDictionary<string, object>)assets[i]);
             string? assetProductId = this.safeString(rawAsset, "product_id");
             if ((assetProductId != null))
             {
@@ -1846,7 +1846,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsByCode = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object rawAsset = assets[i];
+            IDictionary<string, object> rawAsset = ((IDictionary<string, object>)assets[i]);
             string? assetSymbol = this.safeString(rawAsset, "symbol");
             string? assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
             if ((assetCode == null))

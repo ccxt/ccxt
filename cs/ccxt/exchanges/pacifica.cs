@@ -1197,7 +1197,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
         for (int i = 0; i < settingsLen; i++)
         {
-            object setting = (settings != null && i < settings.Count ? settings[i] : null);
+            IDictionary<string, object> setting = ((IDictionary<string, object>)(settings != null && i < settings.Count ? settings[i] : null));
             string? marketId = this.safeString(setting, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

@@ -726,7 +726,7 @@ public partial class polymarket : PredictionExchange
             }
             for (int ei = 0; ei < (allEvents?.Count ?? 0); ei++)
             {
-                object rawEvent = allEvents[ei];
+                IDictionary<string, object> rawEvent = ((IDictionary<string, object>)allEvents[ei]);
                 string? eventId = this.safeString(rawEvent, "id");
                 if (((eventId != null) && eventId != "") && !(((eventId != null) && seen.ContainsKey(eventId))))
                 {
@@ -832,7 +832,7 @@ public partial class polymarket : PredictionExchange
                 List<Dictionary<string, object>> tagEvents = await this.FetchRawEventsList(singleTagParams);
                 for (int ei = 0; ei < (tagEvents?.Count ?? 0); ei++)
                 {
-                    object rawEvent = tagEvents[ei];
+                    IDictionary<string, object> rawEvent = ((IDictionary<string, object>)tagEvents[ei]);
                     string? eventId = this.safeString(rawEvent, "id");
                     if (((eventId != null)) && !(((eventId != null) && seen.ContainsKey(eventId))))
                     {
@@ -1450,7 +1450,7 @@ public partial class polymarket : PredictionExchange
             int lastTradesLength = (lastTrades?.Count ?? 0);
             for (int li = 0; li < lastTradesLength; li++)
             {
-                object lastTradeEntry = (lastTrades != null && li < lastTrades.Count ? lastTrades[li] : null);
+                IDictionary<string, object> lastTradeEntry = ((IDictionary<string, object>)(lastTrades != null && li < lastTrades.Count ? lastTrades[li] : null));
                 string? lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
                 if ((lastTradeTokenId != null))
                 {
@@ -2831,7 +2831,7 @@ public partial class polymarket : PredictionExchange
         byte[] orderTypeHash = ((byte[])this.hash(orderTypeString, keccak, "binary"));
         byte[] contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt((message != null && message.ContainsKey("salt") ? message["salt"] : null)), (message != null && message.ContainsKey("maker") ? message["maker"] : null), (message != null && message.ContainsKey("signer") ? message["signer"] : null), this.convertToBigInt((message != null && message.ContainsKey("tokenId") ? message["tokenId"] : null)), this.convertToBigInt((message != null && message.ContainsKey("makerAmount") ? message["makerAmount"] : null)), this.convertToBigInt((message != null && message.ContainsKey("takerAmount") ? message["takerAmount"] : null)), (message != null && message.ContainsKey("side") ? message["side"] : null), (message != null && message.ContainsKey("signatureType") ? message["signatureType"] : null), this.convertToBigInt((message != null && message.ContainsKey("timestamp") ? message["timestamp"] : null)), this.base16ToBinary(this.remove0xPrefix((message != null && message.ContainsKey("metadata") ? message["metadata"] : null))), this.base16ToBinary(this.remove0xPrefix((message != null && message.ContainsKey("builder") ? message["builder"] : null)))});
         string contentsHash = ("0x" + (this.hash(contentsData, keccak, "hex")));
-        byte[] domainTypeHash = ((byte[])this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary"));
+        byte[] domainTypeHash = ((byte[])this.hash("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)", keccak, "binary"));
         byte[] nameHash = ((byte[])this.hash(domainName, keccak, "binary"));
         byte[] versionHash = ((byte[])this.hash(domainVersion, keccak, "binary"));
         byte[] appDomainData = this.ethAbiEncode(new List<object>() {"bytes32", "bytes32", "bytes32", "uint256", "address"}, new List<object>() {domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress});

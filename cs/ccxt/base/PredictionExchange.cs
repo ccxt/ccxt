@@ -2042,7 +2042,7 @@ public partial class PredictionExchange : BaseExchange
         int total = h.Length;
         for (int i = 0; i < total; i++)
         {
-            if (isEqual(slice(h, i, (i + 1L)), "0"))
+            if (isEqual(((h == null) ? null : h[(int)(i < 0 ? h.Length + i : i)..Math.Min((int)((i + 1L) < 0 ? h.Length + (i + 1L) : (i + 1L)), h.Length)]), "0"))
             {
                 continue;
             }

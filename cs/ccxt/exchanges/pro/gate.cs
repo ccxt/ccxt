@@ -2214,7 +2214,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> liquidationsBySymbol = new Dictionary<string, object>() {};
         for (int i = 0; i < rawLiquidations.Count; i++)
         {
-            object rawLiquidation = rawLiquidations[i];
+            IDictionary<string, object> rawLiquidation = ((IDictionary<string, object>)rawLiquidations[i]);
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
             cache.append(liquidation);
             newLiquidations.Add(liquidation);

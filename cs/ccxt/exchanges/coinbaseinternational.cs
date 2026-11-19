@@ -2339,7 +2339,7 @@ public partial class coinbaseinternational : Exchange
         List<object> transactions = new List<object>() {};
         for (int i = 0; i < logs.Count; i++)
         {
-            object transaction = logs[i];
+            IDictionary<string, object> transaction = ((IDictionary<string, object>)logs[i]);
             string? transactionType = this.safeString(transaction, "type");
             if ((transactionType == "deposit") || (transactionType == "withdrawal"))
             {

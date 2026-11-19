@@ -3353,7 +3353,7 @@ public partial class paradex : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             if ((allKinds == true) || ((this.safeString(row, "kind") == "DEPOSIT")))
             {
                 deposits.Add(row);
@@ -3441,7 +3441,7 @@ public partial class paradex : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             if ((allKinds == true) || ((this.safeString(row, "kind") == "WITHDRAWAL")))
             {
                 deposits.Add(row);

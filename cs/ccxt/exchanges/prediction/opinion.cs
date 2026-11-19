@@ -1008,7 +1008,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> quoteTokens = new Dictionary<string, object>() {};
         for (int i = 0; i < listLength; i++)
         {
-            object entry = (list != null && i < list.Count ? list[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(list != null && i < list.Count ? list[i] : null));
             string? address = this.safeStringLower(entry, "quoteTokenAddress");
             if ((address != null))
             {

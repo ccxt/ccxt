@@ -483,7 +483,9 @@ public partial class hyperliquid : Exchange
         string? id = this.safeString(rawCurrency, "index");
         string? name = this.safeString(rawCurrency, "name");
         string? code = this.safeCurrencyCode(name);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("cachedCurrenciesById") ? this.options["cachedCurrenciesById"] : null))[(string)id] = name;
+        IDictionary<string, object> cachedCurrenciesByIdDict1 = this.safeDict(this.options, "cachedCurrenciesById", new Dictionary<string, object>() {});
+        cachedCurrenciesByIdDict1[(string)id] = name;
+        this.options["cachedCurrenciesById"] = cachedCurrenciesByIdDict1;
         Dictionary<string, object> result = this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "name", name },
@@ -523,7 +525,9 @@ public partial class hyperliquid : Exchange
                 string? baseCode = this.safeCurrencyCode(nameWithoutU);
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("spotCurrencyMapping") ? this.options["spotCurrencyMapping"] : null))[(string)code] = baseCode;
+                    IDictionary<string, object> spotCurrencyMappingDict2 = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+                    spotCurrencyMappingDict2[(string)code] = baseCode;
+                    this.options["spotCurrencyMapping"] = spotCurrencyMappingDict2;
                 }
             }
         }
@@ -1641,7 +1645,8 @@ public partial class hyperliquid : Exchange
                 { "endTime", until },
             } },
         };
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -1658,11 +1663,6 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        object candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, originalSince, limit, useTail));
     }
 
@@ -1732,7 +1732,8 @@ public partial class hyperliquid : Exchange
         {
             request["endTime"] = until;
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object fillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> fills = this.infoList(fillsResponse);
         //
         //     [
         //         {
@@ -1753,11 +1754,6 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        object fills = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            fills = response;
-        }
         return this.parseTrades(fills, market, since, limit);
     }
 
@@ -3489,7 +3485,8 @@ public partial class hyperliquid : Exchange
         {
             request["endTime"] = until;
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object fundingsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> fundings = this.infoList(fundingsResponse);
         //
         //     [
         //         {
@@ -3501,11 +3498,6 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        List<object> fundings = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            fundings = ((List<object>)response);
-        }
         for (int i = 0; i < (fundings?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(fundings, i);
@@ -3576,7 +3568,8 @@ public partial class hyperliquid : Exchange
                 request["dex"] = dexName;
             }
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        object rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        List<object> rawOrders = this.infoList(rawOrdersResponse);
         //
         //     [
         //         {
@@ -3591,11 +3584,6 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> orderWithStatus = new List<object>() {};
-        List<object> rawOrders = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            rawOrders = ((List<object>)response);
-        }
         for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(rawOrders, i);
@@ -3715,7 +3703,8 @@ public partial class hyperliquid : Exchange
                 request["dex"] = dexName;
             }
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        object historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        List<object> historicalOrders = this.infoList(historicalOrdersResponse);
         //
         //     [
         //         {
@@ -3737,11 +3726,6 @@ public partial class hyperliquid : Exchange
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         Dictionary<string, object> deduplicatedByOid = new Dictionary<string, object>() {};
-        List<object> historicalOrders = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            historicalOrders = ((List<object>)response);
-        }
         for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = ((IDictionary<string, object>)historicalOrders[i]);
@@ -4106,7 +4090,8 @@ public partial class hyperliquid : Exchange
         {
             request["endTime"] = until;
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object myFillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> myFills = this.infoList(myFillsResponse);
         //
         //     [
         //         {
@@ -4128,11 +4113,6 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        object myFills = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            myFills = response;
-        }
         return this.parseTrades(myFills, market, since, limit);
     }
 
@@ -4247,7 +4227,8 @@ public partial class hyperliquid : Exchange
         {
             request["endTime"] = until;
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object infoResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> response = this.infoList(infoResponse);
         //
         //     [
         //         {
@@ -4275,18 +4256,15 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> fills = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        string? user = this.safeStringLower(request, "user");
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            string? user = this.safeStringLower(request, "user");
-            for (int i = 0; i < getArrayLength(response); i++)
+            IDictionary<string, object> fill = this.safeDict(response, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> liquidation = this.safeDict(fill, "liquidation", new Dictionary<string, object>() {});
+            // liquidator fills carry the liquidated counterparty here
+            if ((this.safeStringLower(liquidation, "liquidatedUser") == user))
             {
-                IDictionary<string, object> fill = this.safeDict(response, i, new Dictionary<string, object>() {});
-                IDictionary<string, object> liquidation = this.safeDict(fill, "liquidation", new Dictionary<string, object>() {});
-                // liquidator fills carry the liquidated counterparty here
-                if ((this.safeStringLower(liquidation, "liquidatedUser") == user))
-                {
-                    fills.Add(fill);
-                }
+                fills.Add(fill);
             }
         }
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(fills, market, since, limit));
@@ -5391,7 +5369,8 @@ public partial class hyperliquid : Exchange
             request["endTime"] = until;
             params2 = this.omit(params2, new List<object>() {"until"});
         }
-        object response = await this.publicPostInfo(this.extend(request, params2));
+        object depositLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        List<object> depositLedger = this.infoList(depositLedgerResponse);
         //
         // [
         //     {
@@ -5405,11 +5384,6 @@ public partial class hyperliquid : Exchange
         //     }
         // ]
         //
-        object depositLedger = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            depositLedger = response;
-        }
         List<object> records = this.extractTypeFromDelta(depositLedger);
         string? vaultAddress = null;
         (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress");
@@ -5424,7 +5398,7 @@ public partial class hyperliquid : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (records?.Count ?? 0); i++)
         {
-            object record = records[i];
+            IDictionary<string, object> record = ((IDictionary<string, object>)records[i]);
             if ((this.safeString(record, "type") == "vaultDeposit"))
             {
                 IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
@@ -5475,7 +5449,8 @@ public partial class hyperliquid : Exchange
             request["endTime"] = until;
             params2 = this.omit(params2, new List<object>() {"until"});
         }
-        object response = await this.publicPostInfo(this.extend(request, params2));
+        object withdrawalLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        List<object> withdrawalLedger = this.infoList(withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -5489,11 +5464,6 @@ public partial class hyperliquid : Exchange
         //     }
         // ]
         //
-        object withdrawalLedger = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            withdrawalLedger = response;
-        }
         List<object> records = this.extractTypeFromDelta(withdrawalLedger);
         string? vaultAddress = null;
         (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress");
@@ -5508,7 +5478,7 @@ public partial class hyperliquid : Exchange
         List<object> withdrawals = new List<object>() {};
         for (int i = 0; i < (records?.Count ?? 0); i++)
         {
-            object record = records[i];
+            IDictionary<string, object> record = ((IDictionary<string, object>)records[i]);
             if ((this.safeString(record, "type") == "vaultWithdraw"))
             {
                 IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
@@ -5764,11 +5734,11 @@ public partial class hyperliquid : Exchange
         return response;
     }
 
-    public virtual List<object> extractTypeFromDelta(object data = null)
+    public virtual List<object> extractTypeFromDelta(IList<object>? data = null)
     {
         data ??= new List<object>();
         List<object> records = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             IDictionary<string, object> record = this.safeDict(data, i, new Dictionary<string, object>() {});
             IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
@@ -5979,5 +5949,22 @@ public partial class hyperliquid : Exchange
             order["id"] = id;
         }
         return new List<object>() {order, globalParams};
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    public virtual List<object> infoList(object response)
+    {
+        object result = new List<object>() {};
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            result = response;
+        }
+        return ((List<object>)((object)(result)));
     }
 }

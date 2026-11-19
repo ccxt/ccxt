@@ -2225,7 +2225,7 @@ public partial class apex : Exchange
             {
                 messageString = (messageString + signBody);
             }
-            string signature = this.hmac(messageString, this.encode(this.stringToBase64(this.secret)), sha256, "base64");
+            string signature = this.hmac(messageString, this.stringToBase64(this.secret), sha256, "base64");
             headersValue["APEX-SIGNATURE"] = signature;
             headersValue["APEX-API-KEY"] = this.apiKey;
             headersValue["APEX-TIMESTAMP"] = timestamp;

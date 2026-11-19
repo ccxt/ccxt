@@ -655,7 +655,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 for (Int64 i = 0; i < length; i++)
                 {
                     // need reverse to correct chronology
-                    object item = (trades != null && ((length - 1) - i) < trades.Count ? trades[(int)((length - 1) - i)] : null);
+                    IDictionary<string, object> item = ((IDictionary<string, object>)(trades != null && ((length - 1) - i) < trades.Count ? trades[(int)((length - 1) - i)] : null));
                     ccxt.Trade trade = this.parseWsTrade(item);
                     tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
                 }

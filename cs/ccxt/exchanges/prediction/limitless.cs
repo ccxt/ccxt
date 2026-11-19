@@ -334,7 +334,7 @@ public partial class limitless : PredictionExchange
                 List<object> found = this.safeList(response, "markets", new List<object>() {});
                 for (int j = 0; j < found.Count; j++)
                 {
-                    object raw = found[j];
+                    IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                     string? slug = this.safeString(raw, "slug");
                     if (((slug != null) && slug != "") && !(((slug != null) && seen.ContainsKey(slug))))
                     {
@@ -1467,7 +1467,7 @@ public partial class limitless : PredictionExchange
         List<object> filtered = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = rows[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
             string? rowTokenId = this.safeString(row, "tokenId");
             if (((tokenId != null)) && ((rowTokenId != null)) && ((rowTokenId != tokenId)))
             {
@@ -3385,7 +3385,7 @@ public partial class limitless : PredictionExchange
                 List<object> found = this.safeList(response, "markets", new List<object>() {});
                 for (int j = 0; j < found.Count; j++)
                 {
-                    object raw = found[j];
+                    IDictionary<string, object> raw = ((IDictionary<string, object>)found[j]);
                     string? rawSlug = this.safeString(raw, "slug");
                     if (((rawSlug != null) && rawSlug != "") && !(((rawSlug != null) && seen.ContainsKey(rawSlug))))
                     {
@@ -3603,7 +3603,7 @@ public partial class limitless : PredictionExchange
             int categoryMarketsLength = (categoryMarkets?.Count ?? 0);
             for (int mi = 0; mi < categoryMarketsLength; mi++)
             {
-                object raw = (categoryMarkets != null && mi < categoryMarkets.Count ? categoryMarkets[mi] : null);
+                IDictionary<string, object> raw = ((IDictionary<string, object>)(categoryMarkets != null && mi < categoryMarkets.Count ? categoryMarkets[mi] : null));
                 string? slug = this.safeString(raw, "slug");
                 if (((slug != null)) && !(((slug != null) && seen.ContainsKey(slug))))
                 {

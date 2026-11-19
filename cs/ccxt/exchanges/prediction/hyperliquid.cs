@@ -778,17 +778,13 @@ public partial class hyperliquid : PredictionExchange
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        object response = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
+        object allMidsResponse = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
             { "type", "allMids" },
         }, parameters));
+        object allMids = this.infoDict(allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        object allMids = new Dictionary<string, object>() {};
-        if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            allMids = response;
-        }
         IDictionary<string, object> mids = this.safeDict(allMids, "mids", allMids);
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         Dictionary<string, object> outcomesMap = ((Dictionary<string, object>)(((this.outcomes != null)) ? this.outcomes : new Dictionary<string, object>() {}));
@@ -999,7 +995,8 @@ public partial class hyperliquid : PredictionExchange
             } },
         };
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
-        object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        object candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        List<object> candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -1016,11 +1013,6 @@ public partial class hyperliquid : PredictionExchange
         //         }
         //     ]
         //
-        object candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
@@ -1683,13 +1675,9 @@ public partial class hyperliquid : PredictionExchange
             { "type", method },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        object rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        List<object> rawOrders = this.infoList(rawOrdersResponse);
         List<object> ordersWithStatus = new List<object>() {};
-        List<object> rawOrders = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            rawOrders = ((List<object>)response);
-        }
         for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)rawOrders[i]);
@@ -1730,14 +1718,10 @@ public partial class hyperliquid : PredictionExchange
             { "type", "historicalOrders" },
             { "user", userAddress },
         };
-        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        object historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        List<object> historicalOrders = this.infoList(historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         Dictionary<string, object> deduped = new Dictionary<string, object>() {};
-        List<object> historicalOrders = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            historicalOrders = ((List<object>)response);
-        }
         for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
             object raw = historicalOrders[i];
@@ -1808,12 +1792,8 @@ public partial class hyperliquid : PredictionExchange
             bool isCloid = id.Length >= 34;
             request["oid"] = isCloid ? id : this.parseToNumeric(id);
         }
-        object response = await this.publicPostInfo(this.extend(request, paramsValue));
-        object orderStatus = new Dictionary<string, object>() {};
-        if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            orderStatus = response;
-        }
+        object orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
+        object orderStatus = this.infoDict(orderStatusResponse);
         IDictionary<string, object> orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
         Dictionary<string, object> parsed = this.parsePredictionOrder(orderWrapper, null);
         if ((outcome != null))
@@ -2184,7 +2164,7 @@ public partial class hyperliquid : PredictionExchange
         int lowerQueriesLength = (lowerQueries?.Count ?? 0);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
-            object mkt = marketValues[i];
+            IDictionary<string, object> mkt = ((IDictionary<string, object>)marketValues[i]);
             if (!(this.safeBool(mkt, "prediction", false) == true))
             {
                 continue;
@@ -2672,5 +2652,38 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         return this.safeValue(config, "cost", 1);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    public virtual List<object> infoList(object response)
+    {
+        object result = new List<object>() {};
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            result = response;
+        }
+        return ((List<object>)((object)(result)));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    public virtual object infoDict(object response)
+    {
+        if ((!(response is string)) && !((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            return response;
+        }
+        return new Dictionary<string, object>() {};
     }
 }

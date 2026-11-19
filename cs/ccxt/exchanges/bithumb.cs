@@ -1203,7 +1203,7 @@ public partial class bithumb : Exchange
                     tickers = ((List<object>)response);
                 } else if (this.isDictionary(response))
                 {
-                    if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
+                    if (((response is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("market"))) || ((response is IDictionary<string, object> inOpDict1 && inOpDict1.ContainsKey("trade_date"))) || ((response is IDictionary<string, object> inOpDict2 && inOpDict2.ContainsKey("trade_timestamp"))))
                     {
                         tickers = new List<object>() {response};
                     } else

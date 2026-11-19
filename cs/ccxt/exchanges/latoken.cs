@@ -928,7 +928,7 @@ public partial class latoken : Exchange
         List<object> bids = new List<object>() {};
         for (int i = 0; i < rawAsks.Count; i++)
         {
-            object askEntry = rawAsks[i];
+            IDictionary<string, object> askEntry = ((IDictionary<string, object>)rawAsks[i]);
             string? askQuantity = this.safeString(askEntry, "quantity");
             if (Precise.stringGt(askQuantity, "0"))
             {
@@ -937,7 +937,7 @@ public partial class latoken : Exchange
         }
         for (int i = 0; i < rawBids.Count; i++)
         {
-            object bidEntry = rawBids[i];
+            IDictionary<string, object> bidEntry = ((IDictionary<string, object>)rawBids[i]);
             string? bidQuantity = this.safeString(bidEntry, "quantity");
             if (Precise.stringGt(bidQuantity, "0"))
             {

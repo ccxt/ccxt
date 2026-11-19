@@ -1309,7 +1309,7 @@ public partial class aster : Exchange
         List<object> fapiRowsFiltered = new List<object>() {};
         for (int i = 0; i < fapiRows.Count; i++)
         {
-            object market = fapiRows[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)fapiRows[i]);
             // tmp skip some markets with base = undefined
             if ((this.safeString(market, "baseAsset") != null))
             {
@@ -4698,7 +4698,9 @@ public partial class aster : Exchange
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     result.Add(new List<object>() {floorValue, maintenanceMarginPercentage});
                 }
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null))[(string)symbol] = result;
+                IDictionary<string, object> leverageBracketsDict = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
+                leverageBracketsDict[(string)symbol] = result;
+                this.options["leverageBrackets"] = leverageBracketsDict;
             }
         }
         return (this.options != null && this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null);
@@ -4932,7 +4934,7 @@ public partial class aster : Exchange
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, "Ethereum Signed Message:", newline, this.numberToString(binaryMessageLength));
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 

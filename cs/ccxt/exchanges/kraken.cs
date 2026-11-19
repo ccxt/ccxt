@@ -1039,7 +1039,7 @@ public partial class kraken : Exchange
             List<object> parts = ((string)currencyId).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             string? firstPart = this.safeString(parts, 0);
             string? secondPart = this.safeString(parts, 1);
-            return ((string?)((object)(add(add(base.safeCurrencyCode(firstPart, currency), "."), secondPart))));
+            return ((string?)((object)(((base.safeCurrencyCode(firstPart, currency) + ".") + secondPart))));
         }
         return ((string?)((object)(base.safeCurrencyCode(currencyId, currency))));
     }
@@ -2107,7 +2107,9 @@ public partial class kraken : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
         };
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null))[(string)id] = market;
+        IDictionary<string, object> delistedMarketsByIdDict = this.safeDict(this.options, "delistedMarketsById", new Dictionary<string, object>() {});
+        delistedMarketsByIdDict[(string)id] = market;
+        this.options["delistedMarketsById"] = delistedMarketsByIdDict;
         return market;
     }
 
@@ -4146,7 +4148,7 @@ public partial class kraken : Exchange
                     { "nonce", nonce },
                 }, parameters));
             }
-            string? auth = this.encode((nonce + bodySigned));
+            string? auth = (nonce + bodySigned);
             byte[] hash = ((byte[])this.hash(auth, sha256, "binary"));
             string? binary = url;
             byte[] binhash = this.binaryConcat(binary, hash);

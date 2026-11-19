@@ -960,7 +960,7 @@ public partial class okx : ccxt.okx
         List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (rawLiquidations?.Count ?? 0); i++)
         {
-            object rawLiquidation = rawLiquidations[i];
+            IDictionary<string, object> rawLiquidation = ((IDictionary<string, object>)rawLiquidations[i]);
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
             string? symbol = this.safeString(liquidation, "symbol", "");
             if ((this.liquidations == null))

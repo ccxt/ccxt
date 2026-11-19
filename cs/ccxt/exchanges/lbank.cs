@@ -3490,7 +3490,7 @@ public partial class lbank : Exchange
         {
             Int64 start = (i * 64L);
             Int64 end = this.sum(start, 64);
-            pem = pem + (slice(this.secret, start, end) + "\n"); // eslint-disable-line
+            pem = pem + (((this.secret == null) ? null : this.secret[(int)(start < 0 ? this.secret.Length + start : start)..Math.Min((int)(end < 0 ? this.secret.Length + end : end), this.secret.Length)]) + "\n"); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");
     }

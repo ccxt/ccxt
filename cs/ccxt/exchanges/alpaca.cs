@@ -2136,7 +2136,7 @@ public partial class alpaca : Exchange
             }
             for (int i = 0; i < (ledger?.Count ?? 0); i++)
             {
-                object entry = ledger[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)ledger[i]);
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(amount, "0"));
@@ -2178,7 +2178,7 @@ public partial class alpaca : Exchange
         }
         for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
-            object entry = transfers[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)transfers[i]);
             string? direction = this.safeString(entry, "direction");
             if ((direction == type))
             {

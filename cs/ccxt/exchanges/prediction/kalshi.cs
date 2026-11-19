@@ -1478,7 +1478,7 @@ public partial class kalshi : PredictionExchange
         List<object> usableCandles = new List<object>() {};
         for (int i = 0; i < candles.Count; i++)
         {
-            object candle = candles[i];
+            IDictionary<string, object> candle = ((IDictionary<string, object>)candles[i]);
             IDictionary<string, object> priceObj = this.safeDict(candle, "price", new Dictionary<string, object>() {});
             double? openPrice = this.safeNumber(priceObj, "open_dollars");
             double? previousPrice = this.safeNumber(priceObj, "previous_dollars");

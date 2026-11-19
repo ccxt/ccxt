@@ -1115,7 +1115,7 @@ public partial class btse : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rates?.Count ?? 0); i++)
         {
-            object rate = rates[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)rates[i]);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
             if (((timestamp == null)) || ((timestamp == null || timestamp <= until)))
             {
@@ -1538,7 +1538,7 @@ public partial class btse : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object row = data[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)data[i]);
             // spot rows do not carry an open interest
             if ((this.safeString(row, "openInterest") != null))
             {
@@ -1612,7 +1612,7 @@ public partial class btse : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object row = data[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)data[i]);
             // spot rows do not carry a funding rate
             if ((this.safeString(row, "fundingRate") != null))
             {

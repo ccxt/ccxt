@@ -14326,7 +14326,9 @@ public partial class binance : Exchange
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     result.Add(new List<object>() {floorValue, maintenanceMarginPercentage});
                 }
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null))[(string)symbol] = result;
+                IDictionary<string, object> leverageBracketsDict = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
+                leverageBracketsDict[(string)symbol] = result;
+                this.options["leverageBrackets"] = leverageBracketsDict;
             }
         }
         return (this.options != null && this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null);

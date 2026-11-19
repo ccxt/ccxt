@@ -335,7 +335,7 @@ public partial class mexc : ccxt.mexc
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> ticker = null;
             if ((isSpot == true))
             {

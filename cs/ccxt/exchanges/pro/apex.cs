@@ -1004,7 +1004,7 @@ public partial class apex : ccxt.apex
         string request_path = "/ws/accounts";
         string http_method = "GET";
         string messageString = (((timestamp + http_method) + request_path));
-        string signature = this.hmac(messageString, this.encode(this.stringToBase64(this.secret)), sha256, "base64");
+        string signature = this.hmac(messageString, this.stringToBase64(this.secret), sha256, "base64");
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);

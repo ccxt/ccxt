@@ -2101,7 +2101,7 @@ public partial class grvt : Exchange
         List<object> nonMatchedResults = new List<object>() {};
         for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
-            object transfer = (transfers != null && i < transfers.Count ? transfers[i] : null);
+            IDictionary<string, object> transfer = ((IDictionary<string, object>)(transfers != null && i < transfers.Count ? transfers[i] : null));
             string? fromAccount = this.safeString(transfer, "fromAccount", "");
             string? toAccount = this.safeString(transfer, "toAccount", "");
             if ((onlyMainAccount == true && fromAccount == "0" && toAccount == "0") || (onlyMainAccount != true && (fromAccount != "0" || toAccount != "0")))

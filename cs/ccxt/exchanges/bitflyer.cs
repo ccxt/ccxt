@@ -366,7 +366,7 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        List<object> markets = this.arrayConcat(jp_markets, this.toArray(us_markets));
+        List<object> markets = this.arrayConcat(jp_markets, us_markets);
         markets = this.arrayConcat(markets, eu_markets);
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)

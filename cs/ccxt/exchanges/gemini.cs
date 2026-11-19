@@ -835,7 +835,7 @@ public partial class gemini : Exchange
             string? cell3 = this.safeString(cells, 3, "");
             string pricePrecisionString = cell3.Replace("<td>", (string)"");
             List<object> pricePrecisionParts = pricePrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
+            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, ((marketId == null) ? null : marketId[(int)(startingIndex < 0 ? marketId.Length + startingIndex : startingIndex)..Math.Min((int)(idLength < 0 ? marketId.Length + idLength : idLength), marketId.Length)]));
             string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace(quoteId, (string)""));
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);

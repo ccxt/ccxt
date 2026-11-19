@@ -314,7 +314,7 @@ public partial class sxbet : PredictionExchange
         int rawMarketsLength = rawMarkets?.Count ?? 0;
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             if ((this.safeString(raw, "sportXeventId") == sportXeventId))
             {
                 result.Add(raw);
@@ -533,7 +533,7 @@ public partial class sxbet : PredictionExchange
         int rawMarketsLength = (rawMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
             string? sportXeventId = this.safeString(raw, "sportXeventId");
             if ((sportXeventId == null))
             {
@@ -2201,7 +2201,7 @@ public partial class sxbet : PredictionExchange
             int rowsLength = (rows?.Count ?? 0);
             for (int j = 0; j < rowsLength; j++)
             {
-                object row = (rows != null && j < rows.Count ? rows[j] : null);
+                IDictionary<string, object> row = ((IDictionary<string, object>)(rows != null && j < rows.Count ? rows[j] : null));
                 string? rowHash = this.safeString(row, "marketHash");
                 if ((rowHash != null))
                 {
