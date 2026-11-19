@@ -1819,7 +1819,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const paramsResolved = this.handleRouteAndParams ('fetchBalanceWs', params);
         const result = await this.requestWs ('private/get_account_summaries', paramsResolved, true);
         const summaries = this.safeList (result, 'summaries', []);
-        let balance: Balances = { 'info': result } as Balances;
+        let balance: Dict = { 'info': result };
         const summariesLength = summaries.length;
         for (let i = 0; i < summariesLength; i++) {
             balance = this.deepExtend (balance, this.parseBalanceList (summaries[i]));
