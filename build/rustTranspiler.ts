@@ -1,4 +1,4 @@
-import Transpiler, { rustDispatch } from "ast-transpiler";
+import Transpiler, { rustDispatch, rustDropUnusedMut } from "ast-transpiler";
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename } from 'path';
@@ -1212,8 +1212,8 @@ class ContainerOpProver {
             if (!CONTAINER_OP_SHAPE_WRITES.test (before)) return undefined;
         }
         for (const m of region.matchAll (new RegExp (`(?<![A-Za-z0-9_.])${name}\\.([A-Za-z_][A-Za-z0-9_]*)`, 'g'))) {
-            const decl = `let mut ${name}: Value = `;
-            if (m[1] === 'into' && prologueSeen && region.slice (Math.max (0, (m.index as number) - decl.length), m.index as number) === decl) continue;
+            const decl = new RegExp (`let (?:mut )?${name}: Value = $`);
+            if (m[1] === 'into' && prologueSeen && decl.test (region.slice (Math.max (0, (m.index as number) - name.length - 20), m.index as number))) continue;
             if (!CONTAINER_OP_READS.has (m[1])) return undefined;
         }
         // A parameter has no declaration to prove: only the length rule can fire.
@@ -9436,6 +9436,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustSyncTryBlocks,
     rustStrHaystackIndexOf,
     lendContainerArgs,
+    rustDropUnusedMut,
     splitLongRustLines,
 ];
 function applyRustWritePasses(content: string): string {
