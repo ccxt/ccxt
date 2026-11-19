@@ -2703,7 +2703,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         operationType = 'update_leverage'
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

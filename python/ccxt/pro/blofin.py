@@ -737,7 +737,8 @@ class blofin(ccxt.async_support.blofin):
             raise NotSupported(self.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet')
         rawSubscriptions = []
         messageHashes = []
-        if (symbols is not None) and (len(symbols) > 0):
+        symbolsLength = 0 if (symbols is None) else len(symbols)
+        if symbolsLength > 0:
             for i in range(0, len(symbols)):
                 current = symbols[i]
                 market = None
