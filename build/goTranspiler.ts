@@ -8349,6 +8349,10 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
             if (/^\s*return\s*$/.test (before) && (after.trim () === '') && owner.has (i) && cand.has (owner.get (i))) {
                 continue;
             }
+            // the value of a literal-key map store: the helper derefs it, so a *string stores the same scalar or nil
+            if (/^\s*(?:ccxt\.)?AddElementToObject\(\w+, "[^"\\\n]*", $/.test (before) && /^\)\s*$/.test (after)) {
+                continue;
+            }
             const copy = /^\s*(\w+) = $/.exec (before);
             if (copy && (after.trim () === '') && cand.has (copy[1])) {
                 continue;
@@ -8436,6 +8440,9 @@ function goStrPtrLocalSelfTest (ok: SelfTestOk): void {
     ok (goStrPtrLocalRetype ('\nfunc (this *X) f(q *string) any {\n\tq = this.Y()\n\tvar c any = q\n\tif IsEqual(c, nil) {\n\t}\n\treturn nil\n}\n').indexOf ('var c any') >= 0, 'a copy of a written param keeps the box');
     ok (f ('\tvar c any = this.SafeString(p, "x")\n\tthis.Other(c)\n').indexOf ('var c any') >= 0, 'an unproven call argument keeps the box');
     ok (f ('\tvar c any = nil\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a nil-only local is left alone');
+    const st = f ('\tvar c any = \"0\"\n\tc = Precise.StringAdd(c, this.NumberToString(p))\n\tAddElementToObject(p, \"cost\", c)\n');
+    ok (st.indexOf ('var c *string') >= 0, 'a literal-key map store value is *string: ' + st);
+    ok (f ('\tvar c any = \"0\"\n\tc = Precise.StringAdd(c, this.NumberToString(p))\n\tAddElementToObject(p, k, c)\n').indexOf ('var c any') >= 0, 'a non-literal key store keeps the box');
     ok (f ('\tvar c any = nil\n\tvar d any = this.FromEr(p)\n\tc = d\n\tif IsEqual(c, nil) {\n\t}\n').indexOf ('var c any') >= 0, 'a copy of an unproven local keeps the box');
 }
 
