@@ -8219,6 +8219,12 @@ function lendBaseFieldReads(content: string): string {
 }
 //
 // unit slot 066
+// A client's subscription map is lent to readers that take `impl KeyRead` or `&Value`, not copied.
+function lendClientSubscriptions (content: string): string {
+    return content
+        .replace (/(self\.safe_(?:value|dict|string)[a-z_]*\()(__ch|\(client\))\.subscriptions\.clone\(\),/g, '$1&$2.subscriptions,')
+        .replace (/\b((?:object_keys|object_values|get_value)\(&(?:__ch|\(client\))\.subscriptions)\.clone\(\)/g, '$1');
+}
 //
 // unit slot 067
 //
@@ -8772,6 +8778,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendBaseFieldReads,
     //
     // pass slot 066
+    lendClientSubscriptions,
     //
     // pass slot 067
     //
