@@ -6904,6 +6904,22 @@ function rustSafeStringOwnedArms (content: string): string {
 }
 //
 // unit slot 007
+// A list/dict default read already narrowed by its match guard binds the typed payload directly, so the
+// `.into_*()` conversion of the boxed arm is not printed; the null/empty default keeps the helper's answer.
+function typeGuardedDefaultReads (content: string): string {
+    const rx = /\(match ([\w.]+\.get\("[^"\\]*"\)) \{ Some\(__v\) if matches!\(__v, Value::(Arr|Dict)\(_\)\) => __v\.clone\(\), _ => (Value::Null|Value::from\(vec!\[\]\)) \}\)\.into_(opt_)?(list|dict)\(\)/g;
+    return content.replace (rx, (all, read, variant, dflt, opt, kind) => {
+        if ((variant === 'Arr') !== (kind === 'list')) {
+            return all;
+        }
+        const empty = kind === 'list' ? 'std::sync::Arc::new(Vec::new())' : 'std::sync::Arc::new(std::collections::HashMap::new())';
+        if (!opt) {
+            return '(match ' + read + ' { Some(Value::' + variant + '(__a)) => __a.clone(), _ => ' + empty + ' })';
+        }
+        const miss = dflt === 'Value::Null' ? 'None' : 'Some(' + empty + ')';
+        return '(match ' + read + ' { Some(Value::' + variant + '(__a)) => Some(__a.clone()), _ => ' + miss + ' })';
+    });
+}
 //
 // unit slot 008
 //
@@ -7706,6 +7722,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustSafeStringOwnedArms,
     //
     // pass slot 007
+    typeGuardedDefaultReads,
     //
     // pass slot 008
     //
