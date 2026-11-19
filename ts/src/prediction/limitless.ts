@@ -3134,9 +3134,6 @@ export default class limitless extends Exchange {
             const categoryId = this.safeString (category, 'id');
             let matched = false;
             for (let wi = 0; wi < wanted.length; wi++) {
-                if (name === undefined) {
-                    throw new ExchangeError (this.id + ' fetchRawMarketsByTags() missing name');
-                }
                 if (name.indexOf (wanted[wi]) >= 0) {
                     matched = true;
                     break;
