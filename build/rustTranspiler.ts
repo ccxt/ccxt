@@ -8731,6 +8731,31 @@ function rustTypedDictProducers (content: string): string {
 }
 //
 // unit slot 086
+// A string key read on a local declared `crate::types::Market` reads the market's own map and moves nothing out of a
+// temporary: print the borrowed map read (`Some` for a string entry, `None` otherwise, exactly as `into_opt_string`).
+// `Value::Arr(self.symbols.clone()).into_opt_list()` is always `Some(..)` of the typed list.
+function nativeMarketKeyStringReads(content: string): string {
+    if (!content.includes('.into_opt_string()') && !content.includes('Value::Arr(self.symbols.clone()).into_opt_list()')) return content;
+    const lines = content.split('\n');
+    const read = /crate::value::KeyRead::key_read\(&+([A-Za-z_]\w*), "(\w+)"\)\.into_opt_string\(\)/g;
+    for (let i = 0; i < lines.length; i++) {
+        lines[i] = lines[i].split('Value::Arr(self.symbols.clone()).into_opt_list()').join('Some(self.symbols.clone())');
+        if (!lines[i].includes('.into_opt_string()') || lines[i].trimStart().startsWith('//')) continue;
+        lines[i] = lines[i].replace(read, (whole: string, name: string, key: string) => {
+            let typed = '';
+            for (let j = i; j >= 0; j--) {
+                const l = lines[j];
+                const decl = new RegExp('(?:\\blet (?:mut )?|[(,]\\s*(?:mut )?)' + name + ':\\s*([^=,)]+)').exec(l);
+                if (decl) { typed = decl[1].trim(); break; }
+                if (/^\s*(?:pub )?(?:async )?fn /.test(l)) break;
+            }
+            const at = `.raw.at("${key}").as_str().map(str::to_owned)`;
+            if (typed === 'crate::types::Market') return `${name}${at}`;
+            return whole;
+        });
+    }
+    return lines.join('\n');
+}
 //
 // unit slot 087
 // A name the venue's own `<venue>_api.rs` declares with a `Value` return keeps its direct wrapper call even when
@@ -9226,6 +9251,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustTypedDictProducers,
     //
     // pass slot 086
+    nativeMarketKeyStringReads,
     //
     // pass slot 087
     //
