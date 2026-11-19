@@ -6119,6 +6119,36 @@ function moveLocalsAtLastUse(content: string): string {
     return out + content.slice(last);
 }
 
+// Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
+// `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared
+// `Option<String|&str|f64|i64>` in this fn) print `f(&x)`; the helper reads `None` as the boxed `Value::Null`.
+function lendScalarArgs(content: string): string {
+    const site = /\b(number_to_string\(|parse_number\(|safe_string_opt\((?=[^;\n]*?, \w+\.clone\(\)))/g;
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        let at = (m.index as number) + m[0].length;
+        if (m[1].startsWith('safe_string_opt')) {
+            const close = balancedCloseIndex(content, at);
+            const a = splitRustArgs(content.slice(at, close));
+            if (a.length !== 3) continue;
+            at += a[0].length + 1 + (a[1].length - a[1].trimStart().length);
+        }
+        const v = /^([A-Za-z_]\w*)\.clone\(\)((?:\.map\(Value::from\)\.unwrap_or\(Value::Null\))?)(?=[,)])/.exec(content.slice(at));
+        if (v === null || v[1] === 'self') continue;
+        // runs after the last-use moves: a later move of the same local in this call would outlive the borrow
+        const callEnd = balancedCloseIndex(content, (m.index as number) + m[0].length);
+        if (new RegExp(`(?<![\\w.])${v[1]}\\b(?!\\.clone\\(\\))`).test(content.slice(at + v[0].length, callEnd))) continue;
+        const fnAt = content.lastIndexOf('fn ', at);
+        const decls = [...content.slice(fnAt, at).matchAll(new RegExp(`(?<![\\w.])${v[1]}\\s*(?::\\s*([^=;,)]+?)\\s*[=;,)]| = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);)`, 'g'))];
+        const ty = decls.length === 0 ? '' : (decls[decls.length - 1][1] ?? 'Value').trim();
+        if (!(v[2] === '' ? /^(?:Value|f64|i64|String|&(?:'\w+ )?str|Option<(?:String|&(?:'\w+ )?str|f64|i64)>)$/ : /^Option<(?:String|&(?:'\w+ )?str|f64|i64)>$/).test(ty)) continue;
+        edits.push([at, at + v[0].length, '&' + v[1]]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, s] of edits) { out += content.slice(last, a) + s; last = b; }
+    return out + content.slice(last);
+}
+
 // `x = f(.. x.clone() ..)` with x an owned `let mut` and named once on the right: move it out
 // with `std::mem::take` (x is overwritten by the assignment). Skipped inside closures.
 function moveSelfReassignOperands(content: string): string {
@@ -6524,10 +6554,14 @@ function overwriteFileAndFolder(filePath: string, content: string) {
         checkCreateFolder(filePath);
     }
 <<<<<<< merged
+<<<<<<< merged
     content = splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
 =======
     content = splitLongRustLines(typeDictPushLists(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
 >>>>>>> R06
+=======
+    content = splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
+>>>>>>> R09
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -13172,10 +13206,14 @@ impl std::ops::DerefMut for ${coreName} {
         );
 
 <<<<<<< merged
+<<<<<<< merged
         fs.writeFileSync(outFile, splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
 =======
         fs.writeFileSync(outFile, splitLongRustLines(typeDictPushLists(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
 >>>>>>> R06
+=======
+        fs.writeFileSync(outFile, splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
+>>>>>>> R09
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 

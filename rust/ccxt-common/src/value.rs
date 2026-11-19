@@ -610,6 +610,25 @@ impl std::ops::BitAnd for Value {
     }
 }
 
+/// A scalar argument of `number_to_string` / `parse_number` / a `safe_string_opt` key, lent as is: a `Value`
+/// or a typed local (`Option<String>`, `&str`, `f64`, ...). `None` reads as the `Value::Null` it would box to.
+pub enum ScalarRef<'a> { Null, Num(Value), Str(&'a str), Other(&'a Value) }
+pub trait ScalarArg { fn scalar(&self) -> ScalarRef<'_>; }
+impl ScalarArg for Value {
+    fn scalar(&self) -> ScalarRef<'_> {
+        match self { Value::Null => ScalarRef::Null, Value::Int(n) => ScalarRef::Num(Value::Int(*n)), Value::Float(f) => ScalarRef::Num(Value::Float(*f)), Value::Str(s) => ScalarRef::Str(&**s), v => ScalarRef::Other(v) }
+    }
+}
+impl ScalarArg for str { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Str(self) } }
+impl ScalarArg for String { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Str(self.as_str()) } }
+impl ScalarArg for f64 { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Num(Value::Float(*self)) } }
+impl ScalarArg for i64 { fn scalar(&self) -> ScalarRef<'_> { ScalarRef::Num(Value::Int(*self)) } }
+impl<T: ScalarArg + ?Sized> ScalarArg for Option<&T> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |v| v.scalar()) } }
+impl ScalarArg for Option<String> { fn scalar(&self) -> ScalarRef<'_> { self.as_deref().map_or(ScalarRef::Null, ScalarRef::Str) } }
+impl ScalarArg for Option<f64> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |f| ScalarRef::Num(Value::Float(f))) } }
+impl ScalarArg for Option<i64> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |n| ScalarRef::Num(Value::Int(n))) } }
+impl<T: ScalarArg + ?Sized> ScalarArg for &T { fn scalar(&self) -> ScalarRef<'_> { (**self).scalar() } }
+
 impl std::ops::BitOr for Value {
     type Output = Value;
     fn bitor(self, rhs: Value) -> Value {

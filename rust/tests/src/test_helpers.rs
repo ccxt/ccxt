@@ -556,7 +556,7 @@ pub trait ExchangeOps {
     fn index_by(&self, arr: Value, key: Value) -> Value;
     fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
-    fn number_to_string(&self, n: Value) -> Option<String>;
+    fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String>;
     fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> ccxt::value::Bytes;
     fn precision_from_string(&self, s: Value) -> i64;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
@@ -570,13 +570,13 @@ pub trait ExchangeOps {
     fn set_sandbox_mode(&self, enabled: Value);
     fn extend_exchange_options(&mut self, options: Value) -> Value;
     fn check_required_credentials(&self, optional_args: &[Value]) -> Value;
-    fn parse_number(&self, n: Value, optional_args: &[Value]) -> Value;
+    fn parse_number(&self, n: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_number(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_integer(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Value;
     /// `Option<String>` twins of `safe_string` / `safe_string_n` (the base `_opt` readers: same lookup and
     /// default rules, `None` where the boxed reader yields `Null`).
-    fn safe_string_opt(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Option<String>;
+    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Option<String>;
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Option<String>;
     fn omit(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value;
     fn omit_zero(&self, s: Value) -> Option<String>;
@@ -612,7 +612,7 @@ impl ExchangeOps for Value {
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| Value::Dict(e.index_by(arr, key))) }
     fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
-    fn number_to_string(&self, n: Value) -> Option<String> { with_base(|e| e.number_to_string(n)) }
+    fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String> { with_base(|e| e.number_to_string(n)) }
     fn base16_to_binary(&self, s: Value, o: &[Value]) -> ccxt::value::Bytes { with_base(|e| e.base16_to_binary(s, o)) }
     fn precision_from_string(&self, s: Value) -> i64 { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
@@ -652,11 +652,11 @@ impl ExchangeOps for Value {
         merged
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
-    fn parse_number(&self, n: Value, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
+    fn parse_number(&self, n: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
     fn safe_number(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
     fn safe_integer(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
-    fn safe_string_opt(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
+    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_n_opt(d, keys, o)) }
     fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
     fn omit_zero(&self, s: Value)                -> Option<String> { with_base(|e| e.omit_zero(s)) }

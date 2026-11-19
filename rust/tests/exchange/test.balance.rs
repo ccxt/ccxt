@@ -54,8 +54,8 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code)))));
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), &code)))));
-        let mut total: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        let mut free: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
+        let mut total: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code, &[]);
+        let mut free: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code, &[]);
         let mut used: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code, &[]);
         assert!(ccxt::runtime::is_true(&((total.is_some()))));
         assert!(ccxt::runtime::is_true(&((free.is_some()))));

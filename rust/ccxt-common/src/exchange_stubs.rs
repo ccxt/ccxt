@@ -18,6 +18,7 @@
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
 use crate::{ExchangeError, Value};
+use crate::value::ScalarRef;
 use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
@@ -553,6 +554,11 @@ fn cased_or_default(found: Option<String>, upper: bool, optional_args: &[Value])
     }
 }
 
+/// A lent scalar key as the `Value` key `safe_value` reads (`safe_value` reads every key by its text).
+fn scalar_key(key: &impl crate::value::ScalarArg) -> Value {
+    match key.scalar() { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::Str(s.to_owned().into()), ScalarRef::Other(v) => Value::Str(key_str(v).into()) }
+}
+
 fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
@@ -735,8 +741,8 @@ impl Exchange {
 
     /// `safe_string` without the box (Value key): same lookup and default rules.
     #[inline]
-    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
-        match self.safe_value(obj, key, &[]) {
+    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value(obj, scalar_key(&key), &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
             Value::Float(f) => Some(f.to_string()),
@@ -3121,19 +3127,21 @@ impl Exchange {
 
     // ── string / number formatting ──────────────────────────────────────────
 
-    pub fn number_to_string(&self, n: Value) -> Option<String> {
+    pub fn number_to_string(&self, n: impl crate::value::ScalarArg) -> Option<String> {
         // TS `numberToString(undefined)` returns undefined — don't
         // stringify a missing value into the literal "null".
-        if matches!(n, Value::Null) {
-            return None;
+        match n.scalar() {
+            ScalarRef::Null => None,
+            ScalarRef::Num(v) => Some(stringify_param(&v)),
+            ScalarRef::Str(s) => Some(s.to_string()),
+            ScalarRef::Other(v) => Some(stringify_param(v)),
         }
-        Some(stringify_param(&n))
     }
 
-    pub fn parse_number(&self, v: Value, optional_args: &[Value]) -> Value {
-        match v {
-            Value::Float(_) | Value::Int(_) => v,
-            Value::Str(ref s) => match s.parse::<f64>() {
+    pub fn parse_number(&self, v: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
+        match v.scalar() {
+            ScalarRef::Num(v) => v,
+            ScalarRef::Str(s) => match s.parse::<f64>() {
                 Ok(n) => Value::Float(n),
                 Err(_) => arg_default(optional_args),
             },
