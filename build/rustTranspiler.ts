@@ -7655,6 +7655,74 @@ function moveDictLiteralInfoRows(content: string): string {
 // unit slot 043
 //
 // unit slot 044
+// Dict-literal row boxing an owned `Option<String>` local that later rows of the same literal only borrow:
+// insert `Value::Null` at the row (keeps key order) and overwrite it with the moved local after the last
+// borrowing row. Skipped when the local is named after the literal, or inside a loop / closure.
+function moveOptionRowsAfterLastRead(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    for (const lit of code.matchAll(/\{\s*let mut m = indexmap::IndexMap::new\(\);/g)) {
+        const bodyAt = (lit.index as number) + lit[0].length, litEnd = balancedCloseIndex(code, (lit.index as number) + 1);
+        const stmts: [number, number][] = [];
+        let depth = 0, inStr = false, start = bodyAt;
+        for (let j = bodyAt; j < litEnd; j++) {
+            const c = code[j];
+            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true; else if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') depth--; else if (c === ';' && depth === 0) { stmts.push([start, j]); start = j + 1; }
+        }
+        const fi = fnStarts.filter(s => s < bodyAt).length - 1;
+        if (fi < 0) continue;
+        const open = code.indexOf('{', fnStarts[fi]);
+        const fnEnd = balancedCloseIndex(code, open + 1);
+        stmts.forEach(([a, b], i) => {
+            const row = /^\s*m\.insert\(("[^"\\]*")\.to_string\(\), ([A-Za-z_]\w*)\.clone\(\)\.map\(Value::from\)\.unwrap_or\(Value::Null\)\)$/.exec(code.slice(a, b));
+            if (row === null) return;
+            const x = row[2], word = new RegExp(`(?<![\\w.])${x}\\b`, 'g');
+            if (word.test(code.slice(litEnd, fnEnd))) return;
+            const before = code.slice(open + 1, a);
+            const decl = [...before.matchAll(new RegExp(`\\blet (?:mut )?${x}\\s*:\\s*([^=;]+?)\\s*=`, 'g'))].pop();
+            let after: string;
+            if (decl !== undefined) {
+                if (decl[1].trim() !== 'Option<String>') return;
+                after = before.slice((decl.index as number) + decl[0].length);
+            } else {
+                const p = new RegExp(`[(,]\\s*(?:mut )?${x}\\s*:\\s*([^,)]+)`).exec(code.slice(fnStarts[fi], open));
+                if (p === null || p[1].trim() !== 'Option<String>') return;
+                after = before;
+            }
+            if (new RegExp(`\\bfor (?:mut )?${x}\\b|[(|,]\\s*(?:ref )?(?:mut )?${x}\\s*[)|,]|\\b${x} =[^=]`).test(after)) return;
+            const stack: number[] = [];
+            let s = false;
+            for (let j = 0; j < after.length; j++) {
+                const c = after[j];
+                if (s) { if (c === '\\') j++; else if (c === '"') s = false; continue; }
+                if (c === '"') s = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+            }
+            if (stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o)).some(h => /\b(?:loop|while|for)\b|\|/.test(h))) return;
+            // last later row naming x; every mention up to it must only borrow x
+            let last = -1;
+            for (let k = i + 1; k < stmts.length; k++) if (new RegExp(word.source).test(code.slice(stmts[k][0], stmts[k][1]))) last = k;
+            if (last < 0) return;
+            const span = code.slice(stmts[i + 1][0], stmts[last][1]);
+            for (const w of span.matchAll(word)) {
+                const at = w.index as number;
+                const tail = span.slice(at + x.length);
+                if (!(span[at - 1] === '&' && /^[^.\w]/.test(tail)) && !/^\.(?:as_deref|as_ref|is_some|is_none)\(\)/.test(tail)) return;
+            }
+            if (span.includes(`m.insert(${row[1]}.`) || new RegExp(`(?<![\\w.])m\\.(?!insert\\()`).test(span.replace(/let mut m = indexmap[\s\S]*?\n\s*m\n/g, ''))) return;
+            const v = content.indexOf(`${x}.clone()`, a);
+            edits.push([v, b - 1, 'Value::Null']);
+            const ind = /\n([ \t]*)$/.exec(content.slice(0, a + (code.slice(a, b).length - code.slice(a, b).trimStart().length)))?.[1] ?? '        ';
+            edits.push([stmts[last][1] + 1, stmts[last][1] + 1, `\n${ind}m.insert(${row[1]}.to_string(), ${x}.map(Value::from).unwrap_or(Value::Null));`]);
+        });
+    }
+    edits.sort((p, q) => p[0] - q[0]);
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 045
 //
@@ -8312,6 +8380,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 043
     //
     // pass slot 044
+    moveOptionRowsAfterLastRead,
     //
     // pass slot 045
     //
