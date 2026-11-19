@@ -1941,8 +1941,19 @@ class bitso extends Exchange {
             'address' => $address,
             'destination_tag' => $tagWithdrawTag,
         );
-        $classMethod = 'privatePost' . $method . 'Withdrawal';
-        $response = Async\await($this->$classMethod($this->extend($request, $paramsWithdrawTag)));
+        $withdrawRequest = $this->extend($request, $paramsWithdrawTag);
+        $response = null;
+        if ($method === 'Bitcoin') {
+            $response = Async\await($this->privatePostBitcoinWithdrawal($withdrawRequest));
+        } elseif ($method === 'Ether') {
+            $response = Async\await($this->privatePostEtherWithdrawal($withdrawRequest));
+        } elseif ($method === 'Ripple') {
+            $response = Async\await($this->privatePostRippleWithdrawal($withdrawRequest));
+        } elseif ($method === 'Bcash') {
+            $response = Async\await($this->privatePostBcashWithdrawal($withdrawRequest));
+        } else {
+            $response = Async\await($this->privatePostLitecoinWithdrawal($withdrawRequest));
+        }
         //
         //     {
         //         "success": true,

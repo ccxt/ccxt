@@ -946,8 +946,7 @@ class whitebit extends Exchange {
                     'percentage' => ($depositFee !== null) ? false : null,
                 );
                 if ($networkId !== null) {
-                    $networkLength = count($networkId);
-                    $networkCode = $this->network_id_to_code(mb_substr($networkId, 1, $networkLength - 1 - 1), $code);
+                    $networkCode = $this->network_id_to_code(mb_substr($networkId, 1, -1 - 1), $code);
                     if ($networkCode !== null) {
                         $feeEntryNetworks = $this->safe_dict($feeEntry, 'networks', array());
                         $feeEntryNetworks[$networkCode] = array(

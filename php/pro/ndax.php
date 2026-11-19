@@ -585,7 +585,7 @@ class ndax extends \ccxt\async\ndax {
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
-                $method($client, $message, $subscription);
+                $this->handle_order_book_subscription($client, $message, $subscription);
             }
         }
     }

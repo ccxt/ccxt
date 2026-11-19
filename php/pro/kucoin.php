@@ -2013,8 +2013,8 @@ class kucoin extends \ccxt\async\kucoin {
         $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
         unset($client->subscriptions[$id]);
         $method = $this->safe_value($subscription, 'method');
-        if ($method !== null) {
-            $method($client, $message, $subscription);
+        if (($subscription !== null) && ($method !== null)) {
+            $this->handle_order_book_subscription($client, $message, $subscription);
         }
         $isUnSub = $this->safe_bool($subscription, 'unsubscribe', false);
         if ($isUnSub) {

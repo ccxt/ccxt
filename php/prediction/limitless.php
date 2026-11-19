@@ -3191,9 +3191,6 @@ class limitless extends Exchange {
             $categoryId = $this->safe_string($category, 'id');
             $matched = false;
             for ($wi = 0; $wi < count($wanted); $wi++) {
-                if ($name === null) {
-                    throw new ExchangeError($this->id . ' fetchRawMarketsByTags() missing name');
-                }
                 if (mb_strpos($name, $wanted[$wi]) !== false) {
                     $matched = true;
                     break;

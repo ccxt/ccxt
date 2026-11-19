@@ -1840,8 +1840,19 @@ class bitso extends Exchange {
             'address' => $address,
             'destination_tag' => $tagWithdrawTag,
         );
-        $classMethod = 'privatePost' . $method . 'Withdrawal';
-        $response = $this->$classMethod($this->extend($request, $paramsWithdrawTag));
+        $withdrawRequest = $this->extend($request, $paramsWithdrawTag);
+        $response = null;
+        if ($method === 'Bitcoin') {
+            $response = $this->privatePostBitcoinWithdrawal($withdrawRequest);
+        } elseif ($method === 'Ether') {
+            $response = $this->privatePostEtherWithdrawal($withdrawRequest);
+        } elseif ($method === 'Ripple') {
+            $response = $this->privatePostRippleWithdrawal($withdrawRequest);
+        } elseif ($method === 'Bcash') {
+            $response = $this->privatePostBcashWithdrawal($withdrawRequest);
+        } else {
+            $response = $this->privatePostLitecoinWithdrawal($withdrawRequest);
+        }
         //
         //     {
         //         "success": true,

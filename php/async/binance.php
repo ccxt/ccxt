@@ -5019,9 +5019,9 @@ class binance extends Exchange {
                 $request = array(
                     'symbols' => $this->json($this->market_ids($symbolsNormalized)),
                 );
-                $response = Async\await($this->publicGetTicker($this->extend($request, $paramsMarketType)));
+                $rollingResponse = Async\await($this->publicGetTicker($this->extend($request, $paramsMarketType)));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return $this->parse_tickers_for_rolling($response, $symbolsNormalized);
+                return $this->parse_tickers_for_rolling($rollingResponse, $symbolsNormalized);
             } else {
                 $request = array();
                 if ($symbolsNormalized !== null) {
@@ -5037,7 +5037,7 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbolsNormalized);
     }
 
-    public function parse_tickers_for_rolling(mixed $response, ?array $symbols): array {
+    public function parse_tickers_for_rolling(array $response, ?array $symbols): array {
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
             $marketId = $this->safe_string($this->safe_dict($response, $i), 'symbol');

@@ -1087,7 +1087,7 @@ class bitget extends \ccxt\async\bitget {
                 $payload = implode(':', $payloadArray);
                 $calculatedChecksum = $this->crc32($payload, true);
                 if ($calculatedChecksum !== $responseChecksum) {
-                    $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash);
+                    $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash, $this->orderbook_checksum_message($this->safe_string($market, 'symbol', '')));
                     return;
                 }
             }
@@ -1119,13 +1119,13 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
 
-    public function handle_check_sum_error(Client $client, string $symbol, string $messageHash) {
-        return Async\async(self::do_handle_check_sum_error(...))($client, $symbol, $messageHash);
+    public function handle_check_sum_error(Client $client, string $symbol, string $messageHash, string $checksumMessage) {
+        return Async\async(self::do_handle_check_sum_error(...))($client, $symbol, $messageHash, $checksumMessage);
     }
 
-    private function do_handle_check_sum_error(Client $client, string $symbol, string $messageHash) {
+    private function do_handle_check_sum_error(Client $client, string $symbol, string $messageHash, string $checksumMessage) {
         Async\await($this->un_watch_order_book($symbol));
-        $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+        $error = new ChecksumError($this->id . ' ' . $checksumMessage);
         $client->reject($error, $messageHash);
     }
 
@@ -2664,20 +2664,20 @@ class bitget extends \ccxt\async\bitget {
                     $entry = $this->safe_dict($coins, $j);
                     $currencyId = $this->safe_string($entry, 'coin');
                     $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
+                    $coinAccount = $this->account();
                     if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                        $account = $this->safe_dict($this->balance, $code, $account);
+                        $coinAccount = $this->safe_dict($this->balance, $code, $coinAccount);
                     }
                     $borrow = $this->safe_string($entry, 'borrow');
                     $debts = $this->safe_string($entry, 'debts');
                     if (($borrow !== null) || ($debts !== null)) {
-                        $account['debt'] = Precise::string_add($borrow, $debts);
+                        $coinAccount['debt'] = Precise::string_add($borrow, $debts);
                     }
-                    $account['free'] = $this->safe_string($entry, 'available');
-                    $account['used'] = $this->safe_string($entry, 'locked');
-                    $account['total'] = $this->safe_string($entry, 'balance');
+                    $coinAccount['free'] = $this->safe_string($entry, 'available');
+                    $coinAccount['used'] = $this->safe_string($entry, 'locked');
+                    $coinAccount['total'] = $this->safe_string($entry, 'balance');
                     if ($code !== null) {
-                        $this->balance[$code] = $account;
+                        $this->balance[$code] = $coinAccount;
                     }
                 }
             } else {

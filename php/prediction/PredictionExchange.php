@@ -231,15 +231,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $matched = false;
             for ($qi = 0; $qi < $queriesLength; $qi++) {
                 $q = strtolower($this->safe_string($queries, $qi, ''));
-                if ($title === null) {
-                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing title');
-                }
                 if ($checkTitle && (mb_strpos($title, $q) !== false)) {
                     $matched = true;
                     break;
-                }
-                if ($description === null) {
-                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing description');
                 }
                 if ($checkDescription && (mb_strpos($description, $q) !== false)) {
                     $matched = true;
