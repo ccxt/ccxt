@@ -6447,6 +6447,7 @@ function typeFilterSliceLists(content: string): string {
     return out + content.slice(last);
 }
 
+<<<<<<< merged
 // parseTrades / parseOrders / parsePositions / parseSettlements (and the shared trades helper) return a list when every
 // return is a typed filter, `[]`, a built `result` vec, a list member of this set, or (positions) toArray's list.
 const RUST_PARSE_LIST_FNS = ['parse_trades', 'parse_trades_helper', 'parse_orders', 'parse_positions', 'parse_settlements'];
@@ -6492,13 +6493,41 @@ function typeParseListReturns(content: string): string {
         head.lastIndex = last;
     }
     return out + content.slice(last);
+=======
+// A venue `Vec<Value>` local (or a parse_prediction_positions result) used only by `push(Value::Dict(x))`, `.len()`
+// and element reads holds proven maps: it becomes `Vec<Dict>`, a read is the map itself (missing index = empty map).
+function typeDictPushLists(content: string): string {
+    const decl = /let mut (\w+): Vec<Value> = (Vec::new\(\)|self\.parse_prediction_positions\([^;\n]*\)\.into_iter\(\)\.map\(Value::Dict\)\.collect\(\));/g;
+    for (const d of [...content.matchAll(decl)]) {
+        const v = d[1]; const at = content.indexOf(d[0]);
+        const end = content.slice(at).search(/\n {4}\}\n/);
+        const rest = content.slice(at + d[0].length, end < 0 ? content.length : at + end);
+        const read = new RegExp(String.raw`\b${v}\.get\((\w+) as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)`, 'g');
+        const uses = [...rest.matchAll(new RegExp(String.raw`\b${v}\b`, 'g'))];
+        const ok = uses.every((u) => {
+            const r = rest.slice(u.index!, u.index! + 120);
+            return new RegExp(String.raw`^${v}\.(?:push\(Value::Dict\(\w+\)\);|len\(\) as i64)`).test(r)
+                || new RegExp(String.raw`^${v}\.get\(\w+ as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)`).test(r);
+        });
+        if (!ok || !read.test(rest)) continue;
+        const init = d[2] === 'Vec::new()' ? d[2] : d[2].replace('.into_iter().map(Value::Dict).collect()', '');
+        const typedRest = rest.replace(new RegExp(String.raw`\b${v}\.push\(Value::Dict\((\w+)\)\);`, 'g'), `${v}.push($1);`)
+            .replace(read, `${v}.get($1 as usize).cloned().unwrap_or_default()`);
+        content = content.slice(0, at) + `let mut ${v}: Vec<crate::value::Dict> = ${init};` + typedRest + content.slice(at + d[0].length + rest.length);
+    }
+    return content;
+>>>>>>> R06
 }
 
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
+<<<<<<< merged
     content = splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
+=======
+    content = splitLongRustLines(typeDictPushLists(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
+>>>>>>> R06
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -13142,7 +13171,11 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
+<<<<<<< merged
         fs.writeFileSync(outFile, splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
+=======
+        fs.writeFileSync(outFile, splitLongRustLines(typeDictPushLists(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
+>>>>>>> R06
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
