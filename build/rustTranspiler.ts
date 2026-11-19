@@ -7562,6 +7562,60 @@ function lendBookSideToHandleDelta(content: string): string {
 // unit slot 046
 //
 // unit slot 047
+// A venue `since` / `limit` binding whose wrapper took `Option<i64>` and boxed it as `Value::from(V)` in the same
+// `__args` slot holds exactly that `Int` / `Null`: bind the captured `Option<i64>` and read it natively, boxing
+// with `Value::from(V)` (a copy) where a `Value` is taken. Any write, shadow or unknown method keeps the box.
+function typeOptionalIntArgs(content: string): string {
+    const bind = /^( *)let mut (since|limit) = get_arg\(optional_args, (\d+), Value::Null\);$/gm;
+    const edits: Array<[number, number, string]> = [];
+    for (const m of content.matchAll(bind)) {
+        const v = m[2], at = m.index!, k = Number(m[3]);
+        const fnAt = content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', at));
+        const head = content.slice(fnAt, at);
+        const sig = head.match(/^\n {4}(?:pub )?(?:async )?fn \w+\(([^\n]*)\)[^\n]*\{\n/);
+        if (sig === null || !new RegExp(String.raw`\b${v}: Option<i64>[,)]`).test(sig[1]) || !head.includes('call_typed(async move {')) continue;
+        const args = head.match(/let __args: Vec<Value> = vec!\[([^\n]*)\];\n/);
+        const req = (head.match(/__it\.next\(\)\.unwrap_or_default\(\)/g) ?? []).length;
+        const elems = args === null ? [] : args[1].split(/, (?![^()]*\))/);
+        if (elems[req + k] !== `Value::from(${v})`) continue;
+        const bodyStart = at + m[0].length;
+        const endRel = content.slice(bodyStart).search(/\n {4}\}\n/);
+        if (endRel < 0) continue;
+        const body = content.slice(bodyStart, bodyStart + endRel);
+        const use = new RegExp(String.raw`(?<![\w."&])(&?)${v}(?![\w"])`, 'g');
+        const local: Array<[number, number, string]> = [];
+        let ok = true;
+        for (const line of body.split('\n').reduce((acc: Array<[number, string]>, l) => { acc.push([acc.length ? acc[acc.length - 1][0] + acc[acc.length - 1][1].length + 1 : 0, l]); return acc; }, [])) {
+            const [off, text] = line;
+            if (/^\s*(?:\/\/|\*|\/\*)/.test(text)) continue;
+            const code = text.replace(/"(?:[^"\\]|\\.)*"/g, (s) => ' '.repeat(s.length)).replace(/\/\/.*$/, (s) => ' '.repeat(s.length));
+            for (const u of code.matchAll(use)) {
+                const s = u.index!, e = s + u[0].length, tail = code.slice(e), before = code.slice(0, s);
+                const abs = bodyStart + off + s;
+                if (/^\s*(?:=(?!=)|\+=|-=)/.test(tail) || /\blet (?:mut )?$/.test(before) || /\|[^|]*$/.test(before) && /^[^|]*\|/.test(tail)) { ok = false; break; }
+                let rep: string | undefined;
+                let len = u[0].length;
+                if (tail.startsWith('.clone()')) { rep = `${u[1]}Value::from(${v})`; len += 8; }
+                else if (tail.startsWith('.as_i64()')) { rep = u[1] === '' ? v : undefined; len += 9; }
+                else if (/^ (?:!=|==) Value::Null\b/.test(tail) && u[1] === '') { const eq = tail.startsWith(' =='); rep = `${v}.${eq ? 'is_none' : 'is_some'}()`; len += ' != Value::Null'.length; }
+                else if (/Value::Null (?:!=|==) $/.test(before) && u[1] === '') {
+                    const eq = before.endsWith('== '); const st = s - 'Value::Null != '.length;
+                    local.push([bodyStart + off + st, abs + len, `${v}.${eq ? 'is_none' : 'is_some'}()`]); continue;
+                }
+                else if (/^\s*[,\])};]/.test(tail) || /^\s*\)/.test(tail)) rep = `${u[1]}Value::from(${v})`;
+                if (rep === undefined) { ok = false; break; }
+                local.push([abs, abs + len, rep]);
+            }
+            if (!ok) break;
+        }
+        if (!ok) continue;
+        edits.push([at, bodyStart, `${m[1]}let mut ${v}: Option<i64> = ${v};`], ...local);
+    }
+    edits.sort((a, b) => b[0] - a[0]);
+    let out = content;
+    for (const [a, b, r] of edits) out = out.slice(0, a) + r + out.slice(b);
+    return out;
+}
 //
 // unit slot 048
 //
@@ -7987,6 +8041,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 046
     //
     // pass slot 047
+    typeOptionalIntArgs,
     //
     // pass slot 048
     //
