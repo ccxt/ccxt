@@ -561,8 +561,8 @@ pub trait ExchangeOps {
     fn precision_from_string(&self, s: Value) -> i64;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn parse_to_int(&self, n: Value) -> Option<i64>;
-    fn parse_to_numeric(&self, n: Value) -> Value;
+    fn parse_to_int(&self, n: impl ccxt::value::ScalarArg) -> Option<i64>;
+    fn parse_to_numeric(&self, n: impl ccxt::value::ScalarArg) -> Value;
     fn is_round_number(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
     fn convert_to_safe_dictionary(&self, v: Value) -> Value;
@@ -617,8 +617,8 @@ impl ExchangeOps for Value {
     fn precision_from_string(&self, s: Value) -> i64 { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
-    fn parse_to_int(&self, n: Value) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
-    fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
+    fn parse_to_int(&self, n: impl ccxt::value::ScalarArg) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
+    fn parse_to_numeric(&self, n: impl ccxt::value::ScalarArg) -> Value { with_base(|e| e.parse_to_numeric(n)) }
     fn is_round_number(&self, n: Value) -> Value { with_base(|e| e.is_round_number(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }

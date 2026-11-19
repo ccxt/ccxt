@@ -6241,6 +6241,8 @@ const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
     ['safe_integer', 1, 3],
     ['safe_value2', 1, 4],
     ['price_to_precision', 1, 2],
+    ['parse_to_int', 0],
+    ['parse_to_numeric', 0],
 ];
 // Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
 // `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared
@@ -6265,7 +6267,7 @@ function lendScalarArgs(content: string): string {
         const callEnd = balancedCloseIndex(content, (m.index as number) + m[0].length);
         if (new RegExp(`(?<![\\w.])${v[1]}\\b(?!\\.clone\\(\\))`).test(content.slice(at + v[0].length, callEnd))) continue;
         const fnAt = content.lastIndexOf('fn ', at);
-        const decls = [...content.slice(fnAt, at).matchAll(new RegExp(`(?<![\\w.])${v[1]}\\s*(?::\\s*([^=;,)]+?)\\s*[=;,)]| = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);)`, 'g'))];
+        const decls = [...content.slice(fnAt, at).matchAll(new RegExp(`(?<![\\w.])${v[1]}\\s*(?::\\s*([^=;,)]+?)\\s*[=;,)]| = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);| = get_arg\\()`, 'g'))];
         const ty = decls.length === 0 ? '' : (decls[decls.length - 1][1] ?? 'Value').trim();
         if (!(v[2] === '' ? /^(?:Value|f64|i64|String|&(?:'\w+ )?str|Option<(?:String|&(?:'\w+ )?str|f64|i64)>)$/ : /^Option<(?:String|&(?:'\w+ )?str|f64|i64)>$/).test(ty)) continue;
         edits.push([at, at + v[0].length, '&' + v[1]]);
@@ -7371,6 +7373,10 @@ function lendImplodeParams(content: string): string {
 // unit slot 030
 //
 // unit slot 031
+// parseToInt / parseToNumeric only hand their argument to number_to_string: take `impl ScalarArg` like it
+function lendParseToNumberParams(content: string): string {
+    return content.replace(/\bfn (parse_to_int|parse_to_numeric)\(&self, mut number: Value\)/g, 'fn $1(&self, number: impl crate::value::ScalarArg)');
+}
 //
 // unit slot 032
 // Lend a map local as the head of omit/extend: `f(x.clone(), ..)` / `f(Value::Map(x.clone()), ..)` prints `f(&x, ..)` when x is
@@ -9401,6 +9407,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 030
     //
     // pass slot 031
+    lendParseToNumberParams,
     //
     // pass slot 032
     lendOmitExtendHeads,
