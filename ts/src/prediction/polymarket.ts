@@ -13,6 +13,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,Bool, NullableDict, Endpoint, List } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable, ExchangeError } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -3224,9 +3225,9 @@ export default class polymarket extends Exchange {
             }
         }
         const url = this.urls['api']['ws'];
-        const orderbook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
-        const bids = orderbook['bids'] as any;
-        const asks = orderbook['asks'] as any;
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
+        const bids = orderbook['bids'];
+        const asks = orderbook['asks'];
         let bestBid: Num = undefined;
         let bestBidVolume: Num = undefined;
         let bidsLength = 0;
