@@ -4312,7 +4312,7 @@ function rustTypedMergeResults (content: string): string {
 }
 
 // An implicit-API wrapper (every `fn` of the generated `*_api.rs`, whose body is `self.call_method("<name>", args)`)
-// taken back with `.into_dict()` / `.into_opt_dict()` calls `call_method_t` / `_o` with that name: same map, empty or None.
+// taken back with `.into_(opt_)dict()` / `.into_(opt_)list()` calls `call_method_t` / `_o` / `_lt` / `_lo` by that name: same container, empty or None.
 let rustImplicitApiNames: Set<string> | undefined;
 function rustTypedImplicitApiResults (content: string): string {
     if (rustImplicitApiNames === undefined) {
@@ -4331,9 +4331,10 @@ function rustTypedImplicitApiResults (content: string): string {
         if (!rustImplicitApiNames.has (m[1]) || own.has (m[1])) continue;
         const open = m.index + m[0].length;
         const close = balancedCloseIndex (content, open);
-        const conv = content.slice (close + 1).match (/^\.await\.into_(opt_)?dict\(\)/);
+        const conv = content.slice (close + 1).match (/^\.await\.into_(opt_)?(dict|list)\(\)/);
         if (close >= content.length || conv === null) continue;
-        out += content.slice (last, m.index + m[0].length - m[1].length - 1) + (conv[1] ? 'call_method_o("' : 'call_method_t("') + m[1] + '", ' + content.slice (open, close + 1) + '.await';
+        const twin = 'call_method_' + (conv[2] === 'list' ? 'l' : '') + (conv[1] ? 'o' : 't');
+        out += content.slice (last, m.index + m[0].length - m[1].length - 1) + twin + '("' + m[1] + '", ' + content.slice (open, close + 1) + '.await';
         last = close + 1 + conv[0].length;
         head.lastIndex = last;
     }
@@ -4492,6 +4493,37 @@ function rustTypedOptListProducer (content: string, name: string, arg: string): 
         const stmt = /^\s*$/.test (content.slice (content.lastIndexOf ('\n', m.index) + 1, m.index)) && content[close + 1] === ';';
         out += content.slice (last, m.index) + (conv !== null ? call + (conv[1] ? '' : '.unwrap_or_default()') : (stmt ? call : call + '.map_or(Value::Null, Value::Arr)'));
         last = close + 1 + (conv !== null ? conv[0].length : 0);
+        head.lastIndex = last;
+    }
+    return out + content.slice (last);
+}
+
+// A method whose every `return` is `Value::Arr(data)` (bybit / kraken / pacifica `addPaginationCursorToResult`) returns `List`:
+// `.into_list()` drops, `.into_opt_list()` is `Some(..)`, `.as_array().cloned().unwrap_or_default()` unwraps, other slots box it back.
+function rustTypedListProducer (content: string, name: string): string {
+    const sig = new RegExp ('pub fn ' + name + '\\((&self, [^\\n]*)\\) -> Value \\{');
+    const d = content.match (sig);
+    if (d === null) return content;
+    const open = d.index! + d[0].length;
+    const close = balancedCloseIndex (content, open);
+    const body = content.slice (open, close).replace (/\breturn Value::Arr\(data\);/g, 'return data;').replace (/\n(\s*)Value::Null\n(\s*)$/, '\n$1Default::default()\n$2');
+    if (/\breturn (?!data;)/.test (body) || !/\n\s*let mut data: crate::value::List = /.test (body) || /Value::Null\n\s*$/.test (body)) return content;
+    content = content.slice (0, d.index!) + d[0].replace ('-> Value', '-> crate::value::List') + body + content.slice (close);
+    const head = new RegExp ('\\bself(?:\\.parent)?\\.' + name + '\\(', 'g');
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) {
+        if (content.slice (Math.max (0, m.index - 7), m.index) === 'pub fn ') continue;
+        const close2 = balancedCloseIndex (content, m.index + m[0].length);
+        const call = content.slice (m.index, close2 + 1);
+        const rest = content.slice (close2 + 1);
+        const conv = rest.match (/^\.into_(opt_)?list\(\)/);
+        const arr = rest.match (/^\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\)/);
+        const stmt = /^\s*$/.test (content.slice (content.lastIndexOf ('\n', m.index) + 1, m.index)) && rest[0] === ';';
+        let rep = stmt ? call : 'Value::Arr(' + call + ')';
+        if (conv !== null) rep = conv[1] ? 'Some(' + call + ')' : call;
+        else if (arr !== null) rep = 'std::sync::Arc::unwrap_or_clone(' + call + ')';
+        out += content.slice (last, m.index) + rep;
+        last = close2 + 1 + (conv?.[0].length ?? arr?.[0].length ?? 0);
         head.lastIndex = last;
     }
     return out + content.slice (last);
@@ -10826,7 +10858,11 @@ impl std::ops::DerefMut for ${coreName} {
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
+<<<<<<< merged
                 rustContent = rustTypedListNarrowers(rustContent);
+=======
+                rustContent = rustTypedListProducer(rustContent, 'add_pagination_cursor_to_result');
+>>>>>>> R08
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
                 rustContent = rustKeyDictReads(rustContent);
