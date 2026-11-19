@@ -3668,7 +3668,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
             && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
             const method = String (parent.name.text);
-            if (!receiverCallIsSafe (method, javaType)) {
+            if (!receiverCallIsSafe (method, javaType) && !(info?.wsGetLimit === true && method === 'getLimit')) {
                 return false;
             }
         }
@@ -10802,6 +10802,9 @@ function wsReceiveTypeOf (printer, declaration) {
             continue;
         }
         const member = String (parent.name.text);
+        if (member === 'length' && !(ts.isCallExpression (parent.parent) && parent.parent.expression === parent)) {
+            continue; // `.length` reads the size of either witness box
+        }
         const witness = JAVA_WS_RECEIVE_WITNESS[member];
         if (witness === undefined || (type !== undefined && type !== witness)
             || !ts.isCallExpression (parent.parent) || parent.parent.expression !== parent) {
@@ -10813,7 +10816,11 @@ function wsReceiveTypeOf (printer, declaration) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    return isSafeToNarrow (printer, declaration, sourceName, JAVA_WS_RECEIVE_SCAN[type], isProFile, { noCastAssertions: true })
+    if (isSafeToNarrow (printer, declaration, sourceName, JAVA_WS_RECEIVE_SCAN[type], isProFile, { noCastAssertions: true })) {
+        return type;
+    }
+    // a list stream re-bound to a filterBy* List: `getLimit` prints the static getLimitOf(List, ..) overload
+    return type === JAVA_ARRAY_TYPE && isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { noCastAssertions: true, wsGetLimit: true })
         ? type : undefined;
 }
 
