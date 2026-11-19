@@ -2075,7 +2075,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_safe_market(&self, id: Value, market: Option<&crate::types::Market>, delim: Value, market_type: Value) -> crate::types::Market {
         <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, id, market, &[delim, market_type])
     }
-    fn super_handle_market_type_and_params(&self, method_name: Value, market: Option<&crate::types::Market>, params: Value, default_value: Value) -> Value {
+    fn super_handle_market_type_and_params(&self, method_name: Value, market: Option<&crate::types::Market>, params: Value, default_value: Value) -> (Value, crate::value::Dict) {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, market, &[params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {

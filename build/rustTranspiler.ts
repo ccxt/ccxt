@@ -5714,7 +5714,7 @@ function splitLongRustLines(content: string, max = 400): string {
 
 // Base handleOption*AndParams(2) answer a native `(slot 0, Dict)` tuple: each printed `Vec<Value>` head and its slot reads
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
-const RUST_OPTION_TUPLE_FNS = /\b(?:self|exchange)\.handle_option_(bool_|string_|integer_)?and_params2?\(/g;
+const RUST_OPTION_TUPLE_FNS = /\b(?:self|exchange)\.handle_(?:option_(bool_|string_|integer_)?|market_type_)and_params2?\(/g;
 const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v: string) => string] } = {
     '': ['Value', undefined, (v) => v], 'string_': ['Value', undefined, (v) => v],
     'bool_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`], 'integer_': ['Option<i64>', 'as_i64', (v) => `Value::from(${v})`],
@@ -5741,7 +5741,7 @@ function rustFnRest(s: string, from: number): string {
 // a re-boxed tuple local read only through slot gets keeps the tuple; a re-boxed bool slot local never written stays Option<bool>
 function typeOptionTupleLocals(src: string): string {
     let out = src;
-    const tup = /\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.handle_option_(bool_|string_|integer_)?and_params2?\()/g;
+    const tup = /\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.handle_(?:option_(bool_|string_|integer_)?|market_type_)and_params2?\()/g;
     for (let m: RegExpExecArray | null; (m = tup.exec(out)) !== null;) {
         const callEnd = rustCloseParen(out, m.index + m[0].length);
         const tail = /^;\s*Value::from\(vec!\[[^\n]*?\]\) \};/.exec(out.slice(callEnd, callEnd + 200));
@@ -5776,7 +5776,7 @@ function typeOptionTupleLocals(src: string): string {
     return out;
 }
 function typeHandleOptionTuples(content: string): string {
-    if (!content.includes('handle_option_')) return content;
+    if (!content.includes('handle_option_') && !content.includes('handle_market_type_and_params')) return content;
     const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
     let out = '';
     let last = 0;
@@ -5796,7 +5796,7 @@ function typeHandleOptionTuples(content: string): string {
             const block = pre.trimStart().startsWith('{ ');
             let stop = block ? content.indexOf('; }', from) + 2 : content.indexOf('\n', content.indexOf('\n', content.indexOf('\n', from) + 1) + 1);
             // a following call's own head starts its own window
-            const nextCall = content.slice(from, stop).search(/\b(?:self|exchange)\.handle_option_/);
+            const nextCall = content.slice(from, stop).search(/\b(?:self|exchange)\.handle_(?:option_|market_type_and)/);
             if (!block && nextCall >= 0) stop = content.lastIndexOf('\n', from + nextCall);
             const fnEnd = content.slice(from).search(/\n {4}(?:pub )?(?:async )?fn |\n\}\n/);
             const n = head[1];
@@ -5845,8 +5845,10 @@ function typeHandleOptionTuples(content: string): string {
         out = out.slice(0, from) + rest.replace(new RegExp(`\\bis_true\\(&${d[1]}\\)`, 'g'), `(${d[1]}.as_bool() == Some(true))`) + out.slice(from + rest.length);
     }
     // the base bodies: the return type, each `return [ v, p ]`, and the unreachable `Value::Null` tail
-    return out.replace(/(\n {4}fn handle_option_(bool_|string_|integer_)?and_params2?\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/g,
-        (_m, sig, fam, open, body) => `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::Dict\((\w+)\)|(\w+))\]\);/g,
+    // handleMarketTypeAndParams overrides (okx, deepcoin) only return the base's tuple through `super_`
+    out = out.replace(/(\n {4}pub fn handle_market_type_and_params\([^\n]*\) -> )Value( \{\n(?:(?!\n {4}(?:pub )?fn )[\s\S])*?return self\.super_handle_market_type_and_params\([^\n]*\);)\n\n {4}Value::Null\n\}/g, '$1(Value, crate::value::Dict)$2\n}');
+    return out.replace(/(\n {4}fn handle_(?:option_(bool_|string_|integer_)?|market_type_)and_params2?\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/g,
+        (_m, sig, fam, open, body) => `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::Dict\((\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
             (_r, v, d, b) => `return (${v}${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`)}\n}`);
 }
 
