@@ -8170,6 +8170,53 @@ function wsCacheFieldAliases(content: string): string {
 }
 //
 // unit slot 065
+// Lend read-only base fields instead of copying them: `safe_dict(self.accounts.clone(), ..)` reads through
+// `impl KeyRead` (lend `&self.accounts`), `format!` borrows its arguments, and a `List` loop local copied from
+// `self.symbols` that is only indexed while every call in its live range takes `&self` becomes `&self.symbols`.
+const RUST_LEND_SYMBOLS_CALLS = /^(market|parse_trading_fee|safe_\w+|extend_t|extend|in_array|sort)$/;
+function lendBaseFieldReads(content: string): string {
+    let out = content.replace(/\bself\.safe_dict\(self\.accounts\.clone\(\), /g, 'self.safe_dict(&self.accounts, ');
+    out = out.replace(/\.push_str\(&\(self\.(version|hostname)\.clone\(\)\)\.to_string\(\)\)/g, '.push_str(&self.$1.to_string())');
+    const re = /self\.(version|hostname)\.clone\(\)/g;
+    let res = '';
+    let last = 0;
+    for (let m = re.exec(out); m !== null; m = re.exec(out)) {
+        let depth = 0;
+        let i = m.index - 1;
+        for (; i >= 0; i--) {
+            const c = out[i];
+            if (c === ')' || c === ']' || c === '}') depth++;
+            else if (c === '(' || c === '[' || c === '{') { if (depth === 0) break; depth--; }
+            else if (c === '\n' || c === ';') { i = -1; break; }
+        }
+        if (i < 0 || out[i] !== '(' || !out.slice(0, i).endsWith('format!')) continue;
+        const before = out.slice(i + 1, m.index).trimEnd();
+        if (!before.endsWith(',')) continue;
+        res += out.slice(last, m.index) + `self.${m[1]}`;
+        last = m.index + m[0].length;
+    }
+    out = res + out.slice(last);
+    return out.replace(/^(\s*)let mut (\w+): crate::value::List = self\.symbols\.clone\(\);/gm, (line, ind, x, off) => {
+        const start = off + line.length;
+        const fnEnd = out.indexOf('\n    pub ', start);
+        const body = out.slice(start, fnEnd < 0 ? undefined : fnEnd);
+        const word = new RegExp(`(?<![\\w.])${x}\\b(.?)`, 'g');
+        let lastUse = -1;
+        for (let u = word.exec(body); u !== null; u = word.exec(body)) {
+            if (u[1] !== '.') return line;
+            const tail = body.slice(u.index + x.length, u.index + x.length + 6);
+            if (tail !== '.len()' && tail !== '.get(i') return line;
+            lastUse = u.index;
+        }
+        if (lastUse < 0) return line;
+        // the borrow lives until the end of the loop holding the last use
+        const loopEnd = body.indexOf(`\n${ind}}`, lastUse);
+        const live = body.slice(0, loopEnd < 0 ? body.length : loopEnd);
+        if (/&mut self|\.await|\bself\.\w+\s*=[^=]|make_mut\(&mut self/.test(live)) return line;
+        for (const c of live.matchAll(/\bself\.(\w+)\(/g)) if (!RUST_LEND_SYMBOLS_CALLS.test(c[1])) return line;
+        return `${ind}let ${x}: &crate::value::List = &self.symbols;`;
+    });
+}
 //
 // unit slot 066
 //
@@ -8722,6 +8769,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     wsCacheFieldAliases,
     //
     // pass slot 065
+    lendBaseFieldReads,
     //
     // pass slot 066
     //
