@@ -4873,6 +4873,7 @@ function rustTypedSafeOrder (content: string): string {
     return content.replace (/self\.\u0000safe_order\(/g, 'self.safe_order(');
 }
 
+<<<<<<< merged
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
 function rustTypedParseOrder (content: string): string {
@@ -4976,6 +4977,64 @@ function rustTypedParseOrder (content: string): string {
         else content = content.slice (0, s) + 'Value::Dict(' + pre + ')' + after;
     }
     return content;
+=======
+// Every `safeTrade` caller passes an object literal (`Value::Map(..)`), so it takes and returns `Dict`; a venue
+// `parseWsTrade` whose every return is `this.safeTrade (..)` returns `Dict` too. `.into_dict()` drops, any other use boxes it.
+function rustTypedSafeTrade (content: string): string {
+    const sig = 'fn safe_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {';
+    const tail = '\n    Value::Null\n}';
+    const base = content.indexOf (sig);
+    if (base >= 0) {
+        const end = content.indexOf (tail, base);
+        const body = content.slice (base + sig.length, end);
+        const put = /if let Value::Dict\(__d\) = &mut trade \{ std::sync::Arc::make_mut\(__d\)\.insert\(([^\n]*)\); \}/g;
+        if (end < 0 || body.split (/\breturn\b/).length !== 2 || !body.includes ('return trade;') || /&mut trade\b/.test (body.replace (put, ''))) return content;
+        const typed = body.replace (put, 'std::sync::Arc::make_mut(&mut trade).insert($1);').replace ('self.parsed_fee_and_fees(trade.clone())', 'self.parsed_fee_and_fees(Value::Dict(trade.clone()))');
+        content = content.slice (0, base) + sig.replace ('mut trade: Value', 'mut trade: crate::value::Dict').replace (') -> Value {', ') -> crate::value::Dict {') + typed + '\n    Default::default()\n}' + content.slice (end + tail.length);
+    }
+    const head = /(?<![\w.])self\.safe_trade\(/g;
+    const calls: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) calls.push (m.index);
+    for (const s of calls.reverse ()) {
+        const open = s + 'self.safe_trade('.length;
+        const close = balancedCloseIndex (content, open);
+        if (close >= content.length) continue;
+        if (content.startsWith ('Value::Map(', open)) content = content.slice (0, open) + 'std::sync::Arc::new(' + content.slice (open + 'Value::Map('.length);
+        else if (content.startsWith ('args.get(0).cloned().unwrap_or(crate::Value::Null)', open) && content.slice (s - 16, s) === '"safe_trade" => ') {
+            // a non-map argument comes back unchanged, as the untyped body answered
+            const market = content.slice (open + 'args.get(0).cloned().unwrap_or(crate::Value::Null)'.length, close);
+            content = content.slice (0, s) + `match args.get(0).cloned().unwrap_or(crate::Value::Null) { crate::Value::Dict(t) => crate::Value::Dict(self.\u0000safe_trade(t${market})), other => other }` + content.slice (close + 1);
+        } else return content;
+    }
+    const wsSig = 'pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {';
+    const ws = content.indexOf (wsSig);
+    let typedWs = false;
+    if (ws >= 0) {
+        const end = content.indexOf (tail, ws);
+        const body = content.slice (ws, end);
+        const rets = body.match (/\breturn\b[^\n]*/g) ?? [];
+        if (end >= 0 && rets.length > 0 && rets.every ((r) => r.startsWith ('return self.safe_trade('))) {
+            content = content.slice (0, ws) + body.replace (') -> Value {', ') -> crate::value::Dict {').replace (/\breturn self\.safe_trade\(/g, 'return self.\u0000safe_trade(') + '\n    Default::default()\n}' + content.slice (end + tail.length);
+            typedWs = true;
+        }
+    }
+    const box = (name: string) => {
+        const re = new RegExp ('(?<![\\w.])self\\.' + name + '\\(', 'g');
+        const starts: number[] = [];
+        while ((m = re.exec (content)) !== null) starts.push (m.index);
+        for (const s of starts.reverse ()) {
+            const close = balancedCloseIndex (content, s + 'self.'.length + name.length + 1);
+            if (close >= content.length) continue;
+            const rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+        }
+    };
+    if (base >= 0 || calls.length > 0) box ('safe_trade');
+    if (typedWs) box ('parse_ws_trade');
+    return content.replace (/self\.\u0000safe_trade\(/g, 'self.safe_trade(');
+>>>>>>> R07
 }
 
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
@@ -11578,6 +11637,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedListAndOmitBranches(rustContent);
                 rustContent = rustTypedIndexBy(rustContent);
                 rustContent = rustTypedSafeOrder(rustContent);
+                rustContent = rustTypedSafeTrade(rustContent);
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
@@ -12437,7 +12497,11 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedIndexBy(finalFile);
         finalFile = rustTypedParseOrderBook(finalFile);
         finalFile = rustTypedSafeOrder(finalFile);
+<<<<<<< merged
         finalFile = rustTypedParseOrder(finalFile);
+=======
+        finalFile = rustTypedSafeTrade(finalFile);
+>>>>>>> R07
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
