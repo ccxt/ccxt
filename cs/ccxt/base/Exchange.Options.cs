@@ -104,6 +104,15 @@ public partial class BaseExchange
     {
         get { var d = this.exceptions; return (d != null && d.ContainsKey("ws")) ? d["ws"] as IDictionary<string, object> : null; }
     }
+    // exceptions['exact'] / exceptions['ws']['exact']: read live, null when absent or not a dictionary
+    public IDictionary<string, object> exceptionsExact
+    {
+        get { var d = this.exceptions; return (d != null && d.ContainsKey("exact")) ? d["exact"] as IDictionary<string, object> : null; }
+    }
+    public IDictionary<string, object> exceptionsWsExact
+    {
+        get { var d = this.exceptionsWs; return (d != null && d.ContainsKey("exact")) ? d["exact"] as IDictionary<string, object> : null; }
+    }
     public IDictionary<string, object> optionsWs
     {
         get { var d = this.options; return (d != null && d.ContainsKey("ws")) ? d["ws"] as IDictionary<string, object> : null; }
