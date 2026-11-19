@@ -8553,16 +8553,18 @@ export class BaseExchange {
         const networkKeys = Object.keys (fee['networks']);
         const numNetworks = networkKeys.length;
         if (numNetworks === 1) {
-            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
-            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            const networkFee = this.safeDict (fee['networks'], networkKeys[0], {});
+            fee['withdraw'] = networkFee['withdraw'];
+            fee['deposit'] = networkFee['deposit'];
             return fee;
         }
         const currencyCode = this.safeString (currency, 'code');
         for (let i = 0; i < numNetworks; i++) {
             const network = networkKeys[i];
             if (network === currencyCode) {
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
-                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+                const networkFee = this.safeDict (fee['networks'], networkKeys[i], {});
+                fee['withdraw'] = networkFee['withdraw'];
+                fee['deposit'] = networkFee['deposit'];
             }
         }
         return fee;
