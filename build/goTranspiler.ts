@@ -18325,6 +18325,16 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
             }
         }
     }
+    // `var x any = min(a, b)` over int64 locals, never rebound: Go's min answers a non-nil int64
+    for (let k = start + 1; k < end; k++) {
+        const mm = /^(\s*var (\w+) )any( = min\((\w+), (\w+)\))$/.exec (masked[k]);
+        if ((mm === null) || (lines[k] !== masked[k]) || [ mm[4], mm[5] ].some ((a) => goAccessSingleDeclaration (maskedFunc, lines[start], a)?.type !== 'int64')
+            || (goAccessSingleDeclaration (maskedFunc, lines[start], mm[2]) === undefined) || goTextWritesName (maskedFunc.replace (masked[k], ''), goAccessEscape (mm[2]))) {
+            continue;
+        }
+        lines[k] = mm[1] + 'int64' + mm[3];
+        masked[k] = goTextMaskLiteralsAndComments (lines[k]);
+    }
 }
 
 function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
@@ -18339,6 +18349,8 @@ function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
     const f = (body: string) => goTypedAddElemRetypeMapLocals ('func (this *X) f(p any, code string) any {\n' + body + '\treturn nil\n}\n');
     let r = f ('\tvar account any = this.SafeDict(p, code, this.Account())\n\tAddElementToObject(account, "free", this.SafeString(p, "f"))\n');
     ok (r.includes ('var account map[string]any = this.SafeDictMap(p, code, this.Account())'), 'defaulted SafeDict receiver is typed: ' + r);
+    r = f ('\tvar a int64 = 1\n\tvar b int64 = 2\n\tvar to any = min(a, b)\n\tvar t2 any = min(a, b)\n\tt2 = nil\n\tAddElementToObject(p, "to", to)\n');
+    ok (r.includes ('var to int64 = min(a, b)') && r.includes ('var t2 any = min(a, b)'), 'int64 min local: ' + r);
     r = f ('\tvar account any = this.Account()\n\taccount = this.SafeDict2(p, code, "x", account)\n\tAddElementToObject(account, "free", 1)\n');
     ok (r.includes ('var account map[string]any = this.Account()') && r.includes ('account = this.SafeDict2Map(p, code, "x", account)'), 'Account seed and self-default write: ' + r);
     r = f ('\tvar a any = this.SafeDict(p, code)\n\tvar b any = this.SafeDict(p, code, other)\n\tAddElementToObject(a, "x", 1)\n\tAddElementToObject(b, "x", 1)\n');

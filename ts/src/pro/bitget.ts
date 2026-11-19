@@ -2590,20 +2590,20 @@ export default class bitget extends bitgetRest {
                     const entry = this.safeDict (coins, j);
                     const currencyId = this.safeString (entry, 'coin');
                     const code = this.safeCurrencyCode (currencyId);
-                    let account: Dict = this.account ();
+                    let coinAccount: Dict = this.account ();
                     if ((code !== undefined) && (code in this.balance)) {
-                        account = this.safeDict (this.balance, code, account);
+                        coinAccount = this.safeDict (this.balance, code, coinAccount);
                     }
                     const borrow = this.safeString (entry, 'borrow');
                     const debts = this.safeString (entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
-                        account['debt'] = Precise.stringAdd (borrow, debts);
+                        coinAccount['debt'] = Precise.stringAdd (borrow, debts);
                     }
-                    account['free'] = this.safeString (entry, 'available');
-                    account['used'] = this.safeString (entry, 'locked');
-                    account['total'] = this.safeString (entry, 'balance');
+                    coinAccount['free'] = this.safeString (entry, 'available');
+                    coinAccount['used'] = this.safeString (entry, 'locked');
+                    coinAccount['total'] = this.safeString (entry, 'balance');
                     if (code !== undefined) {
-                        this.balance[code] = account;
+                        this.balance[code] = coinAccount;
                     }
                 }
             } else {
