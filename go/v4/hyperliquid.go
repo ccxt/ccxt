@@ -5146,12 +5146,12 @@ func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) 
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Hyperliquid) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Hyperliquid) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

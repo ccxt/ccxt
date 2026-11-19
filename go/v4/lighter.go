@@ -2711,12 +2711,12 @@ func (this *Lighter) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
  * @param {string} [params.value] fetch balance value, account index or l1 address
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Lighter) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Lighter) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Lighter) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5006,12 +5006,12 @@ func (this *Lighter) reduceMarginBody(ch chan AsyncResult[MarginModification], s
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func (this *Lighter) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *Lighter) SetMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.setMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symbol any, amount any, optionalArgs ...any) any {
+func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5033,7 +5033,7 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 	if !this.InArray(direction, []any{0, 1}) {
 		panic(ArgumentsRequired(this.Id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)"))
 	}
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " setMargin() requires a symbol argument"))
 	}
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "setMargin", "accountIndex", "account_index")

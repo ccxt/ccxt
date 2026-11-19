@@ -870,12 +870,12 @@ func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
  */
-func (this *Mudrex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Mudrex) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

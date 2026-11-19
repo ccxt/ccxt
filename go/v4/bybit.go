@@ -8969,17 +8969,17 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Bybit) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Bybit) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " fetchPosition() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -9501,12 +9501,12 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) Position {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Bybit) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Bybit) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Bybit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13424,12 +13424,12 @@ func (this *Bybit) ParseADLRank(info any, optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Bybit) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Bybit) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Bybit) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

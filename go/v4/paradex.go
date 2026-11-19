@@ -3698,12 +3698,12 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Paradex) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Paradex) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4455,12 +4455,12 @@ func (this *Paradex) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Paradex) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Paradex) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4559,7 +4559,7 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if IsEqual(leverage, nil) {
 		// the endpoint always sets the leverage too, keep the current one instead of resetting it
 
-		r2 := <-this.FetchLeverageAsync(symbol)
+		r2 := <-this.FetchLeverageAsync(StringArg(symbol))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -4596,12 +4596,12 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Paradex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Paradex) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

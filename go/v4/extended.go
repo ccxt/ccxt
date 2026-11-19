@@ -3094,12 +3094,12 @@ func (this *Extended) ParseTradingFee(fee map[string]any, optionalArgs ...any) T
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Extended) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Extended) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3291,12 +3291,12 @@ func (this *Extended) fetchPositionsBody(ch chan AsyncResult[[]Position], option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Extended) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Extended) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Extended) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Extended) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

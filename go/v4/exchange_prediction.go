@@ -1468,12 +1468,12 @@ func (this *PredictionExchange) fetchMyTradesBody(ch chan AsyncResult[[]Predicti
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *PredictionExchange) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[PredictionPosition] {
+func (this *PredictionExchange) FetchPositionAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[PredictionPosition] {
 	ch := make(chan AsyncResult[PredictionPosition], 1)
 	go this.fetchPositionBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchPositionBody(ch chan AsyncResult[PredictionPosition], outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchPositionBody(ch chan AsyncResult[PredictionPosition], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

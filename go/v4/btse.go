@@ -4532,12 +4532,12 @@ func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Btse) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Btse) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4732,12 +4732,12 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[Order], symbol string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Btse) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Btse) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

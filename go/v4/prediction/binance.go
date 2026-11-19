@@ -1735,19 +1735,19 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Binance) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
+func (this *Binance) FetchPositionAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionPosition], 1)
 	go this.fetchPositionBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome any, optionalArgs ...any) any {
+func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
 	var outcomeObj map[string]any = nil
-	if !ccxt.IsEqual(outcome, nil) {
+	if true {
 
 		r := <-this.LoadOutcomeAsync(outcome)
 		if r.Err != nil {

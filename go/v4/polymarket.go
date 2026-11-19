@@ -2602,12 +2602,12 @@ func (this *Polymarket) fetchPositionsBody(ch chan AsyncResult[[]Position], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
-func (this *Polymarket) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Polymarket) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Polymarket) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3421,12 +3421,12 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
  */
-func (this *Polymarket) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Polymarket) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3465,7 +3465,7 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 			return nil
 		}
 	}
-	panic(BadSymbol(Add(this.Id+" fetchLeverage() could not find the configuration for ", symbol)))
+	panic(BadSymbol(this.Id + " fetchLeverage() could not find the configuration for " + symbol))
 }
 func (this *Polymarket) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -3502,12 +3502,12 @@ func (this *Polymarket) ParseLeverage(leverage any, optionalArgs ...any) Leverag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
  */
-func (this *Polymarket) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Polymarket) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Polymarket) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

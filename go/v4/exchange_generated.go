@@ -1236,12 +1236,12 @@ func (this *BaseExchange) fetchDepositAddressesBody(ch chan AsyncResult[[]Deposi
 	_ = params
 	panic(NotSupported(this.Id + " fetchDepositAddresses() is not supported yet"))
 }
-func (this *BaseExchange) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *BaseExchange) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1609,12 +1609,12 @@ func (this *BaseExchange) setLeverageBody(ch chan AsyncResult[map[string]any], l
 	_ = params
 	panic(NotSupported(this.Id + " setLeverage() is not supported yet"))
 }
-func (this *BaseExchange) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *BaseExchange) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1689,12 +1689,12 @@ func (this *BaseExchange) reduceMarginBody(ch chan AsyncResult[MarginModificatio
 	_ = params
 	panic(NotSupported(this.Id + " reduceMargin() is not supported yet"))
 }
-func (this *BaseExchange) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+func (this *BaseExchange) SetMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
 	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.setMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) setMarginBody(ch chan AsyncResult[MarginModification], symbol any, amount any, optionalArgs ...any) any {
+func (this *BaseExchange) setMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10792,12 +10792,12 @@ func (this *Exchange) editOrderWithClientOrderIdBody(ch chan AsyncResult[Order],
 	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
-func (this *Exchange) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Exchange) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Exchange) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

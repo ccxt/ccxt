@@ -119,7 +119,7 @@ type IFetchOHLCV interface { // W28
 	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV]
 }
 type IFetchPosition interface { // W30
-	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position]
+	FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position]
 }
 type IFetchOpenInterest interface { // W30
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest]
@@ -316,7 +316,7 @@ type ICoreExchange interface {
 	PrecisionFromString(str2 any) int
 	OmitZero(v any) *string
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
-	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode]
+	FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier]
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64

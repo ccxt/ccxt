@@ -1167,12 +1167,12 @@ func (this *Pacifica) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Pacifica) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Pacifica) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1218,11 +1218,11 @@ func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol an
 		return nil
 	} else {
 
-		ch <- AsyncResult[Leverage]{Value: LeverageFromMap(this.ParseLeverageFromSetting(symbol, setting))}
+		ch <- AsyncResult[Leverage]{Value: LeverageFromMap(this.ParseLeverageFromSetting(&symbol, setting))}
 		return nil
 	}
 }
-func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting map[string]any) map[string]any {
+func (this *Pacifica) ParseLeverageFromSetting(symbol *string, setting map[string]any) map[string]any {
 	// {
 	//   "WLFI/USDC:USDC": {
 	//       "symbol": "WLFI",
@@ -1362,12 +1362,12 @@ func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Pacifica) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Pacifica) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1417,11 +1417,11 @@ func (this *Pacifica) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 		return nil
 	} else {
 
-		ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(this.ParseMarginModeFromSetting(symbol, setting))}
+		ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(this.ParseMarginModeFromSetting(&symbol, setting))}
 		return nil
 	}
 }
-func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting map[string]any) map[string]any {
+func (this *Pacifica) ParseMarginModeFromSetting(symbol *string, setting map[string]any) map[string]any {
 	// {
 	//       "symbol": "WLFI",
 	//       "isolated": false,
@@ -3675,12 +3675,12 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Pacifica) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Pacifica) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Pacifica) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

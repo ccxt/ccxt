@@ -15,7 +15,7 @@ func testFetchMarginModeBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 	defer ReturnPanicError(ch)
 	var method string = "fetchMarginMode"
 
-	r := <-exchange.FetchMarginModeAsync(symbol)
+	r := <-exchange.FetchMarginModeAsync(StringArg(symbol))
 	if r.Err != nil {
 		panic(r.Err)
 	}

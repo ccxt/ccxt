@@ -2553,12 +2553,12 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
  * @param {string} [params.address] read another wallet's position, which needs no JWT
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Predictfun) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
+func (this *Predictfun) FetchPositionAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionPosition], 1)
 	go this.fetchPositionBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome any, optionalArgs ...any) any {
+func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

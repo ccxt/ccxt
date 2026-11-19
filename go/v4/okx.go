@@ -8318,12 +8318,12 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) Transact
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Okx) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Okx) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Okx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8411,12 +8411,12 @@ func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Okx) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Okx) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Okx) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8491,7 +8491,7 @@ func (this *Okx) fetchPositionBody(ch chan AsyncResult[Position], symbol any, op
 	var data []any = SafeListTyped(response, "data")
 	var position map[string]any = SafeMapTyped(data, 0)
 	if position == nil {
-		panic(NullResponse(Add(this.Id+" fetchPosition() could not find a position for ", symbol)))
+		panic(NullResponse(this.Id + " fetchPosition() could not find a position for " + symbol))
 	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(position, market)}

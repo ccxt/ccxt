@@ -2603,12 +2603,12 @@ func (this *Polymarket) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Polymarket) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
+func (this *Polymarket) FetchPositionAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionPosition], 1)
 	go this.fetchPositionBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome any, optionalArgs ...any) any {
+func (this *Polymarket) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
