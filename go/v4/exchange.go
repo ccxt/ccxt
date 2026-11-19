@@ -96,7 +96,7 @@ type BaseExchange struct {
 	ReduceFees           bool
 
 	AccountsById any
-	Accounts     any
+	Accounts     []any
 
 	// timestamps
 	LastRestRequestTimestamp int64

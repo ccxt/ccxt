@@ -1573,6 +1573,11 @@ function goChan3AbsentEdits (content: string, masked: string, start: number, end
     if ((m !== null) && /^\s*$/.test (after)) {
         return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'set', m[2], v, type) } ];
     }
+    // a hand-written `[]any` base field takes the slice itself: a nil slice reads nil through IsEqual/derefScalar
+    m = /^(\t+)this\.Accounts = $/.exec (before);
+    if ((m !== null) && (type === '[]any') && /^\s*$/.test (after)) {
+        return [ { 'start': ls, 'end': le, 'text': m[1] + 'this.Accounts = ' + v } ];
+    }
     m = /^(\t+)(\w+ <- (?:ccxt\.)?AsyncResult\[any\]\{)Value: $/.exec (before);
     const close = /^((?:, Err: \w+\.Err)?\})\s*$/.exec (after);
     if ((m !== null) && (close !== null)) {
