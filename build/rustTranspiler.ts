@@ -8449,6 +8449,40 @@ function rustTypedAccountBuilder (content: string): string {
 // unit slot 076
 //
 // unit slot 077
+// `Value::from(&x).into_dict()` where every binding of `x` in the fn is a `Dict`: the box round trip is one
+// Arc share, so print `x` when nothing in the fn reads it afterwards, else `std::sync::Arc::clone(&x)`;
+// `v.clone().into_dict()` on a `Value` local with no later read moves `v`.
+function unboxDictRewraps(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    let fi = -1;
+    for (const m of code.matchAll(/Value::from\(&([A-Za-z_]\w*)\)\.into_dict\(\)|(?<![\w.&])([A-Za-z_]\w*)\.clone\(\)\.into_dict\(\)/g)) {
+        const pos = m.index as number, name = m[1] ?? m[2], end = pos + m[0].length;
+        while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
+        if (fi < 0 || name === 'self') continue;
+        const open = code.indexOf('{', fnStarts[fi]);
+        if (open < 0 || open > pos) continue;
+        const close = balancedCloseIndex(code, open + 1);
+        const fnText = code.slice(fnStarts[fi], close);
+        const binds = [...fnText.matchAll(new RegExp(`(?:\\blet (?:mut )?|[(,]\\s*(?:mut )?)${name}\\s*:\\s*([^=;,)]+?)\\s*[=;,)]`, 'g'))];
+        const boxed = m[2] !== undefined;
+        if (boxed) binds.push(...fnText.matchAll(new RegExp(`\\blet (?:mut )?${name}()\\s*=\\s*get_arg\\(`, 'g')));
+        if (boxed) binds.forEach(b => { if (b[1] === '') b[1] = 'Value'; });
+        if (binds.length === 0 || binds.some(b => !(boxed ? /^Value$/ : /^(?:crate::value::)?Dict$/).test(b[1].trim()))) continue;
+        if (new RegExp(`\\bfor (?:mut )?${name}\\b|let (?:mut )?${name}\\s*=(?!\\s*get_arg\\()|\\blet \\([^)]*\\b${name}\\b`).test(fnText)) continue;
+        const later = new RegExp(`(?<![\\w.])${name}\\b`).test(code.slice(end, close));
+        const before = code.slice(open + 1, pos);
+        const inLoop = /\b(?:loop|while|for)\b/.test(before.slice(Math.max(0, before.search(new RegExp(`\\blet (?:mut )?${name}\\b`)))));
+        const stmt = before.slice(Math.max(before.lastIndexOf(';'), before.lastIndexOf('{'), before.lastIndexOf('}')) + 1);
+        const closure = new RegExp(`(?<![\\w.])${name}\\b`).test(stmt) || /(?<!\|)\|(?:\s*(?:mut )?[A-Za-z_]\w*(?:\s*:[^|]*)?,?)*\s*\|(?!\|)/.test(fnText);
+        if (boxed && !(later || inLoop || closure)) edits.push([pos, end, `${name}.into_dict()`]);
+        else if (!boxed) edits.push([pos, end, later || inLoop || closure ? `std::sync::Arc::clone(&${name})` : name]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 078
 //
@@ -8937,6 +8971,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 076
     //
     // pass slot 077
+    unboxDictRewraps,
     //
     // pass slot 078
     //
