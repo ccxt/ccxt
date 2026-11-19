@@ -10521,6 +10521,10 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     ok (base ('ArrayTyped(this.HandleTriggerPricesAndParams(s, p))', '3').indexOf ('DerefScalar(values[3])') >= 0, 'a base producer of four items proves index 3');
     ok (base ('ArrayTyped(this.HandleTriggerPricesAndParams(s, p))', '4').indexOf ('func() any {') >= 0, 'index 4 of a four-item producer stays guarded');
     ok (base ('ArrayTyped(this.HandleOtherParams(s, p))', '0').indexOf ('func() any {') >= 0, 'a producer outside the table stays guarded');
+    const tp = (body: string) => goTriggerPricesBind ('func (this *X) f() {\n' + body + '\treturn\n}\n');
+    ok (tp ('\tvar h []any = this.HandleTriggerPricesAndParams(s, p)\n\ta := GetValue(h, 0)\n\tq := GetValue(h, 3)\n').indexOf ('\ta, _, _, q := this.HandleTriggerPricesAndParams(s, p)\n') >= 0, 'trigger-prices holder binds four results');
+    ok (tp ('\tvar v []any = ArrayTyped(this.HandleTriggerPricesAndParams(s, p))\n\tvar t *string = SafeStringPtr(v[0])\n\tvar q any = DerefScalar(v[3])\n').indexOf ('\tt, _, _, q := this.HandleTriggerPricesAndParams(s, p)\n') >= 0, 'index reads bind too');
+    ok (tp ('\tvar h []any = this.HandleTriggerPricesAndParams(s, p)\n\ta := GetValue(h, 0)\n\tx(h)\n').indexOf ('var h []any') >= 0, 'another reader of the holder keeps it');
     const rows = (index: string, bound: string) => g ('\tvar rows []any = ArrayTyped(this.BuildOHLCVC(t, tf))\n\tfor i := 0; i < ' + bound + '; i++ {\n\t\tvar candle []any = ArrayTyped(rows[i])\n' + read (index, 'candle', 'DerefScalar(').replace (/^/gm, '\t') + '\t}\n');
     ok (rows ('6', 'len(rows)').indexOf ('DerefScalar(candle[6])') >= 0, 'a row of a fixed-row base producer is in range');
     ok (rows ('7', 'len(rows)').indexOf ('func() any {') >= 0, 'past the row size stays guarded');
@@ -10570,6 +10574,46 @@ function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: strin
     return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
 }
 
+// HandleTriggerPricesAndParams returns Go (*string, *string, *string, map[string]any) (exchange_market_type.go): its
+// holder block (four GetValue reads, or index reads through SafeStringPtr/DerefScalar/MapTyped) binds the four results
+function goTriggerPricesBind (content: string): string {
+    if (content.indexOf ('this.HandleTriggerPricesAndParams(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const head = /^(\s*)var (\w+) \[\]any = (?:ArrayTyped\((this\.HandleTriggerPricesAndParams\((?:[^()]|\([^()]*\))*\))\)|(this\.HandleTriggerPricesAndParams\((?:[^()]|\([^()]*\))*\)))$/;
+    for (let k = 0; k < lines.length; k++) {
+        const m = head.exec (lines[k]);
+        if (m === null) {
+            continue;
+        }
+        const [ ind, h, call ] = [ m[1], m[2], m[3] ?? m[4] ];
+        const names = [ '_', '_', '_', '_' ];
+        let j = k + 1;
+        for (; j < lines.length; j++) {
+            const r = new RegExp ('^' + ind + '(?:(\\w+) := GetValue\\(' + h + ', ([0-3])\\)|var (\\w+) (?:\\*string = SafeStringPtr|any = DerefScalar|map\\[string\\]any = MapTyped)\\(' + h + '\\[([0-3])\\]\\))$').exec (lines[j]);
+            if (r === null) {
+                break;
+            }
+            const slot = Number (r[2] ?? r[4]);
+            const ptr = lines[j].indexOf ('SafeStringPtr(') >= 0;
+            if ((names[slot] !== '_') || (ptr && (slot === 3)) || (lines[j].indexOf ('MapTyped(') >= 0 && slot !== 3)) {
+                j = -1;
+                break;
+            }
+            names[slot] = r[1] ?? r[3];
+        }
+        // the holder must have no other reader in its function
+        const end = lines.findIndex ((l, i) => (i >= j) && (l === '}'));
+        const rest = lines.slice (j, (end < 0) ? lines.length : end).join ('\n');
+        if ((j < 0) || (j === k + 1) || new RegExp ('\\b' + h + '\\b').test (rest)) {
+            continue;
+        }
+        lines.splice (k, j - k, ind + names.join (', ') + ' := ' + call);
+    }
+    return lines.join ('\n');
+}
+
 export function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
@@ -10609,6 +10653,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = gb09CredentialStrings (content);  // the credential fields are plain strings
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = nativeGuardedListElementReads (content);  // last, on the settled guard literals
+    content = goTriggerPricesBind (content);  // after the guarded reads settle into index reads
     return goGofmtSplicedText (content);
 }
 
@@ -13907,7 +13952,7 @@ ${constStatements.join('\n')}
             // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
             // Handle*AndParams pairs, MarketSymbols and MarketCodes, exchange_misc.go ImplodeHostname): drop the copies
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
-                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'HandleTriggerPricesAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
@@ -14916,7 +14961,7 @@ ${caseStatements.join('\n')}
     // returns a Go `[]any` on every path, so the declared `any` return becomes `[]any`. All receivers are retyped because an
     // override shadows the base method for its own call sites; a `[]any` still boxes into every `any` sink.
     coerceTupleHelperSignatures (content: string): string {
-        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleWithdrawTagAndParams|HandlePostOnly)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
             // hand-written base (exchange_market_type.go) returns the pair as two results; the
             // Okx/Deepcoin overrides only `return super...` so they carry the same results
             .replace (/func\s+\(this \*(\w+)\)\s+(HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams|HandleMarginModeAndParams)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (*string, map[string]any) {')

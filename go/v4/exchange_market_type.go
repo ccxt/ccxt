@@ -271,3 +271,30 @@ func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName an
 	value, newParams := this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
 	return this.CheckOptionString(methodName, optionName1, value), newParams
 }
+
+// HandleTriggerPricesAndParams is handleTriggerPricesAndParams with its [Str, Str, Str, Dict]
+// tuple spelled as four Go results (the transpiled copy is dropped).
+func (this *BaseExchange) HandleTriggerPricesAndParams(symbol any, params map[string]any, optionalArgs ...any) (*string, *string, *string, map[string]any) {
+	omitParams := GetArgBool(optionalArgs, 0, true)
+	keysToOmit := []any{}
+	var prices [3]*string
+	for i, keys := range [][]any{{"triggerPrice", "stopPrice"}, {"stopLossPrice"}, {"takeProfitPrice"}} {
+		var price *string
+		if len(keys) == 2 {
+			price = this.SafeString2(params, keys[0], keys[1])
+		} else {
+			price = this.SafeString(params, keys[0])
+		}
+		if price == nil {
+			continue
+		}
+		if omitParams {
+			keysToOmit = append(keysToOmit, keys...)
+		}
+		prices[i] = this.PriceToPrecision(symbol, ParseFloat(price))
+	}
+	if len(keysToOmit) > 0 {
+		return prices[0], prices[1], prices[2], this.OmitDict(params, keysToOmit)
+	}
+	return prices[0], prices[1], prices[2], params
+}
