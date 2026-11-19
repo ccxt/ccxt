@@ -12078,11 +12078,8 @@ impl std::ops::DerefMut for ${coreName} {
 
             rustContent = rustTypedParseOrderBook(rustContent);
             rustContent = rustTypedParseOrder(rustContent);
-<<<<<<< merged
             rustContent = rustTypedParseTrade(rustContent);
-=======
             rustContent = rustTypedParseTicker(rustContent);
->>>>>>> R04
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is

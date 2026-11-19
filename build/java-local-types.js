@@ -28059,7 +28059,6 @@ export function installJavaSourceExchangeReads (transpiler) {
     };
 }
 
-<<<<<<< merged
 // ===== fixed-width row accumulators =====
 // `const xs: T[] = []` with T a fixed tuple of N slots, used only by push of N-element literals, reads,
 // `.length`, `return xs` and `xs[r][c] = v` with c a literal (or const literal local) below N: every row
@@ -28209,7 +28208,8 @@ export function patchJavaRowAccumulatorLists (transpiler) {
         return upstreamWrite (node, left, right);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => rowAccumulatorType (printer, declaration));
-=======
+}
+
 // ===== Object locals whose every write is null or a Long box retype to Long =====
 // Same box (Long or null) before and after, so only box-neutral uses are required; locals of one member may prove
 // each other. Kept per member only when a multiply/subtract/compare/min/max helper then goes native.
@@ -28410,5 +28410,4 @@ export function nativeJavaLongBoxLocals (content, after = (x) => x) {
         out.push (...member);
     }
     return changed ? out.join ('\n') : content;
->>>>>>> J06
 }

@@ -23786,7 +23786,6 @@ function int64IndexGroupLocal (csharp, declaration, context) {
     return { type: 'Int64' };
 }
 
-<<<<<<< merged
 // ===== `number[]` index accumulators =====
 // A sync method declared once in ts/src, annotated `number[]`, whose every return is one `number[]` local
 // seeded `[]` and written only by `.push (<int-literal for-counter>)`: the list holds Int64 indices, so the
@@ -23888,5 +23887,4 @@ export function installCsharpIntIndexAccumulators (csharp) {
     };
     csharp._intIndexAccumulatorsPatched = true;
 }
-=======
->>>>>>> C07
+
