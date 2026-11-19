@@ -6646,6 +6646,117 @@ function typeDictPushLists(content: string): string {
     return content;
 }
 
+// unit slot 001
+// unit slot 002
+// unit slot 003
+// unit slot 004
+// unit slot 005
+// unit slot 006
+// unit slot 007
+// unit slot 008
+// unit slot 009
+// unit slot 010
+// unit slot 011
+// unit slot 012
+// unit slot 013
+// unit slot 014
+// unit slot 015
+// unit slot 016
+// unit slot 017
+// unit slot 018
+// unit slot 019
+// unit slot 020
+// unit slot 021
+// unit slot 022
+// unit slot 023
+// unit slot 024
+// unit slot 025
+// unit slot 026
+// unit slot 027
+// unit slot 028
+// unit slot 029
+// unit slot 030
+// unit slot 031
+// unit slot 032
+// unit slot 033
+// unit slot 034
+// unit slot 035
+// unit slot 036
+// unit slot 037
+// unit slot 038
+// unit slot 039
+// unit slot 040
+// unit slot 041
+// unit slot 042
+// unit slot 043
+// unit slot 044
+// unit slot 045
+// unit slot 046
+// unit slot 047
+// unit slot 048
+// unit slot 049
+// unit slot 050
+// unit slot 051
+// unit slot 052
+// unit slot 053
+// unit slot 054
+// unit slot 055
+// unit slot 056
+// unit slot 057
+// unit slot 058
+// unit slot 059
+// unit slot 060
+// unit slot 061
+// unit slot 062
+// unit slot 063
+// unit slot 064
+// unit slot 065
+// unit slot 066
+// unit slot 067
+// unit slot 068
+// unit slot 069
+// unit slot 070
+// unit slot 071
+// unit slot 072
+// unit slot 073
+// unit slot 074
+// unit slot 075
+// unit slot 076
+// unit slot 077
+// unit slot 078
+// unit slot 079
+// unit slot 080
+// unit slot 081
+// unit slot 082
+// unit slot 083
+// unit slot 084
+// unit slot 085
+// unit slot 086
+// unit slot 087
+// unit slot 088
+// unit slot 089
+// unit slot 090
+// unit slot 091
+// unit slot 092
+// unit slot 093
+// unit slot 094
+// unit slot 095
+// unit slot 096
+// unit slot 097
+// unit slot 098
+// unit slot 099
+// unit slot 100
+// unit slot 101
+// unit slot 102
+// unit slot 103
+// unit slot 104
+// unit slot 105
+// unit slot 106
+// unit slot 107
+// unit slot 108
+// unit slot 109
+// unit slot 110
+
 // Write-time passes over one generated Rust file, applied top to bottom; splitLongRustLines stays last.
 const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     borrowLiteralBoxes,
@@ -6664,6 +6775,116 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typeFilterSliceLists,
     typeParseListReturns,
     typeDictPushLists,
+    // pass slot 001
+    // pass slot 002
+    // pass slot 003
+    // pass slot 004
+    // pass slot 005
+    // pass slot 006
+    // pass slot 007
+    // pass slot 008
+    // pass slot 009
+    // pass slot 010
+    // pass slot 011
+    // pass slot 012
+    // pass slot 013
+    // pass slot 014
+    // pass slot 015
+    // pass slot 016
+    // pass slot 017
+    // pass slot 018
+    // pass slot 019
+    // pass slot 020
+    // pass slot 021
+    // pass slot 022
+    // pass slot 023
+    // pass slot 024
+    // pass slot 025
+    // pass slot 026
+    // pass slot 027
+    // pass slot 028
+    // pass slot 029
+    // pass slot 030
+    // pass slot 031
+    // pass slot 032
+    // pass slot 033
+    // pass slot 034
+    // pass slot 035
+    // pass slot 036
+    // pass slot 037
+    // pass slot 038
+    // pass slot 039
+    // pass slot 040
+    // pass slot 041
+    // pass slot 042
+    // pass slot 043
+    // pass slot 044
+    // pass slot 045
+    // pass slot 046
+    // pass slot 047
+    // pass slot 048
+    // pass slot 049
+    // pass slot 050
+    // pass slot 051
+    // pass slot 052
+    // pass slot 053
+    // pass slot 054
+    // pass slot 055
+    // pass slot 056
+    // pass slot 057
+    // pass slot 058
+    // pass slot 059
+    // pass slot 060
+    // pass slot 061
+    // pass slot 062
+    // pass slot 063
+    // pass slot 064
+    // pass slot 065
+    // pass slot 066
+    // pass slot 067
+    // pass slot 068
+    // pass slot 069
+    // pass slot 070
+    // pass slot 071
+    // pass slot 072
+    // pass slot 073
+    // pass slot 074
+    // pass slot 075
+    // pass slot 076
+    // pass slot 077
+    // pass slot 078
+    // pass slot 079
+    // pass slot 080
+    // pass slot 081
+    // pass slot 082
+    // pass slot 083
+    // pass slot 084
+    // pass slot 085
+    // pass slot 086
+    // pass slot 087
+    // pass slot 088
+    // pass slot 089
+    // pass slot 090
+    // pass slot 091
+    // pass slot 092
+    // pass slot 093
+    // pass slot 094
+    // pass slot 095
+    // pass slot 096
+    // pass slot 097
+    // pass slot 098
+    // pass slot 099
+    // pass slot 100
+    // pass slot 101
+    // pass slot 102
+    // pass slot 103
+    // pass slot 104
+    // pass slot 105
+    // pass slot 106
+    // pass slot 107
+    // pass slot 108
+    // pass slot 109
+    // pass slot 110
     splitLongRustLines,
 ];
 function applyRustWritePasses(content: string): string {
