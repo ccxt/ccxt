@@ -144,7 +144,9 @@ class cex(ccxt.async_support.cex):
         currentSymbol = self.safe_string(self.options['watchTrades'], 'symbol')
         if currentSymbol is not None and currentSymbol != symbol:
             raise ArgumentsRequired(self.id + ' : self exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance')
-        self.options['watchTrades']['symbol'] = symbol
+        watchTradesDict = self.safe_dict(self.options, 'watchTrades', {})
+        watchTradesDict['symbol'] = symbol
+        self.options['watchTrades'] = watchTradesDict
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

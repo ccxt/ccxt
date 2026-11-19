@@ -1250,8 +1250,9 @@ class toobit(Exchange, ImplicitAPI):
                 request['to'] = self.sum(since, duration * limit * 1000)
         elif (since is not None) and (limit is not None):
             # without an end time the exchange returns the latest candles, not the ones starting at since
-            duration = self.parse_timeframe(timeframe) * 1000
-            request['endTime'] = min(self.sum(since, duration * limit) - 1, self.milliseconds())
+            durationMs = self.parse_timeframe(timeframe) * 1000
+            # last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request['endTime'] = min(since - (1 - durationMs * limit), self.milliseconds())
         if limit is not None:
             request['limit'] = limit
         response = []

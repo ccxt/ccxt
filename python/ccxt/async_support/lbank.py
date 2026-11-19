@@ -2966,7 +2966,7 @@ class lbank(Exchange, ImplicitAPI):
         secretLength = len(secret)
         fullLines = self.parse_to_int(secretLength / 64)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
-        for i in range(0, fullLines):
+        for i in range(0, fullLines + 1):
             start = i * 64
             end = self.sum(start, 64)
             pem += self.secret[start:end] + "\n"  # eslint-disable-line

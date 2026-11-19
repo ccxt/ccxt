@@ -1816,7 +1816,9 @@ class kraken(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
         }
-        self.options['delistedMarketsById'][id] = market
+        delistedMarketsByIdDict = self.safe_dict(self.options, 'delistedMarketsById', {})
+        delistedMarketsByIdDict[id] = market
+        self.options['delistedMarketsById'] = delistedMarketsByIdDict
         return market
 
     def parse_order_status(self, status: Str) -> Str:

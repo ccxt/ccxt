@@ -11207,7 +11207,9 @@ class binance(Exchange, ImplicitAPI):
                     floorValue = self.safe_string_2(bracket, 'notionalFloor', 'qtyFloor')
                     maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
                     result.append([floorValue, maintenanceMarginPercentage])
-                self.options['leverageBrackets'][symbol] = result
+                leverageBracketsDict = self.safe_dict(self.options, 'leverageBrackets', {})
+                leverageBracketsDict[symbol] = result
+                self.options['leverageBrackets'] = leverageBracketsDict
         return self.options['leverageBrackets']
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:

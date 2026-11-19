@@ -3886,7 +3886,9 @@ class aster(Exchange, ImplicitAPI):
                     floorValue = self.safe_string(bracket, 'notionalFloor')
                     maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
                     result.append([floorValue, maintenanceMarginPercentage])
-                self.options['leverageBrackets'][symbol] = result
+                leverageBracketsDict = self.safe_dict(self.options, 'leverageBrackets', {})
+                leverageBracketsDict[symbol] = result
+                self.options['leverageBrackets'] = leverageBracketsDict
         return self.options['leverageBrackets']
 
     def keccak_message(self, message: object) -> str:

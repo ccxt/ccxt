@@ -1508,7 +1508,6 @@ class bithumb(Exchange, ImplicitAPI):
         request = {}
         if limit is not None:
             request['count'] = limit
-        response = None
         data = []
         if generation == 2:
             request['market'] = self.get_gen2_market_id(market)
@@ -2276,7 +2275,6 @@ class bithumb(Exchange, ImplicitAPI):
             request['market'] = self.get_gen2_market_id(market)
         if limit is not None:
             request['limit'] = limit
-        response = None
         data = None
         if twap:
             response = self.privateGetV1Twap(self.extend(request, paramsRequest))

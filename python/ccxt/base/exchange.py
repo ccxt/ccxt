@@ -7383,15 +7383,17 @@ class BaseExchange(object):
         networkKeys = list(fee['networks'].keys())
         numNetworks = len(networkKeys)
         if numNetworks == 1:
-            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw']
-            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit']
+            networkFee = self.safe_dict(fee['networks'], networkKeys[0], {})
+            fee['withdraw'] = networkFee['withdraw']
+            fee['deposit'] = networkFee['deposit']
             return fee
         currencyCode = self.safe_string(currency, 'code')
         for i in range(0, numNetworks):
             network = networkKeys[i]
             if network == currencyCode:
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
-                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
+                networkFee = self.safe_dict(fee['networks'], networkKeys[i], {})
+                fee['withdraw'] = networkFee['withdraw']
+                fee['deposit'] = networkFee['deposit']
         return fee
 
     def parse_income(self, info: dict, market: Market = None):

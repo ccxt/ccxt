@@ -440,7 +440,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 if maxSearchPages < totalPages:
                     totalPages = maxSearchPages
             remainingPages = []
-            for p in range(2, totalPages):
+            for p in range(2, totalPages + 1):
                 remainingPages.append(p)
             restPromises = []
             for pi in range(0, len(remainingPages)):

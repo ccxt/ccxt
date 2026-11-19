@@ -2424,4 +2424,6 @@ class dydx(Exchange, ImplicitAPI):
         # rewrite testnet parameters
         self.options['chainName'] = 'dydx-testnet-4'
         self.options['chainId'] = 11155111
-        self.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt'
+        feeDenomDict = self.safe_dict(self.options, 'feeDenom', {})
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt'
+        self.options['feeDenom'] = feeDenomDict

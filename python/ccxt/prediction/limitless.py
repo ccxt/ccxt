@@ -239,7 +239,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             cappedPages = int(math.ceil(maxMarkets / pageSize))
             knownTotal = self.safe_integer(firstPageResponse, 'totalMarketsCount', 0)
             allPages = self.parse_to_int(int(math.ceil(knownTotal / pageSize)))
-            for i in range(2, allPages):
+            for i in range(2, allPages + 1):
                 if i > cappedPages:
                     break
                 page = i

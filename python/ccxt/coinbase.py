@@ -1967,9 +1967,13 @@ class coinbase(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             if code is not None:
-                self.options['networks'][code] = name.lower()
+                networksDict1 = self.safe_dict(self.options, 'networks', {})
+                networksDict1[code] = name.lower()
+                self.options['networks'] = networksDict1
             if code is not None:
-                self.options['networksById'][code] = name.lower()
+                networksByIdDict2 = self.safe_dict(self.options, 'networksById', {})
+                networksByIdDict2[code] = name.lower()
+                self.options['networksById'] = networksByIdDict2
             type = 'fiat'
             if assetId is not None:
                 type = 'crypto'

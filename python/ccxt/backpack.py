@@ -1513,7 +1513,6 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        maxLimit = 2000
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         duration = self.parse_timeframe(timeframe) * 1000
@@ -1523,10 +1522,10 @@ class backpack(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
         defaultLimit = 100
-        limitResolved = limit
-        if limitResolved is not None:
-            limitResolved = min(limitResolved, maxLimit)
-        windowLimit = defaultLimit if (limitResolved is None) else limitResolved
+        windowLimit = defaultLimit if (limit is None) else min(limit, 2000)
+        limitResolved = None
+        if limit is not None:
+            limitResolved = windowLimit
         now = self.milliseconds()
         startTime = since
         untilValue = until

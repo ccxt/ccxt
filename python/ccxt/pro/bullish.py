@@ -103,7 +103,9 @@ class bullish(ccxt.async_support.bullish):
         cookies = {
             'JWT_COOKIE': token,
         }
-        self.options['ws']['cookies'] = cookies
+        wsDict = self.safe_dict(self.options, 'ws', {})
+        wsDict['cookies'] = cookies
+        self.options['ws'] = wsDict
         id = str(self.request_id())
         message = {
             'jsonrpc': '2.0',

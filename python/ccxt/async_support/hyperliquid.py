@@ -479,7 +479,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'index')
         name = self.safe_string(rawCurrency, 'name')
         code = self.safe_currency_code(name)
-        self.options['cachedCurrenciesById'][id] = name
+        cachedCurrenciesByIdDict1 = self.safe_dict(self.options, 'cachedCurrenciesById', {})
+        cachedCurrenciesByIdDict1[id] = name
+        self.options['cachedCurrenciesById'] = cachedCurrenciesByIdDict1
         result = self.safe_currency_structure({
             'id': id,
             'name': name,
@@ -514,7 +516,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                     nameWithoutU = nameWithoutU + parts[j]
                 baseCode = self.safe_currency_code(nameWithoutU)
                 if code is not None:
-                    self.options['spotCurrencyMapping'][code] = baseCode
+                    spotCurrencyMappingDict2 = self.safe_dict(self.options, 'spotCurrencyMapping', {})
+                    spotCurrencyMappingDict2[code] = baseCode
+                    self.options['spotCurrencyMapping'] = spotCurrencyMappingDict2
         return result
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -1485,7 +1489,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'endTime': until,
             },
         }
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        candlesResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        candles = self.info_list(candlesResponse)
         #
         #     [
         #         {
@@ -1502,9 +1507,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
         return self.parse_ohlcvs(candles, market, timeframe, originalSince, limit, useTail)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -1567,7 +1569,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsPublicAddress, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        fillsResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        fills = self.info_list(fillsResponse)
         #
         #     [
         #         {
@@ -1588,9 +1591,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        fills = []
-        if isinstance(response, list):
-            fills = response
         return self.parse_trades(fills, market, since, limit)
 
     def amount_to_precision(self, symbol: Str, amount: object) -> str:
@@ -2924,7 +2924,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        fundingsResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        fundings = self.info_list(fundingsResponse)
         #
         #     [
         #         {
@@ -2936,9 +2937,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
-        fundings = []
-        if isinstance(response, list):
-            fundings = response
         for i in range(0, len(fundings)):
             entry = self.safe_dict(fundings, i)
             timestamp = self.safe_integer(entry, 'time')
@@ -2992,7 +2990,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             dexName = self.get_dex_from_hip3_symbol(market)
             if dexName is not None:
                 request['dex'] = dexName
-        response = await self.publicPostInfo(self.extend(request, paramsMethod))
+        rawOrdersResponse = await self.publicPostInfo(self.extend(request, paramsMethod))
+        rawOrders = self.info_list(rawOrdersResponse)
         #
         #     [
         #         {
@@ -3007,9 +3006,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         orderWithStatus = []
-        rawOrders = []
-        if isinstance(response, list):
-            rawOrders = response
         for i in range(0, len(rawOrders)):
             order = self.safe_dict(rawOrders, i)
             extendOrder = {}
@@ -3093,7 +3089,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             dexName = self.get_dex_from_hip3_symbol(market)
             if dexName is not None:
                 request['dex'] = dexName
-        response = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        historicalOrdersResponse = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        historicalOrders = self.info_list(historicalOrdersResponse)
         #
         #     [
         #         {
@@ -3115,9 +3112,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         # so a canceled order appears twice: once as 'open' and once as 'canceled'.
         # Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         deduplicatedByOid = {}
-        historicalOrders = []
-        if isinstance(response, list):
-            historicalOrders = response
         for i in range(0, len(historicalOrders)):
             rawOrder = historicalOrders[i]
             entry = self.safe_dict(rawOrder, 'order', rawOrder)
@@ -3424,7 +3418,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsPublicAddress, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        myFillsResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        myFills = self.info_list(myFillsResponse)
         #
         #     [
         #         {
@@ -3446,9 +3441,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        myFills = []
-        if isinstance(response, list):
-            myFills = response
         return self.parse_trades(myFills, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -3543,7 +3535,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsPublicAddress, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        infoResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        response = self.info_list(infoResponse)
         #
         #     [
         #         {
@@ -3571,14 +3564,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         fills = []
-        if isinstance(response, list):
-            user = self.safe_string_lower(request, 'user')
-            for i in range(0, len(response)):
-                fill = self.safe_dict(response, i, {})
-                liquidation = self.safe_dict(fill, 'liquidation', {})
-                # liquidator fills carry the liquidated counterparty here
-                if self.safe_string_lower(liquidation, 'liquidatedUser') == user:
-                    fills.append(fill)
+        user = self.safe_string_lower(request, 'user')
+        for i in range(0, len(response)):
+            fill = self.safe_dict(response, i, {})
+            liquidation = self.safe_dict(fill, 'liquidation', {})
+            # liquidator fills carry the liquidated counterparty here
+            if self.safe_string_lower(liquidation, 'liquidatedUser') == user:
+                fills.append(fill)
         return self.parse_liquidations(fills, market, since, limit)
 
     def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
@@ -4520,7 +4512,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' fetchDeposits requires since while until is set')
             request['endTime'] = until
             params2 = self.omit(params2, ['until'])
-        response = await self.publicPostInfo(self.extend(request, params2))
+        depositLedgerResponse = await self.publicPostInfo(self.extend(request, params2))
+        depositLedger = self.info_list(depositLedgerResponse)
         #
         # [
         #     {
@@ -4534,9 +4527,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # ]
         #
-        depositLedger = []
-        if isinstance(response, list):
-            depositLedger = response
         records = self.extract_type_from_delta(depositLedger)
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')
@@ -4581,7 +4571,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
             params2 = self.omit(params2, ['until'])
-        response = await self.publicPostInfo(self.extend(request, params2))
+        withdrawalLedgerResponse = await self.publicPostInfo(self.extend(request, params2))
+        withdrawalLedger = self.info_list(withdrawalLedgerResponse)
         #
         # [
         #     {
@@ -4595,9 +4586,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # ]
         #
-        withdrawalLedger = []
-        if isinstance(response, list):
-            withdrawalLedger = response
         records = self.extract_type_from_delta(withdrawalLedger)
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')
@@ -4940,3 +4928,15 @@ class hyperliquid(Exchange, ImplicitAPI):
         if id is not None:
             order['id'] = id
         return [order, globalParams]
+
+    def info_list(self, response: dict | list | str) -> list[dict]:
+        """
+ @ignore
+        narrows an info endpoint response for a request type that answers with a JSON array
+        :param object|dict[]|str response: the info endpoint response
+        :returns dict[]: the response array, or an empty array for any other response
+        """
+        result = []
+        if isinstance(response, list):
+            result = response
+        return result

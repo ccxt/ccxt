@@ -1917,10 +1917,14 @@ class htx(Exchange, ImplicitAPI):
             else:
                 constructedId = marketBase + '_' + contractSuffix
             if constructedId == symbolOrMarketId:
-                self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol
+                futureMarketIdsForSymbolsDict1 = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
+                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol
+                self.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1
                 return marketSymbol
         # if not found, just save it to avoid unnecessary future iterations
-        self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId
+        futureMarketIdsForSymbolsDict2 = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
+        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId
+        self.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2
         return symbolOrMarketId
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -3193,7 +3197,9 @@ class htx(Exchange, ImplicitAPI):
             if code is not None and title is not None:
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
             if uniqueChainId is not None:
-                self.options['networkNamesByChainIds'][uniqueChainId] = title
+                networkNamesByChainIdsDict3 = self.safe_dict(self.options, 'networkNamesByChainIds', {})
+                networkNamesByChainIdsDict3[uniqueChainId] = title
+                self.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3
             networkCode = self.network_id_to_code(uniqueChainId, code)
             if networkCode is not None:
                 networks[networkCode] = {

@@ -630,13 +630,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         else:
             # no filter — warm the whole outcome set so identities resolve from the cache
             await self.load_outcomes()
-        response = await self.publicPostInfo(self.extend({'type': 'allMids'}, params))
+        allMidsResponse = await self.publicPostInfo(self.extend({'type': 'allMids'}, params))
+        allMids = self.info_dict(allMidsResponse)
         #
         # { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         #
-        allMids = {}
-        if (not isinstance(response, str)) and not isinstance(response, list):
-            allMids = response
         mids = self.safe_dict(allMids, 'mids', allMids)
         tickers = {}
         outcomesMap = self.outcomes if (self.outcomes is not None) else {}
@@ -809,7 +807,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             },
         }
         paramsOmitted = self.omit(params, 'until')
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        candlesResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        candles = self.info_list(candlesResponse)
         #
         #     [
         #         {
@@ -826,9 +825,6 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -1344,11 +1340,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         userAddress, paramsPublicAddress = self.handle_public_address('fetchOpenOrders', params)
         method, paramsMethod = self.handle_option_string_and_params(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         request = {'type': method, 'user': userAddress}
-        response = await self.publicPostInfo(self.extend(request, paramsMethod))
+        rawOrdersResponse = await self.publicPostInfo(self.extend(request, paramsMethod))
+        rawOrders = self.info_list(rawOrdersResponse)
         ordersWithStatus = []
-        rawOrders = []
-        if isinstance(response, list):
-            rawOrders = response
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             ordersWithStatus.append(self.extend(order, {'ccxtStatus': 'open'}))
@@ -1375,12 +1369,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         """
         userAddress, paramsPublicAddress = self.handle_public_address('fetchOrders', params)
         request = {'type': 'historicalOrders', 'user': userAddress}
-        response = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        historicalOrdersResponse = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        historicalOrders = self.info_list(historicalOrdersResponse)
         # Deduplicate by oid keeping most recent statusTimestamp
         deduped = {}
-        historicalOrders = []
-        if isinstance(response, list):
-            historicalOrders = response
         for i in range(0, len(historicalOrders)):
             raw = historicalOrders[i]
             entry = self.safe_dict(raw, 'order')
@@ -1427,10 +1419,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         else:
             isCloid = len(id) >= 34
             request['oid'] = id if isCloid else self.parse_to_numeric(id)
-        response = await self.publicPostInfo(self.extend(request, paramsValue))
-        orderStatus = {}
-        if (not isinstance(response, str)) and not isinstance(response, list):
-            orderStatus = response
+        orderStatusResponse = await self.publicPostInfo(self.extend(request, paramsValue))
+        orderStatus = self.info_dict(orderStatusResponse)
         orderWrapper = self.safe_dict(orderStatus, 'order', orderStatus)
         parsed = self.parse_prediction_order(orderWrapper, None)
         if outcome is not None:
@@ -2061,3 +2051,26 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if type in byType:
                 return byType[type]
         return self.safe_value(config, 'cost', 1)
+
+    def info_list(self, response: dict | list | str) -> list[dict]:
+        """
+ @ignore
+        narrows an info endpoint response for a request type that answers with a JSON array
+        :param object|dict[]|str response: the info endpoint response
+        :returns dict[]: the response array, or an empty array for any other response
+        """
+        result = []
+        if isinstance(response, list):
+            result = response
+        return result
+
+    def info_dict(self, response: dict | list | str) -> dict:
+        """
+ @ignore
+        narrows an info endpoint response for a request type that answers with a JSON object
+        :param object|dict[]|str response: the info endpoint response
+        :returns dict: the response object, or an empty object for any other response
+        """
+        if (not isinstance(response, str)) and not isinstance(response, list):
+            return response
+        return {}
