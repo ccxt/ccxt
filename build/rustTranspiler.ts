@@ -4830,7 +4830,7 @@ function lendReaderContainers(content: string): string {
 // Lend bare locals to base `extend` / `deep_extend` / `omit` instead of cloning them: the base `ExtendHead`,
 // `MergeOperands` and `OmitSource` impls take `&x` and copy only what the cloned box copied.
 function lendMergeOperands(content: string): string {
-    const re = /\bself\.(extend|deep_extend|omit)\(/g;
+    const re = /\bself\.(extend|deep_extend|omit|extend_t|deep_extend_t)\(/g;
     let out = '';
     let last = 0;
     let m: RegExpExecArray | null;
@@ -4851,7 +4851,7 @@ function lendMergeOperands(content: string): string {
         const edits: [number, number, string][] = [];
         const head = content.slice(args[0][0], args[0][1]);
         const hm = /^(\s*)(?:Value::Map\(([A-Za-z_]\w*)\.clone\(\)\)|([A-Za-z_]\w*)\.clone\(\))(\s*)$/.exec(head);
-        if (hm !== null && (m[1] !== 'deep_extend' && (hm[2] !== undefined ? m[1] === 'extend' : true))) edits.push([args[0][0], args[0][1], `${hm[1]}&${hm[2] ?? hm[3]}${hm[4]}`]);
+        if (hm !== null && !m[1].endsWith('_t') && (m[1] !== 'deep_extend' && (hm[2] !== undefined ? m[1] === 'extend' : true))) edits.push([args[0][0], args[0][1], `${hm[1]}&${hm[2] ?? hm[3]}${hm[4]}`]);
         if (m[1] !== 'omit' && args.length === 2) {
             const om = /^(\s*)&\[([A-Za-z_]\w*)\.clone\(\)\](\s*)$/.exec(content.slice(args[1][0], args[1][1]));
             if (om !== null) edits.push([args[1][0], args[1][1], `${om[1]}&[&${om[2]}]${om[3]}`]);
