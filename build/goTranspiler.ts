@@ -12087,6 +12087,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = goTypedStrNativeStringHelpers (path, content);
     content = path.endsWith ('.go') ? goNativeStringAdds (goRetypeNonNilStringMethods (content)) : content;  // row reads exist only from here
     content = path.endsWith ('.go') ? goAsyncInt64Value (content) : content;  // typed async int64 value
+    content = path.endsWith ('.go') ? goAsyncStringValue (content) : content;  // typed async string value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
     content = path.endsWith ('.go') ? goPlainBoxIsEqual (content) : content;
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
@@ -15788,7 +15789,7 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
+            goAsyncInt64ValueCheck, goAsyncStringValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
             goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go map typed of map local: ', goMapTypedOfMapLocalSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
@@ -17758,6 +17759,37 @@ export function goAsyncInt64ValueCheck (): string[] {
     if (!goAsyncInt64Value (sig ('*int64') + use).includes ('var n *int64 = r1.Value')) { problems.push ('async-int64: *int64 form missing'); }
     if (goAsyncInt64Value (sig ('any') + use) !== sig ('any') + use) { problems.push ('async-int64: any rewritten'); }
     if (goAsyncInt64Value (use) !== use) { problems.push ('async-int64: unproven callee rewritten'); }
+    return problems;
+}
+
+// ===== SafeStringPtr(rN.Value) of a string / *string async receive =====
+// The callee is declared in the same file `<-chan AsyncResult[string|*string]`: the value is already the pointer.
+export function goAsyncStringValue (content: string): string {
+    if (content.indexOf ('SafeStringPtr(') < 0) {
+        return content;
+    }
+    const re = /^(\t+var \w+ \*string = )(?:ccxt\.)?SafeStringPtr\((r\d*)\.Value\)$/gm;
+    return content.replace (re, (line: string, head: string, recv: string, at: number) => {
+        const before = content.slice (0, at);
+        const body = before.slice (before.lastIndexOf ('\nfunc '));
+        const recvs = [ ...body.matchAll (new RegExp ('\\n\\t+' + recv + ' :?= (<-this\\.(\\w+Async)\\()?', 'g')) ];
+        const callee = (recvs.length === 1) ? recvs[0][2] : undefined;
+        if (!callee) {
+            return line;
+        }
+        const sig = new RegExp ('^func \\(this \\*\\w+\\) ' + callee + '\\(.*\\) <-chan (?:ccxt\\.)?AsyncResult\\[(\\*?string)\\] \\{$', 'm').exec (content);
+        return sig ? head + ((sig[1] === 'string') ? '&' : '') + recv + '.Value' : line;
+    });
+}
+
+export function goAsyncStringValueCheck (): string[] {
+    const problems: string[] = [];
+    const sig = (t: string) => 'func (this *X) FooAsync(a any) <-chan ccxt.AsyncResult[' + t + '] {\n}\n';
+    const use = 'func (this *X) f() {\n\tr1 := <-this.FooAsync(a)\n\tif r1.Err != nil {\n\t}\n\tvar n *string = ccxt.SafeStringPtr(r1.Value)\n}\n';
+    if (!goAsyncStringValue (sig ('string') + use).includes ('var n *string = &r1.Value')) { problems.push ('async-string: string form missing'); }
+    if (!goAsyncStringValue (sig ('*string') + use).includes ('var n *string = r1.Value')) { problems.push ('async-string: *string form missing'); }
+    if (goAsyncStringValue (sig ('any') + use) !== sig ('any') + use) { problems.push ('async-string: any rewritten'); }
+    if (goAsyncStringValue (use) !== use) { problems.push ('async-string: unproven callee rewritten'); }
     return problems;
 }
 
