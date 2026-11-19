@@ -36,10 +36,8 @@ impl Coinsph {
         let described = Coinsph::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -383,12 +381,11 @@ impl crate::exchange::DerivedExchange for Coinsph {
         let parsedCurrency: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), parsedCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(&depositAddress, "address", &[]));
-        m.insert("tag".to_string(), self.safe_string_k(&depositAddress, "addressTag", &[]));
-        m.insert("info".to_string(), depositAddress);
+        m.insert("tag".to_string(), self.safe_string_k(depositAddress, "addressTag", &[]));
     m
 });
 
@@ -450,11 +447,10 @@ impl crate::exchange::DerivedExchange for Coinsph {
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&rawCurrency, "transferPrecision", &[])]), &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(&rawCurrency, "depositAllEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(&rawCurrency, "withdrawAllEnable", &[]));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency, "withdrawAllEnable", &[]));
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
@@ -2894,11 +2890,10 @@ impl Coinsph {
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerCommission", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerCommission", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommission", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

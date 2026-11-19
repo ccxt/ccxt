@@ -49,22 +49,22 @@ impl Coinone {
 
     /// Auto-generated wrapper for the `v2PublicGetOrderbookQuoteCurrencyTargetCurrency` implicit endpoint.
     pub async fn v2_public_get_orderbook_quote_currency_target_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_public_get_orderbook_quote_currency_target_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_public_get_orderbook_quote_currency_target_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PublicGetTradesQuoteCurrencyTargetCurrency` implicit endpoint.
     pub async fn v2_public_get_trades_quote_currency_target_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_public_get_trades_quote_currency_target_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_public_get_trades_quote_currency_target_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PublicGetTickerNewQuoteCurrency` implicit endpoint.
     pub async fn v2_public_get_ticker_new_quote_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_public_get_ticker_new_quote_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_public_get_ticker_new_quote_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PublicGetTickerNewQuoteCurrencyTargetCurrency` implicit endpoint.
     pub async fn v2_public_get_ticker_new_quote_currency_target_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_public_get_ticker_new_quote_currency_target_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_public_get_ticker_new_quote_currency_target_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PublicGetTickerUtcNewQuoteCurrency` implicit endpoint.
@@ -129,7 +129,7 @@ impl Coinone {
 
     /// Auto-generated wrapper for the `privatePostOrderCancel` implicit endpoint.
     pub async fn private_post_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_order_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderLimitBuy` implicit endpoint.
@@ -184,12 +184,12 @@ impl Coinone {
 
     /// Auto-generated wrapper for the `v2PrivatePostAccountBalance` implicit endpoint.
     pub async fn v2_private_post_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_private_post_account_balance".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_private_post_account_balance", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostAccountDepositAddress` implicit endpoint.
     pub async fn v2_private_post_account_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_private_post_account_deposit_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_private_post_account_deposit_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostAccountUserInfo` implicit endpoint.
@@ -224,12 +224,12 @@ impl Coinone {
 
     /// Auto-generated wrapper for the `v2PrivatePostOrderCompleteOrders` implicit endpoint.
     pub async fn v2_private_post_order_complete_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_private_post_order_complete_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_private_post_order_complete_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostOrderQueryOrder` implicit endpoint.
     pub async fn v2_private_post_order_query_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_private_post_order_query_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_private_post_order_query_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostTransactionAuthNumber` implicit endpoint.
@@ -274,7 +274,7 @@ impl Coinone {
 
     /// Auto-generated wrapper for the `v2_1PrivatePostOrderLimit` implicit endpoint.
     pub async fn v2_1_private_post_order_limit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_1_private_post_order_limit".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_1_private_post_order_limit", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2_1PrivatePostOrderCancel` implicit endpoint.
@@ -289,7 +289,7 @@ impl Coinone {
 
     /// Auto-generated wrapper for the `v2_1PrivatePostOrderOpenOrders` implicit endpoint.
     pub async fn v2_1_private_post_order_open_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_1_private_post_order_open_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_1_private_post_order_open_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2_1PrivatePostOrderOpenOrdersAll` implicit endpoint.

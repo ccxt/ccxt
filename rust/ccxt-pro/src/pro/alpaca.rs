@@ -37,10 +37,8 @@ impl Alpaca {
         let described = Alpaca::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -147,7 +145,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "i", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[Value::Str("/".into())]));
@@ -156,8 +154,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         m.insert("side".to_string(), self.safe_string_k(&trade, "side", &[]));
         m.insert("takerOrMaker".to_string(), (if (type_var.as_deref() == Some("market")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) }));
         m.insert("price".to_string(), self.safe_string_k(&trade, "filled_avg_price", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "filled_qty", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string_k(trade, "filled_qty", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m

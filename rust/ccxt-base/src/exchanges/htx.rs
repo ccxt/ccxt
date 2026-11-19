@@ -36,10 +36,8 @@ impl Htx {
         let described = Htx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -632,7 +630,7 @@ impl crate::exchange::DerivedExchange for Htx {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -646,8 +644,7 @@ impl crate::exchange::DerivedExchange for Htx {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_string2(&order, Value::Str("stop-price".into()), Value::Str("trigger_price".into()), &[]));
         m.insert("stopLossPrice".to_string(), self.safe_string2(&order, Value::Str("sl_trigger_price".into()), Value::Str("sl_order_price".into()), &[]));
-        m.insert("takeProfitPrice".to_string(), self.safe_string2(&order, Value::Str("tp_trigger_price".into()), Value::Str("tp_order_price".into()), &[]));
-        m.insert("info".to_string(), order);
+        m.insert("takeProfitPrice".to_string(), self.safe_string2(order, Value::Str("tp_trigger_price".into()), Value::Str("tp_order_price".into()), &[]));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -783,7 +780,7 @@ impl crate::exchange::DerivedExchange for Htx {
         let timestamp: Option<i64> = self.safe_integer_k(&position, "created_time", &[]).as_i64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -807,8 +804,7 @@ impl crate::exchange::DerivedExchange for Htx {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&position, "updated_time", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position, "updated_time", &[]));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
@@ -852,7 +848,7 @@ impl crate::exchange::DerivedExchange for Htx {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -860,8 +856,7 @@ impl crate::exchange::DerivedExchange for Htx {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "funding_rate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::from(nextFundingRate));
@@ -1272,15 +1267,14 @@ impl crate::exchange::DerivedExchange for Htx {
         let timestamp: Option<i64> = self.safe_integer2(&liquidation, Value::Str("created_at".into()), Value::Str("liquidation_time".into()), &[]).as_i64();
         return Value::Dict(self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("contracts".to_string(), self.safe_number_k(&liquidation, "volume", &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(&market, "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number2(&liquidation, Value::Str("price".into()), Value::Str("bankrupt_price".into()), &[]));
         m.insert("side".to_string(), self.safe_string_lower2(&liquidation, Value::Str("direction".into()), Value::Str("side".into()), &[]));
         m.insert("baseValue".to_string(), self.safe_number_k(&liquidation, "amount", &[]));
-        m.insert("quoteValue".to_string(), self.safe_number_k(&liquidation, "trade_turnover", &[]));
-        m.insert("info".to_string(), liquidation);
+        m.insert("quoteValue".to_string(), self.safe_number_k(liquidation, "trade_turnover", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -1385,7 +1379,7 @@ impl crate::exchange::DerivedExchange for Htx {
         let internal: bool = subType.as_deref() == Some("FAST");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("id".into()), Value::Str("data".into()), &[]));
         m.insert("txid".to_string(), txHash.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1401,8 +1395,7 @@ impl crate::exchange::DerivedExchange for Htx {
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer_k(&transaction, "updated-at", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated-at", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Bool(internal));
         m.insert("fee".to_string(), Value::Map({
@@ -1470,13 +1463,12 @@ impl crate::exchange::DerivedExchange for Htx {
         let timestamp: Option<i64> = self.safe_integer_k(&info, "accrued-at", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&info, "currency", &[]).as_str(), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("interest".to_string(), self.safe_number_k(&info, "interest-amount", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(&info, "interest-rate", &[]));
-        m.insert("amountBorrowed".to_string(), self.safe_number_k(&info, "loan-amount", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "loan-amount", &[]));
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1542,10 +1534,9 @@ impl crate::exchange::DerivedExchange for Htx {
         let timestamp: Option<i64> = self.safe_integer_k(&info, "created_time", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
-        m.insert("rank".to_string(), self.safe_integer_k(&info, "adl_risk_percent", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("rank".to_string(), self.safe_integer_k(info, "adl_risk_percent", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5483,11 +5474,10 @@ impl Htx {
         let fee: Value = fee.into();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(&fee, "symbol", &[]).as_str(), market, &[]));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "actualMakerRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "actualTakerRate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "actualTakerRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

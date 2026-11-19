@@ -37,10 +37,8 @@ impl Woofipro {
         let described = Woofipro::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1777,11 +1775,9 @@ impl Woofipro {
             if (code.is_some()) {
                 { let __be_tmp = self.extend(account, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("total".to_string(), Value::Null);
-        m.insert("used".to_string(), Value::Null);
+        m.insert("total".to_string(), total.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("free".to_string(), crate::precise::Precise::stringSub(&total, &used));
-        m.insert("total".to_string(), total.map(Value::from).unwrap_or(Value::Null));
-        m.insert("used".to_string(), used.map(Value::from).unwrap_or(Value::Null));
     m
 })]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             }

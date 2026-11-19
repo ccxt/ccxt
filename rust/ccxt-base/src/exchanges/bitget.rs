@@ -36,10 +36,8 @@ impl Bitget {
         let described = Bitget::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -347,7 +345,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("tradeId".into()), Value::Str("execId".into()), &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "orderId", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -356,8 +354,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("takerOrMaker".to_string(), self.safe_string_k(&trade, "tradeScope", &[]));
         m.insert("price".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("priceAvg".into()), Value::Str("price".into()), Value::Str("execPrice".into())]), &[]));
         m.insert("amount".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("baseVolume".into()), Value::Str("size".into()), Value::Str("execQty".into())]), &[]));
-        m.insert("cost".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("quoteVolume".into()), Value::Str("amount".into()), Value::Str("execValue".into())]), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_n(trade, Value::from(vec![Value::Str("quoteVolume".into()), Value::Str("amount".into()), Value::Str("execValue".into())]), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
@@ -702,7 +699,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("orderId".into()), Value::Str("data".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(&order, Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -723,8 +720,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(&order, "triggerPrice", &[]));
         m.insert("takeProfitPrice".to_string(), self.safe_number_n(&order, Value::from(vec![Value::Str("presetStopSurplusPrice".into()), Value::Str("stopSurplusTriggerPrice".into()), Value::Str("takeProfit".into())]), &[]));
-        m.insert("stopLossPrice".to_string(), self.safe_number_n(&order, Value::from(vec![Value::Str("presetStopLossPrice".into()), Value::Str("stopLossTriggerPrice".into()), Value::Str("stopLoss".into())]), &[]));
-        m.insert("info".to_string(), order);
+        m.insert("stopLossPrice".to_string(), self.safe_number_n(order, Value::from(vec![Value::Str("presetStopLossPrice".into()), Value::Str("stopLossTriggerPrice".into()), Value::Str("stopLoss".into())]), &[]));
         m.insert("status".to_string(), self.parse_order_status(rawStatus.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
@@ -1152,7 +1148,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl, &initialMargin, &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string2(&position, Value::Str("orderId".into()), Value::Str("positionId".into()), &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -1178,8 +1174,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("leverage".to_string(), self.parse_number(leverage.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("marginRatio".to_string(), self.safe_number_k(&position, "marginRatio", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("marginRatio".to_string(), self.safe_number_k(position, "marginRatio", &[]));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
@@ -1258,7 +1253,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), Value::from(markPrice));
         m.insert("indexPrice".to_string(), Value::from(indexPrice));
@@ -1266,8 +1261,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "fundingRate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -1302,12 +1296,11 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), parsedCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), self.safe_string_k(&depositAddress, "address", &[]));
-        m.insert("tag".to_string(), self.safe_string_k(&depositAddress, "tag", &[]));
-        m.insert("info".to_string(), depositAddress);
+        m.insert("tag".to_string(), self.safe_string_k(depositAddress, "tag", &[]));
     m
 });
 
@@ -1395,9 +1388,8 @@ impl crate::exchange::DerivedExchange for Bitget {
         let businessType: Option<String> = self.safe_string_n_opt(&item, Value::from(vec![Value::Str("businessType".into()), Value::Str("groupType".into()), Value::Str("type".into())]), &[]);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
-        m.insert("id".to_string(), self.safe_string2(&item, Value::Str("billId".into()), Value::Str("id".into()), &[]));
-        m.insert("info".to_string(), item);
+        m.insert("info".to_string(), item.clone());
+        m.insert("id".to_string(), self.safe_string2(item, Value::Str("billId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), Value::from(direction));
@@ -1787,7 +1779,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&transaction, "orderId", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1799,8 +1791,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("type".to_string(), self.parse_transaction_type(transactionType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer2(&transaction, Value::Str("uTime".into()), Value::Str("updatedTime".into()), &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), self.safe_integer2(transaction, Value::Str("uTime".into()), Value::Str("updatedTime".into()), &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
@@ -1852,12 +1843,11 @@ impl crate::exchange::DerivedExchange for Bitget {
         let interestCoin: Option<String> = self.safe_string_k_opt(&info, "interestCoin", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(interestCoin.as_deref(), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("interest".to_string(), self.safe_number_k(&info, "interestAmount", &[]));
-        m.insert("interestRate".to_string(), self.safe_number_k(&info, "dailyInterestRate", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("interestRate".to_string(), self.safe_number_k(info, "dailyInterestRate", &[]));
         m.insert("amountBorrowed".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1927,7 +1917,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let toCode: Option<String> = self.safe_currency_code(to.as_deref(), toCurrency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string2(&conversion, Value::Str("id".into()), Value::Str("traceId".into()), &[]));
@@ -1936,8 +1926,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("toCurrency".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAmount".to_string(), self.safe_number_k(&conversion, "toCoinSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(&conversion, "cnvtPrice", &[]));
-        m.insert("fee".to_string(), self.safe_number_k(&conversion, "fee", &[]));
-        m.insert("info".to_string(), conversion);
+        m.insert("fee".to_string(), self.safe_number_k(conversion, "fee", &[]));
     m
 });
 
@@ -2002,12 +1991,11 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("marginMode".to_string(), (if isCrossMarginMode { Value::Str("cross".into()) } else { Value::Str("isolated".into()) }));
         m.insert("longLeverage".to_string(), self.safe_integer(&leverage, Value::from(longLevKey), &[]));
-        m.insert("shortLeverage".to_string(), self.safe_integer(&leverage, Value::from(shortLevKey), &[]));
-        m.insert("info".to_string(), leverage);
+        m.insert("shortLeverage".to_string(), self.safe_integer(leverage, Value::from(shortLevKey), &[]));
     m
 });
 
@@ -10326,11 +10314,10 @@ if _try_result.is_err() {
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("maker".to_string(), self.safe_number_k(&data, "makerFeeRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&data, "takerFeeRate", &[]));
-        m.insert("info".to_string(), data);
+        m.insert("taker".to_string(), self.safe_number_k(data, "takerFeeRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -14707,10 +14694,9 @@ if _try_result.is_err() {
             let timestamp: Option<i64> = self.safe_integer2(&entry, Value::Str("fundingTime".into()), Value::Str("fundingRateTimestamp".into()), &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), Value::Null);
+                    m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
-                    m.insert("info".to_string(), entry);
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m

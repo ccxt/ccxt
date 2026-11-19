@@ -36,10 +36,8 @@ impl Bybit {
         let described = Bybit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -411,12 +409,11 @@ impl crate::exchange::DerivedExchange for Bybit {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), self.safe_string_k(&trade, "orderId", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("order".to_string(), self.safe_string_k(trade, "orderId", &[]));
         m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
@@ -634,7 +631,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -645,8 +642,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
@@ -1109,7 +1105,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         let marginRatio: Option<String> = crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)).as_str().map(str::to_owned);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1136,8 +1132,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), self.safe_number2(&position, Value::Str("stop_loss".into()), Value::Str("stopLoss".into()), &[]));
-        m.insert("takeProfitPrice".to_string(), self.safe_number2(&position, Value::Str("take_profit".into()), Value::Str("takeProfit".into()), &[]));
-        m.insert("info".to_string(), position);
+        m.insert("takeProfitPrice".to_string(), self.safe_number2(position, Value::Str("take_profit".into()), Value::Str("takeProfit".into()), &[]));
         m.insert("hedged".to_string(), hedged.map(Value::from).unwrap_or(Value::Null));
     m
 })));
@@ -1359,7 +1354,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         let toAccount: Option<String> = self.safe_string_opt(&accountIds, &toAccountId, &[&toAccountId]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "transferId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1367,8 +1362,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(&transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transfer);
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
 
@@ -1636,13 +1630,12 @@ impl crate::exchange::DerivedExchange for Bybit {
         let info: Value = info.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), Value::Null);
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&info, "tokenId", &[]).as_str(), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("interest".to_string(), self.safe_number_k(&info, "interest", &[]));
         m.insert("interestRate".to_string(), Value::Null);
-        m.insert("amountBorrowed".to_string(), self.safe_number_k(&info, "loan", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "loan", &[]));
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -1698,10 +1691,9 @@ impl crate::exchange::DerivedExchange for Bybit {
         let timestamp: Option<i64> = self.safe_integer_k(&info, "updatedTime", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
-        m.insert("rank".to_string(), self.safe_integer_k(&info, "adlRankIndicator", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("rank".to_string(), self.safe_integer_k(info, "adlRankIndicator", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1756,15 +1748,14 @@ impl crate::exchange::DerivedExchange for Bybit {
         let timestamp: Option<i64> = self.safe_integer_k(&income, "execTime", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), income.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[Value::Str("-".into()), Value::Str("swap".into())]));
         m.insert("code".to_string(), code);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(&income, "execId", &[]));
         m.insert("amount".to_string(), self.safe_number_k(&income, "execFee", &[]));
-        m.insert("rate".to_string(), self.safe_number_k(&income, "feeRate", &[]));
-        m.insert("info".to_string(), income);
+        m.insert("rate".to_string(), self.safe_number_k(income, "feeRate", &[]));
     m
 });
 
@@ -1892,15 +1883,14 @@ impl crate::exchange::DerivedExchange for Bybit {
         let toCode: Option<String> = self.safe_currency_code(to.as_deref(), toCurrency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string2(&conversion, Value::Str("quoteTxId".into()), Value::Str("exchangeTxId".into()), &[]));
         m.insert("fromCurrency".to_string(), fromCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("fromAmount".to_string(), self.safe_number_k(&conversion, "fromAmount", &[]));
         m.insert("toCurrency".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("toAmount".to_string(), self.safe_number_k(&conversion, "toAmount", &[]));
-        m.insert("info".to_string(), conversion);
+        m.insert("toAmount".to_string(), self.safe_number_k(conversion, "toAmount", &[]));
         m.insert("price".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -11960,11 +11950,10 @@ impl Bybit {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Null, defaultType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerFeeRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerFeeRate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerFeeRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -13162,7 +13151,7 @@ impl Bybit {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
@@ -13177,8 +13166,7 @@ impl Bybit {
         m.insert("underlyingPrice".to_string(), self.safe_number_k(&chain, "underlyingPrice", &[]));
         m.insert("change".to_string(), self.safe_number_k(&chain, "change24h", &[]));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_number_k(&chain, "totalVolume", &[]));
-        m.insert("info".to_string(), chain);
+        m.insert("baseVolume".to_string(), self.safe_number_k(chain, "totalVolume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 });

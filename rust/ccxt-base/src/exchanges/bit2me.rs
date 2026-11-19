@@ -36,10 +36,8 @@ impl Bit2me {
         let described = Bit2me::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -184,7 +182,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "id", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&privateMarket, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -195,8 +193,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&trade, "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&trade, "amount", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "cost", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_k(trade, "cost", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), Some(&privateMarket)));
@@ -247,7 +244,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOrderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -267,8 +264,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), self.safe_string_k(&order, "filledAmount", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), order);
+        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
@@ -478,11 +474,10 @@ impl crate::exchange::DerivedExchange for Bit2me {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), self.safe_string_k(&rawCurrency, "name", &[]));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency, "name", &[]));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdraw));

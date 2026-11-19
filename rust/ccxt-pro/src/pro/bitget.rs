@@ -37,10 +37,8 @@ impl Bitget {
         let described = Bitget::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1888,7 +1886,7 @@ impl Bitget {
         }
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("tradeId".into()), Value::Str("i".into()), Value::Str("execId".into())]), &[]));
         m.insert("order".to_string(), self.safe_string2(&trade, Value::Str("orderId".into()), Value::Str("L".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1899,8 +1897,7 @@ impl Bitget {
         m.insert("takerOrMaker".to_string(), self.safe_string_k(&trade, "tradeScope", &[]));
         m.insert("price".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("priceAvg".into()), Value::Str("price".into()), Value::Str("execPrice".into()), Value::Str("P".into()), Value::Str("p".into())]), &[]));
         m.insert("amount".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("size".into()), Value::Str("baseVolume".into()), Value::Str("execQty".into()), Value::Str("v".into()), Value::Str("qty".into())]), &[]));
-        m.insert("cost".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("amount".into()), Value::Str("quoteVolume".into()), Value::Str("execValue".into())]), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_n(trade, Value::from(vec![Value::Str("amount".into()), Value::Str("quoteVolume".into()), Value::Str("execValue".into())]), &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), Some(&marketResolved));
@@ -2187,7 +2184,7 @@ impl Bitget {
         }
         return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "posId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
         m.insert("notional".to_string(), Value::Null);
@@ -2209,8 +2206,7 @@ impl Bitget {
         m.insert("initialMargin".to_string(), self.safe_number_k(&position, "marginSize", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(&position, "leverage", &[]));
-        m.insert("marginRatio".to_string(), self.safe_number_k(&position, "marginRate", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("marginRatio".to_string(), self.safe_number_k(position, "marginRate", &[]));
     m
 }));
 

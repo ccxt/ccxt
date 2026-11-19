@@ -39,10 +39,8 @@ impl Sxbet {
         let described = Sxbet::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -2354,15 +2352,14 @@ impl Sxbet {
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&fill, "id", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fill.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[outcomeId.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
-        m.insert("order".to_string(), self.safe_string_k(&fill, "orderId", &[]));
-        m.insert("info".to_string(), fill);
+        m.insert("order".to_string(), self.safe_string_k(fill, "orderId", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Str("buy".into()));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
@@ -2703,9 +2700,8 @@ impl Sxbet {
         }
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
-        m.insert("id".to_string(), self.safe_string_k(&trade, "tradeId", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("info".to_string(), trade.clone());
+        m.insert("id".to_string(), self.safe_string_k(trade, "tradeId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[outcomeId.clone().map(Value::from).unwrap_or(Value::Null)]));

@@ -36,10 +36,8 @@ impl Gemini {
         let described = Gemini::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -658,11 +656,10 @@ impl crate::exchange::DerivedExchange for Gemini {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), self.safe_string(&rawCurrency, Value::Int(1), &[]));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("name".to_string(), self.safe_string(rawCurrency, Value::Int(1), &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -695,11 +692,10 @@ impl crate::exchange::DerivedExchange for Gemini {
         let interest: Value = interest.into();
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), interest.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("openInterestAmount".to_string(), self.safe_string_k(&interest, "open_interest", &[]));
-        m.insert("openInterestValue".to_string(), self.safe_string_k(&interest, "open_interest_notional", &[]));
-        m.insert("info".to_string(), interest);
+        m.insert("openInterestValue".to_string(), self.safe_string_k(interest, "open_interest_notional", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
@@ -746,7 +742,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("eid".into()), Value::Str("withdrawalId".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "txHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -764,8 +760,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         m.insert("status".to_string(), self.parse_transaction_status(statusRaw.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
-        m.insert("comment".to_string(), self.safe_string_k(&transaction, "message", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("comment".to_string(), self.safe_string_k(transaction, "message", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 });

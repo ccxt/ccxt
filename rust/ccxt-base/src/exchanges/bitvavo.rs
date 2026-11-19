@@ -36,10 +36,8 @@ impl Bitvavo {
         let described = Bitvavo::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -289,7 +287,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(&order, "postOnly", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -301,8 +299,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.safe_number_k(&order, "triggerPrice", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
@@ -350,13 +347,12 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "transactionId", &[]));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(&item, "transactionId", &[]));
-        m.insert("referenceAccount".to_string(), self.safe_string_k(&item, "address", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("referenceAccount".to_string(), self.safe_string_k(item, "address", &[]));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -392,7 +388,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "transferId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -400,8 +396,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(&transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transfer);
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
 
@@ -491,11 +486,10 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), self.safe_string_k(&rawCurrency, "name", &[]));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("name".to_string(), self.safe_string_k(rawCurrency, "name", &[]));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdrawal));
@@ -1922,11 +1916,10 @@ impl Bitvavo {
         let fee: Value = fee.into();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "maker", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

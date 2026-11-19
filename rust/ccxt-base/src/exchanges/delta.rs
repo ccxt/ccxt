@@ -36,10 +36,8 @@ impl Delta {
         let described = Delta::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -521,7 +519,7 @@ impl crate::exchange::DerivedExchange for Delta {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("notional".to_string(), Value::Null);
@@ -539,8 +537,7 @@ impl crate::exchange::DerivedExchange for Delta {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("positionMargin".to_string(), self.safe_number_k(&position, "margin", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("positionMargin".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -603,11 +600,10 @@ impl crate::exchange::DerivedExchange for Delta {
         let fundingRate: Option<String> = crate::precise::Precise::stringDiv(&fundingRateString, &Value::Str("100".into())).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "mark_price", &[]));
-        m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "spot_price", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("indexPrice".to_string(), self.safe_number_k(contract, "spot_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5079,7 +5075,7 @@ impl Delta {
         let timestamp: Option<i64> = self.safe_integer_product_k(&chain, "timestamp", Value::Float(0.001), &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), self.safe_string_k(&chain, "currency", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5095,8 +5091,7 @@ impl Delta {
         m.insert("change".to_string(), self.safe_number_k(&chain, "change", &[]));
         m.insert("percentage".to_string(), self.safe_number_k(&chain, "percentage", &[]));
         m.insert("baseVolume".to_string(), self.safe_number_k(&chain, "volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_number_k(&chain, "quote_volume", &[]));
-        m.insert("info".to_string(), chain);
+        m.insert("quoteVolume".to_string(), self.safe_number_k(chain, "quote_volume", &[]));
     m
 });
 

@@ -36,10 +36,8 @@ impl Btse {
         let described = Btse::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -190,7 +188,7 @@ impl crate::exchange::DerivedExchange for Btse {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -200,8 +198,7 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("side".to_string(), self.safe_string_lower2(&trade, Value::Str("side".into()), Value::Str("orderSide".into()), &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_n(&trade, Value::from(vec![Value::Str("filledPrice".into()), Value::Str("avgFilledPrice".into()), Value::Str("price".into())]), &[]));
-        m.insert("amount".to_string(), self.safe_string2(&trade, Value::Str("filledSize".into()), Value::Str("size".into()), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string2(trade, Value::Str("filledSize".into()), Value::Str("size".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -291,7 +288,7 @@ impl crate::exchange::DerivedExchange for Btse {
         let rawTimeInForce: Option<String> = self.safe_string2_opt(&order, Value::Str("time_in_force".into()), Value::Str("timeInForce".into()), &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("orderID".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(&order, Value::Str("clOrderID".into()), Value::Str("clOrderId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -315,8 +312,7 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("average".to_string(), Value::from(self.omit_zero(self.safe_string2(&order, Value::Str("avgFilledPrice".into()), Value::Str("averageFillPrice".into()), &[]))));
-        m.insert("info".to_string(), order);
+        m.insert("average".to_string(), Value::from(self.omit_zero(self.safe_string2(order, Value::Str("avgFilledPrice".into()), Value::Str("averageFillPrice".into()), &[]))));
     m
 }), Some(&marketResolved)));
 
@@ -567,7 +563,7 @@ impl crate::exchange::DerivedExchange for Btse {
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&stopLossOrder, "triggerPrice", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "positionId", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("entryPrice".to_string(), self.parse_number(self.safe_string_k(&position, "entryPrice", &[]), &[]));
@@ -591,8 +587,7 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.parse_number(self.safe_string_k(&position, "currentLeverage", &[]), &[]));
-        m.insert("liquidationPrice".to_string(), self.parse_number(self.safe_string_k(&position, "liquidationPrice", &[]), &[]));
-        m.insert("info".to_string(), position);
+        m.insert("liquidationPrice".to_string(), self.parse_number(self.safe_string_k(position, "liquidationPrice", &[]), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), self.parse_margin_mode_type(marginType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);

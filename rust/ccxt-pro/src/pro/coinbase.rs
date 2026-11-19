@@ -37,10 +37,8 @@ impl Coinbase {
         let described = Coinbase::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -758,7 +756,7 @@ impl Coinbase {
         let last: Option<f64> = self.safe_number_k(&ticker, "price", &[]).as_f64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]));
         m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp.as_deref())));
@@ -776,8 +774,7 @@ impl Coinbase {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.safe_string_k(&ticker, "price_percent_chg_24_h", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume_24_h", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "volume_24_h", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 }), None);

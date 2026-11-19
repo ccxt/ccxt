@@ -36,10 +36,8 @@ impl Whitebit {
         let described = Whitebit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -576,7 +574,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let orderDetail: crate::value::Dict = self.safe_dict_k_t(&position, "orderDetail");
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "positionId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("notional".to_string(), Value::Null);
@@ -597,8 +595,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(&position, "modifyDate", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number_k(&position, "margin", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("collateral".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);
@@ -679,12 +676,11 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let depositAddress: Value = depositAddress.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), self.safe_currency_code(None, currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(&depositAddress, "address", &[]));
-        m.insert("tag".to_string(), self.safe_string_k(&depositAddress, "memo", &[]));
-        m.insert("info".to_string(), depositAddress);
+        m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
     m
 });
 
@@ -917,13 +913,12 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let timestamp: Option<i64> = self.safe_timestamp_k(&info, "modifyDate", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
         m.insert("interest".to_string(), self.safe_number_k(&info, "unrealizedFunding", &[]));
         m.insert("interestRate".to_string(), Value::Float(0.00098));
-        m.insert("amountBorrowed".to_string(), self.safe_number_k(&info, "amount", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "amount", &[]));
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));

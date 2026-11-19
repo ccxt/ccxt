@@ -36,10 +36,8 @@ impl Phemex {
         let described = Phemex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -632,7 +630,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&position, "updatedTimeNs", &[self.safe_integer_product_k(&position, "transactTimeNs", Value::Float(0.000001), &[])]).as_i64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "execSeq", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -657,8 +655,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("marginMode".to_string(), (if isCross { Value::Str("cross".into()) } else { Value::Str("isolated".into()) }));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("hedged".to_string(), Value::Bool(self.safe_string_k(&position, "posMode", &[]).as_str() == Some("Hedged")));
-        m.insert("info".to_string(), position);
+        m.insert("hedged".to_string(), Value::Bool(self.safe_string_k(position, "posMode", &[]).as_str() == Some("Hedged")));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -715,7 +712,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let nextFundingRateEr: Value = self.from_er(self.safe_string_k(&contract, "predFundingRateEr", &[]), market).map(Value::from).unwrap_or(Value::Null);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "markPriceRp", &[self.parse_number(markEp, &[])]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "indexPriceRp", &[self.parse_number(indexEp, &[])]));
@@ -726,8 +723,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "fundingRateRr", &[self.parse_number(fundingRateEr, &[])]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(&contract, "predFundingRateRr", &[self.parse_number(nextFundingRateEr, &[])]));
-        m.insert("info".to_string(), contract);
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "predFundingRateRr", &[self.parse_number(nextFundingRateEr, &[])]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -819,11 +815,10 @@ impl crate::exchange::DerivedExchange for Phemex {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), self.safe_string_k(&rawCurrency, "name", &[]));
-        m.insert("active".to_string(), Value::Bool(self.safe_string_k(&rawCurrency, "status", &[]).as_str() == Some("Listed")));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("active".to_string(), Value::Bool(self.safe_string_k(rawCurrency, "status", &[]).as_str() == Some("Listed")));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -879,12 +874,11 @@ impl crate::exchange::DerivedExchange for Phemex {
         let id: Option<String> = self.safe_string_k_opt(&interest, "symbol", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), interest.clone());
         m.insert("symbol".to_string(), self.safe_symbol(id.as_deref(), market, &[]));
         m.insert("baseVolume".to_string(), self.safe_string_k(&interest, "volumeRq", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("openInterestAmount".to_string(), self.safe_string_k(&interest, "openInterestRv", &[]));
-        m.insert("info".to_string(), interest);
+        m.insert("openInterestAmount".to_string(), self.safe_string_k(interest, "openInterestRv", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1243,11 +1237,10 @@ impl crate::exchange::DerivedExchange for Phemex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("id".to_string(), self.safe_string_k(&conversion, "code", &[]));
-        m.insert("info".to_string(), conversion);
+        m.insert("id".to_string(), self.safe_string_k(conversion, "code", &[]));
         m.insert("fromCurrency".to_string(), fromCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("fromAmount".to_string(), self.parse_number(fromAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("toCurrency".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));

@@ -36,10 +36,8 @@ impl Bingx {
         let described = Bingx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1167,7 +1165,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         let percentageString: Option<String> = self.safe_string_k_opt(&position, "pnlRatio", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "positionId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_str(), market, &[Value::Str("-".into()), Value::Str("swap".into())]));
         m.insert("notional".to_string(), self.safe_number_k(&position, "positionValue", &[]));
@@ -1191,8 +1189,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(&position, "leverage", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -1224,7 +1221,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into()), Value::Str("swap".into())]));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "markPrice", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "indexPrice", &[]));
@@ -1232,8 +1229,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "lastFundingRate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "lastFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -1509,13 +1505,12 @@ impl crate::exchange::DerivedExchange for Bingx {
         let type_var: Option<String> = self.safe_string_k_opt(&data, "type", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), (if (type_var.as_deref() == Some("1")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("amount".to_string(), self.safe_number_k(&data, "amount", &[]));
-        m.insert("total".to_string(), self.safe_number_k(&data, "margin", &[]));
-        m.insert("info".to_string(), data);
+        m.insert("total".to_string(), self.safe_number_k(data, "margin", &[]));
         m.insert("code".to_string(), self.safe_string_k(&market, "settle", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -1716,12 +1711,11 @@ impl crate::exchange::DerivedExchange for Bingx {
         let marketId: Option<String> = self.safe_string_k_opt(&leverage, "symbol", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), leverage.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("longLeverage".to_string(), self.safe_integer_k(&leverage, "longLeverage", &[]));
-        m.insert("shortLeverage".to_string(), self.safe_integer_k(&leverage, "shortLeverage", &[]));
-        m.insert("info".to_string(), leverage);
+        m.insert("shortLeverage".to_string(), self.safe_integer_k(leverage, "shortLeverage", &[]));
     m
 });
 
@@ -8872,11 +8866,10 @@ impl Bingx {
         let symbol: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&market, "symbol") } else { Value::Null });
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol);
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerCommissionRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerCommissionRate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m

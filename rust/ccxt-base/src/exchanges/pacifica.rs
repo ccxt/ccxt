@@ -36,10 +36,8 @@ impl Pacifica {
         let described = Pacifica::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -500,7 +498,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let createdAt: Option<i64> = self.safe_integer_k(&position, "created_at", &[]).as_i64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(createdAt));
@@ -520,8 +518,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "liquidation_price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("percentage".to_string(), Value::Null);
     m
@@ -4576,11 +4573,10 @@ if _try_result.is_err() {
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "maker_fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker_fee", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

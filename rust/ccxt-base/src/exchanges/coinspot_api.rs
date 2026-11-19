@@ -14,17 +14,17 @@ use crate::exchange::ExchangeRuntime;
 impl Coinspot {
     /// Auto-generated wrapper for the `publicGetLatest` implicit endpoint.
     pub async fn public_get_latest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_latest".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_latest", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
     pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersHistory` implicit endpoint.
     pub async fn private_post_orders_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_orders_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMyCoinDeposit` implicit endpoint.
@@ -49,7 +49,7 @@ impl Coinspot {
 
     /// Auto-generated wrapper for the `privatePostMyBalances` implicit endpoint.
     pub async fn private_post_my_balances(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_my_balances".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_my_balances", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMyOrders` implicit endpoint.
@@ -59,22 +59,22 @@ impl Coinspot {
 
     /// Auto-generated wrapper for the `privatePostMyBuy` implicit endpoint.
     pub async fn private_post_my_buy(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_my_buy".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_my_buy", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMySell` implicit endpoint.
     pub async fn private_post_my_sell(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_my_sell".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_my_sell", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMyBuyCancel` implicit endpoint.
     pub async fn private_post_my_buy_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_my_buy_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_my_buy_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMySellCancel` implicit endpoint.
     pub async fn private_post_my_sell_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_my_sell_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_my_sell_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostRoMyBalances` implicit endpoint.
@@ -99,7 +99,7 @@ impl Coinspot {
 
     /// Auto-generated wrapper for the `privatePostRoMyTransactions` implicit endpoint.
     pub async fn private_post_ro_my_transactions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_ro_my_transactions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_ro_my_transactions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostRoMyTransactionsCointype` implicit endpoint.

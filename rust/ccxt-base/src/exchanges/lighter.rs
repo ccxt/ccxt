@@ -36,10 +36,8 @@ impl Lighter {
         let described = Lighter::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -207,7 +205,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "trade_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -218,8 +216,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&trade, "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&trade, "size", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "usd_amount", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_k(trade, "usd_amount", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 }), Some(&marketResolved)));
@@ -304,7 +301,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         let status: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), Value::from(self.omit_zero(self.safe_string2(&order, Value::Str("client_order_id".into()), Value::Str("client_order_index".into()), &[]))));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -325,8 +322,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         m.insert("cost".to_string(), self.safe_string_k(&order, "filled_quote_amount", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), self.safe_string_k(&order, "filled_base_amount", &[]));
-        m.insert("remaining".to_string(), self.safe_string_k(&order, "remaining_base_amount", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("remaining".to_string(), self.safe_string_k(order, "remaining_base_amount", &[]));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
@@ -391,7 +387,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
@@ -412,8 +408,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "unrealized_pnl", &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "liquidation_price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);
     m

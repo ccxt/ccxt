@@ -36,10 +36,8 @@ impl Bithumb {
         let described = Bithumb::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -520,7 +518,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -535,8 +533,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(&order, "avg_trade_price", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("average".to_string(), self.safe_number_k(order, "avg_trade_price", &[]));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
@@ -615,12 +612,11 @@ impl crate::exchange::DerivedExchange for Bithumb {
         self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), response.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&response, "net_type", &[]).as_str(), code.as_deref())));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), self.safe_string_k(&response, "secondary_address", &[]));
-        m.insert("info".to_string(), response);
+        m.insert("tag".to_string(), self.safe_string_k(response, "secondary_address", &[]));
     m
 });
 
@@ -673,10 +669,9 @@ impl crate::exchange::DerivedExchange for Bithumb {
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
-        m.insert("type".to_string(), Value::Null);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(&transaction, "state", &[]).as_str(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);

@@ -36,10 +36,8 @@ impl Deribit {
         let described = Deribit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -216,13 +214,12 @@ impl crate::exchange::DerivedExchange for Deribit {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(&trade, "order_id", &[]));
-        m.insert("type".to_string(), self.safe_string_k(&trade, "order_type", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("type".to_string(), self.safe_string_k(trade, "order_type", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -408,7 +405,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "maintenance_margin", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -427,8 +424,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("contractSize".to_string(), self.safe_number_k(&position, "contractSize", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "estimated_liquidation_price", &[]));
-        m.insert("markPrice".to_string(), self.safe_number_k(&position, "mark_price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("markPrice".to_string(), self.safe_number_k(position, "mark_price", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -653,10 +649,9 @@ impl crate::exchange::DerivedExchange for Deribit {
         let account: Value = account.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), account.clone());
         m.insert("id".to_string(), self.safe_string_k(&account, "id", &[]));
-        m.insert("type".to_string(), self.safe_string_k(&account, "type", &[]));
-        m.insert("info".to_string(), account);
+        m.insert("type".to_string(), self.safe_string_k(account, "type", &[]));
         m.insert("code".to_string(), Value::Null);
     m
 });
@@ -714,7 +709,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "transaction_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -726,8 +721,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
@@ -5553,7 +5547,7 @@ impl Deribit {
         let timestamp: Option<i64> = self.safe_integer_k(&chain, "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5569,8 +5563,7 @@ impl Deribit {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.safe_number_k(&chain, "price_change", &[]));
         m.insert("baseVolume".to_string(), self.safe_number_k(&chain, "volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_number_k(&chain, "volume_usd", &[]));
-        m.insert("info".to_string(), chain);
+        m.insert("quoteVolume".to_string(), self.safe_number_k(chain, "volume_usd", &[]));
     m
 });
 

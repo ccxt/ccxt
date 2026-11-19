@@ -36,10 +36,8 @@ impl Woofipro {
         let described = Woofipro::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -159,11 +157,9 @@ impl crate::exchange::DerivedExchange for Woofipro {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), Value::Null);
-        m.insert("amount".to_string(), Value::Null);
+        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), crate::precise::Precise::stringMul(&price, &amount));
-        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order_id.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
@@ -278,11 +274,9 @@ impl crate::exchange::DerivedExchange for Woofipro {
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
         m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), Value::Null);
-        m.insert("filled".to_string(), Value::Null);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), crate::precise::Precise::stringSub(&amount, &filled));
-        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), transactions.map_or(Value::Null, Value::Arr));
         m.insert("fee".to_string(), Value::Map({
@@ -757,7 +751,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let timestamp: Option<i64> = self.safe_integer_k(&transaction, "created_time", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("id".into()), Value::Str("withdraw_id".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "tx_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -772,8 +766,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer_k(&transaction, "updated_time", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated_time", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);

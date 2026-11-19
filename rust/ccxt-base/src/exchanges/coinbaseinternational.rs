@@ -36,10 +36,8 @@ impl Coinbaseinternational {
         let described = Coinbaseinternational::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -86,7 +84,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         }
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -107,8 +105,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_number_k(&ticker, "mark_price", &[]));
-        m.insert("indexPrice".to_string(), self.safe_number_k(&ticker, "index_price", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("indexPrice".to_string(), self.safe_number_k(ticker, "index_price", &[]));
     m
 }), None));
 
@@ -201,15 +198,14 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "trade_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.safe_string_k(&trade, "order_type", &[]));
-        m.insert("side".to_string(), self.safe_string_k(&trade, "direction", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("side".to_string(), self.safe_string_k(trade, "direction", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), Value::from(price));
         m.insert("amount".to_string(), Value::from(amount));
@@ -568,7 +564,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let contractsString: Option<String> = crate::precise::Precise::stringDiv(&amount, &self.safe_string_k(&marketResolved, "contractSize", &[])).as_str().map(str::to_owned);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "average_price", &[]));
@@ -587,8 +583,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(&position, "leverage", &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "estimated_liquidation_price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "estimated_liquidation_price", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
@@ -613,7 +608,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let timestamp: Option<i64> = self.safe_integer_k(&contract, "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "index_price", &[]));
@@ -621,8 +616,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "interest_8h", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "interest_8h", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);

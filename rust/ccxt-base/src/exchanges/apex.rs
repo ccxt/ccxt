@@ -36,10 +36,8 @@ impl Apex {
         let described = Apex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -638,15 +636,14 @@ impl crate::exchange::DerivedExchange for Apex {
         let timestamp: Option<i64> = self.safe_integer_k(&income, "fundingTime", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), income.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_k(&income, "id", &[]));
         m.insert("amount".to_string(), self.safe_number_k(&income, "fundingValue", &[]));
-        m.insert("rate".to_string(), self.safe_number_k(&income, "rate", &[]));
-        m.insert("info".to_string(), income);
+        m.insert("rate".to_string(), self.safe_number_k(income, "rate", &[]));
     m
 });
 

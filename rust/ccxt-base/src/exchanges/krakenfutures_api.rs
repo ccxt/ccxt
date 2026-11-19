@@ -14,7 +14,7 @@ use crate::exchange::ExchangeRuntime;
 impl Krakenfutures {
     /// Auto-generated wrapper for the `publicGetFeeschedules` implicit endpoint.
     pub async fn public_get_feeschedules(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_feeschedules".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_feeschedules", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetInstruments` implicit endpoint.
@@ -44,27 +44,27 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `publicGetTickersSymbol` implicit endpoint.
     pub async fn public_get_tickers_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_tickers_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_tickers_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetHistory` implicit endpoint.
     pub async fn public_get_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetHistoricalfundingrates` implicit endpoint.
     pub async fn public_get_historicalfundingrates(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_historicalfundingrates".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_historicalfundingrates", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFeeschedulesVolumes` implicit endpoint.
     pub async fn private_get_feeschedules_volumes(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_feeschedules_volumes".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_feeschedules_volumes", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOpenpositions` implicit endpoint.
     pub async fn private_get_openpositions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_openpositions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_openpositions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetNotifications` implicit endpoint.
@@ -79,7 +79,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `privateGetOpenorders` implicit endpoint.
     pub async fn private_get_openorders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_openorders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_openorders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetFills` implicit endpoint.
@@ -94,7 +94,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `privateGetLeveragepreferences` implicit endpoint.
     pub async fn private_get_leveragepreferences(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_leveragepreferences".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_leveragepreferences", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetPnlpreferences` implicit endpoint.
@@ -114,7 +114,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `privateGetOrdersStatus` implicit endpoint.
     pub async fn private_get_orders_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_orders_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_orders_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUnwindqueue` implicit endpoint.
@@ -129,7 +129,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `privateGetSubaccounts` implicit endpoint.
     pub async fn private_get_subaccounts(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_subaccounts".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_subaccounts", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSubaccountUidTradingEnabled` implicit endpoint.
@@ -144,22 +144,22 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `privatePostSendorder` implicit endpoint.
     pub async fn private_post_sendorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sendorder".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_sendorder", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostEditorder` implicit endpoint.
     pub async fn private_post_editorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_editorder".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_editorder", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelorder` implicit endpoint.
     pub async fn private_post_cancelorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancelorder".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancelorder", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTransfer` implicit endpoint.
     pub async fn private_post_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_transfer".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_transfer", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTransferSubaccount` implicit endpoint.
@@ -169,22 +169,22 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `privatePostBatchorder` implicit endpoint.
     pub async fn private_post_batchorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_batchorder".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_batchorder", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelallorders` implicit endpoint.
     pub async fn private_post_cancelallorders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancelallorders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancelallorders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelallordersafter` implicit endpoint.
     pub async fn private_post_cancelallordersafter(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancelallordersafter".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancelallordersafter", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawal` implicit endpoint.
     pub async fn private_post_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawal".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssignmentprogramAdd` implicit endpoint.
@@ -229,7 +229,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `chartsGetPriceTypeSymbolInterval` implicit endpoint.
     pub async fn charts_get_price_type_symbol_interval(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("charts_get_price_type_symbol_interval".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("charts_get_price_type_symbol_interval", optional_args).await
     }
 
     /// Auto-generated wrapper for the `chartsGetAnalyticsLiquidityPool` implicit endpoint.
@@ -239,7 +239,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `historyGetOrders` implicit endpoint.
     pub async fn history_get_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("history_get_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("history_get_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `historyGetExecutions` implicit endpoint.
@@ -249,7 +249,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `historyGetTriggers` implicit endpoint.
     pub async fn history_get_triggers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("history_get_triggers".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("history_get_triggers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `historyGetAccountlogcsv` implicit endpoint.
@@ -259,7 +259,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `historyGetAccountLog` implicit endpoint.
     pub async fn history_get_account_log(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("history_get_account_log".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("history_get_account_log", optional_args).await
     }
 
     /// Auto-generated wrapper for the `historyGetMarketSymbolOrders` implicit endpoint.
@@ -269,7 +269,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `historyGetMarketSymbolExecutions` implicit endpoint.
     pub async fn history_get_market_symbol_executions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("history_get_market_symbol_executions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("history_get_market_symbol_executions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `historyGetMarketSymbolPrice` implicit endpoint.
@@ -279,7 +279,7 @@ impl Krakenfutures {
 
     /// Auto-generated wrapper for the `historyGetPositions` implicit endpoint.
     pub async fn history_get_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("history_get_positions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("history_get_positions", optional_args).await
     }
 
 }

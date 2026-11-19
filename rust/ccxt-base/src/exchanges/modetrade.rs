@@ -36,10 +36,8 @@ impl Modetrade {
         let described = Modetrade::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -774,7 +772,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let timestamp: Option<i64> = self.safe_integer_k(&transaction, "created_time", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("id".into()), Value::Str("withdraw_id".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "tx_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -789,8 +787,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "trans_status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer_k(&transaction, "updated_time", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated_time", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

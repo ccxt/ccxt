@@ -36,10 +36,8 @@ impl Coinbaseexchange {
         let described = Coinbaseexchange::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -548,7 +546,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         let networkId: Option<String> = self.safe_string_k_opt(&details, "network", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&details, "crypto_transaction_hash", &[]));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -564,8 +562,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         m.insert("tag".to_string(), self.safe_string_k(&details, "destination_tag", &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
-        m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(&transaction, "processed_at", &[]))));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(transaction, "processed_at", &[]))));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Bool(false));
         m.insert("fee".to_string(), Value::Map(fee));

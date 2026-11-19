@@ -37,10 +37,8 @@ impl Aster {
         let described = Aster::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -2419,15 +2417,14 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[Value::Null, Value::Str("swap".into())]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), self.safe_string_k(&position, "mt", &[]));
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "ep", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "up", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "up", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(contractsAbs.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -2802,7 +2799,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("i".into()), Value::Str("aid".into()), &[]));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2821,8 +2818,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("amount".to_string(), self.safe_string_k(&order, "q", &[]));
         m.insert("cost".to_string(), self.safe_string_k(&order, "Z", &[]));
         m.insert("average".to_string(), self.safe_string_k(&order, "ap", &[]));
-        m.insert("filled".to_string(), self.safe_string_k(&order, "z", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("filled".to_string(), self.safe_string_k(order, "z", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

@@ -36,10 +36,8 @@ impl Hibachi {
         let described = Hibachi::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -374,13 +372,12 @@ impl crate::exchange::DerivedExchange for Hibachi {
         let unrealizedPnl: Option<String> = crate::precise::Precise::stringAdd(&unrealizedFunding, &unrealizedTrading).as_str().map(str::to_owned);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "average_entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.safe_number_k(&position, "notionalValue", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("notional".to_string(), self.safe_number_k(position, "notionalValue", &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -479,7 +476,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "transactionHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -494,8 +491,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
         m.insert("type".to_string(), transactionType.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "quantity", &[]));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transaction);
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);

@@ -36,10 +36,8 @@ impl Paradex {
         let described = Paradex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -569,7 +567,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         let notionalString: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(&position, "cost_usd", &[])).as_str().map(str::to_owned);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "average_entry_price", &[]));
@@ -589,8 +587,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(&position, "leverage", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
@@ -641,7 +638,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), (if funds { crate::value::KeyRead::key_read(&&marketResolved, "symbol") } else { Value::Null }));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "underlying_price", &[]));
@@ -649,8 +646,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "funding_rate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -697,7 +693,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -705,8 +701,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transfer);
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
 
@@ -5641,7 +5636,7 @@ impl Paradex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "base"));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5657,8 +5652,7 @@ impl Paradex {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), self.safe_number_k(&chain, "volume_24h", &[]));
-        m.insert("info".to_string(), chain);
+        m.insert("quoteVolume".to_string(), self.safe_number_k(chain, "volume_24h", &[]));
     m
 });
 
@@ -5878,10 +5872,9 @@ impl Paradex {
             let datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), Value::Null);
+                    m.insert("info".to_string(), rate.clone());
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&rate, "funding_rate", &[]));
-                    m.insert("info".to_string(), rate);
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m

@@ -36,10 +36,8 @@ impl Indodax {
         let described = Indodax::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -109,7 +107,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "tid", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
@@ -118,8 +116,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         m.insert("order".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(&trade, "price", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "amount", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string_k(trade, "amount", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -202,10 +199,9 @@ impl crate::exchange::DerivedExchange for Indodax {
         let id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);

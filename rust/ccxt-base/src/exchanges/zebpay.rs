@@ -36,10 +36,8 @@ impl Zebpay {
         let described = Zebpay::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -288,7 +286,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
@@ -309,8 +307,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         m.insert("positionMargin".to_string(), Value::from(positionMargin));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginMode));
-        m.insert("side".to_string(), self.safe_string_lower_k(&position, "side", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("side".to_string(), self.safe_string_lower_k(position, "side", &[]));
         m.insert("percentage".to_string(), Value::Null);
     m
 })));
@@ -447,15 +444,14 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let info: Value = info.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&info, "amount", &[]));
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_string_k(&info, "code", &[]));
-        m.insert("status".to_string(), self.safe_string_k(&info, "status", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("status".to_string(), self.safe_string_k(info, "status", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
@@ -2911,11 +2907,10 @@ impl Zebpay {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number2(&fee, Value::Str("makerFeeRate".into()), Value::Str("makerFee".into()), &[]));
-        m.insert("taker".to_string(), self.safe_number2(&fee, Value::Str("takerFeeRate".into()), Value::Str("takerFee".into()), &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number2(fee, Value::Str("takerFeeRate".into()), Value::Str("takerFee".into()), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

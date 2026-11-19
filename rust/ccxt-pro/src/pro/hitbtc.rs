@@ -37,10 +37,8 @@ impl Hitbtc {
         let described = Hitbtc::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1222,7 +1220,7 @@ impl Hitbtc {
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "t", &[]).as_i64();
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "i", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1232,8 +1230,7 @@ impl Hitbtc {
         m.insert("side".to_string(), self.safe_string_k(&trade, "s", &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(&trade, "p", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "q", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m

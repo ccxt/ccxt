@@ -36,10 +36,8 @@ impl Weex {
         let described = Weex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -250,7 +248,7 @@ impl crate::exchange::DerivedExchange for Weex {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "id", &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "orderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -261,8 +259,7 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&trade, "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&trade, "qty", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "quoteQty", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_k(trade, "quoteQty", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), Some(&marketResolved)));
@@ -541,9 +538,8 @@ impl crate::exchange::DerivedExchange for Weex {
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Null);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lowercaseId".to_string(), id.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), self.safe_integer_k(&market, "contractId", &[]));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
@@ -767,7 +763,7 @@ impl crate::exchange::DerivedExchange for Weex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "markPrice", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "indexPrice", &[]));
@@ -778,8 +774,7 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "lastFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(&contract, "forecastFundingRate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "forecastFundingRate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
         m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -916,15 +911,14 @@ impl crate::exchange::DerivedExchange for Weex {
         let status: Option<String> = self.safe_string_k_opt(&transfer, "status", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), currencyCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_lower_k(&transfer, "fromType", &[]));
-        m.insert("toAccount".to_string(), self.safe_string_lower_k(&transfer, "toType", &[]));
-        m.insert("info".to_string(), transfer);
+        m.insert("toAccount".to_string(), self.safe_string_lower_k(transfer, "toType", &[]));
         m.insert("status".to_string(), self.parse_transfer_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
@@ -5382,11 +5376,10 @@ impl Weex {
         let marketId: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerCommissionRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerCommissionRate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

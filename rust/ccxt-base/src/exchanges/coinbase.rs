@@ -36,10 +36,8 @@ impl Coinbase {
         let described = Coinbase::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -522,7 +520,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "product_id", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("notional".to_string(), Value::Null);
@@ -534,8 +532,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.safe_number_k(&position, "number_of_contracts", &[]));
         m.insert("contractSize".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "contractSize"));
-        m.insert("markPrice".to_string(), self.safe_number_k(&position, "current_price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("markPrice".to_string(), self.safe_number_k(position, "current_price", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("hedged".to_string(), Value::Null);
@@ -966,15 +963,14 @@ impl crate::exchange::DerivedExchange for Coinbase {
         let currencyCode: Option<String> = self.safe_currency_code(None, currency);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("currency".to_string(), currencyCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::Null);
         m.insert("fromAccount".to_string(), self.safe_string_k(&transfer, "source_portfolio_uuid", &[]));
-        m.insert("toAccount".to_string(), self.safe_string_k(&transfer, "target_portfolio_uuid", &[]));
-        m.insert("info".to_string(), transfer);
+        m.insert("toAccount".to_string(), self.safe_string_k(transfer, "target_portfolio_uuid", &[]));
         m.insert("status".to_string(), Value::Null);
     m
 }));
@@ -1257,7 +1253,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), self.safe_string_k(&network, "hash", &[id.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
@@ -1273,8 +1269,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
         m.insert("amount".to_string(), self.parse_number(amountStringAbs.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(&transaction, "updated_at", &[]))));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(transaction, "updated_at", &[]))));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(&feeObject, "amount", &[]));
@@ -3534,9 +3529,8 @@ if _try_result.is_err() {
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::Null);
+        m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), (Value::Bool(marketType.as_deref() == Some("spot"))));
-        m.insert("type".to_string(), marketType.map(Value::from).unwrap_or(Value::Null));
         m.insert("margin".to_string(), Value::Null);
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
@@ -6608,12 +6602,11 @@ if _try_result.is_err() {
         let depositId: Value = depositId.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), depositId.clone());
         m.insert("id".to_string(), self.safe_string_k(&depositId, "id", &[]));
         m.insert("currency".to_string(), self.safe_string_k(&depositId, "currency", &[]));
         m.insert("verified".to_string(), self.safe_bool_k(&depositId, "verified", &[]));
-        m.insert("tag".to_string(), self.safe_string_k(&depositId, "name", &[]));
-        m.insert("info".to_string(), depositId);
+        m.insert("tag".to_string(), self.safe_string_k(depositId, "name", &[]));
     m
 });
 

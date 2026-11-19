@@ -36,10 +36,8 @@ impl Mudrex {
         let described = Mudrex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -135,7 +133,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -146,8 +144,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), Value::Null);
         m.insert("amount".to_string(), Value::Null);
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "transaction_amount", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_k(trade, "transaction_amount", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), Some(&marketResolved)));
@@ -360,7 +357,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         let initialMargin: Option<String> = self.safe_string_k_opt(&position, "initial_margin", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(ts));
@@ -383,8 +380,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), self.safe_number_k(&position, "pnl", &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "liquidation_price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("percentage".to_string(), Value::Null);
     m

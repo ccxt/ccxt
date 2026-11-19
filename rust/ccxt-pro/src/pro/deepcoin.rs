@@ -37,10 +37,8 @@ impl Deepcoin {
         let described = Deepcoin::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -794,7 +792,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
@@ -805,8 +803,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("side".to_string(), self.parse_trade_side(direction.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&trade, "P", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&trade, "V", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "T", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_k(trade, "T", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), market);

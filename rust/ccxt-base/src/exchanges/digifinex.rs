@@ -36,10 +36,8 @@ impl Digifinex {
         let described = Digifinex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -581,7 +579,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
         let millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -592,8 +590,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
         m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(timestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(timestamp));
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(&contract, "next_funding_rate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "next_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::from(nextTimestamp));
         m.insert("nextFundingDatetime".to_string(), self.iso8601(nextTimestamp));
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -729,7 +726,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
         let timestamp: Option<i64> = self.safe_integer_k(&transfer, "timestamp", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "transfer_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -737,8 +734,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
         m.insert("amount".to_string(), self.safe_number2(&data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(&transfer, "code", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transfer);
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "code", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
 
@@ -5454,11 +5450,10 @@ impl Digifinex {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "maker_fee_rate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker_fee_rate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker_fee_rate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

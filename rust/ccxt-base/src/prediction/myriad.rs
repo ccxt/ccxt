@@ -39,10 +39,8 @@ impl Myriad {
         let described = Myriad::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -94,7 +92,7 @@ impl crate::exchange::DerivedExchange for Myriad {
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "txId", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), self.safe_string_k(&market, "outcome", &[]));
@@ -103,8 +101,7 @@ impl crate::exchange::DerivedExchange for Myriad {
         m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_k(&trade, "action", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("side".to_string(), self.safe_string_k(trade, "action", &[]));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), self.parse_number(priceStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amountStr.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -168,9 +165,8 @@ impl crate::exchange::DerivedExchange for Myriad {
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("type".to_string(), (if isMarketTif { Value::Str("market".into()) } else { Value::Str("limit".into()) }));
-        m.insert("timeInForce".to_string(), Value::Null);
+        m.insert("timeInForce".to_string(), tif.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), (Value::Bool(tif.as_deref() == Some("PO"))));
-        m.insert("timeInForce".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), Value::from(price));
         m.insert("triggerPrice".to_string(), Value::Null);
@@ -205,7 +201,7 @@ impl crate::exchange::DerivedExchange for Myriad {
         }
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::from(id));
         m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), outcomeId.map(Value::from).unwrap_or(Value::Null));
@@ -214,8 +210,7 @@ impl crate::exchange::DerivedExchange for Myriad {
         m.insert("contracts".to_string(), Value::from(shares));
         m.insert("side".to_string(), Value::Str("long".into()));
         m.insert("notional".to_string(), Value::from(value));
-        m.insert("markPrice".to_string(), self.safe_number_k(&position, "price", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("markPrice".to_string(), self.safe_number_k(position, "price", &[]));
         m.insert("unrealizedPnl".to_string(), Value::from(profit));
         m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginMode".to_string(), Value::Str("cash".into()));
@@ -5129,7 +5124,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), (match __pro_message.get("orderHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), data.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), Value::from(sym.as_deref()));
@@ -5138,8 +5133,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("type".to_string(), (if isMarketTif { Value::Str("market".into()) } else { Value::Str("limit".into()) }));
         m.insert("timeInForce".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), self.safe_string_lower_k(&data, "side", &[]));
-        m.insert("info".to_string(), data);
+        m.insert("side".to_string(), self.safe_string_lower_k(data, "side", &[]));
         m.insert("price".to_string(), Value::from(price));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("filled".to_string(), Value::from(filled));

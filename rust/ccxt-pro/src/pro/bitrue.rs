@@ -37,10 +37,8 @@ impl Bitrue {
         let described = Bitrue::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1270,7 +1268,7 @@ if _try_result.is_err() {
         let percentage: Option<f64> = (if (rose.is_none()) { None } else { (if let Some(__l) = rose { Some(__l * 100.0) } else { None }) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), tick.clone());
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1281,8 +1279,7 @@ if _try_result.is_err() {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_number_k(&tick, "open", &[]));
-        m.insert("info".to_string(), tick);
+        m.insert("open".to_string(), self.safe_number_k(tick, "open", &[]));
         m.insert("close".to_string(), Value::from(close));
         m.insert("last".to_string(), Value::from(close));
         m.insert("previousClose".to_string(), Value::Null);

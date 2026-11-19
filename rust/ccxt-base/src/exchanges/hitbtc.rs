@@ -36,10 +36,8 @@ impl Hitbtc {
         let described = Hitbtc::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -306,7 +304,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut rawTrades: Option<crate::value::List> = self.safe_list_k_o(&order, "trades");
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -328,8 +326,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), rawTrades.map_or(Value::Null, Value::Arr));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("triggerPrice".to_string(), self.safe_string_k(&order, "stop_price", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("triggerPrice".to_string(), self.safe_string_k(order, "stop_price", &[]));
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
     m
@@ -461,7 +458,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let datetime: Option<String> = self.safe_string_k_opt(&contract, "timestamp", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "index_price", &[]));
@@ -472,8 +469,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(self.parse8601(&fundingDateTime)));
         m.insert("fundingDatetime".to_string(), fundingDateTime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(&contract, "indicative_funding_rate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "indicative_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -554,15 +550,14 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), currency.clone());
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), self.safe_number_k(&currency, "precision_transfer", &[]));
         m.insert("name".to_string(), self.safe_string_k(&currency, "full_name", &[]));
         m.insert("active".to_string(), Value::Bool(!(self.safe_bool_k(&currency, "delisted", &[Value::Bool(false)]).as_bool() == Some(true))));
         m.insert("deposit".to_string(), self.safe_bool_k(&currency, "payin_enabled", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(&currency, "payout_enabled", &[]));
-        m.insert("info".to_string(), currency);
+        m.insert("withdraw".to_string(), self.safe_bool_k(currency, "payout_enabled", &[]));
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({

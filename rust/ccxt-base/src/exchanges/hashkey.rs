@@ -36,10 +36,8 @@ impl Hashkey {
         let described = Hashkey::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -5465,11 +5463,10 @@ impl Hashkey {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("maker".to_string(), self.safe_number2(&fee, Value::Str("openMakerFee".into()), Value::Str("actualMakerRate".into()), &[]));
-        m.insert("taker".to_string(), self.safe_number2(&fee, Value::Str("openTakerFee".into()), Value::Str("actualTakerRate".into()), &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number2(fee, Value::Str("openTakerFee".into()), Value::Str("actualTakerRate".into()), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

@@ -36,10 +36,8 @@ impl Blofin {
         let described = Blofin::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -665,7 +663,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let marginRatio: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)), &[]).as_f64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("notional".to_string(), Value::from(notional));
@@ -674,8 +672,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("entryPrice".to_string(), self.parse_number(entryPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("exitPrice".to_string(), self.safe_number_k(&position, "closeAveragePrice", &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("realizedPnl".to_string(), self.safe_number_k(&position, "realizedPnl", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("realizedPnl".to_string(), self.safe_number_k(position, "realizedPnl", &[]));
         m.insert("percentage".to_string(), Value::from(percentage));
         m.insert("contracts".to_string(), Value::from(contracts));
         m.insert("contractSize".to_string(), Value::from(contractSize));
@@ -2953,11 +2950,10 @@ impl Blofin {
     pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(&fee, Value::Str("maker".into()), Value::Str("makerU".into()), &[])), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(&fee, Value::Str("taker".into()), Value::Str("takerU".into()), &[])), &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(fee, Value::Str("taker".into()), Value::Str("takerU".into()), &[])), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

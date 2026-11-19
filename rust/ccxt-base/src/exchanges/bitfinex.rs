@@ -36,10 +36,8 @@ impl Bitfinex {
         let described = Bitfinex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -579,7 +577,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         let nextFundingTimestamp: Option<i64> = self.safe_integer(&contract, Value::Int(8), &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("markPrice".to_string(), self.safe_number(&contract, Value::Int(15), &[]));
         m.insert("indexPrice".to_string(), self.safe_number(&contract, Value::Int(3), &[]));
@@ -590,8 +588,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         m.insert("fundingRate".to_string(), self.safe_number(&contract, Value::Int(12), &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
-        m.insert("nextFundingRate".to_string(), self.safe_number(&contract, Value::Int(9), &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("nextFundingRate".to_string(), self.safe_number(contract, Value::Int(9), &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::from(nextFundingTimestamp));
         m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp));
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -2594,9 +2591,8 @@ impl Bitfinex {
             if (network.is_some()) {
                 networks.insert(network.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), networkId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(network.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer(&dwStatuses, Value::Int(1), &[]).as_f64() == Some(1.0)));

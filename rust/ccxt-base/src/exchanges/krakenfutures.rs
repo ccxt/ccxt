@@ -36,10 +36,8 @@ impl Krakenfutures {
         let described = Krakenfutures::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1023,7 +1021,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "executionUid", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1042,8 +1040,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("lastPrice".to_string(), self.safe_number_k(&position, "executionPrice", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("lastPrice".to_string(), self.safe_number_k(position, "executionPrice", &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginType));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1173,14 +1170,13 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(&item, "margin_account", &[]));
         m.insert("referenceId".to_string(), self.safe_string2(&item, Value::Str("execution".into()), Value::Str("booking_uid".into()), &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(&item, "info", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), item);
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "info", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));

@@ -39,10 +39,8 @@ impl Hyperliquid {
         let described = Hyperliquid::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -123,15 +121,14 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "tid", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
-        m.insert("order".to_string(), self.safe_string_k(&trade, "oid", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("order".to_string(), self.safe_string_k(trade, "oid", &[]));
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("side".to_string(), Value::from(side));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));

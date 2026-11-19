@@ -37,10 +37,8 @@ impl Kucoin {
         let described = Kucoin::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1933,7 +1931,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "ti", &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "oi", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1943,8 +1941,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("side".to_string(), self.safe_string_lower_k(&trade, "S", &[]));
         m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(&trade, "lR", &[]));
         m.insert("price".to_string(), self.safe_string_k(&trade, "p", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "q", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -2863,7 +2860,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), self.safe_string_k(&order, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOid", &[]));
@@ -2880,8 +2877,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("amount".to_string(), self.safe_string_k(&order, "size", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("filled".to_string(), self.safe_string_k(&order, "filledSize", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("filled".to_string(), self.safe_string_k(order, "filledSize", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
@@ -2952,7 +2948,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "oi", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "ci", &[]));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2976,8 +2972,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "rO", &[]));
-        m.insert("postOnly".to_string(), self.safe_bool_k(&order, "pO", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("postOnly".to_string(), self.safe_bool_k(order, "pO", &[]));
     m
 }), Some(&marketResolved));
 

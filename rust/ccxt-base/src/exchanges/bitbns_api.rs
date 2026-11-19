@@ -14,17 +14,17 @@ use crate::exchange::ExchangeRuntime;
 impl Bitbns {
     /// Auto-generated wrapper for the `wwwGetOrderFetchMarkets` implicit endpoint.
     pub async fn www_get_order_fetch_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("www_get_order_fetch_markets".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("www_get_order_fetch_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderFetchTickers` implicit endpoint.
     pub async fn www_get_order_fetch_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("www_get_order_fetch_tickers".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("www_get_order_fetch_tickers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderFetchOrderbook` implicit endpoint.
     pub async fn www_get_order_fetch_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("www_get_order_fetch_orderbook".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("www_get_order_fetch_orderbook", optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderGetTickerWithVolume` implicit endpoint.
@@ -34,7 +34,7 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataOhlc` implicit endpoint.
     pub async fn www_get_exchange_data_ohlc(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("www_get_exchange_data_ohlc".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("www_get_exchange_data_ohlc", optional_args).await
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataOrderBook` implicit endpoint.
@@ -44,12 +44,12 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataTradedetails` implicit endpoint.
     pub async fn www_get_exchange_data_tradedetails(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("www_get_exchange_data_tradedetails".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("www_get_exchange_data_tradedetails", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1GetPlatformStatus` implicit endpoint.
     pub async fn v1_get_platform_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_get_platform_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_get_platform_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1GetTickers` implicit endpoint.
@@ -69,7 +69,7 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `v1PostCurrentCoinBalanceEVERYTHING` implicit endpoint.
     pub async fn v1_post_current_coin_balance_everything(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_current_coin_balance_everything".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_current_coin_balance_everything", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostGetApiUsageStatusUSAGE` implicit endpoint.
@@ -89,17 +89,17 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `v1PostOrderStatusSymbol` implicit endpoint.
     pub async fn v1_post_order_status_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_order_status_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_order_status_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostDepositHistorySymbol` implicit endpoint.
     pub async fn v1_post_deposit_history_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_deposit_history_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_deposit_history_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostWithdrawHistorySymbol` implicit endpoint.
     pub async fn v1_post_withdraw_history_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_withdraw_history_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_withdraw_history_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostWithdrawHistoryAllSymbol` implicit endpoint.
@@ -134,7 +134,7 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `v1PostGetCoinAddressSymbol` implicit endpoint.
     pub async fn v1_post_get_coin_address_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_get_coin_address_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_get_coin_address_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostPlaceSellOrderSymbol` implicit endpoint.
@@ -184,7 +184,7 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `v1PostListExecutedOrdersSymbol` implicit endpoint.
     pub async fn v1_post_list_executed_orders_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_list_executed_orders_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_list_executed_orders_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostPlaceMarketOrderSymbol` implicit endpoint.
@@ -194,22 +194,22 @@ impl Bitbns {
 
     /// Auto-generated wrapper for the `v1PostPlaceMarketOrderQntySymbol` implicit endpoint.
     pub async fn v1_post_place_market_order_qnty_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v1_post_place_market_order_qnty_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v1_post_place_market_order_qnty_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostOrders` implicit endpoint.
     pub async fn v2_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_post_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_post_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostCancel` implicit endpoint.
     pub async fn v2_post_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_post_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_post_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostGetordersnew` implicit endpoint.
     pub async fn v2_post_getordersnew(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("v2_post_getordersnew".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("v2_post_getordersnew", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PostMarginOrders` implicit endpoint.

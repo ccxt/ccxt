@@ -14,27 +14,27 @@ use crate::exchange::ExchangeRuntime;
 impl Zaif {
     /// Auto-generated wrapper for the `publicGetDepthPair` implicit endpoint.
     pub async fn public_get_depth_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_depth_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_depth_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrenciesPair` implicit endpoint.
     pub async fn public_get_currencies_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_currencies_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrenciesAll` implicit endpoint.
     pub async fn public_get_currencies_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies_all".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_currencies_all", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyPairsPair` implicit endpoint.
     pub async fn public_get_currency_pairs_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency_pairs_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_currency_pairs_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyPairsAll` implicit endpoint.
     pub async fn public_get_currency_pairs_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency_pairs_all".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_currency_pairs_all", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetLastPricePair` implicit endpoint.
@@ -44,37 +44,37 @@ impl Zaif {
 
     /// Auto-generated wrapper for the `publicGetTickerPair` implicit endpoint.
     pub async fn public_get_ticker_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ticker_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_ticker_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradesPair` implicit endpoint.
     pub async fn public_get_trades_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trades_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_trades_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetVaspInfoVaspMasterId` implicit endpoint.
     pub async fn public_get_vasp_info_vasp_master_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_vasp_info_vasp_master_id".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_vasp_info_vasp_master_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCountryInfoCode` implicit endpoint.
     pub async fn public_get_country_info_code(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_country_info_code".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_country_info_code", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCorpTypeIdInfoId` implicit endpoint.
     pub async fn public_get_corp_type_id_info_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_corp_type_id_info_id".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_corp_type_id_info_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostActiveOrders` implicit endpoint.
     pub async fn private_post_active_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_active_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_active_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDepositHistory` implicit endpoint.
@@ -89,7 +89,7 @@ impl Zaif {
 
     /// Auto-generated wrapper for the `privatePostGetInfo` implicit endpoint.
     pub async fn private_post_get_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_get_info".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_get_info", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetInfo2` implicit endpoint.
@@ -104,17 +104,17 @@ impl Zaif {
 
     /// Auto-generated wrapper for the `privatePostTrade` implicit endpoint.
     pub async fn private_post_trade(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_trade", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeHistory` implicit endpoint.
     pub async fn private_post_trade_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_trade_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdraw` implicit endpoint.
     pub async fn private_post_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraw".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_withdraw", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawHistory` implicit endpoint.
@@ -174,7 +174,7 @@ impl Zaif {
 
     /// Auto-generated wrapper for the `fapiGetGroupsGroupId` implicit endpoint.
     pub async fn fapi_get_groups_group_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("fapi_get_groups_group_id".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("fapi_get_groups_group_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetLastPriceGroupIdPair` implicit endpoint.
@@ -189,7 +189,7 @@ impl Zaif {
 
     /// Auto-generated wrapper for the `fapiGetTradesGroupIdPair` implicit endpoint.
     pub async fn fapi_get_trades_group_id_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("fapi_get_trades_group_id_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("fapi_get_trades_group_id_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiGetDepthGroupIdPair` implicit endpoint.

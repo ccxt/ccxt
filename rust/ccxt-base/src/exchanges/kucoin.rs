@@ -36,10 +36,8 @@ impl Kucoin {
         let described = Kucoin::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -291,7 +289,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_n(&position, Value::from(vec![Value::Str("id".into()), Value::Str("positionId".into()), Value::Str("closeId".into())]), &[]));
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -311,8 +309,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(&position, "markPrice", &[]));
-        m.insert("lastPrice".to_string(), self.safe_number_k(&position, "closePrice", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("lastPrice".to_string(), self.safe_number_k(position, "closePrice", &[]));
         m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
@@ -1037,12 +1034,11 @@ if _try_result.is_err() {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("interest".to_string(), Value::from(interest));
-        m.insert("interestRate".to_string(), self.safe_number_k(&info, "dailyIntRate", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("interestRate".to_string(), self.safe_number_k(info, "dailyIntRate", &[]));
         m.insert("amountBorrowed".to_string(), Value::from(amountBorrowed));
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("timestamp".to_string(), Value::Null);
@@ -10375,7 +10371,7 @@ impl Kucoin {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_n(&order, Value::from(vec![Value::Str("id".into()), Value::Str("orderId".into()), Value::Str("newOrderId".into()), Value::Str("cancelledOrderId".into())]), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOid", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]));
@@ -10399,8 +10395,7 @@ impl Kucoin {
 }));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_string_k(&order, "avgDealPrice", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("average".to_string(), self.safe_string_k(order, "avgDealPrice", &[]));
         m.insert("trades".to_string(), Value::Null);
     m
 }), market);
@@ -11440,7 +11435,7 @@ impl Kucoin {
         });
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "tradeId", &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "orderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -11451,8 +11446,7 @@ impl Kucoin {
         m.insert("side".to_string(), self.safe_string_lower_k(&trade, "side", &[]));
         m.insert("price".to_string(), self.safe_string_k(&trade, "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&trade, "size", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "value", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_string_k(trade, "value", &[]));
         m.insert("fee".to_string(), Value::Map(fee));
     m
 }), Some(&marketResolved));

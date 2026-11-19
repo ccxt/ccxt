@@ -36,10 +36,8 @@ impl Coinone {
         let described = Coinone::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -290,7 +288,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -306,8 +304,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string2(&order, Value::Str("averageExecutedPrice".into()), Value::Str("average_executed_price".into()), &[]));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), self.safe_string2(&order, Value::Str("executedQty".into()), Value::Str("executed_qty".into()), &[]));
-        m.insert("info".to_string(), order);
+        m.insert("filled".to_string(), self.safe_string2(order, Value::Str("executedQty".into()), Value::Str("executed_qty".into()), &[]));
         m.insert("remaining".to_string(), remainingString.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

@@ -14,7 +14,7 @@ use crate::exchange::ExchangeRuntime;
 impl Dydx {
     /// Auto-generated wrapper for the `indexerGetAddressesAddress` implicit endpoint.
     pub async fn indexer_get_addresses_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_addresses_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_addresses_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetAddressesAddressParentSubaccountNumberNumber` implicit endpoint.
@@ -24,7 +24,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `indexerGetAddressesAddressSubaccountNumberSubaccountNumber` implicit endpoint.
     pub async fn indexer_get_addresses_address_subaccount_number_subaccount_number(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_addresses_address_subaccount_number_subaccount_number".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_addresses_address_subaccount_number_subaccount_number", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetAssetPositions` implicit endpoint.
@@ -39,7 +39,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `indexerGetCandlesPerpetualMarketsMarket` implicit endpoint.
     pub async fn indexer_get_candles_perpetual_markets_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_candles_perpetual_markets_market".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_candles_perpetual_markets_market", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetComplianceScreenAddress` implicit endpoint.
@@ -89,7 +89,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `indexerGetHistoricalFundingMarket` implicit endpoint.
     pub async fn indexer_get_historical_funding_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_historical_funding_market".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_historical_funding_market", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetHistoricalTradingRewardAggregationsAddress` implicit endpoint.
@@ -99,12 +99,12 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `indexerGetOrderbooksPerpetualMarketMarket` implicit endpoint.
     pub async fn indexer_get_orderbooks_perpetual_market_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_orderbooks_perpetual_market_market".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_orderbooks_perpetual_market_market", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetOrders` implicit endpoint.
     pub async fn indexer_get_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("indexer_get_orders".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("indexer_get_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetOrdersParentSubaccountNumber` implicit endpoint.
@@ -114,17 +114,17 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `indexerGetOrdersOrderId` implicit endpoint.
     pub async fn indexer_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_orders_order_id".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_orders_order_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetPerpetualMarkets` implicit endpoint.
     pub async fn indexer_get_perpetual_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_perpetual_markets".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_perpetual_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetPerpetualPositions` implicit endpoint.
     pub async fn indexer_get_perpetual_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_perpetual_positions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_perpetual_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetPerpetualPositionsParentSubaccountNumber` implicit endpoint.
@@ -144,17 +144,17 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `indexerGetTime` implicit endpoint.
     pub async fn indexer_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_time".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_time", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetTradesPerpetualMarketMarket` implicit endpoint.
     pub async fn indexer_get_trades_perpetual_market_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_trades_perpetual_market_market".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_trades_perpetual_market_market", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetTransfers` implicit endpoint.
     pub async fn indexer_get_transfers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("indexer_get_transfers".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("indexer_get_transfers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `indexerGetTransfersBetween` implicit endpoint.
@@ -274,7 +274,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `nodeRpcGetAbciInfo` implicit endpoint.
     pub async fn node_rpc_get_abci_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("node_rpc_get_abci_info".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("node_rpc_get_abci_info", optional_args).await
     }
 
     /// Auto-generated wrapper for the `nodeRpcGetBlock` implicit endpoint.
@@ -289,7 +289,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `nodeRpcGetBroadcastTxSync` implicit endpoint.
     pub async fn node_rpc_get_broadcast_tx_sync(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("node_rpc_get_broadcast_tx_sync".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("node_rpc_get_broadcast_tx_sync", optional_args).await
     }
 
     /// Auto-generated wrapper for the `nodeRpcGetTx` implicit endpoint.
@@ -299,7 +299,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress` implicit endpoint.
     pub async fn node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("node_rest_get_cosmos_auth_v1beta1_account_info_dydx_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `nodeRestPostCosmosTxV1beta1Encode` implicit endpoint.
@@ -309,7 +309,7 @@ impl Dydx {
 
     /// Auto-generated wrapper for the `nodeRestPostCosmosTxV1beta1Simulate` implicit endpoint.
     pub async fn node_rest_post_cosmos_tx_v1beta1_simulate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("node_rest_post_cosmos_tx_v1beta1_simulate".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("node_rest_post_cosmos_tx_v1beta1_simulate", optional_args).await
     }
 
 }

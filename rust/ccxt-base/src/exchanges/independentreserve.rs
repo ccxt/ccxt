@@ -36,10 +36,8 @@ impl Independentreserve {
         let described = Independentreserve::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -242,7 +240,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "OrderGuid", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -260,8 +258,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         m.insert("amount".to_string(), self.safe_string2(&order, Value::Str("VolumeOrdered".into()), Value::Str("Volume".into()), &[]));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), self.safe_string_k(&order, "Outstanding", &[]));
-        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(&order, "Status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), order);
+        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order, "Status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), feeRate.map(Value::from).unwrap_or(Value::Null));
@@ -327,15 +324,14 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "TransactionGuid", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("withdraw".into()));
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&amount, "Total", &[]));
-        m.insert("status".to_string(), self.safe_string_k(&transaction, "Status", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("status".to_string(), self.safe_string_k(transaction, "Status", &[]));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));

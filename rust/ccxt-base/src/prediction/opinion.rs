@@ -39,10 +39,8 @@ impl Opinion {
         let described = Opinion::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -155,7 +153,7 @@ impl crate::exchange::DerivedExchange for Opinion {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -169,8 +167,7 @@ impl crate::exchange::DerivedExchange for Opinion {
         m.insert("price".to_string(), self.safe_number_k(&order, "price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(&order, "orderShares", &[]));
         m.insert("cost".to_string(), self.safe_number_k(&order, "filledAmount", &[]));
-        m.insert("filled".to_string(), self.safe_number_k(&order, "filledShares", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("filled".to_string(), self.safe_number_k(order, "filledShares", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
     m

@@ -37,10 +37,8 @@ impl Kraken {
         let described = Kraken::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1981,7 +1979,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "exec_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
@@ -1992,8 +1990,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("price".to_string(), self.safe_number_k(&trade, "last_price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(&trade, "last_qty", &[]));
-        m.insert("cost".to_string(), self.safe_number_k(&trade, "cost", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("cost".to_string(), self.safe_number_k(trade, "cost", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 });
@@ -2174,7 +2171,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "order_userref", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -2190,8 +2187,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("cost".to_string(), self.safe_string_k(&order, "cum_cost", &[]));
         m.insert("amount".to_string(), self.safe_string2(&order, Value::Str("order_qty".into()), Value::Str("cum_qty".into()), &[]));
         m.insert("filled".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_string_k(&order, "avg_price", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("average".to_string(), self.safe_string_k(order, "avg_price", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), Value::Null);

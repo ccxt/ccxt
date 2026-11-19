@@ -36,10 +36,8 @@ impl Latoken {
         let described = Latoken::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -319,7 +317,7 @@ impl crate::exchange::DerivedExchange for Latoken {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -330,8 +328,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.safe_string_k(&order, "stopPrice", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("triggerPrice".to_string(), self.safe_string_k(order, "stopPrice", &[]));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
@@ -373,15 +370,14 @@ impl crate::exchange::DerivedExchange for Latoken {
         let status: Option<String> = self.safe_string_k_opt(&transfer, "status", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "id", &[]));
         m.insert("timestamp".to_string(), self.safe_integer_k(&transfer, "timestamp", &[]));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "transferringFunds", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(&transfer, "fromAccount", &[]));
-        m.insert("toAccount".to_string(), self.safe_string_k(&transfer, "toAccount", &[]));
-        m.insert("info".to_string(), transfer);
+        m.insert("toAccount".to_string(), self.safe_string_k(transfer, "toAccount", &[]));
         m.insert("status".to_string(), self.parse_transfer_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
     m
 }));

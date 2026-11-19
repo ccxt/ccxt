@@ -36,10 +36,8 @@ impl Woo {
         let described = Woo::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -316,9 +314,8 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), Value::Null);
+        m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -564,7 +561,7 @@ impl crate::exchange::DerivedExchange for Woo {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -581,8 +578,7 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("contracts".to_string(), self.parse_number(size.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number2(&position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
-        m.insert("info".to_string(), position);
+        m.insert("liquidationPrice".to_string(), self.safe_number2(position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("positionMargin".to_string(), Value::from(positionMargin));
@@ -709,7 +705,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".into())]), Value::from(vec![Value::Str("feeAmount".into())]));
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(&item, "account", &[]));
@@ -722,8 +718,7 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(&item, "type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), item);
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), Some(&currencyResolved));
@@ -937,7 +932,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let timestamp: Option<i64> = self.safe_timestamp_n(&transaction, Value::from(vec![Value::Str("created_time".into()), Value::Str("createdTime".into())]), &[self.safe_integer_k(&transaction, "timestamp", &[])]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_n(&transaction, Value::from(vec![Value::Str("id".into()), Value::Str("withdraw_id".into()), Value::Str("withdrawId".into())]), &[]));
         m.insert("txid".to_string(), self.safe_string2(&transaction, Value::Str("tx_id".into()), Value::Str("txId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -956,8 +951,7 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "network", &[]).as_str(), code.as_deref())));
-        m.insert("info".to_string(), transaction);
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(transaction, "network", &[]).as_str(), code.as_deref())));
     m
 });
 
@@ -2888,11 +2882,10 @@ impl Woo {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&fee, "makerFee", &[]), &Value::Str("100".into())), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&fee, "takerFee", &[]), &Value::Str("100".into())), &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(fee, "takerFee", &[]), &Value::Str("100".into())), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

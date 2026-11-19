@@ -36,10 +36,8 @@ impl Tokocrypto {
         let described = Tokocrypto::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -426,7 +424,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         let postOnly: bool = (isLimitMaker || (timeInForce.as_deref() == Some("PO")));
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -439,8 +437,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(&order, "stopPrice", &[]))), &[]));
-        m.insert("info".to_string(), order);
+        m.insert("triggerPrice".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order, "stopPrice", &[]))), &[]));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
@@ -696,7 +693,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
@@ -712,8 +709,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer2(&transaction, Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), self.safe_integer2(transaction, Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Bool(internal));
         m.insert("fee".to_string(), Value::Map(fee));

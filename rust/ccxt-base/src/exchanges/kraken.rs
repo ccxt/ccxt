@@ -36,10 +36,8 @@ impl Kraken {
         let described = Kraken::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -522,7 +520,7 @@ impl crate::exchange::DerivedExchange for Kraken {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), orderOmitted.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -543,7 +541,6 @@ impl crate::exchange::DerivedExchange for Kraken {
         m.insert("average".to_string(), Value::from(average));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool2(&orderOmitted, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
-        m.insert("info".to_string(), orderOmitted);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::from(trades));
     m
@@ -609,7 +606,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("notional".to_string(), Value::Null);
@@ -633,8 +630,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.safe_number_k(&position, "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(&position, "leverage", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -807,7 +803,7 @@ impl crate::exchange::DerivedExchange for Kraken {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrencyOmitted.clone());
         m.insert("name".to_string(), self.safe_string_k(&rawCurrencyOmitted, "altname", &[]));
         m.insert("active".to_string(), Value::Bool(self.safe_string_k(&rawCurrencyOmitted, "status", &[]).as_str() == Some("enabled")));
         m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
@@ -815,7 +811,6 @@ impl crate::exchange::DerivedExchange for Kraken {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&rawCurrencyOmitted, "decimals", &[])]), &[]));
-        m.insert("info".to_string(), rawCurrencyOmitted);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -927,12 +922,11 @@ impl crate::exchange::DerivedExchange for Kraken {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), Value::from(amount));
-        m.insert("network".to_string(), self.parse_network(self.safe_string_k(&transaction, "network", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transaction);
+        m.insert("network".to_string(), self.parse_network(self.safe_string_k(transaction, "network", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);

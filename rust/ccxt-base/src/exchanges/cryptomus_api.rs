@@ -14,47 +14,47 @@ use crate::exchange::ExchangeRuntime;
 impl Cryptomus {
     /// Auto-generated wrapper for the `publicGetV2UserApiExchangeMarkets` implicit endpoint.
     pub async fn public_get_v2_user_api_exchange_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v2_user_api_exchange_markets".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v2_user_api_exchange_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV2UserApiExchangeMarketsPrice` implicit endpoint.
     pub async fn public_get_v2_user_api_exchange_markets_price(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v2_user_api_exchange_markets_price".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v2_user_api_exchange_markets_price", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1ExchangeMarketAssets` implicit endpoint.
     pub async fn public_get_v1_exchange_market_assets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_exchange_market_assets".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v1_exchange_market_assets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1ExchangeMarketOrderBookCurrencyPair` implicit endpoint.
     pub async fn public_get_v1_exchange_market_order_book_currency_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_exchange_market_order_book_currency_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v1_exchange_market_order_book_currency_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1ExchangeMarketTradesCurrencyPair` implicit endpoint.
     pub async fn public_get_v1_exchange_market_trades_currency_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_exchange_market_trades_currency_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v1_exchange_market_trades_currency_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2UserApiExchangeOrders` implicit endpoint.
     pub async fn private_get_v2_user_api_exchange_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v2_user_api_exchange_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_v2_user_api_exchange_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2UserApiExchangeOrdersHistory` implicit endpoint.
     pub async fn private_get_v2_user_api_exchange_orders_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v2_user_api_exchange_orders_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_v2_user_api_exchange_orders_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2UserApiExchangeAccountBalance` implicit endpoint.
     pub async fn private_get_v2_user_api_exchange_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v2_user_api_exchange_account_balance".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_v2_user_api_exchange_account_balance", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2UserApiExchangeAccountTariffs` implicit endpoint.
     pub async fn private_get_v2_user_api_exchange_account_tariffs(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v2_user_api_exchange_account_tariffs".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_v2_user_api_exchange_account_tariffs", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV2UserApiPaymentServices` implicit endpoint.
@@ -114,12 +114,12 @@ impl Cryptomus {
 
     /// Auto-generated wrapper for the `privatePostV2UserApiExchangeOrders` implicit endpoint.
     pub async fn private_post_v2_user_api_exchange_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v2_user_api_exchange_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v2_user_api_exchange_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV2UserApiExchangeOrdersMarket` implicit endpoint.
     pub async fn private_post_v2_user_api_exchange_orders_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v2_user_api_exchange_orders_market".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v2_user_api_exchange_orders_market", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV2UserApiConvert` implicit endpoint.
@@ -149,7 +149,7 @@ impl Cryptomus {
 
     /// Auto-generated wrapper for the `privateDeleteV2UserApiExchangeOrdersOrderId` implicit endpoint.
     pub async fn private_delete_v2_user_api_exchange_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_v2_user_api_exchange_orders_order_id".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_delete_v2_user_api_exchange_orders_order_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteV2UserApiConvertOrderUuid` implicit endpoint.

@@ -36,10 +36,8 @@ impl Mexc {
         let described = Mexc::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -675,7 +673,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         let timestamp: Option<i64> = self.safe_integer_k(&position, "updateTime", &[]).as_i64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -685,8 +683,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("realizedPnl".to_string(), self.safe_number_k(&position, "realised", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("realizedPnl".to_string(), self.safe_number_k(position, "realised", &[]));
         m.insert("leverage".to_string(), self.parse_number(Value::from(leverage), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(marginType));
@@ -1034,7 +1031,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1051,8 +1048,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
-        m.insert("comment".to_string(), self.safe_string_k(&transaction, "remark", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("comment".to_string(), self.safe_string_k(transaction, "remark", &[]));
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

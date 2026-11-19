@@ -36,10 +36,8 @@ impl Hyperliquid {
         let described = Hyperliquid::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -312,14 +310,13 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), orderOmitted.clone());
         m.insert("id".to_string(), self.safe_string_k(&entry, "oid", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&entry, "cloid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&orderOmitted, "statusTimestamp", &[]));
-        m.insert("info".to_string(), orderOmitted);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(self.safe_string_lower_k(&entry, "orderType", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
@@ -330,11 +327,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("triggerPrice".to_string(), Value::from(triggerPx));
         m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
-        m.insert("amount".to_string(), Value::Null);
+        m.insert("amount".to_string(), totalAmount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(&entry, "avgPx", &[]));
         m.insert("filled".to_string(), self.safe_string_k(&filled, "totalSz", &[crate::precise::Precise::stringSub(&totalAmount, &remaining)]));
-        m.insert("amount".to_string(), totalAmount.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
@@ -661,13 +657,12 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let amount: Option<String> = self.safe_string_k_opt(&delta, "usdc", &[]);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "hash", &[]));
         m.insert("direction".to_string(), Value::Null);
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), self.safe_string_k(&delta, "user", &[]));
-        m.insert("referenceId".to_string(), self.safe_string_k(&item, "hash", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("referenceId".to_string(), self.safe_string_k(item, "hash", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -836,11 +831,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("info".to_string(), liquidation);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), Value::Null);
-        m.insert("baseValue".to_string(), Value::Null);
+        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseValue".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteValue".to_string(), crate::precise::Precise::stringMul(&amount, &price));
-        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseValue".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -903,7 +896,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "hash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -918,8 +911,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("type".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&delta, "usdc", &[]));
         m.insert("currency".to_string(), Value::Null);
-        m.insert("status".to_string(), self.safe_string_k(&transaction, "status", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("status".to_string(), self.safe_string_k(transaction, "status", &[]));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));
@@ -6358,11 +6350,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "userAddRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "userCrossRate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "userCrossRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

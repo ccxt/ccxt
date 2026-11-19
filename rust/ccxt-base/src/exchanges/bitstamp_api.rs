@@ -14,17 +14,17 @@ use crate::exchange::ExchangeRuntime;
 impl Bitstamp {
     /// Auto-generated wrapper for the `publicGetOhlcPair` implicit endpoint.
     pub async fn public_get_ohlc_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ohlc_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_ohlc_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetOrderBookPair` implicit endpoint.
     pub async fn public_get_order_book_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_order_book_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_order_book_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
     pub async fn public_get_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_ticker".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_ticker", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickerHourPair` implicit endpoint.
@@ -34,27 +34,27 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `publicGetTickerPair` implicit endpoint.
     pub async fn public_get_ticker_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ticker_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_ticker_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTransactionsPair` implicit endpoint.
     pub async fn public_get_transactions_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_transactions_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_transactions_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradingPairsInfo` implicit endpoint.
     pub async fn public_get_trading_pairs_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trading_pairs_info".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_trading_pairs_info", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetMarkets` implicit endpoint.
     pub async fn public_get_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_markets".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencies` implicit endpoint.
     pub async fn public_get_currencies(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_currencies", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetEurUsd` implicit endpoint.
@@ -69,17 +69,17 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `publicGetFundingRateMarketSymbol` implicit endpoint.
     pub async fn public_get_funding_rate_market_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_funding_rate_market_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_funding_rate_market_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRateHistoryPair` implicit endpoint.
     pub async fn public_get_funding_rate_history_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_funding_rate_history_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_funding_rate_history_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesMarketHours` implicit endpoint.
     pub async fn public_get_derivatives_market_hours(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_derivatives_market_hours".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_derivatives_market_hours", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDerivativesMarketHoursMarketSymbol` implicit endpoint.
@@ -89,7 +89,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privateGetTravelRuleContacts` implicit endpoint.
     pub async fn private_get_travel_rule_contacts(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_travel_rule_contacts".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_travel_rule_contacts", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetContactsContactUuid` implicit endpoint.
@@ -99,7 +99,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privateGetTravelRuleUtxoXpubRegistrations` implicit endpoint.
     pub async fn private_get_travel_rule_utxo_xpub_registrations(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_travel_rule_utxo_xpub_registrations".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_travel_rule_utxo_xpub_registrations", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTravelRuleUtxoXpubRegistrationsRegistrationId` implicit endpoint.
@@ -114,32 +114,32 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privateGetCryptoTransactionsDeposits` implicit endpoint.
     pub async fn private_get_crypto_transactions_deposits(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_crypto_transactions_deposits".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_crypto_transactions_deposits", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetEarnSubscriptions` implicit endpoint.
     pub async fn private_get_earn_subscriptions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_earn_subscriptions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_earn_subscriptions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetEarnTransactions` implicit endpoint.
     pub async fn private_get_earn_transactions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_earn_transactions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_earn_transactions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeHistory` implicit endpoint.
     pub async fn private_get_trade_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_trade_history".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_trade_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetTradeHistoryPair` implicit endpoint.
     pub async fn private_get_trade_history_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_trade_history_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_trade_history_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBalances` implicit endpoint.
     pub async fn private_post_account_balances(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_account_balances".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_account_balances", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBalancesCurrency` implicit endpoint.
@@ -149,7 +149,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostBalance` implicit endpoint.
     pub async fn private_post_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_balance".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_balance", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBalancePair` implicit endpoint.
@@ -169,12 +169,12 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostUserTransactions` implicit endpoint.
     pub async fn private_post_user_transactions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_user_transactions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_user_transactions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUserTransactionsPair` implicit endpoint.
     pub async fn private_post_user_transactions_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_user_transactions_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_user_transactions_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCryptoTransactions` implicit endpoint.
@@ -194,87 +194,87 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostOpenOrdersAll` implicit endpoint.
     pub async fn private_post_open_orders_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_open_orders_all".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_open_orders_all", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOpenOrdersPair` implicit endpoint.
     pub async fn private_post_open_orders_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_open_orders_pair".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_open_orders_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostReplaceOrder` implicit endpoint.
     pub async fn private_post_replace_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_replace_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_replace_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrderStatus` implicit endpoint.
     pub async fn private_post_order_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_order_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelAllOrders` implicit endpoint.
     pub async fn private_post_cancel_all_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_all_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancel_all_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelAllOrdersPair` implicit endpoint.
     pub async fn private_post_cancel_all_orders_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_all_orders_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancel_all_orders_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBuyPair` implicit endpoint.
     pub async fn private_post_buy_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_buy_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_buy_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBuyMarketPair` implicit endpoint.
     pub async fn private_post_buy_market_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_buy_market_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_buy_market_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBuyInstantPair` implicit endpoint.
     pub async fn private_post_buy_instant_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_buy_instant_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_buy_instant_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSellPair` implicit endpoint.
     pub async fn private_post_sell_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sell_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_sell_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSellMarketPair` implicit endpoint.
     pub async fn private_post_sell_market_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sell_market_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_sell_market_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSellInstantPair` implicit endpoint.
     pub async fn private_post_sell_instant_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sell_instant_pair".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_sell_instant_pair", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTransferToMain` implicit endpoint.
     pub async fn private_post_transfer_to_main(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_transfer_to_main".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_transfer_to_main", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTransferFromMain` implicit endpoint.
     pub async fn private_post_transfer_from_main(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_transfer_from_main".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_transfer_from_main", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostMyTradingPairs` implicit endpoint.
     pub async fn private_post_my_trading_pairs(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_my_trading_pairs".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_my_trading_pairs", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFeesTrading` implicit endpoint.
     pub async fn private_post_fees_trading(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_fees_trading".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_fees_trading", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFeesTradingMarketSymbol` implicit endpoint.
@@ -284,7 +284,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostFeesWithdrawal` implicit endpoint.
     pub async fn private_post_fees_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_fees_withdrawal".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_fees_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFeesWithdrawalCurrency` implicit endpoint.
@@ -294,7 +294,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostWithdrawalRequests` implicit endpoint.
     pub async fn private_post_withdrawal_requests(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_withdrawal_requests".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_withdrawal_requests", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawalOpen` implicit endpoint.
@@ -329,7 +329,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostWebsocketsToken` implicit endpoint.
     pub async fn private_post_websockets_token(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_websockets_token".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_websockets_token", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostRevokeAllApiKeys` implicit endpoint.
@@ -344,12 +344,12 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostOrderData` implicit endpoint.
     pub async fn private_post_order_data(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_order_data".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_order_data", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountOrderData` implicit endpoint.
     pub async fn private_post_account_order_data(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_account_order_data".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_account_order_data", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBtcWithdrawal` implicit endpoint.
@@ -364,7 +364,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostRippleWithdrawal` implicit endpoint.
     pub async fn private_post_ripple_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_ripple_withdrawal".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_ripple_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostRippleAddress` implicit endpoint.
@@ -454,7 +454,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostDaiWithdrawal` implicit endpoint.
     pub async fn private_post_dai_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_dai_withdrawal".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_dai_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDaiAddress` implicit endpoint.
@@ -784,7 +784,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostAdaWithdrawal` implicit endpoint.
     pub async fn private_post_ada_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_ada_withdrawal".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_ada_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAdaAddress` implicit endpoint.
@@ -1094,7 +1094,7 @@ impl Bitstamp {
 
     /// Auto-generated wrapper for the `privatePostSolWithdrawal` implicit endpoint.
     pub async fn private_post_sol_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sol_withdrawal".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_sol_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSolAddress` implicit endpoint.

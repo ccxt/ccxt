@@ -37,10 +37,8 @@ impl Krakenfutures {
         let described = Krakenfutures::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -713,7 +711,7 @@ impl Krakenfutures {
         }
         return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[]));
         m.insert("notional".to_string(), Value::Null);
@@ -732,8 +730,7 @@ impl Krakenfutures {
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(&position, "maintenance_margin", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(&position, "initial_margin", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("initialMargin".to_string(), self.safe_number_k(position, "initial_margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
@@ -993,7 +990,7 @@ impl Krakenfutures {
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "time", &[]).as_i64();
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "uid", &[]));
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1003,8 +1000,7 @@ impl Krakenfutures {
         m.insert("side".to_string(), self.safe_string_k(&trade, "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), self.safe_string2(&trade, Value::Str("price".into()), Value::Str("limit_price".into()), &[]));
-        m.insert("amount".to_string(), self.safe_string2(&trade, Value::Str("filled".into()), Value::Str("qty".into()), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string2(trade, Value::Str("filled".into()), Value::Str("qty".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1645,7 +1641,7 @@ impl Krakenfutures {
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1666,8 +1662,7 @@ impl Krakenfutures {
         m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "volumeQuote", &[]));
         m.insert("markPrice".to_string(), self.safe_string_k(&ticker, "markPrice", &[]));
-        m.insert("indexPrice".to_string(), self.safe_string_k(&ticker, "index", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker, "index", &[]));
     m
 }), None);
 

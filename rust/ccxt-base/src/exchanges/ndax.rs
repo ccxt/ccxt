@@ -36,10 +36,8 @@ impl Ndax {
         let described = Ndax::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -399,7 +397,7 @@ impl crate::exchange::DerivedExchange for Ndax {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("ReplacementOrderId".into()), Value::Str("OrderId".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(&order, Value::Str("ReplacementClOrdId".into()), Value::Str("ClientOrderId".into()), &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(&order, "LastUpdatedTime", &[]));
@@ -414,8 +412,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("cost".to_string(), self.safe_string_k(&order, "GrossValueExecuted", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&order, "OrigQuantity", &[]));
         m.insert("filled".to_string(), self.safe_string_k(&order, "QuantityExecuted", &[]));
-        m.insert("average".to_string(), self.safe_string_k(&order, "AvgPrice", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("average".to_string(), self.safe_string_k(order, "AvgPrice", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
@@ -643,14 +640,13 @@ impl crate::exchange::DerivedExchange for Ndax {
         let timestamp: Option<i64> = self.safe_integer_k(&item, "TimeStamp", &[]).as_i64();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "TransactionId", &[]));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(&item, "AccountId", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(&item, "ReferenceId", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(&item, "Counterparty", &[]));
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(&item, "ReferenceType", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), item);
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "ReferenceType", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -684,7 +680,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("precision".to_string(), self.safe_number_k(&rawCurrency, "TickSize", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Bool((!(self.safe_bool_k(&rawCurrency, "IsDisabled", &[Value::Bool(false)]).as_bool() == Some(true)))));
         m.insert("deposit".to_string(), self.safe_bool_k(&rawCurrency, "DepositEnabled", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(&rawCurrency, "WithdrawEnabled", &[]));
@@ -709,8 +705,7 @@ impl crate::exchange::DerivedExchange for Ndax {
     let m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("margin".to_string(), self.safe_bool_k(&rawCurrency, "MarginEnabled", &[]));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("margin".to_string(), self.safe_bool_k(rawCurrency, "MarginEnabled", &[]));
     m
 }));
 
@@ -803,7 +798,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), self.safe_string2(&templateForm, Value::Str("TxId".into()), Value::Str("TXId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -815,8 +810,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.safe_number_k(&transaction, "Amount", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "Amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status_by_type(transactionStatus.as_deref(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));

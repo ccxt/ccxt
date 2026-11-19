@@ -36,10 +36,8 @@ impl Backpack {
         let described = Backpack::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -738,7 +736,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let liquidationPrice: Option<f64> = self.safe_number_k(&position, "estLiquidationPrice", &[]).as_f64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(&position, "timestamp", &[]))));
@@ -757,8 +755,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), self.safe_number_k(&position, "imf", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
-        m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(&position, "mmf", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position, "mmf", &[]));
         m.insert("realizedPnl".to_string(), Value::from(realizedPnl));
         m.insert("unrealizedPnl".to_string(), Value::from(unrealizedPnl));
         m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
@@ -789,7 +786,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let nextFundingTimestamp: Option<i64> = self.safe_integer_k(&contract, "nextFundingTimestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "markPrice", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "indexPrice", &[]));
@@ -797,8 +794,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "fundingRate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -2716,7 +2712,7 @@ impl Backpack {
         let toCurrency: Option<String> = self.safe_currency_code(toCode.as_str(), None);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), quote.clone());
         m.insert("timestamp".to_string(), self.safe_integer_k(&quote, "publishedAt", &[]));
         m.insert("datetime".to_string(), self.iso8601(self.safe_integer_k(&quote, "publishedAt", &[])));
         m.insert("id".to_string(), Value::Null);
@@ -2725,7 +2721,6 @@ impl Backpack {
         m.insert("toCurrency".to_string(), toCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAmount".to_string(), (if (fromIsBase) { Value::from(quoteAmount) } else { Value::from(baseAmount) }));
         m.insert("price".to_string(), self.safe_number_k(&quote, "price", &[]));
-        m.insert("info".to_string(), quote);
         m.insert("fee".to_string(), Value::Null);
     m
 });

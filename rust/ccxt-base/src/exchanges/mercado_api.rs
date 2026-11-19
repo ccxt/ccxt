@@ -14,32 +14,32 @@ use crate::exchange::ExchangeRuntime;
 impl Mercado {
     /// Auto-generated wrapper for the `publicGetCoins` implicit endpoint.
     pub async fn public_get_coins(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coins".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_coins", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCoinOrderbook` implicit endpoint.
     pub async fn public_get_coin_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_coin_orderbook".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_coin_orderbook", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTicker` implicit endpoint.
     pub async fn public_get_coin_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_coin_ticker".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_coin_ticker", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTrades` implicit endpoint.
     pub async fn public_get_coin_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coin_trades".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_coin_trades", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTradesFrom` implicit endpoint.
     pub async fn public_get_coin_trades_from(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coin_trades_from".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_coin_trades_from", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTradesFromTo` implicit endpoint.
     pub async fn public_get_coin_trades_from_to(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coin_trades_from_to".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_coin_trades_from_to", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetCoinDaySummaryYearMonthDay` implicit endpoint.
@@ -49,17 +49,17 @@ impl Mercado {
 
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetAccountInfo` implicit endpoint.
     pub async fn private_post_get_account_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_get_account_info".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_get_account_info", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetOrder` implicit endpoint.
     pub async fn private_post_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_get_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_get_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetWithdrawal` implicit endpoint.
@@ -74,7 +74,7 @@ impl Mercado {
 
     /// Auto-generated wrapper for the `privatePostListOrders` implicit endpoint.
     pub async fn private_post_list_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_list_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_list_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostListOrderbook` implicit endpoint.
@@ -84,27 +84,27 @@ impl Mercado {
 
     /// Auto-generated wrapper for the `privatePostPlaceBuyOrder` implicit endpoint.
     pub async fn private_post_place_buy_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_place_buy_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_place_buy_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPlaceSellOrder` implicit endpoint.
     pub async fn private_post_place_sell_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_place_sell_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_place_sell_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPlaceMarketBuyOrder` implicit endpoint.
     pub async fn private_post_place_market_buy_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_place_market_buy_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_place_market_buy_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPlaceMarketSellOrder` implicit endpoint.
     pub async fn private_post_place_market_sell_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_place_market_sell_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_place_market_sell_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawCoin` implicit endpoint.
     pub async fn private_post_withdraw_coin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraw_coin".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_withdraw_coin", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v4PublicGetCoinCandle` implicit endpoint.

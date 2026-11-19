@@ -36,10 +36,8 @@ impl Okx {
         let described = Okx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -924,7 +922,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let marginRatio: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)), &[]).as_f64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "posId", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("notional".to_string(), Value::from(notional));
@@ -942,8 +940,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("hedged".to_string(), Value::Bool(hedged));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&position, "uTime", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position, "uTime", &[]));
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
         m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentage));
         m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -999,7 +996,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -1007,8 +1004,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "fundingRate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTime));
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTime));
         m.insert("nextFundingRate".to_string(), Value::from(nextFundingRate));
@@ -1181,7 +1177,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "billId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1193,8 +1189,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&item, "balChg", &[]));
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), self.safe_number_k(&item, "bal", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("after".to_string(), self.safe_number_k(item, "bal", &[]));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -1638,14 +1633,13 @@ impl crate::exchange::DerivedExchange for Okx {
         let timestamp: Option<i64> = self.safe_integer_k(&info, "ts", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&info, "ccy", &[]).as_str(), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("interest".to_string(), self.safe_number_k(&info, "interest", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(&info, "interestRate", &[]));
         m.insert("amountBorrowed".to_string(), self.safe_number_k(&info, "liab", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_k(&info, "mgnMode", &[]));
-        m.insert("info".to_string(), info);
+        m.insert("marginMode".to_string(), self.safe_string_k(info, "mgnMode", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -1768,7 +1762,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let toCode: Option<String> = self.safe_currency_code(to.as_deref(), toCurrency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("id".to_string(), self.safe_string_n(&conversion, Value::from(vec![Value::Str("clQReqId".into()), Value::Str("tradeId".into()), Value::Str("quoteId".into())]), &[]));
@@ -1776,8 +1770,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("fromAmount".to_string(), self.safe_number2(&conversion, Value::Str("baseSz".into()), Value::Str("fillBaseSz".into()), &[]));
         m.insert("toCurrency".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAmount".to_string(), self.safe_number2(&conversion, Value::Str("quoteSz".into()), Value::Str("fillQuoteSz".into()), &[]));
-        m.insert("price".to_string(), self.safe_number2(&conversion, Value::Str("cnvtPx".into()), Value::Str("fillPx".into()), &[]));
-        m.insert("info".to_string(), conversion);
+        m.insert("price".to_string(), self.safe_number2(conversion, Value::Str("cnvtPx".into()), Value::Str("fillPx".into()), &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 });
@@ -6980,11 +6973,10 @@ impl Okx {
         let fee: Value = fee.into();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(&fee, Value::Str("maker".into()), Value::Str("makerU".into()), &[])), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(&fee, Value::Str("taker".into()), Value::Str("takerU".into()), &[])), &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&self.safe_string2(fee, Value::Str("taker".into()), Value::Str("takerU".into()), &[])), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -12878,7 +12870,7 @@ impl Okx {
         let timestamp: Option<i64> = self.safe_integer_k(&chain, "ts", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), chain.clone());
         m.insert("currency".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -12893,8 +12885,7 @@ impl Okx {
         m.insert("underlyingPrice".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_number_k(&chain, "volCcy24h", &[]));
-        m.insert("info".to_string(), chain);
+        m.insert("baseVolume".to_string(), self.safe_number_k(chain, "volCcy24h", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 });

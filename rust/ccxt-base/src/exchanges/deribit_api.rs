@@ -39,7 +39,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetTime` implicit endpoint.
     pub async fn public_get_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_time".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_time", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetHello` implicit endpoint.
@@ -49,7 +49,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetStatus` implicit endpoint.
     pub async fn public_get_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTest` implicit endpoint.
@@ -84,12 +84,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetBookSummaryByCurrency` implicit endpoint.
     pub async fn public_get_get_book_summary_by_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_book_summary_by_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_book_summary_by_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetBookSummaryByInstrument` implicit endpoint.
     pub async fn public_get_get_book_summary_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_book_summary_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_book_summary_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetContractSize` implicit endpoint.
@@ -99,7 +99,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetCurrencies` implicit endpoint.
     pub async fn public_get_get_currencies(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_currencies".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_currencies", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetDeliveryPrices` implicit endpoint.
@@ -119,17 +119,17 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetFundingRateHistory` implicit endpoint.
     pub async fn public_get_get_funding_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_funding_rate_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_funding_rate_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetFundingRateValue` implicit endpoint.
     pub async fn public_get_get_funding_rate_value(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_funding_rate_value".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_funding_rate_value", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetHistoricalVolatility` implicit endpoint.
     pub async fn public_get_get_historical_volatility(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_historical_volatility".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_historical_volatility", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetIndex` implicit endpoint.
@@ -169,7 +169,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetLastSettlementsByInstrument` implicit endpoint.
     pub async fn public_get_get_last_settlements_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_last_settlements_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_last_settlements_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetLastTradesByCurrency` implicit endpoint.
@@ -184,12 +184,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetLastTradesByInstrument` implicit endpoint.
     pub async fn public_get_get_last_trades_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_last_trades_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_last_trades_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetLastTradesByInstrumentAndTime` implicit endpoint.
     pub async fn public_get_get_last_trades_by_instrument_and_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_last_trades_by_instrument_and_time".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_last_trades_by_instrument_and_time", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetMarkPriceHistory` implicit endpoint.
@@ -199,7 +199,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetOrderBook` implicit endpoint.
     pub async fn public_get_get_order_book(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_order_book".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_order_book", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetSupportedIndexNames` implicit endpoint.
@@ -214,7 +214,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `publicGetGetTradingviewChartData` implicit endpoint.
     pub async fn public_get_get_tradingview_chart_data(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_get_tradingview_chart_data".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_get_tradingview_chart_data", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetVolatilityIndexData` implicit endpoint.
@@ -314,12 +314,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetAccountSummary` implicit endpoint.
     pub async fn private_get_get_account_summary(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_account_summary".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_account_summary", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetAccountSummaries` implicit endpoint.
     pub async fn private_get_get_account_summaries(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_account_summaries".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_account_summaries", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetAffiliateProgramInfo` implicit endpoint.
@@ -349,17 +349,17 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetPosition` implicit endpoint.
     pub async fn private_get_get_position(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_position".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_position", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetPositions` implicit endpoint.
     pub async fn private_get_get_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_positions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetSubaccounts` implicit endpoint.
     pub async fn private_get_get_subaccounts(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_subaccounts".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_subaccounts", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetSubaccountsDetails` implicit endpoint.
@@ -369,7 +369,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetTransactionLog` implicit endpoint.
     pub async fn private_get_get_transaction_log(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_transaction_log".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_transaction_log", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetListApiKeys` implicit endpoint.
@@ -489,17 +489,17 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetBuy` implicit endpoint.
     pub async fn private_get_buy(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_buy".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_buy", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSell` implicit endpoint.
     pub async fn private_get_sell(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_sell".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_sell", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetEdit` implicit endpoint.
     pub async fn private_get_edit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_edit".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_edit", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetEditByLabel` implicit endpoint.
@@ -509,12 +509,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetCancel` implicit endpoint.
     pub async fn private_get_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetCancelAll` implicit endpoint.
     pub async fn private_get_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_cancel_all".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_cancel_all", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetCancelAllByCurrency` implicit endpoint.
@@ -524,7 +524,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetCancelAllByInstrument` implicit endpoint.
     pub async fn private_get_cancel_all_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_cancel_all_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_cancel_all_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetCancelByLabel` implicit endpoint.
@@ -564,12 +564,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetOpenOrdersByCurrency` implicit endpoint.
     pub async fn private_get_get_open_orders_by_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_open_orders_by_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_open_orders_by_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetOpenOrdersByInstrument` implicit endpoint.
     pub async fn private_get_get_open_orders_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_open_orders_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_open_orders_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetOpenOrdersByLabel` implicit endpoint.
@@ -579,12 +579,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetOrderHistoryByCurrency` implicit endpoint.
     pub async fn private_get_get_order_history_by_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_order_history_by_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_order_history_by_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetOrderHistoryByInstrument` implicit endpoint.
     pub async fn private_get_get_order_history_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_order_history_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_order_history_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetOrderMarginByIds` implicit endpoint.
@@ -594,7 +594,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetOrderState` implicit endpoint.
     pub async fn private_get_get_order_state(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_order_state".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_order_state", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetOrderStateByLabel` implicit endpoint.
@@ -614,27 +614,27 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetUserTradesByCurrency` implicit endpoint.
     pub async fn private_get_get_user_trades_by_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_user_trades_by_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_user_trades_by_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetUserTradesByCurrencyAndTime` implicit endpoint.
     pub async fn private_get_get_user_trades_by_currency_and_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_user_trades_by_currency_and_time".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_user_trades_by_currency_and_time", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetUserTradesByInstrument` implicit endpoint.
     pub async fn private_get_get_user_trades_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_user_trades_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_user_trades_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetUserTradesByInstrumentAndTime` implicit endpoint.
     pub async fn private_get_get_user_trades_by_instrument_and_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_user_trades_by_instrument_and_time".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_user_trades_by_instrument_and_time", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetUserTradesByOrder` implicit endpoint.
     pub async fn private_get_get_user_trades_by_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_user_trades_by_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_user_trades_by_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetMassQuote` implicit endpoint.
@@ -659,7 +659,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetSettlementHistoryByInstrument` implicit endpoint.
     pub async fn private_get_get_settlement_history_by_instrument(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_settlement_history_by_instrument".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_settlement_history_by_instrument", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetSettlementHistoryByCurrency` implicit endpoint.
@@ -684,7 +684,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetCreateDepositAddress` implicit endpoint.
     pub async fn private_get_create_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_create_deposit_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_create_deposit_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetAddressBook` implicit endpoint.
@@ -694,7 +694,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetCurrentDepositAddress` implicit endpoint.
     pub async fn private_get_get_current_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_current_deposit_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_current_deposit_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetDeposits` implicit endpoint.
@@ -709,12 +709,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetGetTransfers` implicit endpoint.
     pub async fn private_get_get_transfers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_transfers".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_transfers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetWithdrawals` implicit endpoint.
     pub async fn private_get_get_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_get_withdrawals".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_get_withdrawals", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetRemoveFromAddressBook` implicit endpoint.
@@ -729,12 +729,12 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetSubmitTransferToSubaccount` implicit endpoint.
     pub async fn private_get_submit_transfer_to_subaccount(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_submit_transfer_to_subaccount".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_submit_transfer_to_subaccount", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetSubmitTransferToUser` implicit endpoint.
     pub async fn private_get_submit_transfer_to_user(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_submit_transfer_to_user".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_submit_transfer_to_user", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUpdateInAddressBook` implicit endpoint.
@@ -744,7 +744,7 @@ impl Deribit {
 
     /// Auto-generated wrapper for the `privateGetWithdraw` implicit endpoint.
     pub async fn private_get_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_withdraw".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_withdraw", optional_args).await
     }
 
 }

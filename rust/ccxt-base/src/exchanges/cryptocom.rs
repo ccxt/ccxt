@@ -36,10 +36,8 @@ impl Cryptocom {
         let described = Cryptocom::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -163,7 +161,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let feeCostString: Option<String> = self.safe_string_k_opt(&trade, "fees", &[]);
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("d".into()), Value::Str("trade_id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -172,8 +170,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         m.insert("side".to_string(), self.safe_string_lower2(&trade, Value::Str("s".into()), Value::Str("side".into()), &[]));
         m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(&trade, "taker_side", &[]));
         m.insert("price".to_string(), self.safe_number2(&trade, Value::Str("p".into()), Value::Str("traded_price".into()), &[]));
-        m.insert("amount".to_string(), self.safe_number2(&trade, Value::Str("q".into()), Value::Str("traded_quantity".into()), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_number2(trade, Value::Str("q".into()), Value::Str("traded_quantity".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
@@ -354,7 +351,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let amount: Option<String> = self.safe_string_k_opt(&position, "quantity", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -372,8 +369,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "open_position_pnl", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "open_position_pnl", &[]));
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
@@ -459,14 +455,13 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "order_id", &[]));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(&item, "account_id", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(&item, "trade_id", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(&item, "trade_match_id", &[]));
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(&item, "journal_type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), item);
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "journal_type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -642,7 +637,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "txid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -660,8 +655,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(&transaction, "update_time", &[]));
         m.insert("internal".to_string(), Value::Null);
-        m.insert("comment".to_string(), self.safe_string_k(&transaction, "client_wid", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("comment".to_string(), self.safe_string_k(transaction, "client_wid", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 });
@@ -5205,11 +5199,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&fee, "effective_maker_rate_bps", &[]), &Value::Str("10000".into())), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&fee, "effective_taker_rate_bps", &[]), &Value::Str("10000".into())), &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(fee, "effective_taker_rate_bps", &[]), &Value::Str("10000".into())), &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

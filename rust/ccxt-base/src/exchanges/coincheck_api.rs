@@ -19,12 +19,12 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `publicGetExchangeStatus` implicit endpoint.
     pub async fn public_get_exchange_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_exchange_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_exchange_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetOrderBooks` implicit endpoint.
     pub async fn public_get_order_books(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_order_books".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_order_books", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetRatePair` implicit endpoint.
@@ -49,7 +49,7 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `privateGetAccountsBalance` implicit endpoint.
     pub async fn private_get_accounts_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_accounts_balance".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_accounts_balance", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountsLeverageBalance` implicit endpoint.
@@ -64,7 +64,7 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `privateGetDepositMoney` implicit endpoint.
     pub async fn private_get_deposit_money(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deposit_money".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deposit_money", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetExchangeOrdersId` implicit endpoint.
@@ -74,7 +74,7 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `privateGetExchangeOrdersOpens` implicit endpoint.
     pub async fn private_get_exchange_orders_opens(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_exchange_orders_opens".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_exchange_orders_opens", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetExchangeOrdersCancelStatus` implicit endpoint.
@@ -89,7 +89,7 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `privateGetExchangeOrdersTransactionsPagination` implicit endpoint.
     pub async fn private_get_exchange_orders_transactions_pagination(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_exchange_orders_transactions_pagination".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_exchange_orders_transactions_pagination", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetExchangeLeveragePositions` implicit endpoint.
@@ -124,7 +124,7 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `privatePostExchangeOrders` implicit endpoint.
     pub async fn private_post_exchange_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_exchange_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_exchange_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostExchangeTransfersToLeverage` implicit endpoint.
@@ -164,7 +164,7 @@ impl Coincheck {
 
     /// Auto-generated wrapper for the `privateDeleteExchangeOrdersId` implicit endpoint.
     pub async fn private_delete_exchange_orders_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_exchange_orders_id".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_delete_exchange_orders_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteWithdrawsId` implicit endpoint.

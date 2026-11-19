@@ -36,10 +36,8 @@ impl Aster {
         let described = Aster::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -590,13 +588,12 @@ impl crate::exchange::DerivedExchange for Aster {
         let type_var: Option<String> = self.safe_string_k_opt(&item, "incomeType", &[]);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "tranId", &[]));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("referenceId".to_string(), self.safe_string_k(&item, "tradeId", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("referenceId".to_string(), self.safe_string_k(item, "tradeId", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -616,7 +613,7 @@ impl crate::exchange::DerivedExchange for Aster {
         let currencyId: Option<String> = self.safe_string_k_opt(&transfer, "code", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "tranId", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -624,8 +621,7 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("amount".to_string(), Value::Null);
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(&transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transfer);
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
 
@@ -744,10 +740,9 @@ impl crate::exchange::DerivedExchange for Aster {
         let transaction: Value = transaction.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "withdrawId", &[]));
-        m.insert("txid".to_string(), self.safe_string_k(&transaction, "hash", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("txid".to_string(), self.safe_string_k(transaction, "hash", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("network".to_string(), Value::Null);
@@ -3760,11 +3755,10 @@ impl Aster {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerCommissionRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerCommissionRate", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m

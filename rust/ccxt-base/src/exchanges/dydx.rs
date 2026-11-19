@@ -36,10 +36,8 @@ impl Dydx {
         let described = Dydx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -137,7 +135,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&order, "timeInForce", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -148,8 +146,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), self.safe_bool_k(&order, "postOnly", &[]));
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
@@ -342,15 +339,14 @@ impl crate::exchange::DerivedExchange for Dydx {
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&position, "createdAt", &[]));
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "entryPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "unrealizedPnl", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "unrealizedPnl", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(quantity.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -410,13 +406,12 @@ impl crate::exchange::DerivedExchange for Dydx {
         let recipient: crate::value::Dict = self.safe_dict_k_t(&item, "recipient");
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(&sender, "address", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(&recipient, "address", &[]));
-        m.insert("referenceId".to_string(), self.safe_string_k(&item, "transactionHash", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("referenceId".to_string(), self.safe_string_k(item, "transactionHash", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));

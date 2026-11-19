@@ -36,10 +36,8 @@ impl Hollaex {
         let described = Hollaex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -86,7 +84,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), ticker.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
@@ -103,8 +101,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 }), Some(&marketResolved)));
@@ -483,7 +480,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -500,8 +497,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
-        m.insert("comment".to_string(), self.safe_string_k(&transaction, "message", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("comment".to_string(), self.safe_string_k(transaction, "message", &[]));
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

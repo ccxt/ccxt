@@ -14,37 +14,37 @@ use crate::exchange::ExchangeRuntime;
 impl Deepcoin {
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketBooks` implicit endpoint.
     pub async fn public_get_deepcoin_market_books(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_books".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_books", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketCandles` implicit endpoint.
     pub async fn public_get_deepcoin_market_candles(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_candles".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_candles", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketInstruments` implicit endpoint.
     pub async fn public_get_deepcoin_market_instruments(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_instruments".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_instruments", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketTickers` implicit endpoint.
     pub async fn public_get_deepcoin_market_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_tickers".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_tickers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketIndexCandles` implicit endpoint.
     pub async fn public_get_deepcoin_market_index_candles(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_index_candles".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_index_candles", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketTrades` implicit endpoint.
     pub async fn public_get_deepcoin_market_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_trades".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_trades", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketMarkPriceCandles` implicit endpoint.
     pub async fn public_get_deepcoin_market_mark_price_candles(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_market_mark_price_candles".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_market_mark_price_candles", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketMarkPrice` implicit endpoint.
@@ -79,17 +79,17 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `publicGetDeepcoinTradeFundRateCurrentFundingRate` implicit endpoint.
     pub async fn public_get_deepcoin_trade_fund_rate_current_funding_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_trade_fund_rate_current_funding_rate".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_trade_fund_rate_current_funding_rate", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetDeepcoinTradeFundRateHistory` implicit endpoint.
     pub async fn public_get_deepcoin_trade_fund_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_deepcoin_trade_fund_rate_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_deepcoin_trade_fund_rate_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAccountBalances` implicit endpoint.
     pub async fn private_get_deepcoin_account_balances(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_account_balances".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_account_balances", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAccountAllBalances` implicit endpoint.
@@ -99,12 +99,12 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAccountBills` implicit endpoint.
     pub async fn private_get_deepcoin_account_bills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_account_bills".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_account_bills", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAccountPositions` implicit endpoint.
     pub async fn private_get_deepcoin_account_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_account_positions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_account_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAccountTradeFee` implicit endpoint.
@@ -124,12 +124,12 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeFills` implicit endpoint.
     pub async fn private_get_deepcoin_trade_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_fills".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_fills", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeOrderByID` implicit endpoint.
     pub async fn private_get_deepcoin_trade_order_by_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_order_by_id".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_order_by_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeOrder` implicit endpoint.
@@ -139,27 +139,27 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeFinishOrderByID` implicit endpoint.
     pub async fn private_get_deepcoin_trade_finish_order_by_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_finish_order_by_id".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_finish_order_by_id", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeOrdersHistory` implicit endpoint.
     pub async fn private_get_deepcoin_trade_orders_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_orders_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_orders_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeV2OrdersPending` implicit endpoint.
     pub async fn private_get_deepcoin_trade_v2_orders_pending(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_v2_orders_pending".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_v2_orders_pending", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeTriggerOrdersPending` implicit endpoint.
     pub async fn private_get_deepcoin_trade_trigger_orders_pending(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_trigger_orders_pending".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_trigger_orders_pending", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeTriggerOrdersHistory` implicit endpoint.
     pub async fn private_get_deepcoin_trade_trigger_orders_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_trade_trigger_orders_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_trade_trigger_orders_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinCopytradingSupportContracts` implicit endpoint.
@@ -219,27 +219,27 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAssetDepositList` implicit endpoint.
     pub async fn private_get_deepcoin_asset_deposit_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_asset_deposit_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_asset_deposit_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAssetWithdrawList` implicit endpoint.
     pub async fn private_get_deepcoin_asset_withdraw_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_asset_withdraw_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_asset_withdraw_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinAssetRechargeChainList` implicit endpoint.
     pub async fn private_get_deepcoin_asset_recharge_chain_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_asset_recharge_chain_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_asset_recharge_chain_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinListenkeyAcquire` implicit endpoint.
     pub async fn private_get_deepcoin_listenkey_acquire(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_listenkey_acquire".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_listenkey_acquire", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinListenkeyExtend` implicit endpoint.
     pub async fn private_get_deepcoin_listenkey_extend(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deepcoin_listenkey_extend".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_deepcoin_listenkey_extend", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinSubAccountSubAccountApikey` implicit endpoint.
@@ -249,42 +249,42 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privatePostDeepcoinAccountSetLeverage` implicit endpoint.
     pub async fn private_post_deepcoin_account_set_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_account_set_leverage".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_account_set_leverage", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeOrder` implicit endpoint.
     pub async fn private_post_deepcoin_trade_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeReplaceOrder` implicit endpoint.
     pub async fn private_post_deepcoin_trade_replace_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_replace_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_replace_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeCancelOrder` implicit endpoint.
     pub async fn private_post_deepcoin_trade_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeBatchCancelOrder` implicit endpoint.
     pub async fn private_post_deepcoin_trade_batch_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_batch_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_batch_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeCancelTriggerOrder` implicit endpoint.
     pub async fn private_post_deepcoin_trade_cancel_trigger_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_cancel_trigger_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_cancel_trigger_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeSwapCancelAll` implicit endpoint.
     pub async fn private_post_deepcoin_trade_swap_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_swap_cancel_all".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_swap_cancel_all", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeTriggerOrder` implicit endpoint.
     pub async fn private_post_deepcoin_trade_trigger_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_trigger_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_trigger_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeAmendTriggerOrder` implicit endpoint.
@@ -294,17 +294,17 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeBatchClosePosition` implicit endpoint.
     pub async fn private_post_deepcoin_trade_batch_close_position(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_batch_close_position".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_batch_close_position", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeReplaceOrderSltp` implicit endpoint.
     pub async fn private_post_deepcoin_trade_replace_order_sltp(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_replace_order_sltp".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_replace_order_sltp", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeClosePositionByIds` implicit endpoint.
     pub async fn private_post_deepcoin_trade_close_position_by_ids(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_trade_close_position_by_ids".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_trade_close_position_by_ids", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeIncreasePosition` implicit endpoint.
@@ -339,7 +339,7 @@ impl Deepcoin {
 
     /// Auto-generated wrapper for the `privatePostDeepcoinAssetTransfer` implicit endpoint.
     pub async fn private_post_deepcoin_asset_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deepcoin_asset_transfer".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_deepcoin_asset_transfer", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinSubAccountCreateSubAccount` implicit endpoint.

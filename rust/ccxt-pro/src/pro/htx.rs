@@ -37,10 +37,8 @@ impl Htx {
         let described = Htx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1965,7 +1963,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let cost: Option<String> = self.safe_string2_opt(&order, Value::Str("orderValue".into()), Value::Str("trade_turnover".into()), &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(created));
@@ -1989,8 +1987,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), self.safe_string2(&order, Value::Str("tp_trigger_price".into()), Value::Str("tp_order_price".into()), &[]));
-        m.insert("stopLossPrice".to_string(), self.safe_string2(&order, Value::Str("sl_trigger_price".into()), Value::Str("sl_order_price".into()), &[]));
-        m.insert("info".to_string(), order);
+        m.insert("stopLossPrice".to_string(), self.safe_string2(order, Value::Str("sl_trigger_price".into()), Value::Str("sl_order_price".into()), &[]));
     m
 }), Some(&marketResolved));
 

@@ -14,22 +14,22 @@ use crate::exchange::ExchangeRuntime;
 impl Backpack {
     /// Auto-generated wrapper for the `publicGetApiV1Assets` implicit endpoint.
     pub async fn public_get_api_v1_assets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_assets".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_assets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Collateral` implicit endpoint.
     pub async fn public_get_api_v1_collateral(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_collateral".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_collateral", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1BorrowLendMarkets` implicit endpoint.
     pub async fn public_get_api_v1_borrow_lend_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_borrow_lend_markets".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_borrow_lend_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1BorrowLendMarketsHistory` implicit endpoint.
     pub async fn public_get_api_v1_borrow_lend_markets_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_borrow_lend_markets_history".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_borrow_lend_markets_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1BorrowLendApy` implicit endpoint.
@@ -39,7 +39,7 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `publicGetApiV1Markets` implicit endpoint.
     pub async fn public_get_api_v1_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_markets".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Market` implicit endpoint.
@@ -49,47 +49,47 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `publicGetApiV1Ticker` implicit endpoint.
     pub async fn public_get_api_v1_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_ticker".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_api_v1_ticker", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Tickers` implicit endpoint.
     pub async fn public_get_api_v1_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_tickers".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_tickers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Depth` implicit endpoint.
     pub async fn public_get_api_v1_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_depth".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_api_v1_depth", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Prediction` implicit endpoint.
     pub async fn public_get_api_v1_prediction(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_prediction".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_prediction", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1PredictionTags` implicit endpoint.
     pub async fn public_get_api_v1_prediction_tags(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_prediction_tags".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_prediction_tags", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1MarketSessions` implicit endpoint.
     pub async fn public_get_api_v1_market_sessions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_market_sessions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_market_sessions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1MarketHolidays` implicit endpoint.
     pub async fn public_get_api_v1_market_holidays(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_market_holidays".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_market_holidays", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1StockSessions` implicit endpoint.
     pub async fn public_get_api_v1_stock_sessions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_stock_sessions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_stock_sessions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1StockHolidays` implicit endpoint.
     pub async fn public_get_api_v1_stock_holidays(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_stock_holidays".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_stock_holidays", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1StockIndicativeQuote` implicit endpoint.
@@ -99,57 +99,57 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `publicGetApiV1Securities` implicit endpoint.
     pub async fn public_get_api_v1_securities(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_securities".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_securities", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Klines` implicit endpoint.
     pub async fn public_get_api_v1_klines(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_klines".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_klines", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1MarkPrices` implicit endpoint.
     pub async fn public_get_api_v1_mark_prices(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_mark_prices".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_mark_prices", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1OpenInterest` implicit endpoint.
     pub async fn public_get_api_v1_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_open_interest".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_open_interest", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1FundingRates` implicit endpoint.
     pub async fn public_get_api_v1_funding_rates(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_funding_rates".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_funding_rates", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Status` implicit endpoint.
     pub async fn public_get_api_v1_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_api_v1_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Ping` implicit endpoint.
     pub async fn public_get_api_v1_ping(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_ping".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_api_v1_ping", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Time` implicit endpoint.
     pub async fn public_get_api_v1_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_time".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_time", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Wallets` implicit endpoint.
     pub async fn public_get_api_v1_wallets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_wallets".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_wallets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Trades` implicit endpoint.
     pub async fn public_get_api_v1_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_trades".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_trades", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1TradesHistory` implicit endpoint.
     pub async fn public_get_api_v1_trades_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v1_trades_history".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_api_v1_trades_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Account` implicit endpoint.
@@ -174,7 +174,7 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privateGetApiV1BorrowLendPositions` implicit endpoint.
     pub async fn private_get_api_v1_borrow_lend_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_borrow_lend_positions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_api_v1_borrow_lend_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1BorrowLendPositionLiquidationPrice` implicit endpoint.
@@ -184,7 +184,7 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privateGetApiV1Capital` implicit endpoint.
     pub async fn private_get_api_v1_capital(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_capital".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_api_v1_capital", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1CapitalCollateral` implicit endpoint.
@@ -194,97 +194,97 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privateGetWapiV1CapitalDeposits` implicit endpoint.
     pub async fn private_get_wapi_v1_capital_deposits(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_capital_deposits".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_capital_deposits", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1CapitalDepositAddress` implicit endpoint.
     pub async fn private_get_wapi_v1_capital_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_wapi_v1_capital_deposit_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_wapi_v1_capital_deposit_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1CapitalWithdrawals` implicit endpoint.
     pub async fn private_get_wapi_v1_capital_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_capital_withdrawals".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_capital_withdrawals", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Position` implicit endpoint.
     pub async fn private_get_api_v1_position(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_position".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_api_v1_position", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryBorrowLend` implicit endpoint.
     pub async fn private_get_wapi_v1_history_borrow_lend(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_borrow_lend".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_borrow_lend", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryInterest` implicit endpoint.
     pub async fn private_get_wapi_v1_history_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_interest".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_interest", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryBorrowLendPositions` implicit endpoint.
     pub async fn private_get_wapi_v1_history_borrow_lend_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_borrow_lend_positions".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_borrow_lend_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryDust` implicit endpoint.
     pub async fn private_get_wapi_v1_history_dust(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_dust".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_dust", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryFills` implicit endpoint.
     pub async fn private_get_wapi_v1_history_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_fills".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_fills", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryFunding` implicit endpoint.
     pub async fn private_get_wapi_v1_history_funding(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_funding".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_funding", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryPosition` implicit endpoint.
     pub async fn private_get_wapi_v1_history_position(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_position".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_position", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryOrders` implicit endpoint.
     pub async fn private_get_wapi_v1_history_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_orders".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Rfqs` implicit endpoint.
     pub async fn private_get_api_v1_rfqs(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_rfqs".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_api_v1_rfqs", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryRfq` implicit endpoint.
     pub async fn private_get_wapi_v1_history_rfq(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_rfq".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_rfq", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryQuote` implicit endpoint.
     pub async fn private_get_wapi_v1_history_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_quote".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_quote", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryRfqFill` implicit endpoint.
     pub async fn private_get_wapi_v1_history_rfq_fill(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_rfq_fill".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_rfq_fill", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryQuoteFill` implicit endpoint.
     pub async fn private_get_wapi_v1_history_quote_fill(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_quote_fill".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_quote_fill", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistorySettlement` implicit endpoint.
     pub async fn private_get_wapi_v1_history_settlement(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_settlement".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_settlement", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1HistoryStrategies` implicit endpoint.
     pub async fn private_get_wapi_v1_history_strategies(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_wapi_v1_history_strategies".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_wapi_v1_history_strategies", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Strategy` implicit endpoint.
@@ -294,17 +294,17 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privateGetApiV1Strategies` implicit endpoint.
     pub async fn private_get_api_v1_strategies(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_strategies".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_api_v1_strategies", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Order` implicit endpoint.
     pub async fn private_get_api_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_api_v1_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Orders` implicit endpoint.
     pub async fn private_get_api_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_orders".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_api_v1_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1AccountConvertDust` implicit endpoint.
@@ -319,32 +319,32 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privatePostWapiV1CapitalWithdrawals` implicit endpoint.
     pub async fn private_post_wapi_v1_capital_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_wapi_v1_capital_withdrawals".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_wapi_v1_capital_withdrawals", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1Order` implicit endpoint.
     pub async fn private_post_api_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_api_v1_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1Orders` implicit endpoint.
     pub async fn private_post_api_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_api_v1_orders".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_api_v1_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1Rfq` implicit endpoint.
     pub async fn private_post_api_v1_rfq(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_rfq".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_api_v1_rfq", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqAccept` implicit endpoint.
     pub async fn private_post_api_v1_rfq_accept(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_rfq_accept".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_api_v1_rfq_accept", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqCancel` implicit endpoint.
     pub async fn private_post_api_v1_rfq_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_rfq_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_api_v1_rfq_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqQuote` implicit endpoint.
@@ -359,12 +359,12 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privateDeleteApiV1Order` implicit endpoint.
     pub async fn private_delete_api_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_api_v1_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_delete_api_v1_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1Orders` implicit endpoint.
     pub async fn private_delete_api_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_api_v1_orders".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_delete_api_v1_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1Strategy` implicit endpoint.
@@ -374,7 +374,7 @@ impl Backpack {
 
     /// Auto-generated wrapper for the `privateDeleteApiV1Strategies` implicit endpoint.
     pub async fn private_delete_api_v1_strategies(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_api_v1_strategies".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_delete_api_v1_strategies", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePatchApiV1Account` implicit endpoint.

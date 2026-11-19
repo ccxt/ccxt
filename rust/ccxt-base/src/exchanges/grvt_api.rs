@@ -49,12 +49,12 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateEdgePostAuthApiKeyLogin` implicit endpoint.
     pub async fn private_edge_post_auth_api_key_login(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_edge_post_auth_api_key_login".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_edge_post_auth_api_key_login", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateEdgePostAuthWalletLogin` implicit endpoint.
     pub async fn private_edge_post_auth_wallet_login(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_edge_post_auth_wallet_login".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_edge_post_auth_wallet_login", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateEdgePostAuthBuilderAuthorize` implicit endpoint.
@@ -84,7 +84,7 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1AllInstruments` implicit endpoint.
     pub async fn public_market_post_full_v1_all_instruments(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_all_instruments".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_all_instruments", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Instruments` implicit endpoint.
@@ -94,7 +94,7 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Currency` implicit endpoint.
     pub async fn public_market_post_full_v1_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1MarginRules` implicit endpoint.
@@ -109,12 +109,12 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Ticker` implicit endpoint.
     pub async fn public_market_post_full_v1_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_ticker".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_ticker", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Book` implicit endpoint.
     pub async fn public_market_post_full_v1_book(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_book".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_book", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Trade` implicit endpoint.
@@ -124,17 +124,17 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1TradeHistory` implicit endpoint.
     pub async fn public_market_post_full_v1_trade_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_trade_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_trade_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Kline` implicit endpoint.
     pub async fn public_market_post_full_v1_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_kline".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_kline", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1Funding` implicit endpoint.
     pub async fn public_market_post_full_v1_funding(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_market_post_full_v1_funding".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_market_post_full_v1_funding", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicMarketPostFullV1SupportedAssets` implicit endpoint.
@@ -149,12 +149,12 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1CreateOrder` implicit endpoint.
     pub async fn private_trading_post_full_v1_create_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_create_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_create_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1CancelOrder` implicit endpoint.
     pub async fn private_trading_post_full_v1_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1CancelOnDisconnect` implicit endpoint.
@@ -164,37 +164,37 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1CancelAllOrders` implicit endpoint.
     pub async fn private_trading_post_full_v1_cancel_all_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_cancel_all_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_cancel_all_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1Order` implicit endpoint.
     pub async fn private_trading_post_full_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1OrderHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_order_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_order_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1OpenOrders` implicit endpoint.
     pub async fn private_trading_post_full_v1_open_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_open_orders".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_open_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1FillHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_fill_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_fill_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_fill_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1Positions` implicit endpoint.
     pub async fn private_trading_post_full_v1_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_positions".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_positions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1FundingPaymentHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_funding_payment_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_funding_payment_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_funding_payment_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1GetSubAccounts` implicit endpoint.
@@ -204,7 +204,7 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1AccountSummary` implicit endpoint.
     pub async fn private_trading_post_full_v1_account_summary(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_account_summary".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_account_summary", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1AccountHistory` implicit endpoint.
@@ -224,27 +224,27 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1Transfer` implicit endpoint.
     pub async fn private_trading_post_full_v1_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_transfer".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_transfer", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1DepositHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_deposit_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_deposit_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_deposit_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1TransferHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_transfer_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_transfer_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_transfer_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1Withdrawal` implicit endpoint.
     pub async fn private_trading_post_full_v1_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_withdrawal".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_withdrawal", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1WithdrawalHistory` implicit endpoint.
     pub async fn private_trading_post_full_v1_withdrawal_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_withdrawal_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_withdrawal_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1AddPositionMargin` implicit endpoint.
@@ -264,12 +264,12 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1SetInitialLeverage` implicit endpoint.
     pub async fn private_trading_post_full_v1_set_initial_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_set_initial_leverage".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_set_initial_leverage", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1GetAllInitialLeverage` implicit endpoint.
     pub async fn private_trading_post_full_v1_get_all_initial_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_get_all_initial_leverage".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_get_all_initial_leverage", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1SetDeriskMmRatio` implicit endpoint.
@@ -314,7 +314,7 @@ impl Grvt {
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1AuthorizeBuilder` implicit endpoint.
     pub async fn private_trading_post_full_v1_authorize_builder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_trading_post_full_v1_authorize_builder".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_trading_post_full_v1_authorize_builder", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateTradingPostFullV1GetAuthorizedBuilders` implicit endpoint.

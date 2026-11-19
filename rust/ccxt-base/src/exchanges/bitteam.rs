@@ -36,10 +36,8 @@ impl Bitteam {
         let described = Bitteam::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -819,7 +817,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let status: Option<String> = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -837,8 +835,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("comment".to_string(), self.safe_string_k(&transaction, "description", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("comment".to_string(), self.safe_string_k(transaction, "description", &[]));
         m.insert("internal".to_string(), Value::Bool(false));
     m
 });

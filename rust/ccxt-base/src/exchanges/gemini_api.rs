@@ -24,7 +24,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV1Symbols` implicit endpoint.
     pub async fn public_get_v1_symbols(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_symbols".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v1_symbols", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1SymbolsDetailsSymbol` implicit endpoint.
@@ -44,7 +44,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV1PubtickerSymbol` implicit endpoint.
     pub async fn public_get_v1_pubticker_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_pubticker_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v1_pubticker_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1Feepromos` implicit endpoint.
@@ -54,17 +54,17 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV2TickerSymbol` implicit endpoint.
     pub async fn public_get_v2_ticker_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v2_ticker_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v2_ticker_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV2CandlesSymbolTimeframe` implicit endpoint.
     pub async fn public_get_v2_candles_symbol_timeframe(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_candles_symbol_timeframe".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v2_candles_symbol_timeframe", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1TradesSymbol` implicit endpoint.
     pub async fn public_get_v1_trades_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_trades_symbol".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v1_trades_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1AuctionSymbol` implicit endpoint.
@@ -74,12 +74,12 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV1AuctionSymbolHistory` implicit endpoint.
     pub async fn public_get_v1_auction_symbol_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_auction_symbol_history".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v1_auction_symbol_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1Pricefeed` implicit endpoint.
     pub async fn public_get_v1_pricefeed(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_pricefeed".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v1_pricefeed", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1FundingamountSymbol` implicit endpoint.
@@ -94,7 +94,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV1BookSymbol` implicit endpoint.
     pub async fn public_get_v1_book_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_book_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v1_book_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1EarnRates` implicit endpoint.
@@ -104,7 +104,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV2DerivativesCandlesSymbolTimeFrame` implicit endpoint.
     pub async fn public_get_v2_derivatives_candles_symbol_time_frame(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_derivatives_candles_symbol_time_frame".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v2_derivatives_candles_symbol_time_frame", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV2FxrateSymbolTimestamp` implicit endpoint.
@@ -114,7 +114,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV1RiskstatsSymbol` implicit endpoint.
     pub async fn public_get_v1_riskstats_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_riskstats_symbol".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_v1_riskstats_symbol", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsEvents` implicit endpoint.
@@ -154,12 +154,12 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsVolumeDate` implicit endpoint.
     pub async fn public_get_v1_prediction_markets_volume_date(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v1_prediction_markets_volume_date", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsVolumeDateHourly` implicit endpoint.
     pub async fn public_get_v1_prediction_markets_volume_date_hourly(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date_hourly".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("public_get_v1_prediction_markets_volume_date_hourly", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsTerms` implicit endpoint.
@@ -234,17 +234,17 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1StakingHistory` implicit endpoint.
     pub async fn private_post_v1_staking_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_staking_history".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_staking_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1OrderNew` implicit endpoint.
     pub async fn private_post_v1_order_new(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_order_new".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v1_order_new", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1OrderCancel` implicit endpoint.
     pub async fn private_post_v1_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_order_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v1_order_cancel", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1WrapSymbol` implicit endpoint.
@@ -264,27 +264,27 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1OrderStatus` implicit endpoint.
     pub async fn private_post_v1_order_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_order_status".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v1_order_status", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Orders` implicit endpoint.
     pub async fn private_post_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_orders".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Mytrades` implicit endpoint.
     pub async fn private_post_v1_mytrades(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_mytrades".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_mytrades", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Notionalvolume` implicit endpoint.
     pub async fn private_post_v1_notionalvolume(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_notionalvolume".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v1_notionalvolume", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Tradevolume` implicit endpoint.
     pub async fn private_post_v1_tradevolume(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_tradevolume".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_tradevolume", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1ClearingNew` implicit endpoint.
@@ -309,27 +309,27 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1Balances` implicit endpoint.
     pub async fn private_post_v1_balances(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_balances".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_balances", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1BalancesStaking` implicit endpoint.
     pub async fn private_post_v1_balances_staking(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_balances_staking".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_balances_staking", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1NotionalbalancesCurrency` implicit endpoint.
     pub async fn private_post_v1_notionalbalances_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_notionalbalances_currency".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_notionalbalances_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Transfers` implicit endpoint.
     pub async fn private_post_v1_transfers(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_transfers".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_transfers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1AddressesNetwork` implicit endpoint.
     pub async fn private_post_v1_addresses_network(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_addresses_network".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_addresses_network", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1DepositNetworkNewAddress` implicit endpoint.
@@ -339,12 +339,12 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1DepositCurrencyNewAddress` implicit endpoint.
     pub async fn private_post_v1_deposit_currency_new_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_deposit_currency_new_address".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v1_deposit_currency_new_address", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1WithdrawCurrency` implicit endpoint.
     pub async fn private_post_v1_withdraw_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_withdraw_currency".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_v1_withdraw_currency", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1AccountTransferCurrency` implicit endpoint.
@@ -379,7 +379,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1EarnHistory` implicit endpoint.
     pub async fn private_post_v1_earn_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_earn_history".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_earn_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1ApprovedAddressesNetworkRequest` implicit endpoint.
@@ -409,7 +409,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1AccountList` implicit endpoint.
     pub async fn private_post_v1_account_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_account_list".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_account_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Heartbeat` implicit endpoint.
@@ -424,7 +424,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1Custodyaccountfees` implicit endpoint.
     pub async fn private_post_v1_custodyaccountfees(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_custodyaccountfees".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_custodyaccountfees", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate` implicit endpoint.
@@ -504,12 +504,12 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV1PerpetualsFundingPayment` implicit endpoint.
     pub async fn private_post_v1_perpetuals_funding_payment(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_perpetuals_funding_payment".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_perpetuals_funding_payment", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1PerpetualsFundingpaymentreportRecordsJson` implicit endpoint.
     pub async fn private_post_v1_perpetuals_fundingpaymentreport_records_json(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_perpetuals_fundingpaymentreport_records_json".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v1_perpetuals_fundingpaymentreport_records_json", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Positions` implicit endpoint.
@@ -574,7 +574,7 @@ impl Gemini {
 
     /// Auto-generated wrapper for the `privatePostV2Transfers` implicit endpoint.
     pub async fn private_post_v2_transfers(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v2_transfers".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_post_v2_transfers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV2WithdrawNetworkTicker` implicit endpoint.

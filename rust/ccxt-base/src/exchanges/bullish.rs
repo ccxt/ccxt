@@ -36,10 +36,8 @@ impl Bullish {
         let described = Bullish::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -716,7 +714,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -729,8 +727,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         m.insert("entryPrice".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.safe_number_k(&position, "notional", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("notional".to_string(), self.safe_number_k(position, "notional", &[]));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
@@ -897,13 +894,12 @@ impl crate::exchange::DerivedExchange for Bullish {
         let openInterest: Option<String> = self.safe_string_k_opt(&interest, "openInterest", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), interest.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("openInterestAmount".to_string(), openInterest.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), self.safe_string_k(&interest, "createdAtTimestamp", &[]));
-        m.insert("datetime".to_string(), self.safe_string_k(&interest, "createdAtDatetime", &[]));
-        m.insert("info".to_string(), interest);
+        m.insert("datetime".to_string(), self.safe_string_k(interest, "createdAtDatetime", &[]));
         m.insert("baseVolume".to_string(), openInterest.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
     m

@@ -36,10 +36,8 @@ impl Toobit {
         let described = Toobit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -269,7 +267,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         let triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(&order, "stopPrice", &[]));
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOrderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -287,8 +285,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "cumulativeQuoteQty", &[]))));
         m.insert("average".to_string(), self.safe_string_k(&order, "avgPrice", &[]));
         m.insert("amount".to_string(), self.safe_string_k(&order, "origQty", &[]));
-        m.insert("filled".to_string(), self.safe_string_k(&order, "executedQty", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("filled".to_string(), self.safe_string_k(order, "executedQty", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -409,7 +406,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         let leverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "avgPrice", &[]));
@@ -426,8 +423,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(&position, "margin", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("initialMargin".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::from(leverage));
         m.insert("liquidationPrice".to_string(), Value::Null);
@@ -517,7 +513,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -525,8 +521,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_type(self.safe_string_k(&item, "flowType", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), item);
+        m.insert("type".to_string(), self.parse_ledger_type(self.safe_string_k(item, "flowType", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), Value::Null);
@@ -718,7 +713,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         let type_var: String = (if isWithdraw { "withdrawal".to_string() } else { "deposit".to_string() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "txId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -733,8 +728,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("type".to_string(), Value::from(type_var.clone()));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "quantity", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transaction);
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("comment".to_string(), Value::Null);
@@ -3835,11 +3829,10 @@ impl Toobit {
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("maker".to_string(), self.safe_number_k(&data, "closeMakerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&data, "closeTakerFee", &[]));
-        m.insert("info".to_string(), data);
+        m.insert("taker".to_string(), self.safe_number_k(data, "closeTakerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

@@ -37,10 +37,8 @@ impl Bingx {
         let described = Bingx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1851,15 +1849,14 @@ impl Bingx {
         let collateral: Option<f64> = (if (marginMode.as_deref() == Some("isolated")) { self.safe_number_k(&position, "iw", &[]).as_f64() } else { None });
         return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[Value::Null, Value::Str("swap".into())]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "ep", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "up", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "up", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(contractsAbs.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), Value::Null);

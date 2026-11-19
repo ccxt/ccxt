@@ -36,10 +36,8 @@ impl Deepcoin {
         let described = Deepcoin::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -168,7 +166,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -178,8 +176,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         m.insert("takerOrMaker".to_string(), self.parse_taker_or_maker(execType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string2(&trade, Value::Str("fillPx".into()), Value::Str("px".into()), &[]));
-        m.insert("amount".to_string(), self.safe_string2(&trade, Value::Str("fillSz".into()), Value::Str("sz".into()), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string2(trade, Value::Str("fillSz".into()), Value::Str("sz".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -667,7 +664,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let type_var: Option<String> = self.safe_string_k_opt(&item, "type", &[]);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "billId", &[]));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
@@ -679,8 +676,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), self.safe_string_k(&item, "bal", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("after".to_string(), self.safe_string_k(item, "bal", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -762,15 +758,14 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let status: Option<String> = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
-        m.insert("address".to_string(), self.safe_string_k(&transaction, "address", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("address".to_string(), self.safe_string_k(transaction, "address", &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);

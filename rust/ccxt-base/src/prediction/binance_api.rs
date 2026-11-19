@@ -19,12 +19,12 @@ impl Binance {
 
     /// Auto-generated wrapper for the `sapiPrivateGetMarketList` implicit endpoint.
     pub async fn sapi_private_get_market_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_market_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_market_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetMarketSearch` implicit endpoint.
     pub async fn sapi_private_get_market_search(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("sapi_private_get_market_search".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("sapi_private_get_market_search", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetMarketDetail` implicit endpoint.
@@ -34,7 +34,7 @@ impl Binance {
 
     /// Auto-generated wrapper for the `sapiPrivateGetOrderBook` implicit endpoint.
     pub async fn sapi_private_get_order_book(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_order_book".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_order_book", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetOrderBookLastTradePrice` implicit endpoint.
@@ -44,12 +44,12 @@ impl Binance {
 
     /// Auto-generated wrapper for the `sapiPrivateGetWalletList` implicit endpoint.
     pub async fn sapi_private_get_wallet_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_wallet_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_wallet_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetBalancePaymentOptions` implicit endpoint.
     pub async fn sapi_private_get_balance_payment_options(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_balance_payment_options".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_balance_payment_options", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetQuotaLimitStatus` implicit endpoint.
@@ -69,12 +69,12 @@ impl Binance {
 
     /// Auto-generated wrapper for the `sapiPrivateGetPositionList` implicit endpoint.
     pub async fn sapi_private_get_position_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_position_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_position_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetPositionFilter` implicit endpoint.
     pub async fn sapi_private_get_position_filter(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_position_filter".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_position_filter", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetPositionToken` implicit endpoint.
@@ -89,27 +89,27 @@ impl Binance {
 
     /// Auto-generated wrapper for the `sapiPrivateGetOrderList` implicit endpoint.
     pub async fn sapi_private_get_order_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_order_list".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_order_list", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetOrderHistory` implicit endpoint.
     pub async fn sapi_private_get_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_get_order_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_get_order_history", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostTradeGetQuote` implicit endpoint.
     pub async fn sapi_private_post_trade_get_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_post_trade_get_quote".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_post_trade_get_quote", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostTradePlaceOrderBundle` implicit endpoint.
     pub async fn sapi_private_post_trade_place_order_bundle(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_post_trade_place_order_bundle".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_post_trade_place_order_bundle", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivatePostTradeBatchCancel` implicit endpoint.
     pub async fn sapi_private_post_trade_batch_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("sapi_private_post_trade_batch_cancel".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("sapi_private_post_trade_batch_cancel", optional_args).await
     }
 
 }

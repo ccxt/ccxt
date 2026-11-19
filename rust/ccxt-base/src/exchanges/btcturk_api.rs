@@ -34,17 +34,17 @@ impl Btcturk {
 
     /// Auto-generated wrapper for the `publicGetOhlc` implicit endpoint.
     pub async fn public_get_ohlc(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ohlc".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_ohlc", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetServerExchangeinfo` implicit endpoint.
     pub async fn public_get_server_exchangeinfo(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("public_get_server_exchangeinfo".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("public_get_server_exchangeinfo", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUsersBalances` implicit endpoint.
     pub async fn private_get_users_balances(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_users_balances".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_users_balances", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOpenOrders` implicit endpoint.
@@ -64,7 +64,7 @@ impl Btcturk {
 
     /// Auto-generated wrapper for the `privateGetUsersTransactionsTrade` implicit endpoint.
     pub async fn private_get_users_transactions_trade(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_get_users_transactions_trade".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_get_users_transactions_trade", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUsersTransactionsCrypto` implicit endpoint.
@@ -79,7 +79,7 @@ impl Btcturk {
 
     /// Auto-generated wrapper for the `privateGetCryptoDepositDeclarations` implicit endpoint.
     pub async fn private_get_crypto_deposit_declarations(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_crypto_deposit_declarations".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("private_get_crypto_deposit_declarations", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUsersTransactionsCrypto` implicit endpoint.
@@ -94,12 +94,12 @@ impl Btcturk {
 
     /// Auto-generated wrapper for the `privatePostOrder` implicit endpoint.
     pub async fn private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_post_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCryptoDepositDeclarationsConfirm` implicit endpoint.
@@ -109,17 +109,17 @@ impl Btcturk {
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.
     pub async fn private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_order".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("private_delete_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `graphGetOhlcs` implicit endpoint.
     pub async fn graph_get_ohlcs(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        if let Value::Arr(a) = self.call_method(Value::Str("graph_get_ohlcs".into()), optional_args).await { Some(a) } else { None }
+        self.call_method_as("graph_get_ohlcs", optional_args).await
     }
 
     /// Auto-generated wrapper for the `graphGetKlinesHistory` implicit endpoint.
     pub async fn graph_get_klines_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        if let Value::Dict(m) = self.call_method(Value::Str("graph_get_klines_history".into()), optional_args).await { Some(m) } else { None }
+        self.call_method_as("graph_get_klines_history", optional_args).await
     }
 
 }

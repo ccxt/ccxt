@@ -36,10 +36,8 @@ impl Poloniex {
         let described = Poloniex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -266,15 +264,14 @@ impl crate::exchange::DerivedExchange for Poloniex {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_lower2(&trade, Value::Str("ordType".into()), Value::Str("type".into()), &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("takerOrMaker".to_string(), self.safe_string_lower2(&trade, Value::Str("matchRole".into()), Value::Str("role".into()), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("takerOrMaker".to_string(), self.safe_string_lower2(trade, Value::Str("matchRole".into()), Value::Str("role".into()), &[]));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
@@ -438,7 +435,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let hedged: bool = (self.safe_string_k(&order, "posSide", &[]).as_str() != Some("BOTH"));
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -453,8 +450,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_string2(&order, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]));
         m.insert("cost".to_string(), self.safe_string_k(&order, "execAmt", &[]));
-        m.insert("average".to_string(), self.safe_string2(&order, Value::Str("avgPrice".into()), Value::Str("avgPx".into()), &[]));
-        m.insert("info".to_string(), order);
+        m.insert("average".to_string(), self.safe_string2(order, Value::Str("avgPrice".into()), Value::Str("avgPx".into()), &[]));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
@@ -572,7 +568,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -599,8 +595,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         m.insert("leverage".to_string(), self.safe_integer_k(&position, "lever", &[]));
         m.insert("marginRatio".to_string(), self.safe_number_k(&position, "mgnRatio", &[]));
         m.insert("stopLossPrice".to_string(), self.safe_number_k(&position, "slTrgPx", &[]));
-        m.insert("takeProfitPrice".to_string(), self.safe_number_k(&position, "tpTrgPx", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("takeProfitPrice".to_string(), self.safe_number_k(position, "tpTrgPx", &[]));
     m
 })));
 
@@ -633,7 +628,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let accountIds: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsById");
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string2(&transfer, Value::Str("id".into()), Value::Str("transferId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -641,8 +636,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string(&accountIds, fromAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountId.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("toAccount".to_string(), self.safe_string(&accountIds, toAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountId.map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(&transfer, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transfer);
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
 

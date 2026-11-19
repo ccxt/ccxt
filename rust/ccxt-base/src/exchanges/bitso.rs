@@ -36,10 +36,8 @@ impl Bitso {
         let described = Bitso::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -383,9 +381,8 @@ impl crate::exchange::DerivedExchange for Bitso {
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&item, "created_at", &[]));
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
-        m.insert("id".to_string(), self.safe_string_k(&item, "eid", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("info".to_string(), item.clone());
+        m.insert("id".to_string(), self.safe_string_k(item, "eid", &[]));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
@@ -410,7 +407,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), rawCurrency.clone());
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), self.safe_string_k(&rawCurrency, "full_name", &[]));
@@ -443,8 +440,7 @@ impl crate::exchange::DerivedExchange for Bitso {
     m
 }));
         m.insert("networks".to_string(), Value::Null);
-        m.insert("type".to_string(), self.safe_string_k(&rawCurrency, "type", &[]));
-        m.insert("info".to_string(), rawCurrency);
+        m.insert("type".to_string(), self.safe_string_k(rawCurrency, "type", &[]));
     m
 }));
 

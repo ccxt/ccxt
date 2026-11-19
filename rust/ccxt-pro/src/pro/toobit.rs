@@ -37,10 +37,8 @@ impl Toobit {
         let described = Toobit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -64,7 +62,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         }
         return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "T", &[]));
         m.insert("timestamp".to_string(), ts.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("datetime".to_string(), self.iso8601(ts.map(Value::from).unwrap_or(Value::Null)));
@@ -74,8 +72,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("side".to_string(), self.safe_string_lower_k(&trade, "S", &[]));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("price".to_string(), self.safe_string_k(&trade, "p", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "q", &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -1388,7 +1385,7 @@ impl Toobit {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "i", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "c", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1407,8 +1404,7 @@ impl Toobit {
         m.insert("average".to_string(), self.safe_string_k(&order, "p", &[]));
         m.insert("filled".to_string(), self.safe_string_k(&order, "z", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&order, "X", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), order);
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order, "X", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1659,7 +1655,7 @@ impl Toobit {
         let timestamp: Option<i64> = self.safe_integer_k(&position, "E", &[]).as_i64();
         return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[]));
         m.insert("notional".to_string(), Value::from(self.omit_zero(self.safe_string_k(&position, "pv", &[]))));
@@ -1681,8 +1677,7 @@ impl Toobit {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::from(self.omit_zero(self.safe_string_k(&position, "m", &[]))));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_string_k(&position, "v", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("leverage".to_string(), self.safe_string_k(position, "v", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
     m
 }));

@@ -37,10 +37,8 @@ impl Gemini {
         let described = Gemini::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -1136,7 +1134,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), order.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -1152,8 +1150,7 @@ impl Gemini {
         m.insert("cost".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&order, "original_amount", &[]));
         m.insert("filled".to_string(), self.safe_number_k(&order, "executed_amount", &[]));
-        m.insert("remaining".to_string(), self.safe_number_k(&order, "remaining_amount", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("remaining".to_string(), self.safe_number_k(order, "remaining_amount", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m

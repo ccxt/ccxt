@@ -39,10 +39,8 @@ impl Polymarket {
         let described = Polymarket::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -4335,9 +4333,8 @@ impl Polymarket {
         return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), __ws_arg_18);
-        m.insert("slug".to_string(), Value::Null);
+        m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("event".to_string(), (if ((slug.is_some()) && (slug.as_deref() != Some(""))) { __ws_arg_19 } else { Value::Null }));
-        m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
         m.insert("title".to_string(), __ws_arg_20);
         m.insert("tags".to_string(), Value::from(parsedTags));
         m.insert("markets".to_string(), Value::Arr(marketsList));

@@ -36,10 +36,8 @@ impl Polymarket {
         let described = Polymarket::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -147,7 +145,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("trade_id".into()), Value::Str("tid".into()), &[]));
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -156,8 +154,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string2(&trade, Value::Str("price".into()), Value::Str("p".into()), &[]));
-        m.insert("amount".to_string(), self.safe_string2(&trade, Value::Str("quantity".into()), Value::Str("qty".into()), &[]));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.safe_string2(trade, Value::Str("quantity".into()), Value::Str("qty".into()), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -397,7 +394,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -418,8 +415,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("liquidationPrice".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(&position, "liquidation_price", &[]))), &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number_k(&position, "initial_margin", &[]));
-        m.insert("info".to_string(), position);
+        m.insert("collateral".to_string(), self.safe_number_k(position, "initial_margin", &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::from(percentage));
@@ -454,7 +450,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let interval: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&marketResolved, "info"), "funding_interval", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("markPrice".to_string(), self.safe_number_k(&contract, "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "index_price", &[]));
@@ -462,8 +458,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "funding_rate", &[]));
-        m.insert("info".to_string(), contract);
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -563,7 +558,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), withdrawId.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -579,8 +574,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer_k(&transaction, "confirmed_timestamp", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("updated".to_string(), self.safe_integer_k(transaction, "confirmed_timestamp", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Bool(false));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

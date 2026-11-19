@@ -37,10 +37,8 @@ impl Nado {
         let described = Nado::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -2113,7 +2111,7 @@ impl Nado {
         }
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2123,8 +2121,7 @@ impl Nado {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
         m.insert("price".to_string(), self.parent.parse_x18(self.safe_string_k(&trade, "price", &[])));
-        m.insert("amount".to_string(), self.parent.parse_x18(self.safe_string_k(&trade, "taker_qty", &[])));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.parent.parse_x18(self.safe_string_k(trade, "taker_qty", &[])));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -2178,7 +2175,7 @@ impl Nado {
         }
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("id".into()), Value::Str("submission_idx".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2188,8 +2185,7 @@ impl Nado {
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.parent.parse_x18(self.safe_string_k(&trade, "price", &[])));
-        m.insert("amount".to_string(), self.parent.parse_x18(self.safe_string_k(&trade, "filled_qty", &[])));
-        m.insert("info".to_string(), trade);
+        m.insert("amount".to_string(), self.parent.parse_x18(self.safe_string_k(trade, "filled_qty", &[])));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

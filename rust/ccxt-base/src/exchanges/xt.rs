@@ -36,10 +36,8 @@ impl Xt {
         let described = Xt::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -935,7 +933,7 @@ impl crate::exchange::DerivedExchange for Xt {
         let timestamp: Option<i64> = self.safe_integer_k(&position, "closeTime", &[]).as_i64();
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -955,8 +953,7 @@ impl crate::exchange::DerivedExchange for Xt {
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
-        m.insert("realizedPnl".to_string(), self.safe_number2(&position, Value::Str("realizedProfit".into()), Value::Str("closeProfit".into()), &[]));
-        m.insert("info".to_string(), position);
+        m.insert("realizedPnl".to_string(), self.safe_number2(position, Value::Str("realizedProfit".into()), Value::Str("closeProfit".into()), &[]));
         m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginMode".to_string(), Value::from(marginMode));
         m.insert("percentage".to_string(), Value::Null);
@@ -1052,7 +1049,7 @@ impl crate::exchange::DerivedExchange for Xt {
         let timestamp: Option<i64> = self.safe_integer_k(&item, "createdTime", &[]).as_i64();
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("account".to_string(), Value::Null);
@@ -1064,8 +1061,7 @@ impl crate::exchange::DerivedExchange for Xt {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), self.safe_number_k(&item, "afterAmount", &[]));
-        m.insert("info".to_string(), item);
+        m.insert("after".to_string(), self.safe_number_k(item, "afterAmount", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1192,7 +1188,7 @@ impl crate::exchange::DerivedExchange for Xt {
         let networkId: Option<String> = self.safe_string_k_opt(&transaction, "chain", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "transactionId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1208,8 +1204,7 @@ impl crate::exchange::DerivedExchange for Xt {
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("currency".to_string(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), currencyCode.as_deref())));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), transaction);
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("comment".to_string(), memo.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7345,11 +7340,10 @@ impl Xt {
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerFee", &[]));
-        m.insert("info".to_string(), fee);
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

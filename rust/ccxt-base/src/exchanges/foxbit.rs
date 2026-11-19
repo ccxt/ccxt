@@ -36,10 +36,8 @@ impl Foxbit {
         let described = Foxbit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -502,7 +500,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "sn", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&cryptoDetails, "transaction_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -512,8 +510,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), self.safe_string_k(&transaction, "destination_tag", &[]));
-        m.insert("tagTo".to_string(), self.safe_string_k(&transaction, "destination_tag", &[]));
-        m.insert("info".to_string(), transaction);
+        m.insert("tagTo".to_string(), self.safe_string_k(transaction, "destination_tag", &[]));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2851,11 +2848,10 @@ impl Foxbit {
     pub fn parse_trading_fee(&self, mut entry: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), Value::Null);
+        m.insert("info".to_string(), entry.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&entry, "maker", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(&entry, "taker", &[]));
-        m.insert("info".to_string(), entry);
+        m.insert("taker".to_string(), self.safe_number_k(entry, "taker", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
