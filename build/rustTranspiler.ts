@@ -6912,6 +6912,21 @@ function moveCacheHandleIntoStoreBeforeResolve(content: string): string {
 // unit slot 022
 //
 // unit slot 023
+// The ws control handlers are inherent per-venue methods, called only from their own file: decide them per venue,
+// with every other file's names (except these) and the other crates counted as outside callers.
+const RUST_WS_CONTROL_HANDLERS = /^handle_(?:error_message|pong|ping|subscription_status|authenticate)$/;
+function rustBorrowWsControlHandlers (files: Map<string, string>, outside: string): Map<string, string> {
+    const namesIn = (t: string) => new Set([...rustBorrowMask(t).matchAll(/\b([a-z_][a-z0-9_]*)\s*\(/g)].map(x => x[1]));
+    const own = new Map([...files].map(([f, t]) => [f, namesIn(t)] as [string, Set<string>]));
+    const crate = [...namesIn(outside)];
+    const out = new Map<string, string>();
+    for (const [file, src] of files) {
+        const foreign = new Set(crate);
+        for (const [g, ns] of own) if (g !== file) for (const n of ns) if (!RUST_WS_CONTROL_HANDLERS.test(n)) foreign.add(n);
+        out.set(file, rustBorrowWsHandlerParams(new Map([[file, src]]), [...foreign].map(n => n + '()').join('\n')).get(file) ?? src);
+    }
+    return out;
+}
 //
 // unit slot 024
 //
@@ -15480,7 +15495,8 @@ impl std::ops::DerefMut for ${coreName} {
             }
         };
         walk('./rust');
-        for (const [f, src] of rustBorrowWsHandlerParams(files, outside.join('\n'))) {
+        const borrowed = rustBorrowWsControlHandlers(rustBorrowWsHandlerParams(files, outside.join('\n')), outside.join('\n'));
+        for (const [f, src] of borrowed) {
             if (src !== files.get(f)) fs.writeFileSync(`${EXCHANGES_WS_FOLDER}/${f}`, src);
         }
     }
