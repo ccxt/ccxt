@@ -26829,7 +26829,7 @@ function javaTestExchangeParam (printer, node) {
 export function installJavaTypedBaseFields (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || printer._javaTypedBaseFieldsPatched || typeof printer.printWrappedUnknownThisProperty !== 'function'
-        || typeof printer.printNativeEqualityIfProvable !== 'function') {
+        || typeof printer.printNativeEqualityIfProvable !== 'function' || typeof printer.printObjectValuesCall !== 'function') {
         return;
     }
     printer._javaTypedBaseFieldsPatched = true;
@@ -26844,6 +26844,16 @@ export function installJavaTypedBaseFields (transpiler) {
             return `this.${callee.name.text}.call(${node.arguments.map ((a) => printer.printNode (a, 0)).join (', ')})`;
         }
         return upstreamCall (node);
+    };
+    // `Object.values (this.clients)`: the base field is a Map<String, Client> (helper: null -> empty list)
+    const upstreamValues = printer.printObjectValuesCall.bind (printer);
+    printer.printObjectValuesCall = function (node, identation, parsedArg) {
+        const arg = node?.arguments?.length === 1 ? node.arguments[0] : undefined;
+        if (arg !== undefined && ts.isPropertyAccessExpression (arg) && arg.expression.kind === ts.SyntaxKind.ThisKeyword
+            && arg.name.text === 'clients' && javaTypedBaseFieldDeclared (printer, arg.name)) {
+            return '(this.clients == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(this.clients.values()))';
+        }
+        return upstreamValues (node, identation, parsedArg);
     };
     const upstreamEq = printer.printNativeEqualityIfProvable.bind (printer);
     printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {

@@ -92,7 +92,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
                 client.error = error; // onClose must not treat this as a server disconnect
             }
             client.close();
-            ((Map<String, Object>) this.clients).remove(client.url, client);
+            this.clients.remove(client.url, client);
             this.orderbooks.put(symbol, this.orderBook());
         } catch (Exception e) {
             client.reject(e, messageHash);

@@ -39,7 +39,7 @@ class ExchangeCloseTest {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> clientsMap(Exchange ex) {
-        return (Map<String, Object>) ex.clients;
+        return (Map<String, Object>) (Map<String, ?>) ex.clients;
     }
 
     /**

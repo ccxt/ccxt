@@ -1810,6 +1810,8 @@ class NewTranspiler {
             [/\(java\.util\.Map<String, Object>\)client\.futures/gm, '(java.util.Map)client.futures'],
             [/\(java\.util\.Map<String, Object>\)client\.subscriptions/gm, '(java.util.Map)client.subscriptions'],
             [/\(java\.util\.Map<String, Object>\)this\.clients/gm, '(java.util.Map)this.clients'],
+            // `clients` is the typed Map<String, Client> field: `delete this.clients[k]` needs no cast
+            [/\(\((?:java\.util\.)?Map<String,\s?Object>\)this\.clients\)\.remove\(/gm, 'this.clients.remove('],
 
             // new XyzRest() → new Xyz() for instantiating REST parent
             [/new (\w+)Rest\(\)/g, 'new io.github.ccxt.exchanges.$1()'],

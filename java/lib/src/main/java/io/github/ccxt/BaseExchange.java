@@ -526,7 +526,7 @@ public class BaseExchange {
     public Map<String, Object> orderbooks = new ConcurrentHashMap<>();
     // symbol -> timeframe row; every row is a plain HashMap (rows keep null values like JS)
     public Map<String, Map<String, Object>> ohlcvs = new ConcurrentHashMap<>();
-    public Object clients = new java.util.concurrent.ConcurrentHashMap<String, Client>();
+    public Map<String, Client> clients = new java.util.concurrent.ConcurrentHashMap<String, Client>();
 
     // regular maps / misc
     public Object transactions = new LinkedHashMap<String, Object>();
@@ -2129,9 +2129,8 @@ public class BaseExchange {
     // ─── WebSocket Bridge (matches C# Exchange.WsBridge.cs) ───
 
     /** The ws client registry. */
-    @SuppressWarnings("unchecked")
     private Map<String, Client> clientsMap() {
-        return (Map<String, Client>) this.clients;
+        return this.clients;
     }
 
     @SuppressWarnings("unchecked")
@@ -4255,7 +4254,7 @@ public class BaseExchange {
 
     @SuppressWarnings("unchecked")
     public java.util.concurrent.CompletableFuture<Object> closeWsClients() {
-        Map<String, Object> clientsMap = (Map<String, Object>) this.clients;
+        Map<String, Client> clientsMap = this.clients;
         if (clientsMap == null || clientsMap.isEmpty()) {
             return java.util.concurrent.CompletableFuture.completedFuture(null);
         }
