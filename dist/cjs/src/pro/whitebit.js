@@ -1130,7 +1130,7 @@ class whitebit extends whitebit$1["default"] {
                 if ((subId !== undefined) && (subId === id)) {
                     const method = this.safeValue(subscription, 'method');
                     if (method !== undefined) {
-                        method.call(this, client, message);
+                        this.handleAuthenticate(client, message);
                         return;
                     }
                 }

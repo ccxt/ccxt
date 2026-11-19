@@ -329,7 +329,7 @@ export default class bittrade extends bittradeRest {
             'symbol': symbolValue,
             'limit': limitValue,
             'params': params,
-            'method': this.handleOrderBookSubscription,
+            'method': 'handleOrderBookSubscription',
         };
         const orderbook = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
         return orderbook.limit();
@@ -403,7 +403,7 @@ export default class bittrade extends bittradeRest {
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
-                'method': this.handleOrderBookSnapshot,
+                'method': 'handleOrderBookSnapshot',
             };
             const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
@@ -534,9 +534,14 @@ export default class bittrade extends bittradeRest {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
-            const method = this.safeValue(subscription, 'method');
-            if (method !== undefined) {
-                return method.call(this, client, message, subscription);
+            const method = this.safeString(subscription, 'method');
+            if (method === 'handleOrderBookSnapshot') {
+                this.handleOrderBookSnapshot(client, message, subscription);
+                return undefined;
+            }
+            else if (method === 'handleOrderBookSubscription') {
+                this.handleOrderBookSubscription(client, message, subscription);
+                return undefined;
             }
             // clean up
             if (id in client.subscriptions) {

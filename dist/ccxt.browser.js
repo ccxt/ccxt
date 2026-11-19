@@ -548623,7 +548623,7 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
             'symbol': symbolValue,
             'limit': limitValue,
             'params': params,
-            'method': this.handleOrderBookSubscription
+            'method': 'handleOrderBookSubscription'
         };
         const orderbook = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
         return orderbook.limit();
@@ -548699,7 +548699,7 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
-                'method': this.handleOrderBookSnapshot
+                'method': 'handleOrderBookSnapshot'
             };
             const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
@@ -548828,9 +548828,13 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
-            const method = this.safeValue(subscription, 'method');
-            if (method !== undefined) {
-                return method.call(this, client, message, subscription);
+            const method = this.safeString(subscription, 'method');
+            if (method === 'handleOrderBookSnapshot') {
+                this.handleOrderBookSnapshot(client, message, subscription);
+                return undefined;
+            } else if (method === 'handleOrderBookSubscription') {
+                this.handleOrderBookSubscription(client, message, subscription);
+                return undefined;
             }
             // clean up
             if (id in client.subscriptions) {
@@ -610578,7 +610582,7 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
             const method = this.safeValue(client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
-                method.call(this, client, message);
+                this.handleAuthenticate(client, message);
                 return;
             }
         }
@@ -618704,7 +618708,7 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
                 if (subId !== undefined && subId === id) {
                     const method = this.safeValue(subscription, 'method');
                     if (method !== undefined) {
-                        method.call(this, client, message);
+                        this.handleAuthenticate(client, message);
                         return;
                     }
                 }

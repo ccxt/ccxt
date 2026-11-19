@@ -1627,7 +1627,7 @@ class phemex extends phemex$1["default"] {
             const method = this.safeValue(client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
-                method.call(this, client, message);
+                this.handleAuthenticate(client, message);
                 return;
             }
         }
