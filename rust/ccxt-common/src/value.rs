@@ -632,6 +632,9 @@ impl ScalarArg for Option<String> { fn scalar(&self) -> ScalarRef<'_> { self.as_
 impl ScalarArg for Option<f64> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |f| ScalarRef::Num(Value::Float(f))) } }
 impl ScalarArg for Option<i64> { fn scalar(&self) -> ScalarRef<'_> { self.map_or(ScalarRef::Null, |n| ScalarRef::Num(Value::Int(n))) } }
 impl<T: ScalarArg + ?Sized> ScalarArg for &T { fn scalar(&self) -> ScalarRef<'_> { (**self).scalar() } }
+impl From<ScalarRef<'_>> for Value {
+    fn from(r: ScalarRef<'_>) -> Self { match r { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::from(s), ScalarRef::Other(v) => v.clone() } }
+}
 
 impl std::ops::BitOr for Value {
     type Output = Value;

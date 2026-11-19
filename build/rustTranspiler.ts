@@ -6236,6 +6236,7 @@ const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
     ['safe_value', 1, 3],
     ['safe_integer', 1, 3],
     ['safe_value2', 1, 4],
+    ['price_to_precision', 1, 2],
 ];
 // Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
 // `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared
@@ -7239,6 +7240,12 @@ function lendStringReaderDefaultsOnce(content: string): string {
 // unit slot 018
 //
 // unit slot 019
+// `price_to_precision` (base and venue overrides) takes its value as `impl ScalarArg` so callers lend it
+// (row in RUST_SCALAR_LENT_FNS); the body boxes it once, as the old `price.into()` prologue did.
+function lendPriceToPrecisionValue(content: string): string {
+    return content.replace(/(\bfn price_to_precision\(&self, (?:symbol: Option<&str>|mut outcome: Value), price: )impl Into<crate::Value>(\) -> Option<String> \{\n\s*let mut price: Value = )price\.into\(\);/g,
+        '$1impl crate::value::ScalarArg$2Value::from(crate::value::ScalarArg::scalar(&price));');
+}
 //
 // unit slot 020
 // The value slot of `amount|cost_to_precision` (base, venue and prediction bodies) takes `impl ScalarArg`,
@@ -9252,6 +9259,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 018
     //
     // pass slot 019
+    lendPriceToPrecisionValue,
     //
     // pass slot 020
     lendPrecisionValueSlot,
