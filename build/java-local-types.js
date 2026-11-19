@@ -23179,6 +23179,7 @@ const R92J3_LONG_FIXED_PARAMS = {
     'futuresTransfer': [ 2 ],
     'insertMissingCandles': [ 3 ],
     'unsubscribeChannelsFrom': [ 5 ],
+    'unsubscribeChannelAt': [ 5 ],
 };
 
 function r92j3LongFixedParamType (printer, node) {
@@ -23266,6 +23267,43 @@ export function installJavaR92j3LongFixedParams (transpiler) {
         }
         return upstreamTyped (arg, type);
     };
+    // an int loop counter handed to such a slot widens to long, which boxes to the Long parameter
+    const upstreamCheckcast = printer.javaCheckcastArgument.bind (printer);
+    printer.javaCheckcastArgument = function (arg, printed, type) {
+        return type === 'Long' && printer.javaPrintedIntCounter (unwrapParens (arg)) && printed === unwrapParens (arg).text
+            ? `((long) ${printed})` : upstreamCheckcast (arg, printed, type);
+    };
+    // `xs[p]` over a checker string[]/array name and such a Long slot p: GetValue's null key, null
+    // receiver and off-range answers (its index is p.intValue()) as explicit guards
+    const upstreamRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+    printer.printCheckerTypedElementAccessRead = function (node) {
+        const read = r92j3LongSlotIndexRead (printer, node);
+        return read ?? upstreamRead (node);
+    };
+}
+
+function r92j3LongSlotIndexRead (printer, node) {
+    const receiver = node?.expression;
+    const key = node?.argumentExpression;
+    if (receiver === undefined || key === undefined || !ts.isIdentifier (receiver) || !ts.isIdentifier (key)
+        || node.parent?.kind === ts.SyntaxKind.ExpressionStatement || printer.isLeftSideOfAssignment (node)) {
+        return undefined;
+    }
+    try {
+        const param = printer.javaDeclarationOfIdentifier (key);
+        if (param?.kind !== ts.SyntaxKind.Parameter || r92j3LongFixedParamType (printer, param) !== 'Long'
+            || printer.printNode (key, 0) !== key.text || printer.printNode (receiver, 0) !== receiver.text
+            || printer.isVarargsArrayReference (receiver) || printer.javaStringElementsReceiver (receiver)
+            || !printer.isJavaListValueType (printer.getChecker ().getTypeAtLocation (receiver))) {
+            return undefined;
+        }
+    } catch (e) {
+        return undefined;
+    }
+    const r = receiver.text;
+    const k = key.text;
+    const list = `((java.util.List<?>)${r})`;
+    return `(${r} == null || ${k} == null || ${k}.intValue() < 0 || ${k}.intValue() >= ${list}.size() ? null : ${list}.get(${k}.intValue()))`;
 }
 
 // ===== r92j3 R3. base `this.parseToInt (x)` is a non-null long compare operand =====
