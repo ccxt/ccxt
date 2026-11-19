@@ -1956,9 +1956,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     } }
 
     /// Dispatch an implicit-API method by name (from transpiled `_api.rs`).
-    fn call_method(&mut self, name: Value, args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn call_method(&mut self, name: Value, args: &[&Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let n = match name { Value::Str(s) => s, _ => return Value::Null };
-        let params = args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
+        let params = args.get(0).map_or_else(|| Value::Map(HashMap::new()), |v| (*v).clone());
         match self.implicit_api_call(&n, params).await {
             Ok(v) => v,
             Err(e) => {
@@ -1971,19 +1971,19 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     } }
 
     /// `call_method` by name taken back as a dict: the map it answered, else an empty map (as `.into_dict()`).
-    fn call_method_t(&mut self, name: &'static str, args: &[Value]) -> impl ::std::future::Future<Output = crate::value::Dict> + Send { async move {
+    fn call_method_t(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = crate::value::Dict> + Send { async move {
         self.call_method_o(name, args).await.unwrap_or_default()
     } }
     /// `call_method` by name taken back as an optional dict: `None` for anything but a map (as `.into_opt_dict()`).
-    fn call_method_o(&mut self, name: &'static str, args: &[Value]) -> impl ::std::future::Future<Output = Option<crate::value::Dict>> + Send { async move {
+    fn call_method_o(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = Option<crate::value::Dict>> + Send { async move {
         if let Value::Dict(m) = self.call_method(Value::Str(name.into()), args).await { Some(m) } else { None }
     } }
     /// `call_method` by name taken back as a list: the list it answered, else an empty list (as `.into_list()`).
-    fn call_method_lt(&mut self, name: &'static str, args: &[Value]) -> impl ::std::future::Future<Output = crate::value::List> + Send { async move {
+    fn call_method_lt(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = crate::value::List> + Send { async move {
         self.call_method_lo(name, args).await.unwrap_or_default()
     } }
     /// `call_method` by name taken back as an optional list: `None` for anything but a list (as `.into_opt_list()`).
-    fn call_method_lo(&mut self, name: &'static str, args: &[Value]) -> impl ::std::future::Future<Output = Option<crate::value::List>> + Send { async move {
+    fn call_method_lo(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = Option<crate::value::List>> + Send { async move {
         if let Value::Arr(a) = self.call_method(Value::Str(name.into()), args).await { Some(a) } else { None }
     } }
 
