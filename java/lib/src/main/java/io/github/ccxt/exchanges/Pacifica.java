@@ -3441,7 +3441,7 @@ public class Pacifica extends PacificaApi
             String operationType = "update_leverage";
             if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {

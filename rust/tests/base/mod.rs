@@ -9,6 +9,8 @@ pub use test_afterConstructor::testAfterConstructor;
 pub use test_aggregate::testAggregate;
 #[path = "test.arrayConcat.rs"] pub mod test_arrayConcat;
 pub use test_arrayConcat::testArrayConcat;
+#[path = "test.arraySlice.rs"] pub mod test_arraySlice;
+pub use test_arraySlice::testArraySlice;
 #[path = "test.arraysConcat.rs"] pub mod test_arraysConcat;
 pub use test_arraysConcat::testArraysConcat;
 #[path = "test.base16ToBinary.rs"] pub mod test_base16ToBinary;

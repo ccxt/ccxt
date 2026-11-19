@@ -46,6 +46,8 @@ class okx extends \ccxt\async\okx {
                 'watchFundingRates' => true,
                 'unWatchTicker' => true,
                 'unWatchTickers' => true,
+                'unWatchMarkPrice' => true,
+                'unWatchMarkPrices' => true,
                 'unWatchOHLCV' => true,
                 'unWatchOHLCVForSymbols' => true,
                 'unWatchOrderBook' => true,
@@ -614,6 +616,60 @@ class okx extends \ccxt\async\okx {
             return $newTickers;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+    }
+
+    public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+         *
+         * unWatches a mark price
+         * @param {string} $symbol unified $symbol of the market to stop watching the mark price for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] the channel to unsubscribe from, mark-price by default
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_mark_prices(array( $symbol ), $params);
+    }
+
+    public function un_watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_un_watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-$channel
+         *
+         * unWatches mark prices
+         * @param {string[]} [$symbols] unified $symbols of the markets to stop watching the mark price for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] the $channel to unsubscribe from, mark-price by default
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $channel = $this->handle_option_string_and_params($params, 'watchMarkPrices', 'channel', 'mark-price')[0];
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $messageHashes[] = 'unsubscribe:mark-price:' . $symbol;
+            $marketId = $this->market_id($symbol);
+            $topic = array(
+                'channel' => $channel,
+                'instId' => $marketId,
+            );
+            $topics[] = $topic;
+        }
+        $request = array(
+            'op' => 'unsubscribe',
+            'args' => $topics,
+        );
+        $url = $this->get_url($channel, 'public');
+        return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2962,6 +3018,15 @@ class okx extends \ccxt\async\okx {
         }
     }
 
+    public function handle_unsubscription_mark_price(Client $client, string $symbol, string $channel) {
+        $subMessageHash = $channel . '::' . $symbol;
+        $messageHash = 'unsubscribe:mark-price:' . $symbol;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
+            unset($this->tickers[$symbol]);
+        }
+    }
+
     public function handle_unsubscription(Client $client, array $message) {
         //
         // {
@@ -2987,6 +3052,8 @@ class okx extends \ccxt\async\okx {
             $this->handle_un_subscription_trades($client, $symbol, $channel);
         } elseif (str_starts_with($channel, 'bbo') || str_starts_with($channel, 'book')) {
             $this->handle_unsubscription_order_book($client, $symbol, $channel);
+        } elseif ($channel === 'mark-price') {
+            $this->handle_unsubscription_mark_price($client, $symbol, $channel);
         } elseif (mb_strpos($channel, 'tickers') > -1) {
             $this->handle_unsubscription_ticker($client, $symbol, $channel);
         } elseif (str_starts_with($channel, 'candle')) {

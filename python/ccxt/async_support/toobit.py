@@ -2292,7 +2292,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType = self.handle_market_type_and_params('fetchClosedOrders', market, paramsUntil)[0]
         response = []
         if marketType == 'spot':
-            raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
+            raise NotSupported(self.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets')
         else:
             response = await self.privateGetApiV1FuturesHistoryOrders(requestUntil)
             #

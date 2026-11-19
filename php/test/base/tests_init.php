@@ -69,6 +69,7 @@ include_once __DIR__ . '/test_urlencode_nested.php';
 include_once __DIR__ . '/test_clone.php';
 include_once __DIR__ . '/test_string_to_base16.php';
 include_once __DIR__ . '/test_capitalize.php';
+include_once __DIR__ . '/test_array_slice.php';
 include_once __DIR__ . '/test_incrementing_nonce.php';
 include_once __DIR__ . '/test_binary_concat.php';
 include_once __DIR__ . '/test_base58_to_binary.php';
@@ -94,6 +95,7 @@ function base_tests_init() {
         test_decimal_to_precision();
         test_capitalize();
         test_incrementing_nonce();
+        test_array_slice();
         test_is_dictionary();
         test_number_to_string();
         test_precise();

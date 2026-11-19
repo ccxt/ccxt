@@ -5917,7 +5917,7 @@ impl Woo {
             return self.v3_private_put_futures_leverage(&[__ws_arg_40]).await;
         }  else {
             let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLeverage() is not supported for ").into()), marketType).into()), " markets")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " setLeverage() is not supported for ").into()), marketType).into()), " markets")));
         }
         Value::Null
         }).await?))

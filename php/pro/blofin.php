@@ -897,7 +897,8 @@ class blofin extends \ccxt\async\blofin {
         }
         $rawSubscriptions = array();
         $messageHashes = array();
-        if (($symbols !== null) && (strlen($symbols) > 0)) {
+        $symbolsLength = ($symbols === null) ? 0 : count($symbols);
+        if ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $current = $symbols[$i];
                 $market = null;
