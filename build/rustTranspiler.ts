@@ -6922,6 +6922,43 @@ function typeGuardedDefaultReads (content: string): string {
 }
 //
 // unit slot 008
+// A key list of a bare dict local that is only counted and read as `&str` borrows the map keys
+// instead of boxing a clone of every key; the source must not be written or moved later in the fn.
+function borrowLocalDictKeyLists(content: string): string {
+    const lines = content.split('\n');
+    const decl = /^(\s*)let mut (\w+): Vec<Value> = Value::Array\((\w+)\.as_map\(\)\.map\(\|__m\| __m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\)\)\.unwrap_or_default\(\)\)\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\);$/;
+    const fnStart = /^\s*(pub )?(async )?fn /;
+    for (let i = 0; i < lines.length; i++) {
+        const m = decl.exec(lines[i]);
+        if (!m) continue;
+        const [, ind, v, src] = m;
+        if (src === 'self') continue;
+        let end = lines.length;
+        for (let j = i + 1; j < lines.length; j++) { if (fnStart.test(lines[j])) { end = j; break; } }
+        const body = lines.slice(i + 1, end).join('\n');
+        const read = new RegExp('^\\.get\\((\\w+) as usize\\)\\.and_then\\(Value::as_str\\)');
+        let ok = true;
+        for (const u of body.matchAll(new RegExp('(?<![\\w.])' + v + '\\b', 'g'))) {
+            const rest = body.slice(u.index! + v.length, u.index! + v.length + 60);
+            if (!rest.startsWith('.len() as i64') && !read.test(rest)) { ok = false; break; }
+        }
+        if (ok) {
+            for (const u of body.matchAll(new RegExp('(?<![\\w.])' + src + '\\b', 'g'))) {
+                const pre = body.slice(Math.max(0, u.index! - 5), u.index!);
+                const rest = body.slice(u.index! + src.length, u.index! + src.length + 20);
+                if (pre.endsWith('&')) continue;
+                if (/^\.(as_map|as_str|as_array|get|is_null|clone)\(/.test(rest)) continue;
+                ok = false; break;
+            }
+        }
+        if (!ok) continue;
+        lines[i] = `${ind}let mut ${v}: Vec<&str> = ${src}.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();`;
+        for (let j = i + 1; j < end; j++) {
+            lines[j] = lines[j].replace(new RegExp('(?<![\\w.])' + v + '\\.get\\((\\w+) as usize\\)\\.and_then\\(Value::as_str\\)', 'g'), `${v}.get($1 as usize).copied()`);
+        }
+    }
+    return lines.join('\n');
+}
 //
 // unit slot 009
 //
@@ -7725,6 +7762,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typeGuardedDefaultReads,
     //
     // pass slot 008
+    borrowLocalDictKeyLists,
     //
     // pass slot 009
     //
