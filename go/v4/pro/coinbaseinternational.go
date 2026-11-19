@@ -114,16 +114,16 @@ func (this *Coinbaseinternational) RequestId() int64 {
 	this.Options["requestId"] = requestId
 	return requestId
 }
-func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) any {
+func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) string {
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isPrivate
 	if this.IsNativeDeribitCredentials() == true {
 		return "wss://www.deribit.com/ws/api/v2"
 	}
 	if isPrivate == true {
-		return this.SafeString(this.Urls["api"], "wsPrivate", "")
+		return *this.SafeString(this.Urls["api"], "wsPrivate", "")
 	} else {
-		return this.SafeString(this.Urls["api"], "ws", "")
+		return *this.SafeString(this.Urls["api"], "ws", "")
 	}
 }
 func (this *Coinbaseinternational) Ping(client any) any {
@@ -257,7 +257,7 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("unSubscribe", params)
-	var url any = this.GetWsUrl(false)
+	var url string = this.GetWsUrl(false)
 	var method string = "public/unsubscribe"
 	if isPrivate == true {
 		url = this.GetWsUrl(true)
@@ -2082,7 +2082,7 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 	var channelParts []string = ccxt.Split(channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isPrivate bool = (this.SafeString(channelParts, channelPartsLength-1) != nil && *this.SafeString(channelParts, channelPartsLength-1) == "raw")
-	var url any = this.GetWsUrl(isPrivate)
+	var url string = this.GetWsUrl(isPrivate)
 	if isPrivate {
 
 		r := <-this.AuthenticateAsync()
@@ -2306,7 +2306,7 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("authenticate", params)
-	var url any = this.GetWsUrl(true)
+	var url string = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
@@ -2384,7 +2384,7 @@ func (this *Coinbaseinternational) requestWsBody(ch chan ccxt.AsyncResult[any], 
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = isPrivate
 	var paramsResolved map[string]any = this.HandleRouteAndParams("requestWs", params)
-	var url any = this.GetWsUrl(true)
+	var url string = this.GetWsUrl(true)
 	if isPrivate == true {
 
 		r := <-this.AuthenticateAsync()
@@ -3207,7 +3207,7 @@ func (this *Coinbaseinternational) logoutWsBody(ch chan ccxt.AsyncResult[any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url any = this.GetWsUrl(true)
+	var url string = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",

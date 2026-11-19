@@ -11714,7 +11714,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = goTypedGvMapReads (content);
     content = goTypedNativeDerefs (path, content);
     content = goTypedStrNativeStringHelpers (path, content);
-    content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // row reads exist only from here
+    content = path.endsWith ('.go') ? goNativeStringAdds (goRetypeNonNilStringMethods (content)) : content;  // row reads exist only from here
     content = path.endsWith ('.go') ? goAsyncInt64Value (content) : content;  // typed async int64 value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
     content = path.endsWith ('.go') ? goPlainBoxIsEqual (content) : content;
@@ -15390,7 +15390,7 @@ async function runMain () {
             [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ], [ 'go async map pair holders: ', goAsyncMapPairHoldersCheck ], [ 'go async map pairs: ', goAsyncMapPairsCheck ],
             [ 'go str return self test: ', goStrReturnSelfTest, true ], [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
             [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
-            [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
+            [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go non-nil string methods: ', goRetypeNonNilStringMethodsSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
             [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, true ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, true ], goInlineIsEqualWiredCheck, [ '', goInOpHelperCheck ], goCaseAffixWiredCheck,
@@ -16744,7 +16744,7 @@ function goAddStringSum (text: string, masked: string, locals: Set<string>, over
         if (native !== null) { out.push (native); continue; }
         if (locals.has ('!' + term.trim ())) { out.push ('*' + term.trim ()); continue; }
         if (goRowStringLeaf (term.trim (), locals)) { out.push (term.trim () + '.(string)'); continue; }
-        const intArg = /^this\.NumberToString\((\w+)\)$/.exec (term.trim ());
+        const intArg = /^this\.NumberToString\((\w+)(?:\+\d+)?\)$/.exec (term.trim ());  // int + int literal: still FormatInt/Itoa
         if ((intArg !== null) && locals.has ('#i:' + intArg[1]) && !overridden.has ('NumberToString') && !overridden.has ('*NumberToString') && !overridden.has ('+NumberToString')) { out.push ('*' + term.trim ()); continue; }
         if (!goAddStringLeaf (term, mterm, locals, overridden)) { return null; }
         out.push (term.trim ());
@@ -16786,6 +16786,58 @@ function goRetypeStringReturns (content: string, receiver: string, methods: { [n
         content = content.slice (0, head.index) + head[0].replace (/ any \{$/, ' string {') + content.slice (head.index + head[0].length);
     }
     return content;
+}
+
+// venue ws-url methods (ts/src `: string`, declared once per venue, no subclass redeclares them): `any` -> `string`
+// when every return is a literal, a literal-default SafeString (derefed), a never-nil `*string` local (derefed),
+// a `string` local or a native string sum; any other return keeps the box
+function goRetypeNonNilStringMethods (content: string): string {
+    const GO_NON_NIL_STRING_METHODS = [ 'GetWsUrl' ];
+    if (!GO_NON_NIL_STRING_METHODS.some ((m) => content.indexOf (') ' + m + '(') >= 0)) { return content; }
+    const fileMasked = goTextMaskLiteralsAndComments (content);
+    const overridden = goAddOverriddenMethods (fileMasked);
+    return goRewriteFuncBlocks (content, (fn, start) => {
+        const head = /^(\s*func \(this \*\w+\) (\w+)\([^)\n]*\)) any \{\n/.exec (fn);
+        if ((head === null) || !GO_NON_NIL_STRING_METHODS.includes (head[2])) { return fn; }
+        const masked = fileMasked.slice (start, start + fn.length);
+        if (/\bfunc\s*\(/.test (masked.slice (head[0].length))) { return fn; }
+        const locals = goAddStringLocals (fn, masked, fileMasked);
+        const literal = (a: string) => /^"(?:[^"\\]|\\.)*"$/.test (a);
+        const rets = [ ...masked.matchAll (/^([ \t]*return )([^\n]*)$/gm) ];
+        if (rets.length === 0) { return fn; }
+        let out = fn;
+        for (let i = rets.length - 1; i >= 0; i--) {
+            const r = rets[i];
+            const at = (r.index as number) + r[1].length;
+            const expr = fn.slice (at, at + r[2].length);
+            if (expr.trim () !== expr) { return fn; }
+            let native: string | null = null;
+            if (literal (expr)) {
+                native = expr;
+            } else if (goNonNilStringCall (expr)) {
+                native = '*' + expr;
+            } else if (/^\w+$/.test (expr)) {
+                const type = goFuncDeclaredType (fn, expr);
+                native = (type === 'string') ? expr : (((type === '*string') && goNonNilStringPtr (fn, expr)) ? '*' + expr : null);
+            } else {
+                native = goAddStringSum (expr, r[2], locals, overridden);
+            }
+            if ((native === null) || /(?<![\w.])Add\(/.test (native)) { return fn; }
+            out = out.slice (0, at) + native + out.slice (at + expr.length);
+        }
+        return out.replace (head[0], head[1] + ' string {\n');
+    });
+}
+
+function goRetypeNonNilStringMethodsSelfTest (ok: SelfTestOk): void {
+    const f = (body: string, sig = '') => goNativeStringAdds (goRetypeNonNilStringMethods ('package ccxt\n\nfunc (this *X) GetWsUrl(' + sig + ') any {\n' + body + '}\nfunc (this *X) G() any {\n\treturn Add(this.GetWsUrl(), "/")\n}\n'));
+    let r = f ('\tvar u *string = this.SafeString(this.Urls, "ws", "")\n\tif x {\n\t\treturn "a"\n\t}\n\tif y {\n\t\treturn this.SafeString(this.Urls, "p", "")\n\t}\n\treturn *u + "/" + c\n', 'c string');
+    ok (r.includes ('GetWsUrl(c string) string {') && r.includes ('return *this.SafeString(this.Urls, "p", "")') && r.includes ('return this.GetWsUrl() + "/"'), 'every return proven: string, Add native: ' + r);
+    r = f ('\tvar u *string = this.SafeString(this.Urls, "ws", "")\n\treturn u\n');
+    ok (r.includes ('GetWsUrl() string {') && r.includes ('return *u'), 'literal-default pointer local derefs: ' + r);
+    for (const keep of [ '\treturn this.SafeString(this.Urls, "ws")\n', '\treturn nil\n', '\treturn p\n', '\treturn func() any {\n\t\treturn "a"\n\t}()\n' ]) {
+        ok (f (keep, 'p any').includes ('GetWsUrl(p any) any {'), 'unproven return keeps any: ' + keep);
+    }
 }
 
 // `this.Hash(x, h, "hex"|"base64")` answers a string: the HashString twin (go/v4/exchange_crypto.go) declares it
