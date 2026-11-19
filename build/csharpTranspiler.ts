@@ -1777,7 +1777,8 @@ const IDENTIFIER_COPY_SKIPPED_ALIASES = [ 'limitVar', 'symbolVar', 'timeframeVar
 // (`currency`, `networkIdToCode`, `safeCurrencyCode`, `safeOutcome`, `safeOutcomeSymbol`,
 // `filterByValueSinceLimit`), plus `getArrayLength`, whose List/IList twins are identity copies
 // of the `object` overload's IList branch (null -> 0). Definitions: cs/ccxt/base/*.cs.
-const IDENTIFIER_COPY_IDENTITY_CALLEES = [ 'currency', 'networkIdToCode', 'safeCurrencyCode', 'safeOutcome', 'safeOutcomeSymbol', 'filterByValueSinceLimit', 'getArrayLength' ];
+const IDENTIFIER_COPY_IDENTITY_CALLEES = [ 'currency', 'networkIdToCode', 'safeCurrencyCode', 'safeOutcome', 'safeOutcomeSymbol', 'filterByValueSinceLimit', 'getArrayLength', 'resolve' ];
+// `resolve`: ws/Client.cs `resolve(object content, object messageHash2)` and ws/Future.cs `resolve(object data)`
 
 // Box-identical widening edges a write may cross: `List<object>` implements `IList<object>`, and
 // `string?` is the same C# type as `string` (a CS86xx warning is all the annotation adds).
@@ -6916,6 +6917,19 @@ function csharpTypedPairEquality (sides, takeType, content: string): string | un
     return ((left !== undefined) && (left === kind (sides[1]))) ? `(${sides[0].text} == ${sides[1].text})` : undefined;
 }
 
+// `object f = (c as WebSocketClient).futures;` names the field's declared interface (ws/Client.cs
+// `OwnedTable<Future> futures` implements IDictionary<string, Future>) when every other use of `f`
+// in the file is `inOp(f, "lit")` or the existing `((IDictionary<string,object>)f)` cast
+function csharpWsClientFuturesLocal (content: string): string {
+    const decl = /^([ ]*)object (\w+) = \((\w+) as WebSocketClient\)\.futures;$/m.exec (content);
+    if ((decl === null) || /^namespace Tests;/m.test (content)) return content;
+    const name = decl[2];
+    const uses = content.match (new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g')) ?? [];
+    const allowed = content.match (new RegExp ('(?<![\\w.])(?:inOp\\(' + name + ', "[^"\\\\]*"\\)|\\(\\(IDictionary<string,object>\\)' + name + '\\))', 'g')) ?? [];
+    if ((uses.length !== allowed.length + 1) || (allowed.length === 0)) return content;
+    return content.replace (decl[0], decl[1] + 'IDictionary<string, Future> ' + name + ' = (' + decl[3] + ' as WebSocketClient).futures;');
+}
+
 // apply non-overlapping `{ start, end, text }` edits to `original`, last first
 function applyRegionEdits (original: string, edits: { start: number, end: number, text: string }[]): string {
     let out = original;
@@ -7307,7 +7321,8 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
-    const baseOut = csharpParamsBagGetValue (csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (content, objectNull)))))))))))));
+    const baseOut = csharpParamsBagGetValue (csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (csharpWsClientFuturesLocal (content), objectNull)))))))))))));
+
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
