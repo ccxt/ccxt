@@ -7028,7 +7028,48 @@ function lendLocalMapBoxes(content: string): string {
 }
 //
 // unit slot 010
-//
+// `marketIds` / `getMarketFromSymbols` only read their list: they take `Option<&Vec<Value>>` (None = undefined) and
+// callers lend the list they hold instead of boxing a copy; a non-list `Value` reads as None (TS types it `Strings`).
+const RUST_LENT_SYMBOL_LIST_FNS = ['market_ids', 'get_market_from_symbols'];
+function rustLentSymbolListArg (arg: string, content: string, at: number): string | undefined {
+    let m = /^(\w+)(?:\.clone\(\))?\.map_or\(Value::Null, Value::Arr\)$/.exec (arg);
+    if (m) return m[1] + '.as_deref()';
+    if ((m = /^Value::Arr\((\w+)(?:\.clone\(\))?\)$/.exec (arg))) return 'Some(&*' + m[1] + ')';
+    if ((m = /^Value::from\((vec!\[.*\])\)$/.exec (arg))) return 'Some(&' + m[1] + ')';
+    if ((m = /^&args\[\.\.\]$/.exec (arg))) return 'args.get(0).and_then(Value::as_array)';
+    if (!(m = /^(\w+)(?:\.clone\(\))?(\.into\(\))?$/.exec (arg))) return undefined;
+    // the nearest declaration of the local before the call: `name: T` (let / parameter) or an untyped `get_arg` local
+    const decl = [...content.slice (0, at).matchAll (new RegExp ('(?:\\b' + m[1] + ': ([^=,)]+?)\\s*[=,)]|let mut ' + m[1] + ' = get_arg\\()', 'g'))].pop ();
+    const ty = decl === undefined ? '' : decl[1] === undefined ? 'Value' : decl[1].trim ();
+    if (m[2]) return ty === 'Vec<Value>' ? 'Some(&' + m[1] + ')' : undefined;
+    return ty === 'Value' || ty === 'impl Into<crate::Value>' ? m[1] + '.as_array()' : undefined;
+}
+function lendSymbolListArgs (content: string): string {
+    content = content.replace (/(fn (?:market_ids|get_market_from_symbols)\(&self, )optional_args: &\[Value\](\) -> [^{]*\{\n\s*)let mut symbols = get_arg\(optional_args, 0, Value::Null\);([\s\S]*?)if \(symbols == Value::Null\) \{\s*return None;\s*\}/g,
+        (_s, a, b, c) => a + 'symbols: Option<&Vec<Value>>' + b.replace (/\n\s*$/, '') + c + 'let Some(symbols) = symbols else { return None; };');
+    const at = content.indexOf ('fn market_ids(&self, symbols: Option<&Vec<Value>>)');
+    if (at >= 0) {
+        const open = content.indexOf ('{', at) + 1, close = balancedCloseIndex (content, open);
+        content = content.slice (0, open) + content.slice (open, close).replace (/symbols\.as_array\(\)\.map\(Vec::as_slice\)\.unwrap_or_default\(\)\.get\(/g, 'symbols.get(') + content.slice (close);
+    }
+    const re = new RegExp ('\\bself\\.(?:' + RUST_LENT_SYMBOL_LIST_FNS.join ('|') + ')\\(', 'g');
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = re.exec (content)) !== null) {
+        const open = m.index + m[0].length, close = balancedCloseIndex (content, open);
+        const inner = content.slice (open, close).trim ();
+        let arg: string | undefined;
+        if (inner === '&[]') arg = 'None';
+        else if (inner === '&args[..]') arg = rustLentSymbolListArg (inner, content, m.index);
+        else if (inner.startsWith ('&[') && inner.endsWith (']') && balancedCloseIndex (inner, 2) === inner.length - 1) {
+            const parts = splitRustArgs (inner.slice (2, -1));
+            if (parts.length === 1) arg = rustLentSymbolListArg (parts[0].trim (), content, m.index);
+        }
+        if (arg === undefined) throw new Error ('lendSymbolListArgs: unproven argument ' + inner);
+        out += content.slice (last, open) + arg;
+        last = close;
+    }
+    return out + content.slice (last);
+}
 // unit slot 011
 //
 // unit slot 012
@@ -7834,6 +7875,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendLocalMapBoxes,
     //
     // pass slot 010
+    lendSymbolListArgs,
     //
     // pass slot 011
     //
