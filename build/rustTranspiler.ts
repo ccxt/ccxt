@@ -7016,6 +7016,23 @@ function lendEncoderOperands(content: string): string {
 }
 //
 // unit slot 034
+// `watch_multiple` reads both hash lists in place (`impl WsHashList`): lend a bare local instead of cloning it.
+function lendWatchMultipleHashes(content: string): string {
+    return content.replace(/\.watch_multiple\(([^;\n]*?)\)\.await/g, (call, inner: string) => {
+        const args: string[] = [];
+        let depth = 0, cur = '';
+        for (const ch of inner) {
+            if ('([{'.includes(ch)) depth++;
+            if (')]}'.includes(ch)) depth--;
+            if (ch === ',' && depth === 0) { args.push(cur); cur = ''; continue; }
+            cur += ch;
+        }
+        args.push(cur);
+        if (args.length !== 5 || depth !== 0) return call;
+        for (const i of [1, 3]) args[i] = args[i].replace(/^(\s*)([A-Za-z_]\w*)\.clone\(\)$/, '$1&$2');
+        return '.watch_multiple(' + args.join(',') + ').await';
+    });
+}
 //
 // unit slot 035
 //
@@ -7336,6 +7353,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendEncoderOperands,
     //
     // pass slot 034
+    lendWatchMultipleHashes,
     //
     // pass slot 035
     //

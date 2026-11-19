@@ -1388,6 +1388,15 @@ impl Exchange {
 // `self.request_typed(...)`, … on a Core (or inside an `ExchangeBase` default)
 // resolve here. Bodies reach `Exchange` fields via the `DerefMut` bound, other
 // base methods via `ExchangeBase`, and pure `impl Exchange` helpers via `Deref`.
+/// Hash-list argument of `watch_multiple`: read in place, so callers lend their list.
+pub trait WsHashList { fn ws_hashes(&self) -> Vec<String>; }
+impl WsHashList for Value { fn ws_hashes(&self) -> Vec<String> { ws_string_list(self) } }
+impl WsHashList for &Value { fn ws_hashes(&self) -> Vec<String> { ws_string_list(self) } }
+impl WsHashList for &crate::value::List { fn ws_hashes(&self) -> Vec<String> { list_strings(self) } }
+impl WsHashList for crate::value::List { fn ws_hashes(&self) -> Vec<String> { list_strings(self) } }
+fn list_strings(a: &[Value]) -> Vec<String> {
+    a.iter().filter_map(|x| x.as_str().map(str::to_string)).collect()
+}
 /// Coerce a `Value` (string, or list of strings) into a `Vec<String>` of
 /// message/subscribe hashes for the WS drive loop.
 fn ws_string_list(v: &Value) -> Vec<String> {
@@ -1683,17 +1692,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn watch_multiple<'a>(
         &mut self,
         url: impl Into<Option<&'a str>>,
-        message_hashes: impl Into<Value>,
+        message_hashes: impl WsHashList,
         message: impl Into<Value>,
-        subscribe_hashes: impl Into<Value>,
+        subscribe_hashes: impl WsHashList,
         subscription: impl Into<Value>,
     ) -> impl ::std::future::Future<Output = Value> + Send {
-        let (url_s, message_hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.into(), message.into());
-        let (subscribe_hashes, subscription) = (subscribe_hashes.into(), subscription.into());
-        async move {
-            let hashes = ws_string_list(&message_hashes);
-            self.ws_run(url_s, hashes, message, ws_string_list(&subscribe_hashes), subscription).await
-        }
+        let (url_s, hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.ws_hashes(), message.into());
+        let (sub_hashes, subscription) = (subscribe_hashes.ws_hashes(), subscription.into());
+        async move { self.ws_run(url_s, hashes, message, sub_hashes, subscription).await }
     }
 
     fn fetch_typed(
