@@ -158,7 +158,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         if (side.as_deref() == Some("buy")) {
             feeCurrency = self.safe_string_upper_k_opt(&marketResolved, "baseId", &[]);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
         m.insert("info".to_string(), order.clone());
@@ -190,7 +190,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
     m
 }));
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -1714,7 +1714,7 @@ impl Foxbit {
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("v3_public_get_markets_market_candlesticks", &[__ws_arg_3]).await;
+        let mut response: crate::value::List = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[interval.map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
@@ -2175,11 +2175,11 @@ impl Foxbit {
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v3_private_put_orders_cancel", &[__ws_arg_8]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

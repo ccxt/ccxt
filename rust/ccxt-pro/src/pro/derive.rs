@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Derive {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_position_delta" => self.handle_position_delta(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -552,7 +552,7 @@ impl Derive {
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
         let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (tickerSymbol.is_some()) {
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             let mut bidAsk: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(tickerSymbol.as_deref()));
@@ -720,8 +720,8 @@ impl Derive {
         let mut marketId: Option<String> = self.safe_string_opt(&parsedTopic, Value::Int(1), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
-            if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+        if (self.tickers.contains_key(symbol.as_str())) {
+            if let (__d, Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
         }
         if (matches!(&self.bidsasks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
             if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
@@ -876,7 +876,7 @@ impl Derive {
         client.resolve(Value::from(&tradesArray), topic.as_str());
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

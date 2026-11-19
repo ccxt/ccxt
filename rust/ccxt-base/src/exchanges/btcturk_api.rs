@@ -78,8 +78,8 @@ impl Btcturk {
     }
 
     /// Auto-generated wrapper for the `privateGetCryptoDepositDeclarations` implicit endpoint.
-    pub async fn private_get_crypto_deposit_declarations(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_crypto_deposit_declarations".into()), optional_args).await
+    pub async fn private_get_crypto_deposit_declarations(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_crypto_deposit_declarations".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostUsersTransactionsCrypto` implicit endpoint.
@@ -113,8 +113,8 @@ impl Btcturk {
     }
 
     /// Auto-generated wrapper for the `graphGetOhlcs` implicit endpoint.
-    pub async fn graph_get_ohlcs(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("graph_get_ohlcs".into()), optional_args).await
+    pub async fn graph_get_ohlcs(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("graph_get_ohlcs".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `graphGetKlinesHistory` implicit endpoint.

@@ -138,8 +138,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PublicGetFundingHistoryMarket` implicit endpoint.
-    pub async fn v4_public_get_funding_history_market(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_public_get_funding_history_market".into()), optional_args).await
+    pub async fn v4_public_get_funding_history_market(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_public_get_funding_history_market".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PublicGetOrderbookDepthMarket` implicit endpoint.
@@ -158,8 +158,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PublicGetTradesMarket` implicit endpoint.
-    pub async fn v4_public_get_trades_market(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_public_get_trades_market".into()), optional_args).await
+    pub async fn v4_public_get_trades_market(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_public_get_trades_market".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PublicGetTime` implicit endpoint.
@@ -168,13 +168,13 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PublicGetPing` implicit endpoint.
-    pub async fn v4_public_get_ping(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_public_get_ping".into()), optional_args).await
+    pub async fn v4_public_get_ping(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_public_get_ping".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PublicGetMarkets` implicit endpoint.
-    pub async fn v4_public_get_markets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_public_get_markets".into()), optional_args).await
+    pub async fn v4_public_get_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_public_get_markets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PublicGetFutures` implicit endpoint.
@@ -198,13 +198,13 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountBalanceSummary` implicit endpoint.
-    pub async fn v4_private_post_collateral_account_balance_summary(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_collateral_account_balance_summary".into()), optional_args).await
+    pub async fn v4_private_post_collateral_account_balance_summary(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_collateral_account_balance_summary".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountPositionsHistory` implicit endpoint.
-    pub async fn v4_private_post_collateral_account_positions_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_collateral_account_positions_history".into()), optional_args).await
+    pub async fn v4_private_post_collateral_account_positions_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_collateral_account_positions_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountLeverage` implicit endpoint.
@@ -213,13 +213,13 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountPositionsOpen` implicit endpoint.
-    pub async fn v4_private_post_collateral_account_positions_open(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_collateral_account_positions_open".into()), optional_args).await
+    pub async fn v4_private_post_collateral_account_positions_open(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_collateral_account_positions_open".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountPositionsClosedPnl` implicit endpoint.
-    pub async fn v4_private_post_collateral_account_positions_closed_pnl(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_collateral_account_positions_closed_pnl".into()), optional_args).await
+    pub async fn v4_private_post_collateral_account_positions_closed_pnl(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_collateral_account_positions_closed_pnl".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountSummary` implicit endpoint.
@@ -283,8 +283,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountWithdrawPay` implicit endpoint.
-    pub async fn v4_private_post_main_account_withdraw_pay(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_withdraw_pay".into()), optional_args).await
+    pub async fn v4_private_post_main_account_withdraw_pay(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_main_account_withdraw_pay".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountExpressWithdrawToken` implicit endpoint.
@@ -293,13 +293,13 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountTransfer` implicit endpoint.
-    pub async fn v4_private_post_main_account_transfer(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_transfer".into()), optional_args).await
+    pub async fn v4_private_post_main_account_transfer(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_main_account_transfer".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartPlans` implicit endpoint.
-    pub async fn v4_private_post_main_account_smart_plans(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_smart_plans".into()), optional_args).await
+    pub async fn v4_private_post_main_account_smart_plans(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_main_account_smart_plans".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartInvestment` implicit endpoint.
@@ -318,8 +318,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountFee` implicit endpoint.
-    pub async fn v4_private_post_main_account_fee(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_fee".into()), optional_args).await
+    pub async fn v4_private_post_main_account_fee(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_main_account_fee".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartInterestPaymentHistory` implicit endpoint.
@@ -328,8 +328,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexPlans` implicit endpoint.
-    pub async fn v4_private_post_main_account_smart_flex_plans(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_smart_flex_plans".into()), optional_args).await
+    pub async fn v4_private_post_main_account_smart_flex_plans(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_main_account_smart_flex_plans".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountSmartFlexInvestments` implicit endpoint.
@@ -383,8 +383,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrderHistoryQuery` implicit endpoint.
-    pub async fn v4_private_post_trade_account_order_history_query(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_trade_account_order_history_query".into()), optional_args).await
+    pub async fn v4_private_post_trade_account_order_history_query(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_trade_account_order_history_query".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrder` implicit endpoint.
@@ -413,8 +413,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralBulk` implicit endpoint.
-    pub async fn v4_private_post_order_collateral_bulk(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_collateral_bulk".into()), optional_args).await
+    pub async fn v4_private_post_order_collateral_bulk(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_collateral_bulk".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderNew` implicit endpoint.
@@ -448,13 +448,13 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCancelAll` implicit endpoint.
-    pub async fn v4_private_post_order_cancel_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_cancel_all".into()), optional_args).await
+    pub async fn v4_private_post_order_cancel_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_cancel_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCancelBulk` implicit endpoint.
-    pub async fn v4_private_post_order_cancel_bulk(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_cancel_bulk".into()), optional_args).await
+    pub async fn v4_private_post_order_cancel_bulk(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_cancel_bulk".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderKillSwitch` implicit endpoint.
@@ -463,13 +463,13 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderKillSwitchStatus` implicit endpoint.
-    pub async fn v4_private_post_order_kill_switch_status(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_kill_switch_status".into()), optional_args).await
+    pub async fn v4_private_post_order_kill_switch_status(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_kill_switch_status".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderBulk` implicit endpoint.
-    pub async fn v4_private_post_order_bulk(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_bulk".into()), optional_args).await
+    pub async fn v4_private_post_order_bulk(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_bulk".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderModify` implicit endpoint.
@@ -478,18 +478,18 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderConditionalCancel` implicit endpoint.
-    pub async fn v4_private_post_order_conditional_cancel(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_conditional_cancel".into()), optional_args).await
+    pub async fn v4_private_post_order_conditional_cancel(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_conditional_cancel".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrders` implicit endpoint.
-    pub async fn v4_private_post_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_orders".into()), optional_args).await
+    pub async fn v4_private_post_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOcoOrders` implicit endpoint.
-    pub async fn v4_private_post_oco_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_oco_orders".into()), optional_args).await
+    pub async fn v4_private_post_oco_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_oco_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralOco` implicit endpoint.
@@ -503,8 +503,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderOtoCancel` implicit endpoint.
-    pub async fn v4_private_post_order_oto_cancel(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_oto_cancel".into()), optional_args).await
+    pub async fn v4_private_post_order_oto_cancel(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v4_private_post_order_oto_cancel".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostProfileWebsocketToken` implicit endpoint.

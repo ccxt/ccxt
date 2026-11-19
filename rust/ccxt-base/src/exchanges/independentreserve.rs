@@ -238,7 +238,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         if (feeRate.is_some()) && (filled.is_some()) {
             feeCost = crate::precise::Precise::stringMul(&feeRate, &filled).as_str().map(str::to_owned);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "OrderGuid", &[]));
@@ -268,7 +268,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1048,9 +1048,9 @@ impl Independentreserve {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut baseCurrenciesPromise: crate::value::List = self.call_method_lt("public_get_get_valid_primary_currency_codes", &[params.clone()]).await;
+        let mut baseCurrenciesPromise: crate::value::List = self.public_get_get_valid_primary_currency_codes(&[params.clone()]).await;
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        let mut quoteCurrenciesPromise: crate::value::List = self.call_method_lt("public_get_get_valid_secondary_currency_codes", &[params.clone()]).await;
+        let mut quoteCurrenciesPromise: crate::value::List = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await;
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: crate::value::Dict = self.call_method_t("public_get_get_order_minimum_volumes", &[params]).await;
         let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(baseCurrenciesPromise), Value::Arr(quoteCurrenciesPromise), Value::Dict(limitsPromise)])).await.into_list();
@@ -1208,7 +1208,7 @@ impl Independentreserve {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_post_get_accounts", &[params]).await;
+        let mut response: crate::value::List = self.private_post_get_accounts(&[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -1564,7 +1564,7 @@ impl Independentreserve {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_post_get_brokerage_fees", &[params]).await;
+        let mut response: crate::value::List = self.private_post_get_brokerage_fees(&[params]).await;
         //
         //     [
         //         {
@@ -1676,12 +1676,12 @@ impl Independentreserve {
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
             response = self.call_method_o("private_post_place_market_order", &[__ws_arg_8]).await;
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), self.safe_string_k(&response, "OrderGuid", &[]));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

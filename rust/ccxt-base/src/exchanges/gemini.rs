@@ -368,7 +368,7 @@ impl crate::exchange::DerivedExchange for Gemini {
                 postOnly = true;
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -392,7 +392,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         m.insert("fee".to_string(), Value::from(fee.as_deref()));
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -2425,7 +2425,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("public_get_v1_pricefeed", &[params]).await;
+        let mut response: crate::value::List = self.public_get_v1_pricefeed(&[params]).await;
         //
         //     [
         //         {
@@ -2488,7 +2488,7 @@ impl Gemini {
             request.insert("timestamp".into(), since.clone());
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_v1_trades_symbol", &[__ws_arg_5]).await;
+        let mut response: crate::value::List = self.public_get_v1_trades_symbol(&[__ws_arg_5]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2625,7 +2625,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_post_v1_balances", &[params]).await;
+        let mut response: crate::value::List = self.private_post_v1_balances(&[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -2696,7 +2696,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_post_v1_orders", &[params]).await;
+        let mut response: crate::value::List = self.private_post_v1_orders(&[params]).await;
         //
         //      [
         //          {
@@ -2906,7 +2906,7 @@ impl Gemini {
             request.insert("timestamp".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_post_v1_mytrades", &[__ws_arg_9]).await;
+        let mut response: crate::value::List = self.private_post_v1_mytrades(&[__ws_arg_9]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -3025,7 +3025,7 @@ impl Gemini {
             request.insert("timestamp".into(), since);
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_post_v1_transfers", &[__ws_arg_11]).await;
+        let mut response: crate::value::List = self.private_post_v1_transfers(&[__ws_arg_11]).await;
         return self.parse_transactions(&response, None, &[]);
         Value::Null
         }).await?))
@@ -3113,7 +3113,7 @@ impl Gemini {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::List = self.call_method_lt("private_post_v1_addresses_network", &[__ws_arg_12]).await;
+        let mut response: crate::value::List = self.private_post_v1_addresses_network(&[__ws_arg_12]).await;
         let mut results: Value = self.parse_deposit_addresses(&response, &[Value::from(vec![Value::from(codeValue.as_deref())]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));

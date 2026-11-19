@@ -2694,8 +2694,8 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.require_event_query(&[params.clone()]);
-        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        self.require_event_query(&[&params]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
         // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
         // markets. use the cached load so the handles advertised here always match the
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could

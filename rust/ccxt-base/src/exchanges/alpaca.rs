@@ -177,7 +177,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         let mut datetime: Option<String> = self.safe_string_k_opt(&order, "submitted_at", &[]);
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
@@ -201,7 +201,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1667,7 +1667,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut assets: crate::value::List = self.call_method_lt("trader_private_get_v2_assets", &[__ws_arg_0]).await;
+        let mut assets: crate::value::List = self.trader_private_get_v2_assets(&[__ws_arg_0]).await;
         return self.parse_markets(&assets);
         Value::Null
         }).await?))
@@ -2449,15 +2449,15 @@ impl Alpaca {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.trader_private_delete_v2_orders(&[params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.call_method(Value::Str("trader_private_delete_v2_orders".into()), &[params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         if (response.is_some()) {
             return self.parse_orders(&response, None, &[]);
         }  else {
-            return Value::from(vec![self.safe_order(Value::Map({
+            return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response__map.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         }
         Value::Null
         }).await?))
@@ -2558,7 +2558,7 @@ impl Alpaca {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("trader_private_get_v2_orders", &[__ws_arg_14]).await;
+        let mut response: crate::value::List = self.trader_private_get_v2_orders(&[__ws_arg_14]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2801,7 +2801,7 @@ impl Alpaca {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("trader_private_get_v2_account_activities_activity_type", &[__ws_arg_18]).await;
+        let mut response: crate::value::List = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await;
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3147,7 +3147,7 @@ impl Alpaca {
         // the two calls stay sequential deliberately — the static request harness records one request per case,
         // and concurrent calls make the recorded url nondeterministic per language
         let mut account: crate::value::Dict = self.call_method_t("trader_private_get_v2_account", &[params]).await;
-        let mut positions: crate::value::List = self.call_method_lt("trader_private_get_v2_positions", &[]).await;
+        let mut positions: crate::value::List = self.trader_private_get_v2_positions(&[]).await;
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",

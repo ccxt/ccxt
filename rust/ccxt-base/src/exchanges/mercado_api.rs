@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Mercado {
     /// Auto-generated wrapper for the `publicGetCoins` implicit endpoint.
-    pub async fn public_get_coins(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_coins".into()), optional_args).await
+    pub async fn public_get_coins(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coins".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCoinOrderbook` implicit endpoint.
@@ -28,18 +28,18 @@ impl Mercado {
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTrades` implicit endpoint.
-    pub async fn public_get_coin_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_coin_trades".into()), optional_args).await
+    pub async fn public_get_coin_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coin_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTradesFrom` implicit endpoint.
-    pub async fn public_get_coin_trades_from(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_coin_trades_from".into()), optional_args).await
+    pub async fn public_get_coin_trades_from(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coin_trades_from".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCoinTradesFromTo` implicit endpoint.
-    pub async fn public_get_coin_trades_from_to(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_coin_trades_from_to".into()), optional_args).await
+    pub async fn public_get_coin_trades_from_to(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_coin_trades_from_to".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCoinDaySummaryYearMonthDay` implicit endpoint.

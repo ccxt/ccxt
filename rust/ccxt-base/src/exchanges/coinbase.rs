@@ -457,7 +457,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
         if (totalFees.is_some()) && (marketResolved.is_some()) {
             currencyFee = self.safe_string_k_opt(&marketResolved, "quote", &[]);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
@@ -486,7 +486,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
     Value::Null
 }

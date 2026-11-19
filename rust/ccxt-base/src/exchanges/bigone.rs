@@ -349,7 +349,7 @@ impl crate::exchange::DerivedExchange for Bigone {
             amount = self.safe_string_k_opt(&order, "amount", &[]);
             filled = self.safe_string_k_opt(&order, "filled_amount", &[]);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -373,7 +373,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1571,7 +1571,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.call_method(Value::Str("contract_public_get_symbols".into()), &[params]).await]);
         let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
         let mut response: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(0));
         let mut contractResponse: Value = self.safe_value(&promisesResult, Value::Int(1), &[]);
@@ -1932,7 +1932,7 @@ impl Bigone {
             //
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
-            let mut instruments: crate::value::List = self.call_method_lt("contract_public_get_instruments", &[Value::Dict(paramsMarketType)]).await;
+            let mut instruments: crate::value::List = self.contract_public_get_instruments(&[Value::Dict(paramsMarketType)]).await;
             data = self.to_array(&instruments);
         }
         let mut tickers: Value = self.parse_tickers(data, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
@@ -2563,13 +2563,13 @@ impl Bigone {
             let mut __for_first_267: bool = true;
             while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), orderId.clone());
                     m.insert("id".to_string(), orderId);
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), None));
+            }), None)));
         }
         }
         {
@@ -2577,13 +2577,13 @@ impl Bigone {
             let mut __for_first_268: bool = true;
             while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), orderId.clone());
                     m.insert("id".to_string(), orderId);
                     m.insert("status".to_string(), Value::Str("failed".into()));
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(result);

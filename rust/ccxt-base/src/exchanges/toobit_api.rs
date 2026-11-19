@@ -38,13 +38,13 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1Trades` implicit endpoint.
-    pub async fn common_get_quote_v1_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_trades".into()), optional_args).await
+    pub async fn common_get_quote_v1_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1Klines` implicit endpoint.
-    pub async fn common_get_quote_v1_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_klines".into()), optional_args).await
+    pub async fn common_get_quote_v1_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1IndexKlines` implicit endpoint.
@@ -73,48 +73,48 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1Ticker24hr` implicit endpoint.
-    pub async fn common_get_quote_v1_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_ticker24hr".into()), optional_args).await
+    pub async fn common_get_quote_v1_ticker24hr(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_ticker24hr".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1ContractTicker24hr` implicit endpoint.
-    pub async fn common_get_quote_v1_contract_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_contract_ticker24hr".into()), optional_args).await
+    pub async fn common_get_quote_v1_contract_ticker24hr(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_contract_ticker24hr".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1TickerPrice` implicit endpoint.
-    pub async fn common_get_quote_v1_ticker_price(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_ticker_price".into()), optional_args).await
+    pub async fn common_get_quote_v1_ticker_price(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_ticker_price".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1ContractTickerPrice` implicit endpoint.
-    pub async fn common_get_quote_v1_contract_ticker_price(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_contract_ticker_price".into()), optional_args).await
+    pub async fn common_get_quote_v1_contract_ticker_price(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_contract_ticker_price".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1TickerBookTicker` implicit endpoint.
-    pub async fn common_get_quote_v1_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_ticker_book_ticker".into()), optional_args).await
+    pub async fn common_get_quote_v1_ticker_book_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_ticker_book_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1ContractTickerBookTicker` implicit endpoint.
-    pub async fn common_get_quote_v1_contract_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_contract_ticker_book_ticker".into()), optional_args).await
+    pub async fn common_get_quote_v1_contract_ticker_book_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_quote_v1_contract_ticker_book_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetApiV1FuturesFundingRate` implicit endpoint.
-    pub async fn common_get_api_v1_futures_funding_rate(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_api_v1_futures_funding_rate".into()), optional_args).await
+    pub async fn common_get_api_v1_futures_funding_rate(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_api_v1_futures_funding_rate".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetApiV1FuturesHistoryFundingRate` implicit endpoint.
-    pub async fn common_get_api_v1_futures_history_funding_rate(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_api_v1_futures_history_funding_rate".into()), optional_args).await
+    pub async fn common_get_api_v1_futures_history_funding_rate(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_api_v1_futures_history_funding_rate".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `commonGetApiV1FuturesRiskLimits` implicit endpoint.
-    pub async fn common_get_api_v1_futures_risk_limits(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("common_get_api_v1_futures_risk_limits".into()), optional_args).await
+    pub async fn common_get_api_v1_futures_risk_limits(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("common_get_api_v1_futures_risk_limits".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Account` implicit endpoint.
@@ -133,43 +133,43 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1SpotOpenOrders` implicit endpoint.
-    pub async fn private_get_api_v1_spot_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_spot_open_orders".into()), optional_args).await
+    pub async fn private_get_api_v1_spot_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_spot_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesOpenOrders` implicit endpoint.
-    pub async fn private_get_api_v1_futures_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_open_orders".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1SpotTradeOrders` implicit endpoint.
-    pub async fn private_get_api_v1_spot_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_spot_trade_orders".into()), optional_args).await
+    pub async fn private_get_api_v1_spot_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_spot_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesHistoryOrders` implicit endpoint.
-    pub async fn private_get_api_v1_futures_history_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_history_orders".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_history_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_history_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountTrades` implicit endpoint.
-    pub async fn private_get_api_v1_account_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_trades".into()), optional_args).await
+    pub async fn private_get_api_v1_account_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_account_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountBalanceFlow` implicit endpoint.
-    pub async fn private_get_api_v1_account_balance_flow(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_balance_flow".into()), optional_args).await
+    pub async fn private_get_api_v1_account_balance_flow(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_account_balance_flow".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountDepositOrders` implicit endpoint.
-    pub async fn private_get_api_v1_account_deposit_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_deposit_orders".into()), optional_args).await
+    pub async fn private_get_api_v1_account_deposit_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_account_deposit_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountWithdrawOrders` implicit endpoint.
-    pub async fn private_get_api_v1_account_withdraw_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_withdraw_orders".into()), optional_args).await
+    pub async fn private_get_api_v1_account_withdraw_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_account_withdraw_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountDepositAddress` implicit endpoint.
@@ -178,23 +178,23 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1SubAccount` implicit endpoint.
-    pub async fn private_get_api_v1_sub_account(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_sub_account".into()), optional_args).await
+    pub async fn private_get_api_v1_sub_account(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_sub_account".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountSubAccount` implicit endpoint.
-    pub async fn private_get_api_v1_account_sub_account(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_sub_account".into()), optional_args).await
+    pub async fn private_get_api_v1_account_sub_account(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_account_sub_account".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1SubAccountList` implicit endpoint.
-    pub async fn private_get_api_v1_sub_account_list(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_sub_account_list".into()), optional_args).await
+    pub async fn private_get_api_v1_sub_account_list(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_sub_account_list".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesAccountLeverage` implicit endpoint.
-    pub async fn private_get_api_v1_futures_account_leverage(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_account_leverage".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_account_leverage(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_account_leverage".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesOrder` implicit endpoint.
@@ -203,28 +203,28 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesPositions` implicit endpoint.
-    pub async fn private_get_api_v1_futures_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_positions".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesHistoryPositions` implicit endpoint.
-    pub async fn private_get_api_v1_futures_history_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_history_positions".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_history_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_history_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesBalance` implicit endpoint.
-    pub async fn private_get_api_v1_futures_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_balance".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_balance(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_balance".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesUserTrades` implicit endpoint.
-    pub async fn private_get_api_v1_futures_user_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_user_trades".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_user_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_user_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesBalanceFlow` implicit endpoint.
-    pub async fn private_get_api_v1_futures_balance_flow(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_balance_flow".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_balance_flow(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v1_futures_balance_flow".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesCommissionRate` implicit endpoint.
@@ -308,8 +308,8 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2AccountBalanceFlow` implicit endpoint.
-    pub async fn private_get_api_v2_account_balance_flow(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v2_account_balance_flow".into()), optional_args).await
+    pub async fn private_get_api_v2_account_balance_flow(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v2_account_balance_flow".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesOrder` implicit endpoint.
@@ -318,18 +318,18 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesOpenOrders` implicit endpoint.
-    pub async fn private_get_api_v2_futures_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v2_futures_open_orders".into()), optional_args).await
+    pub async fn private_get_api_v2_futures_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v2_futures_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesHistoryOrders` implicit endpoint.
-    pub async fn private_get_api_v2_futures_history_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v2_futures_history_orders".into()), optional_args).await
+    pub async fn private_get_api_v2_futures_history_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v2_futures_history_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesUserTrades` implicit endpoint.
-    pub async fn private_get_api_v2_futures_user_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v2_futures_user_trades".into()), optional_args).await
+    pub async fn private_get_api_v2_futures_user_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v2_futures_user_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesAlgoOrder` implicit endpoint.
@@ -338,13 +338,13 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesOpenAlgoOrders` implicit endpoint.
-    pub async fn private_get_api_v2_futures_open_algo_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v2_futures_open_algo_orders".into()), optional_args).await
+    pub async fn private_get_api_v2_futures_open_algo_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v2_futures_open_algo_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesHistoryAlgoOrders` implicit endpoint.
-    pub async fn private_get_api_v2_futures_history_algo_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v2_futures_history_algo_orders".into()), optional_args).await
+    pub async fn private_get_api_v2_futures_history_algo_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v2_futures_history_algo_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV2FuturesVoucherList` implicit endpoint.

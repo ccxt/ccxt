@@ -235,7 +235,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         let mut timestamp: Option<i64> = self.safe_integer2(&order, Value::Str("updateTime".into()), Value::Str("datetime".into()), &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         let mut status: Option<String> = self.parse_order_status(rawStatus.as_deref());
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1419,11 +1419,11 @@ impl Btcturk {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[__ws_arg_4]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

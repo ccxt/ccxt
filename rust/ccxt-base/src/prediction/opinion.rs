@@ -932,8 +932,8 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.require_event_query(&[params.clone()]);
-        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        self.require_event_query(&[&params]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
         let mut eventId: Option<String> = self.safe_string_k_opt(&params, "eventId", &[]);
         let mut slug: Option<String> = self.safe_string_k_opt(&params, "slug", &[]);
         if (eventId.is_some()) || (slug.is_some()) {
@@ -2824,7 +2824,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -2861,7 +2861,7 @@ if _try_result.is_err() {
     m
 })]).as_map().cloned().unwrap_or_default();
         cachedTickers.insert(sym.as_deref().unwrap_or("null").to_string(), ticker.clone());
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
         client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker::", sym.as_deref().unwrap_or("null")).into())));
 }
 

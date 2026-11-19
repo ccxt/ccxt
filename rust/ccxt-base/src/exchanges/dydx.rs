@@ -133,7 +133,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         let mut type_var: Option<String> = self.parse_order_type((self.safe_string_upper_k(&order, "type", &[])).as_str());
         let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&order, "timeInForce", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
@@ -159,7 +159,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1895,7 +1895,7 @@ impl Dydx {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
-        let mut response: crate::value::List = self.call_method_lt("indexer_get_orders", &[__ws_arg_5]).await;
+        let mut response: crate::value::List = self.indexer_get_orders(&[__ws_arg_5]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2156,7 +2156,7 @@ impl Dydx {
         return self.encode_dydx_tx_raw(signDoc, Value::Str(format!("{}{}", signatureR, signatureS).into())).as_str().map(str::to_owned);
 }
 
-    pub fn retrieve_credentials(&self) -> Value {
+    pub fn retrieve_credentials(&mut self) -> Value {
         let mut credentials: Value = self.safe_dict_k(&self.options, "dydxCredentials", &[]);
         if (credentials != Value::Null) {
             return credentials;
@@ -2174,7 +2174,7 @@ impl Dydx {
                 m.insert("publicKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[])));
             m
         });
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
         return credentials;
 
     Value::Null
@@ -2534,13 +2534,13 @@ impl Dydx {
         let mut requestValue: crate::value::Dict = self.safe_dict_k_t(&orderRequest, "value");
         let mut requestOrder: crate::value::Dict = self.safe_dict_k_t(&requestValue, "order");
         let mut requestOrderId: crate::value::Dict = self.safe_dict_k_t(&requestOrder, "orderId");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&requestOrderId, "clientId", &[]));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -2674,11 +2674,11 @@ impl Dydx {
         // }
         //
         let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[]).as_map().cloned().unwrap_or_default();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -2776,11 +2776,11 @@ impl Dydx {
         // }
         //
         let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[]).as_map().cloned().unwrap_or_default();
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

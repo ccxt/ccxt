@@ -715,7 +715,7 @@ impl crate::exchange::DerivedExchange for Bingx {
                 triggerPrice = None;
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), self.safe_string_n(&orderData, Value::from(vec![Value::Str("orderId".into()), Value::Str("i".into()), Value::Str("mainOrderId".into())]), &[]));
@@ -748,7 +748,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         m.insert("trades".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool2(&orderData, Value::Str("reduceOnly".into()), Value::Str("ro".into()), &[]));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1739,7 +1739,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { i += 1; } __for_first_329 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_329 { i += 1; } __for_first_329 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let mut tierString: Option<String> = self.safe_string_k_opt(&tier, "tier", &[]);
             let mut tierParts: crate::value::List = crate::value::List::new(if let Some(__s) = tierString.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
@@ -7659,7 +7659,7 @@ impl Bingx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_53 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("spot_v3_private_get_capital_deposit_hisrec", &[__ws_arg_53]).await;
+        let mut response: crate::value::List = self.spot_v3_private_get_capital_deposit_hisrec(&[__ws_arg_53]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -7712,7 +7712,7 @@ impl Bingx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_54 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("spot_v3_private_get_capital_withdraw_history", &[__ws_arg_54]).await;
+        let mut response: crate::value::List = self.spot_v3_private_get_capital_withdraw_history(&[__ws_arg_54]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

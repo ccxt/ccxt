@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_rfq_order" => self.parse_ws_rfq_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -130,7 +130,7 @@ impl Backpack {
             "handle_unsubscriptions" => { crate::exchange_stubs::enqueue_spawn("handle_unsubscriptions", args.to_vec()); crate::Value::Null },
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_rfq_order" => self.parse_ws_rfq_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -400,7 +400,7 @@ impl Backpack {
                 if bidAsk.as_bool() == Some(true) {
                     if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }  else {
-                    if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                    if let (__d, Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else {
                 add_element_to_object(&mut subscriptions, &messageHash, Value::Map({
@@ -534,8 +534,8 @@ impl Backpack {
             self.clean_unsubscription(&client.as_value(), Value::from(subMessageHash), Value::from(messageHash.as_str()), &[]);
             if messageHash.contains("ticker") {
                 let mut symbol: String = messageHash.replace("unsubscribe:ticker:", "");
-                if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
-                    if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                if (self.tickers.contains_key(symbol.as_str())) {
+                    if let (__d, Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else if messageHash.contains("bidask") {
                 let mut symbol: String = messageHash.replace("unsubscribe:bidask:", "");
@@ -758,7 +758,7 @@ impl Backpack {
             })]);
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(&mappedTicker, Some(&market)).into_dict();
             std::sync::Arc::make_mut(&mut parsedTicker).insert("info".into(), Value::from(&ticker));
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
             client.resolve(Value::Dict(parsedTicker), messageHash.as_deref());
         }
         }
@@ -770,7 +770,7 @@ impl Backpack {
         let mut fallbackSymbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&fallbackMarket), &[]).as_str().map(str::to_owned);
         let mut fallbackTicker: crate::value::Dict = self.parse_ws_ticker(&ticker, Some(&fallbackMarket)).into_dict();
         let mut fallbackHash: String = format!("{}{}", Value::Str(format!("{}{}", "ticker", ":").into()), fallbackSymbol.as_deref().unwrap_or("null"));
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(fallbackSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&fallbackTicker)); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(fallbackSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&fallbackTicker)); }
         client.resolve(Value::Dict(fallbackTicker), fallbackHash.as_str());
 }
 
@@ -871,7 +871,7 @@ impl Backpack {
             if matches!(self.safe_bool_k(&subscription, "bidAsk", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
             }  else {
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
             }
             client.resolve(parsed, messageHash.as_deref());
         }
@@ -1959,7 +1959,7 @@ impl Backpack {
         if (((if let (Some(__h), Some(__n)) = (Some(event.as_str()), Some("rfq")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) || (((if let (Some(__h), Some(__n)) = (Some(event.as_str()), Some("quote")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
             parsed = self.parse_ws_rfq_order(&data, Some(&market));
         }  else {
-            parsed = self.parse_ws_order(&data, Some(&market));
+            parsed = Value::Dict(self.parse_ws_order(&data, Some(&market)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         if (orders.is_none()) {
@@ -2150,7 +2150,7 @@ impl Backpack {
     Value::Null
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         //     {
@@ -2230,7 +2230,7 @@ impl Backpack {
     m
 }), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn parse_ws_order_status(&self, mut status: Value, market: Option<&crate::types::Market>) -> Option<String> {

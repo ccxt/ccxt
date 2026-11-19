@@ -273,7 +273,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         if (average.is_none()) && isFillEvent {
             average = self.safe_string_k_opt(&order, "price", &[]); // on a matching event price is the fill price
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("order_id".into()), Value::Str("i".into()), &[]));
@@ -299,7 +299,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2895,14 +2895,14 @@ if _try_result.is_err() {
         }
         let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orderId: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -3189,13 +3189,13 @@ if _try_result.is_err() {
                 status = Some("open".to_string());
             }
             let mut orderId: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
-            ordersToReturn.push(self.safe_order(Value::Map({
+            ordersToReturn.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::Dict(order));
                     m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(ordersToReturn);
@@ -3273,13 +3273,13 @@ if _try_result.is_err() {
             }  else {
                 status = Some("canceled".to_string());
             }
-            ordersToReturn.push(self.safe_order(Value::Map({
+            ordersToReturn.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::Dict(order));
                     m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol.clone());
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(ordersToReturn);
@@ -3366,11 +3366,11 @@ if _try_result.is_err() {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["excludeReduceOnly", "expiryWindow"], &[]);
         let __ws_arg_15 = self.extend(request, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders_cancel_all", &[__ws_arg_15]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -3456,14 +3456,14 @@ if _try_result.is_err() {
         if success {
             status = "canceled".to_string();
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), Value::from(status));
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -3547,13 +3547,13 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orderId: Option<String> = self.safe_string_k_opt(&data, "order_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("symbol".to_string(), symbol);
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -5225,7 +5225,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_40 = self.extend(Value::Map(request), &[]);
-        return self.public_get_account_builder_codes_approvals(&[__ws_arg_40]).await;
+        return self.call_method(Value::Str("public_get_account_builder_codes_approvals".into()), &[__ws_arg_40]).await;
 
     Value::Null
 }

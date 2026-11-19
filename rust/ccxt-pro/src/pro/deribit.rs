@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Deribit {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "clean_order_book" => self.clean_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_authentication_message" => self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -246,7 +246,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         let mut messageHash: String = "balance".to_string();
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut currencies: crate::value::List = self.safe_list_k_t(&self.options, "currencies");
@@ -501,7 +501,7 @@ impl Deribit {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), None).into_dict();
         let mut messageHash: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         client.resolve(Value::Dict(ticker), messageHash.as_deref());
 }
 
@@ -769,7 +769,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         if (symbol != Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1098,7 +1098,7 @@ impl Deribit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol)) } else { None });
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut currency: String = self.safe_string_k(&params, "currency", &[Value::Str("any".into())]).as_str().unwrap_or("any").to_string();
@@ -1517,7 +1517,7 @@ impl Deribit {
     Value::Null
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

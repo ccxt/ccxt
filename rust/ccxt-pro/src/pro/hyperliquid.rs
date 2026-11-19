@@ -352,10 +352,10 @@ impl Hyperliquid {
         let mut orders: Vec<crate::types::Order> = (match self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ordersLength: i64 = orders.len() as i64;
         if (ordersLength == 0) {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), None);
+}), None));
         }
         let mut parsedOrder: Option<&crate::types::Order> = orders.get(0);
         return Value::from(parsedOrder);
@@ -466,12 +466,12 @@ impl Hyperliquid {
             let mut __for_first_403: bool = true;
             while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (statuses.len() as i64) } {
             let mut status: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
-            orders.push(self.safe_order(Value::Map({
+            orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), status.clone());
                     m.insert("status".to_string(), status);
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(orders);
@@ -814,7 +814,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
-        return self.tickers.clone();
+        return Value::Dict(self.tickers.clone());
         Value::Null
         }).await?))
     }
@@ -1110,7 +1110,7 @@ impl Hyperliquid {
                         m.insert("price".to_string(), self.safe_number(&mids, name.map(Value::from).unwrap_or(Value::Null), &[]));
                     m
                 }), Some(&market)).into_dict();
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker)); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker)); }
             }
             }
             let mut messageHash: String = "tickers".to_string();
@@ -1118,7 +1118,7 @@ impl Hyperliquid {
             if (dexMessage.is_some()) {
                 messageHash.push_str(&format!("{}{}", ":", dexMessage.as_deref().unwrap_or("null")));
             }
-            client.resolve(self.tickers.clone(), messageHash.as_str());
+            client.resolve(Value::Dict(self.tickers.clone()), messageHash.as_str());
         }
         return Value::Bool(true);
 
@@ -1157,7 +1157,7 @@ impl Hyperliquid {
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut ctx: crate::value::Dict = self.safe_dict_k_t(&data, "ctx");
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(&ctx, Some(&market)).into_dict();
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
         return Value::Bool(true);
@@ -2507,12 +2507,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHash: String = "tickers".to_string();
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
-        let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbols: Vec<Value> = Value::Array(self.tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_417: bool = true;
             while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < (symbols.len() as i64) } {
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(i as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+            if let (__d, Value::Str(__k)) = (&mut self.tickers, &symbols.get(i as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
         }
 }
@@ -2527,8 +2527,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
-        if (matches!((&self.tickers, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-            if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+        if (matches!((&self.tickers, symbol.as_deref()), (__d, Some(__k)) if __d.contains_key(__k))) {
+            if let (__d, Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
         }
 }
 

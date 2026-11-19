@@ -18,28 +18,28 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetComments` implicit endpoint.
-    pub async fn gamma_public_get_comments(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_comments".into()), optional_args).await
+    pub async fn gamma_public_get_comments(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_comments".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetCommentsId` implicit endpoint.
-    pub async fn gamma_public_get_comments_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_comments_id".into()), optional_args).await
+    pub async fn gamma_public_get_comments_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_comments_id".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetCommentsUserAddressUserAddress` implicit endpoint.
-    pub async fn gamma_public_get_comments_user_address_user_address(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_comments_user_address_user_address".into()), optional_args).await
+    pub async fn gamma_public_get_comments_user_address_user_address(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_comments_user_address_user_address".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEvents` implicit endpoint.
-    pub async fn gamma_public_get_events(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_events".into()), optional_args).await
+    pub async fn gamma_public_get_events(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_events".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsCreators` implicit endpoint.
-    pub async fn gamma_public_get_events_creators(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_events_creators".into()), optional_args).await
+    pub async fn gamma_public_get_events_creators(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_events_creators".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsCreatorsId` implicit endpoint.
@@ -58,8 +58,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsResults` implicit endpoint.
-    pub async fn gamma_public_get_events_results(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_events_results".into()), optional_args).await
+    pub async fn gamma_public_get_events_results(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_events_results".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsSlugSlug` implicit endpoint.
@@ -78,8 +78,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsIdTags` implicit endpoint.
-    pub async fn gamma_public_get_events_id_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_events_id_tags".into()), optional_args).await
+    pub async fn gamma_public_get_events_id_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_events_id_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsIdTweetCount` implicit endpoint.
@@ -88,8 +88,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetMarkets` implicit endpoint.
-    pub async fn gamma_public_get_markets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_markets".into()), optional_args).await
+    pub async fn gamma_public_get_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_markets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetMarketsKeyset` implicit endpoint.
@@ -113,8 +113,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetMarketsIdTags` implicit endpoint.
-    pub async fn gamma_public_get_markets_id_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_markets_id_tags".into()), optional_args).await
+    pub async fn gamma_public_get_markets_id_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_markets_id_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetProfilesUserAddressUserAddress` implicit endpoint.
@@ -133,8 +133,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetSeries` implicit endpoint.
-    pub async fn gamma_public_get_series(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_series".into()), optional_args).await
+    pub async fn gamma_public_get_series(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_series".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetSeriesSummarySlugSlug` implicit endpoint.
@@ -158,8 +158,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetSports` implicit endpoint.
-    pub async fn gamma_public_get_sports(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_sports".into()), optional_args).await
+    pub async fn gamma_public_get_sports(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_sports".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetSportsMarketTypes` implicit endpoint.
@@ -168,8 +168,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTags` implicit endpoint.
-    pub async fn gamma_public_get_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_tags".into()), optional_args).await
+    pub async fn gamma_public_get_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTagsSlugSlug` implicit endpoint.
@@ -178,13 +178,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTagsSlugSlugRelatedTags` implicit endpoint.
-    pub async fn gamma_public_get_tags_slug_slug_related_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_tags_slug_slug_related_tags".into()), optional_args).await
+    pub async fn gamma_public_get_tags_slug_slug_related_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_tags_slug_slug_related_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTagsSlugSlugRelatedTagsTags` implicit endpoint.
-    pub async fn gamma_public_get_tags_slug_slug_related_tags_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_tags_slug_slug_related_tags_tags".into()), optional_args).await
+    pub async fn gamma_public_get_tags_slug_slug_related_tags_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_tags_slug_slug_related_tags_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTagsId` implicit endpoint.
@@ -193,18 +193,18 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTagsIdRelatedTags` implicit endpoint.
-    pub async fn gamma_public_get_tags_id_related_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_tags_id_related_tags".into()), optional_args).await
+    pub async fn gamma_public_get_tags_id_related_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_tags_id_related_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTagsIdRelatedTagsTags` implicit endpoint.
-    pub async fn gamma_public_get_tags_id_related_tags_tags(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_tags_id_related_tags_tags".into()), optional_args).await
+    pub async fn gamma_public_get_tags_id_related_tags_tags(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_tags_id_related_tags_tags".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTeams` implicit endpoint.
-    pub async fn gamma_public_get_teams(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_teams".into()), optional_args).await
+    pub async fn gamma_public_get_teams(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_get_teams".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetTeamsId` implicit endpoint.
@@ -213,13 +213,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicPostMarketsAbridged` implicit endpoint.
-    pub async fn gamma_public_post_markets_abridged(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_post_markets_abridged".into()), optional_args).await
+    pub async fn gamma_public_post_markets_abridged(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_post_markets_abridged".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gammaPublicPostMarketsInformation` implicit endpoint.
-    pub async fn gamma_public_post_markets_information(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_post_markets_information".into()), optional_args).await
+    pub async fn gamma_public_post_markets_information(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gamma_public_post_markets_information".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicGetBook` implicit endpoint.
@@ -228,8 +228,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPublicGetBooks` implicit endpoint.
-    pub async fn clob_public_get_books(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_public_get_books".into()), optional_args).await
+    pub async fn clob_public_get_books(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_public_get_books".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicGetBuilderTrades` implicit endpoint.
@@ -258,8 +258,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPublicGetLastTradesPrices` implicit endpoint.
-    pub async fn clob_public_get_last_trades_prices(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_public_get_last_trades_prices".into()), optional_args).await
+    pub async fn clob_public_get_last_trades_prices(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_public_get_last_trades_prices".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicGetMarketsByTokenTokenId` implicit endpoint.
@@ -308,8 +308,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPublicGetRebatesCurrent` implicit endpoint.
-    pub async fn clob_public_get_rebates_current(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_public_get_rebates_current".into()), optional_args).await
+    pub async fn clob_public_get_rebates_current(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_public_get_rebates_current".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicGetRewardsMarketsCurrent` implicit endpoint.
@@ -368,18 +368,18 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPublicPostBooks` implicit endpoint.
-    pub async fn clob_public_post_books(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_public_post_books".into()), optional_args).await
+    pub async fn clob_public_post_books(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_public_post_books".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicPostLastTradesPrices` implicit endpoint.
-    pub async fn clob_public_post_last_trades_prices(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_public_post_last_trades_prices".into()), optional_args).await
+    pub async fn clob_public_post_last_trades_prices(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_public_post_last_trades_prices".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicPostMarketsLiveActivity` implicit endpoint.
-    pub async fn clob_public_post_markets_live_activity(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_public_post_markets_live_activity".into()), optional_args).await
+    pub async fn clob_public_post_markets_live_activity(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_public_post_markets_live_activity".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPublicPostMidpoints` implicit endpoint.
@@ -408,8 +408,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetAuthBuilderApiKey` implicit endpoint.
-    pub async fn clob_private_get_auth_builder_api_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_auth_builder_api_key".into()), optional_args).await
+    pub async fn clob_private_get_auth_builder_api_key(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_private_get_auth_builder_api_key".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetAuthDeriveApiKey` implicit endpoint.
@@ -443,8 +443,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetNotifications` implicit endpoint.
-    pub async fn clob_private_get_notifications(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_notifications".into()), optional_args).await
+    pub async fn clob_private_get_notifications(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_private_get_notifications".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetOrderScoring` implicit endpoint.
@@ -473,8 +473,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetRewardsUserTotal` implicit endpoint.
-    pub async fn clob_private_get_rewards_user_total(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_rewards_user_total".into()), optional_args).await
+    pub async fn clob_private_get_rewards_user_total(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_private_get_rewards_user_total".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostAuthApiKey` implicit endpoint.
@@ -498,8 +498,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostOrders` implicit endpoint.
-    pub async fn clob_private_post_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("clob_private_post_orders".into()), optional_args).await
+    pub async fn clob_private_post_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("clob_private_post_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostV1Heartbeats` implicit endpoint.
@@ -543,33 +543,33 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `dataPublicGetActivity` implicit endpoint.
-    pub async fn data_public_get_activity(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_activity".into()), optional_args).await
+    pub async fn data_public_get_activity(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_activity".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetClosedPositions` implicit endpoint.
-    pub async fn data_public_get_closed_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_closed_positions".into()), optional_args).await
+    pub async fn data_public_get_closed_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_closed_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetHolders` implicit endpoint.
-    pub async fn data_public_get_holders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_holders".into()), optional_args).await
+    pub async fn data_public_get_holders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_holders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetLiveVolume` implicit endpoint.
-    pub async fn data_public_get_live_volume(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_live_volume".into()), optional_args).await
+    pub async fn data_public_get_live_volume(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_live_volume".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetOi` implicit endpoint.
-    pub async fn data_public_get_oi(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_oi".into()), optional_args).await
+    pub async fn data_public_get_oi(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_oi".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetOther` implicit endpoint.
-    pub async fn data_public_get_other(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_other".into()), optional_args).await
+    pub async fn data_public_get_other(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_other".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetPositions` implicit endpoint.
@@ -578,8 +578,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `dataPublicGetRevisions` implicit endpoint.
-    pub async fn data_public_get_revisions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_revisions".into()), optional_args).await
+    pub async fn data_public_get_revisions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_revisions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetTraded` implicit endpoint.
@@ -588,8 +588,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `dataPublicGetTrades` implicit endpoint.
-    pub async fn data_public_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_trades".into()), optional_args).await
+    pub async fn data_public_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetV1AccountingSnapshot` implicit endpoint.
@@ -603,23 +603,23 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `dataPublicGetV1BuildersLeaderboard` implicit endpoint.
-    pub async fn data_public_get_v1_builders_leaderboard(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_v1_builders_leaderboard".into()), optional_args).await
+    pub async fn data_public_get_v1_builders_leaderboard(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_v1_builders_leaderboard".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetV1BuildersVolume` implicit endpoint.
-    pub async fn data_public_get_v1_builders_volume(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_v1_builders_volume".into()), optional_args).await
+    pub async fn data_public_get_v1_builders_volume(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_v1_builders_volume".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetV1Leaderboard` implicit endpoint.
-    pub async fn data_public_get_v1_leaderboard(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_v1_leaderboard".into()), optional_args).await
+    pub async fn data_public_get_v1_leaderboard(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_v1_leaderboard".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetV1MarketPositions` implicit endpoint.
-    pub async fn data_public_get_v1_market_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_v1_market_positions".into()), optional_args).await
+    pub async fn data_public_get_v1_market_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_v1_market_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetV1PositionsCombos` implicit endpoint.
@@ -628,8 +628,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `dataPublicGetValue` implicit endpoint.
-    pub async fn data_public_get_value(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_value".into()), optional_args).await
+    pub async fn data_public_get_value(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("data_public_get_value".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `combosPublicGetV1RfqComboMarkets` implicit endpoint.

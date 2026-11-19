@@ -801,7 +801,7 @@ impl Myriad {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        let mut queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
         let mut rest: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -4174,9 +4174,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(&self.options, "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
-            self.require_event_query(&[params.clone()]);
+            self.require_event_query(&[&params]);
         }
-        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        let mut queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
         let mut rest: crate::value::Dict = self.omit_t(params.clone(), &["query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"], &[]);
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
@@ -4372,16 +4372,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn request_id(&self, url: Option<&str>) -> i64 {
+    pub fn request_id(&mut self, url: Option<&str>) -> i64 {
         let existing: bool = self.safe_value_k(&self.options, "requestId", &[]) != Value::Null;
         if (!existing) {
-            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
+            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
         }
         let mut options: Value = self.options.get("requestId").cloned().unwrap_or(Value::Null);
         let mut previousValue: i64 = self.safe_integer(&options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         if (url.is_some()) {
-            { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }
+            { let __rda = &mut self.options; if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("requestId".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }
         }
         return newValue;
 }
@@ -5009,7 +5009,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_ticker(&self, mut client: Value, data: impl Into<crate::Value>) {
+    pub fn handle_ticker(&mut self, mut client: Value, data: impl Into<crate::Value>) {
         let mut data: Value = data.into();
         let __data_empty = indexmap::IndexMap::new();
         let data = data.as_map().unwrap_or(&__data_empty);
@@ -5066,7 +5066,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker::", sym).into())));
         }
         }
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers.clone())); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers.clone())); }
         client.resolve(Value::Map(cachedTickers), "tickers");
 }
 

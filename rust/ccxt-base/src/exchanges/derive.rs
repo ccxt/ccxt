@@ -277,7 +277,7 @@ impl crate::exchange::DerivedExchange for Derive {
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(rawOrder, "last_update_timestamp", &[]).as_i64();
         let mut status: Option<String> = self.safe_string_k_opt(&order, "order_status", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "time_in_force", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "label", &[]));
@@ -310,7 +310,7 @@ impl crate::exchange::DerivedExchange for Derive {
 }));
         m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
     Value::Null
 }
@@ -3932,11 +3932,11 @@ impl Derive {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
             response = self.call_method_o("private_post_cancel_all", &[__ws_arg_20]).await;
         }
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -5740,7 +5740,7 @@ impl Derive {
         return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
 }
 
-    pub fn handle_derive_subaccount_id(&self, methodName: &str, params: impl Into<crate::Value>) -> Value {
+    pub fn handle_derive_subaccount_id(&mut self, methodName: &str, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let derivesubAccountIdparamsSubaccountIdVariable = self.handle_option_and_params(params, Value::from(methodName), Value::Str("subaccount_id".into()), &[]);
         let mut derivesubAccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.0;
@@ -5750,7 +5750,7 @@ impl Derive {
             let mut subaccountIdInt: Option<i64> = self.parse_to_int(derivesubAccountId);
             if !(self.options.contains_key("subaccount_id")) {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), Value::from(subaccountIdInt)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), Value::from(subaccountIdInt)); }
             }
             return Value::from(vec![Value::from(subaccountIdInt), self.extend(&paramsSubaccountId, &[])]);
         }
@@ -5763,13 +5763,13 @@ impl Derive {
     Value::Null
 }
 
-    pub fn handle_derive_wallet_address(&self, methodName: &str, params: impl Into<crate::Value>) -> Value {
+    pub fn handle_derive_wallet_address(&mut self, methodName: &str, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let deriveWalletAddressparamsDeriveWalletAddressVariable = self.handle_option_string_and_params(params, Value::from(methodName), Value::Str("deriveWalletAddress".into()), &[]);
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.0.as_str().map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.1;
         if (deriveWalletAddress.is_some()) && (deriveWalletAddress.as_deref() != Some("")) {
-            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
             return Value::from(vec![deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.extend(&paramsDeriveWalletAddress, &[])]);
         }
         let mut optionsWallet: Option<String> = self.safe_string_k_opt(&self.options, "deriveWalletAddress", &[]);

@@ -188,8 +188,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `publicMixGetMixV1MarketCandles` implicit endpoint.
-    pub async fn public_mix_get_mix_v1_market_candles(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_mix_get_mix_v1_market_candles".into()), optional_args).await
+    pub async fn public_mix_get_mix_v1_market_candles(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_mix_get_mix_v1_market_candles".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicMixGetMixV1MarketIndex` implicit endpoint.
@@ -238,18 +238,18 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `publicMixGetMixV1MarketHistoryCandles` implicit endpoint.
-    pub async fn public_mix_get_mix_v1_market_history_candles(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_mix_get_mix_v1_market_history_candles".into()), optional_args).await
+    pub async fn public_mix_get_mix_v1_market_history_candles(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_mix_get_mix_v1_market_history_candles".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicMixGetMixV1MarketHistoryIndexCandles` implicit endpoint.
-    pub async fn public_mix_get_mix_v1_market_history_index_candles(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_mix_get_mix_v1_market_history_index_candles".into()), optional_args).await
+    pub async fn public_mix_get_mix_v1_market_history_index_candles(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_mix_get_mix_v1_market_history_index_candles".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicMixGetMixV1MarketHistoryMarkCandles` implicit endpoint.
-    pub async fn public_mix_get_mix_v1_market_history_mark_candles(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_mix_get_mix_v1_market_history_mark_candles".into()), optional_args).await
+    pub async fn public_mix_get_mix_v1_market_history_mark_candles(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_mix_get_mix_v1_market_history_mark_candles".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicMixGetMixV1MarketMergeDepth` implicit endpoint.

@@ -18,8 +18,8 @@ impl Phemex {
     }
 
     /// Auto-generated wrapper for the `publicGetCfgFundingRates` implicit endpoint.
-    pub async fn public_get_cfg_funding_rates(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_cfg_funding_rates".into()), optional_args).await
+    pub async fn public_get_cfg_funding_rates(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_cfg_funding_rates".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetProducts` implicit endpoint.
@@ -223,18 +223,18 @@ impl Phemex {
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataFuturesOrders` implicit endpoint.
-    pub async fn private_get_api_data_futures_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_futures_orders".into()), optional_args).await
+    pub async fn private_get_api_data_futures_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_futures_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataGFuturesOrders` implicit endpoint.
-    pub async fn private_get_api_data_g_futures_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_g_futures_orders".into()), optional_args).await
+    pub async fn private_get_api_data_g_futures_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_g_futures_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataFuturesOrdersByOrderId` implicit endpoint.
-    pub async fn private_get_api_data_futures_orders_by_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_futures_orders_by_order_id".into()), optional_args).await
+    pub async fn private_get_api_data_futures_orders_by_order_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_futures_orders_by_order_id".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataGFuturesOrdersByOrderId` implicit endpoint.
@@ -243,28 +243,28 @@ impl Phemex {
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataFuturesTrades` implicit endpoint.
-    pub async fn private_get_api_data_futures_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_futures_trades".into()), optional_args).await
+    pub async fn private_get_api_data_futures_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_futures_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataGFuturesTrades` implicit endpoint.
-    pub async fn private_get_api_data_g_futures_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_g_futures_trades".into()), optional_args).await
+    pub async fn private_get_api_data_g_futures_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_g_futures_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataFuturesTradingFees` implicit endpoint.
-    pub async fn private_get_api_data_futures_trading_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_futures_trading_fees".into()), optional_args).await
+    pub async fn private_get_api_data_futures_trading_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_futures_trading_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataGFuturesTradingFees` implicit endpoint.
-    pub async fn private_get_api_data_g_futures_trading_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_g_futures_trading_fees".into()), optional_args).await
+    pub async fn private_get_api_data_g_futures_trading_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_g_futures_trading_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataFuturesV2TradeAccountDetail` implicit endpoint.
-    pub async fn private_get_api_data_futures_v2_trade_account_detail(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_futures_v2_trade_account_detail".into()), optional_args).await
+    pub async fn private_get_api_data_futures_v2_trade_account_detail(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_futures_v2_trade_account_detail".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataGFuturesClosedPosition` implicit endpoint.
@@ -383,18 +383,18 @@ impl Phemex {
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataSpotsPnls` implicit endpoint.
-    pub async fn private_get_api_data_spots_pnls(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_spots_pnls".into()), optional_args).await
+    pub async fn private_get_api_data_spots_pnls(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_spots_pnls".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataSpotsTrades` implicit endpoint.
-    pub async fn private_get_api_data_spots_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_spots_trades".into()), optional_args).await
+    pub async fn private_get_api_data_spots_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_spots_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiDataSpotsTradesByOrderId` implicit endpoint.
-    pub async fn private_get_api_data_spots_trades_by_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_data_spots_trades_by_order_id".into()), optional_args).await
+    pub async fn private_get_api_data_spots_trades_by_order_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_data_spots_trades_by_order_id".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAssetsConvert` implicit endpoint.
@@ -408,13 +408,13 @@ impl Phemex {
     }
 
     /// Auto-generated wrapper for the `privateGetAssetsSpotsSubAccountsTransfer` implicit endpoint.
-    pub async fn private_get_assets_spots_sub_accounts_transfer(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_assets_spots_sub_accounts_transfer".into()), optional_args).await
+    pub async fn private_get_assets_spots_sub_accounts_transfer(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_assets_spots_sub_accounts_transfer".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAssetsFuturesSubAccountsTransfer` implicit endpoint.
-    pub async fn private_get_assets_futures_sub_accounts_transfer(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_assets_futures_sub_accounts_transfer".into()), optional_args).await
+    pub async fn private_get_assets_futures_sub_accounts_transfer(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_assets_futures_sub_accounts_transfer".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAssetsQuote` implicit endpoint.

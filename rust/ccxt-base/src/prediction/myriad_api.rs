@@ -48,8 +48,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsIdTrades` implicit endpoint.
-    pub async fn myriad_public_get_markets_id_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_markets_id_trades".into()), optional_args).await
+    pub async fn myriad_public_get_markets_id_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("myriad_public_get_markets_id_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsIdHolders` implicit endpoint.

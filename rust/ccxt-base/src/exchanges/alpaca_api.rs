@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Alpaca {
     /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequests` implicit endpoint.
-    pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests".into()), optional_args).await
+    pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId` implicit endpoint.
@@ -73,8 +73,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets` implicit endpoint.
-    pub async fn broker_private_get_v1beta1_acats_account_id_acats_id_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("broker_private_get_v1beta1_acats_account_id_acats_id_assets".into()), optional_args).await
+    pub async fn broker_private_get_v1beta1_acats_account_id_acats_id_assets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("broker_private_get_v1beta1_acats_account_id_acats_id_assets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `brokerPrivatePostV1beta1AcatsAccountId` implicit endpoint.
@@ -93,8 +93,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Orders` implicit endpoint.
-    pub async fn trader_private_get_v2_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_orders".into()), optional_args).await
+    pub async fn trader_private_get_v2_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2OrdersOrderId` implicit endpoint.
@@ -103,8 +103,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Positions` implicit endpoint.
-    pub async fn trader_private_get_v2_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_positions".into()), optional_args).await
+    pub async fn trader_private_get_v2_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2PositionsSymbolOrAssetId` implicit endpoint.
@@ -118,8 +118,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Watchlists` implicit endpoint.
-    pub async fn trader_private_get_v2_watchlists(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_watchlists".into()), optional_args).await
+    pub async fn trader_private_get_v2_watchlists(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_watchlists".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2WatchlistsWatchlistId` implicit endpoint.
@@ -138,18 +138,18 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AccountActivities` implicit endpoint.
-    pub async fn trader_private_get_v2_account_activities(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_account_activities".into()), optional_args).await
+    pub async fn trader_private_get_v2_account_activities(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_account_activities".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AccountActivitiesActivityType` implicit endpoint.
-    pub async fn trader_private_get_v2_account_activities_activity_type(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_account_activities_activity_type".into()), optional_args).await
+    pub async fn trader_private_get_v2_account_activities_activity_type(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_account_activities_activity_type".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Calendar` implicit endpoint.
-    pub async fn trader_private_get_v2_calendar(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_calendar".into()), optional_args).await
+    pub async fn trader_private_get_v2_calendar(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_calendar".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Clock` implicit endpoint.
@@ -158,8 +158,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Assets` implicit endpoint.
-    pub async fn trader_private_get_v2_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_assets".into()), optional_args).await
+    pub async fn trader_private_get_v2_assets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_assets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2AssetsSymbolOrAssetId` implicit endpoint.
@@ -173,8 +173,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2CorporateActionsAnnouncements` implicit endpoint.
-    pub async fn trader_private_get_v2_corporate_actions_announcements(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_corporate_actions_announcements".into()), optional_args).await
+    pub async fn trader_private_get_v2_corporate_actions_announcements(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_corporate_actions_announcements".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2Wallets` implicit endpoint.
@@ -183,8 +183,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2WalletsTransfers` implicit endpoint.
-    pub async fn trader_private_get_v2_wallets_transfers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_wallets_transfers".into()), optional_args).await
+    pub async fn trader_private_get_v2_wallets_transfers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_wallets_transfers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV1Locates` implicit endpoint.
@@ -203,8 +203,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2TokenizationRequests` implicit endpoint.
-    pub async fn trader_private_get_v2_tokenization_requests(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_get_v2_tokenization_requests".into()), optional_args).await
+    pub async fn trader_private_get_v2_tokenization_requests(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_get_v2_tokenization_requests".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateGetV2TokenizationRequestsTokenizationRequestId` implicit endpoint.
@@ -283,8 +283,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2Orders` implicit endpoint.
-    pub async fn trader_private_delete_v2_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_delete_v2_orders".into()), optional_args).await
+    pub async fn trader_private_delete_v2_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_delete_v2_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2OrdersOrderId` implicit endpoint.
@@ -293,8 +293,8 @@ impl Alpaca {
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2Positions` implicit endpoint.
-    pub async fn trader_private_delete_v2_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trader_private_delete_v2_positions".into()), optional_args).await
+    pub async fn trader_private_delete_v2_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trader_private_delete_v2_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2PositionsSymbolOrAssetId` implicit endpoint.

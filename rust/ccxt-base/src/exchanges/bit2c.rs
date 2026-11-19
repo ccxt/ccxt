@@ -284,7 +284,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
             amount = self.safe_string_k_opt(&orderUnified, "initialAmount", &[]);
             remaining = self.safe_string_k_opt(&orderUnified, "amount", &[]);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -308,7 +308,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1140,7 +1140,7 @@ impl Bit2c {
         let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (method.as_deref() == Some("publicGetExchangesPairTrades")) || (method.as_deref() == Some("public_get_exchanges_pair_trades")) {
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            let mut response: Value = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
+            let mut response: Value = self.call_method(Value::Str("public_get_exchanges_pair_trades".into()), &[__ws_arg_2]).await;
             //
             //     [
             //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
@@ -1154,7 +1154,7 @@ impl Bit2c {
             responseList = self.to_array_t(response);
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            let mut response: Value = self.public_get_exchanges_pair_lasttrades(&[__ws_arg_3]).await;
+            let mut response: Value = self.call_method(Value::Str("public_get_exchanges_pair_lasttrades".into()), &[__ws_arg_3]).await;
             if matches!(&response, Value::Str(_)) {
                 panic!("{}", crate::exchange_errors::exchange_error(response));
             }
@@ -1462,7 +1462,7 @@ impl Bit2c {
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_order_order_history", &[__ws_arg_10]).await;
+        let mut response: crate::value::List = self.private_get_order_order_history(&[__ws_arg_10]).await;
         //
         //     [
         //         {

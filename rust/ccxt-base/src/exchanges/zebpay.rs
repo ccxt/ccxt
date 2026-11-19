@@ -199,7 +199,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "timeInForce", &[]);
         let mut status: Option<String> = self.safe_string_lower_k_opt(&order, "status", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(&order, "orderId", &[]);
-        let mut parsedOrder: Value = self.safe_order(Value::Map({
+        let mut parsedOrder: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -225,7 +225,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
                 m.insert("average".to_string(), Value::Null);
                 m.insert("trades".to_string(), Value::Null);
             m
-        }), Some(&marketResolved));
+        }), Some(&marketResolved)));
         return parsedOrder;
 
     Value::Null

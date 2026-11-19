@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Nado {
     /// Auto-generated wrapper for the `gatewayPublicGetSymbols` implicit endpoint.
-    pub async fn gateway_public_get_symbols(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gateway_public_get_symbols".into()), optional_args).await
+    pub async fn gateway_public_get_symbols(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gateway_public_get_symbols".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gatewayPublicGetQuery` implicit endpoint.
@@ -43,13 +43,13 @@ impl Nado {
     }
 
     /// Auto-generated wrapper for the `gatewayV2PublicGetAssets` implicit endpoint.
-    pub async fn gateway_v2_public_get_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gateway_v2_public_get_assets".into()), optional_args).await
+    pub async fn gateway_v2_public_get_assets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gateway_v2_public_get_assets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gatewayV2PublicGetPairs` implicit endpoint.
-    pub async fn gateway_v2_public_get_pairs(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("gateway_v2_public_get_pairs".into()), optional_args).await
+    pub async fn gateway_v2_public_get_pairs(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("gateway_v2_public_get_pairs".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `gatewayV2PublicGetOrderbook` implicit endpoint.
@@ -73,8 +73,8 @@ impl Nado {
     }
 
     /// Auto-generated wrapper for the `archiveV2PublicGetTrades` implicit endpoint.
-    pub async fn archive_v2_public_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("archive_v2_public_get_trades".into()), optional_args).await
+    pub async fn archive_v2_public_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("archive_v2_public_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `archiveV2PublicGetSymbols` implicit endpoint.

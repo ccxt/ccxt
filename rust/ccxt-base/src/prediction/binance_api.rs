@@ -23,8 +23,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetMarketSearch` implicit endpoint.
-    pub async fn sapi_private_get_market_search(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("sapi_private_get_market_search".into()), optional_args).await
+    pub async fn sapi_private_get_market_search(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("sapi_private_get_market_search".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetMarketDetail` implicit endpoint.

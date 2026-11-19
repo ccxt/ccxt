@@ -118,13 +118,13 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `contractPublicGetSymbols` implicit endpoint.
-    pub async fn contract_public_get_symbols(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_symbols".into()), optional_args).await
+    pub async fn contract_public_get_symbols(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_public_get_symbols".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPublicGetInstruments` implicit endpoint.
-    pub async fn contract_public_get_instruments(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_instruments".into()), optional_args).await
+    pub async fn contract_public_get_instruments(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_public_get_instruments".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPublicGetDepthSymbolSnapshot` implicit endpoint.
@@ -143,8 +143,8 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetAccounts` implicit endpoint.
-    pub async fn contract_private_get_accounts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_accounts".into()), optional_args).await
+    pub async fn contract_private_get_accounts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_accounts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetOrdersId` implicit endpoint.
@@ -153,13 +153,13 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetOrders` implicit endpoint.
-    pub async fn contract_private_get_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_orders".into()), optional_args).await
+    pub async fn contract_private_get_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetOrdersOpening` implicit endpoint.
-    pub async fn contract_private_get_orders_opening(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_orders_opening".into()), optional_args).await
+    pub async fn contract_private_get_orders_opening(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_orders_opening".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetOrdersCount` implicit endpoint.
@@ -173,8 +173,8 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetTrades` implicit endpoint.
-    pub async fn contract_private_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_trades".into()), optional_args).await
+    pub async fn contract_private_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetTradesCount` implicit endpoint.

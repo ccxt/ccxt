@@ -168,13 +168,13 @@ impl Pacifica {
     }
 
     /// Auto-generated wrapper for the `publicGetAccountBuilderCodesApprovals` implicit endpoint.
-    pub async fn public_get_account_builder_codes_approvals(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_account_builder_codes_approvals".into()), optional_args).await
+    pub async fn public_get_account_builder_codes_approvals(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_account_builder_codes_approvals".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetBuilderOverview` implicit endpoint.
-    pub async fn public_get_builder_overview(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_builder_overview".into()), optional_args).await
+    pub async fn public_get_builder_overview(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_builder_overview".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetBuilderTrades` implicit endpoint.

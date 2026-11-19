@@ -260,7 +260,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
             }
         }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer2(&order, Value::Str("updatedTime".into()), Value::Str("updated_time".into()), &[]).as_i64();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -293,7 +293,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
 }));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3802,11 +3802,11 @@ impl Modetrade {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method_o("v1_private_delete_batch_order", &[__ws_arg_18]).await;
         }
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -3852,13 +3852,13 @@ impl Modetrade {
             response = self.v1_private_delete_algo_orders(&[__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_private_delete_orders(&[__ws_arg_20]).await;
+            response = self.call_method(Value::Str("v1_private_delete_orders".into()), &[__ws_arg_20]).await;
         }
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

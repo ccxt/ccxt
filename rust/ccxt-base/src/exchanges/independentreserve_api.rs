@@ -13,33 +13,33 @@ use crate::exchange::ExchangeRuntime;
 
 impl Independentreserve {
     /// Auto-generated wrapper for the `publicGetGetValidPrimaryCurrencyCodes` implicit endpoint.
-    pub async fn public_get_get_valid_primary_currency_codes(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_valid_primary_currency_codes".into()), optional_args).await
+    pub async fn public_get_get_valid_primary_currency_codes(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_valid_primary_currency_codes".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetValidSecondaryCurrencyCodes` implicit endpoint.
-    pub async fn public_get_get_valid_secondary_currency_codes(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_valid_secondary_currency_codes".into()), optional_args).await
+    pub async fn public_get_get_valid_secondary_currency_codes(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_valid_secondary_currency_codes".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetValidLimitOrderTypes` implicit endpoint.
-    pub async fn public_get_get_valid_limit_order_types(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_valid_limit_order_types".into()), optional_args).await
+    pub async fn public_get_get_valid_limit_order_types(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_valid_limit_order_types".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetValidMarketOrderTypes` implicit endpoint.
-    pub async fn public_get_get_valid_market_order_types(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_valid_market_order_types".into()), optional_args).await
+    pub async fn public_get_get_valid_market_order_types(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_valid_market_order_types".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetValidOrderTypes` implicit endpoint.
-    pub async fn public_get_get_valid_order_types(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_valid_order_types".into()), optional_args).await
+    pub async fn public_get_get_valid_order_types(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_valid_order_types".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetValidTransactionTypes` implicit endpoint.
-    pub async fn public_get_get_valid_transaction_types(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_valid_transaction_types".into()), optional_args).await
+    pub async fn public_get_get_valid_transaction_types(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_valid_transaction_types".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetMarketSummary` implicit endpoint.
@@ -68,8 +68,8 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `publicGetGetFxRates` implicit endpoint.
-    pub async fn public_get_get_fx_rates(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_fx_rates".into()), optional_args).await
+    pub async fn public_get_get_fx_rates(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_fx_rates".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetOrderMinimumVolumes` implicit endpoint.
@@ -78,13 +78,13 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `publicGetGetDepositFees` implicit endpoint.
-    pub async fn public_get_get_deposit_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_deposit_fees".into()), optional_args).await
+    pub async fn public_get_get_deposit_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_deposit_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetFiatWithdrawalFees` implicit endpoint.
-    pub async fn public_get_get_fiat_withdrawal_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_fiat_withdrawal_fees".into()), optional_args).await
+    pub async fn public_get_get_fiat_withdrawal_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_fiat_withdrawal_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetCryptoWithdrawalFees` implicit endpoint.
@@ -93,18 +93,18 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `publicGetGetCryptoWithdrawalFees2` implicit endpoint.
-    pub async fn public_get_get_crypto_withdrawal_fees2(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_crypto_withdrawal_fees2".into()), optional_args).await
+    pub async fn public_get_get_crypto_withdrawal_fees2(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_crypto_withdrawal_fees2".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetNetworks` implicit endpoint.
-    pub async fn public_get_get_networks(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_networks".into()), optional_args).await
+    pub async fn public_get_get_networks(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_networks".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetGetPrimaryCurrencyConfig2` implicit endpoint.
-    pub async fn public_get_get_primary_currency_config2(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_get_primary_currency_config2".into()), optional_args).await
+    pub async fn public_get_get_primary_currency_config2(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_get_primary_currency_config2".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostGetOpenOrders` implicit endpoint.
@@ -128,8 +128,8 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `privatePostGetAccounts` implicit endpoint.
-    pub async fn private_post_get_accounts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_accounts".into()), optional_args).await
+    pub async fn private_post_get_accounts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_get_accounts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostGetTransactions` implicit endpoint.
@@ -138,8 +138,8 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `privatePostGetFiatBankAccounts` implicit endpoint.
-    pub async fn private_post_get_fiat_bank_accounts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_fiat_bank_accounts".into()), optional_args).await
+    pub async fn private_post_get_fiat_bank_accounts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_get_fiat_bank_accounts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostGetDigitalCurrencyDepositAddress` implicit endpoint.
@@ -148,8 +148,8 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `privatePostGetDigitalCurrencyDepositAddress2` implicit endpoint.
-    pub async fn private_post_get_digital_currency_deposit_address2(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_digital_currency_deposit_address2".into()), optional_args).await
+    pub async fn private_post_get_digital_currency_deposit_address2(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_get_digital_currency_deposit_address2".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostGetDigitalCurrencyDepositAddresses` implicit endpoint.
@@ -173,8 +173,8 @@ impl Independentreserve {
     }
 
     /// Auto-generated wrapper for the `privatePostGetBrokerageFees` implicit endpoint.
-    pub async fn private_post_get_brokerage_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_brokerage_fees".into()), optional_args).await
+    pub async fn private_post_get_brokerage_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_get_brokerage_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostGetDigitalCurrencyWithdrawal` implicit endpoint.

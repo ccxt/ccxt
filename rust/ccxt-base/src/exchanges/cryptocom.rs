@@ -234,14 +234,14 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         //
         let mut code: Option<i64> = self.safe_integer_k(&order, "code", &[]).as_i64();
         if (code.is_some()) && (code != Some(0)) {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_oid", &[]));
         m.insert("info".to_string(), order.clone());
         m.insert("status".to_string(), Value::Str("rejected".into()));
     m
-}), None);
+}), None));
         }
         let mut created: Option<i64> = self.safe_integer_k(&order, "create_time", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "instrument_name", &[]);
@@ -263,7 +263,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
             }
         }
         let mut feeCurrency: Option<String> = self.safe_string_k_opt(&order, "fee_instrument_name", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
@@ -291,7 +291,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
 }));
         m.insert("trades".to_string(), Value::from(vec![]));
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -3483,11 +3483,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v1_private_post_private_cancel_all_orders", &[__ws_arg_7]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

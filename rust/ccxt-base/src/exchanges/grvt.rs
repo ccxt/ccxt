@@ -270,12 +270,12 @@ impl crate::exchange::DerivedExchange for Grvt {
         //    }
         //
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("ack"))) {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), Value::Null);
     m
-}), None);
+}), None));
         }
         let mut isMarket: bool = self.safe_bool_k_opt(&order, "is_market", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderType: String = "limit".to_string();
@@ -309,7 +309,7 @@ impl crate::exchange::DerivedExchange for Grvt {
             avgPrice = self.safe_string_opt(&avgPrices, Value::from(primaryOrderIndex), &[]);
         }
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&metadata, "create_time", Value::Float(0.000001), &[]).as_i64();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&metadata, "client_order_id", &[]));
@@ -335,7 +335,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         m.insert("reduceOnly".to_string(), isReduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("info".to_string(), order);
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
     Value::Null
 }
@@ -4766,9 +4766,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn request_id(&self) -> i64 {
+    pub fn request_id(&mut self) -> i64 {
         let mut requestId: i64 = ((self.safe_integer_k(&self.options, "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
         return requestId;
 }
 

@@ -28,13 +28,13 @@ impl Bit2c {
     }
 
     /// Auto-generated wrapper for the `publicGetExchangesPairTrades` implicit endpoint.
-    pub async fn public_get_exchanges_pair_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_exchanges_pair_trades".into()), optional_args).await
+    pub async fn public_get_exchanges_pair_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_exchanges_pair_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetExchangesPairLasttrades` implicit endpoint.
-    pub async fn public_get_exchanges_pair_lasttrades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_exchanges_pair_lasttrades".into()), optional_args).await
+    pub async fn public_get_exchanges_pair_lasttrades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_exchanges_pair_lasttrades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostMerchantCreateCheckout` implicit endpoint.
@@ -128,18 +128,18 @@ impl Bit2c {
     }
 
     /// Auto-generated wrapper for the `privateGetOrderAccountHistory` implicit endpoint.
-    pub async fn private_get_order_account_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_account_history".into()), optional_args).await
+    pub async fn private_get_order_account_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_order_account_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetOrderOrderHistory` implicit endpoint.
-    pub async fn private_get_order_order_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_order_history".into()), optional_args).await
+    pub async fn private_get_order_order_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_order_order_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetOrderHistoryByOrderId` implicit endpoint.
-    pub async fn private_get_order_history_by_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_history_by_order_id".into()), optional_args).await
+    pub async fn private_get_order_history_by_order_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_order_history_by_order_id".into()), optional_args).await { a } else { Default::default() }
     }
 
 }

@@ -187,7 +187,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(&order, "updated_timestamp", &[]).as_i64();
         let mut rawTrades: crate::value::List = self.safe_list_k_t(&order, "operations");
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -211,7 +211,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -869,7 +869,7 @@ impl Mercado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("public_get_coins", &[params]).await;
+        let mut response: crate::value::List = self.public_get_coins(&[params]).await;
         //
         //     [
         //         "BCH",
@@ -1194,12 +1194,12 @@ impl Mercado {
                 response = self.call_method_o("private_post_place_market_sell_order", &[__ws_arg_8]).await;
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), self.safe_string(self.safe_dict_k(self.safe_dict_k(&response, "response_data", &[]), "order", &[]), Value::Str("order_id".into()), &[]));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

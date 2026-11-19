@@ -125,7 +125,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseexchange {
                 "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trade" => self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..]).await,
                 "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
@@ -164,7 +164,7 @@ impl Coinbaseexchange {
             "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trade" => self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
@@ -917,26 +917,26 @@ impl Coinbaseexchange {
         let mut makerFeeRate: Option<String> = self.safe_string_k_opt(&trade, "maker_fee_rate", &[]);
         if (makerFeeRate.is_some()) {
             isMaker = true;
-            add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".into()), Value::Str("maker".into()));
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("takerOrMaker".to_string(), Value::Str("maker".into())); }
             feeRate = makerFeeRate;
         }  else {
-            add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".into()), Value::Str("taker".into()));
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("takerOrMaker".to_string(), Value::Str("taker".into())); }
             feeRate = self.safe_string_k_opt(&trade, "taker_fee_rate", &[]);
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             let mut currentSide: Option<String> = self.safe_string_k_opt(&parsed, "side", &[]);
-            add_element_to_object(&mut parsed, &Value::Str("side".into()), self.safe_string(Value::Map({
+            if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("side".to_string(), self.safe_string(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("buy".to_string(), Value::Str("sell".into()));
         m.insert("sell".to_string(), Value::Str("buy".into()));
     m
-}), currentSide.clone().map(Value::from).unwrap_or(Value::Null), &[currentSide.map(Value::from).unwrap_or(Value::Null)]));
+}), currentSide.clone().map(Value::from).unwrap_or(Value::Null), &[currentSide.map(Value::from).unwrap_or(Value::Null)])); }
         }
         let mut idKey: String = "taker_order_id".to_string();
         if isMaker {
             idKey = "maker_order_id".to_string();
         }
-        add_element_to_object(&mut parsed, &Value::Str("order".into()), self.safe_string(trade, Value::from(idKey), &[]));
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("order".to_string(), self.safe_string(trade, Value::from(idKey), &[])); }
         let mut parsedSymbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = (match self.market(parsedSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut feeCurrency: String = (marketResolved).quote.clone();
@@ -945,13 +945,13 @@ impl Coinbaseexchange {
         if (cost.is_some()) && (feeRate.is_some()) {
             feeCost = crate::precise::Precise::stringMul(&cost, &feeRate).as_str().map(str::to_owned);
         }
-        add_element_to_object(&mut parsed, &Value::Str("fee".into()), Value::Map({
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), self.parse_number(feeRate.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("currency".to_string(), Value::from(feeCurrency));
     m
-}));
+})); }
         return parsed;
 
     Value::Null
@@ -1070,7 +1070,7 @@ impl Coinbaseexchange {
                 previousOrder = self.safe_dict_n(&previousOrders, Value::from(vec![makerOrderId.map(Value::from).unwrap_or(Value::Null), takerOrderId.map(Value::from).unwrap_or(Value::Null)]), &[]);
             }
             if (previousOrder == Value::Null) {
-                let mut parsed: crate::value::Dict = self.parse_ws_order(message.clone(), None).into_dict();
+                let mut parsed: crate::value::Dict = self.parse_ws_order(message.clone(), None);
                 orders.append(Value::Dict(parsed));
                 client.resolve(Value::from(&orders), messageHash.as_str());
             }  else {
@@ -1130,7 +1130,7 @@ impl Coinbaseexchange {
                         client.resolve(Value::from(&orders), messageHash.as_str());
                     }  else if (type_var.as_deref() == Some("received")) || (type_var.as_deref() == Some("done")) {
                         let mut info: crate::value::Dict = self.extend_t(previousInfo, &[message]);
-                        let mut order: indexmap::IndexMap<String, Value> = self.parse_ws_order(&info, None).as_map().cloned().unwrap_or_default();
+                        let mut order: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ws_order(&info, None));
                         let mut keys: Vec<Value> = Value::Array(order.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: i64 = 0;
@@ -1154,7 +1154,7 @@ impl Coinbaseexchange {
         }
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         let mut id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "client_oid", &[]);
@@ -1206,7 +1206,7 @@ impl Coinbaseexchange {
     m
 }), None);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_ticker(&mut self, client: &Value, mut message: Value) -> Value {
@@ -1236,7 +1236,7 @@ impl Coinbaseexchange {
             let mut ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, message.clone(), None);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
             }
             let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]));
             let mut idMessageHash: String = format!("{}{}", "ticker:", marketId.as_deref().unwrap_or("null"));

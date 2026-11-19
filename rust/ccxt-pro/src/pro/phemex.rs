@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "from_ep" => crate::Value::from(self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "from_er" => crate::Value::from(self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
@@ -474,7 +474,7 @@ impl Phemex {
             let mut timestamp: Option<i64> = self.safe_integer_product_k(&message, "timestamp", Value::Float(0.000001), &[]).as_i64();
             add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), Value::from(timestamp));
             add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
             client.resolve(ticker, messageHash.as_str());
         }
         }
@@ -594,7 +594,7 @@ impl Phemex {
             if (code.is_some()) {
                 { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
-            { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+            { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         }
         }
         let mut messageHash: String = format!("{}{}", Value::from(type_var), ":balance");
@@ -1941,7 +1941,7 @@ impl Phemex {
         let mut timeInForce: Option<String> = self.parent.parse_time_in_force((self.safe_string_k(&order, "timeInForce", &[])).as_str());
         let mut stopPrice: Option<String> = self.safe_string_k_opt(&order, "stopPx", &[]);
         let mut postOnly: bool = timeInForce.as_deref() == Some("PO");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1966,7 +1966,7 @@ impl Phemex {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(marketValue));
+}), Some(marketValue)));
 
     Value::Null
 }
@@ -2174,7 +2174,7 @@ impl Phemex {
     Value::Null
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

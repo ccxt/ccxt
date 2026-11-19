@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Woo {
         if (orderType.is_some()) {
             postOnly = Some(orderType.as_deref() == Some("post_only"));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -337,7 +337,7 @@ impl crate::exchange::DerivedExchange for Woo {
 }));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3801,11 +3801,11 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(data));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

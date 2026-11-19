@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
@@ -571,7 +571,7 @@ impl Polymarket {
                 m.insert("info".to_string(), Value::from(&data));
             m
         }), Some(&market));
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
         client.resolve(ticker, "tickers");
 }
@@ -1004,7 +1004,7 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} resolves once the connection is authenticated
  */
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1647,8 +1647,8 @@ impl Polymarket {
                         CacheStore::forget(&mut self.trades, &symbol);
                     }
                 }  else if (topic.as_deref() == Some("ticker")) {
-                    if (matches!((&self.tickers, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                        if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                    if (matches!((&self.tickers, symbol.as_deref()), (__d, Some(__k)) if __d.contains_key(__k))) {
+                        if let (__d, Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }  else if (topic.as_deref() == Some("ohlcv")) {
                     let mut timeframe: Option<String> = self.safe_string_k_opt(&pending, "timeframe", &[]);

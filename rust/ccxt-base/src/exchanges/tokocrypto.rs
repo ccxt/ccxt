@@ -422,7 +422,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         // echoed back by the venue is only the third witness
         let mut isLimitMaker: bool = ((rawOrderType.as_deref() == Some("7")) || (rawOrderType.as_deref() == Some("limit_maker")));
         let mut postOnly: bool = (isLimitMaker || (timeInForce.as_deref() == Some("PO")));
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -447,7 +447,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Arr(fills));
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -2311,7 +2311,7 @@ impl Tokocrypto {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("binance_get_ticker_book_ticker", &[params]).await;
+        let mut response: crate::value::List = self.binance_get_ticker_book_ticker(&[params]).await;
         return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
@@ -2385,7 +2385,7 @@ impl Tokocrypto {
             response = self.public_get_open_v1_market_klines(&[__ws_arg_6]).await;
         }  else {
             let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.binance_get_klines(&[__ws_arg_7]).await;
+            response = self.call_method(Value::Str("binance_get_klines".into()), &[__ws_arg_7]).await;
         }
         //
         // binanceGetKlines

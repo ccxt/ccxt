@@ -1328,7 +1328,7 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
+        let mut queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
         let mut rest: crate::value::Dict = self.omit_t(params.clone(), &["query", "queries", "limit"], &[]);
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
@@ -2738,7 +2738,7 @@ impl Limitless {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("limitless_private_get_markets_slug_user_orders", &[__ws_arg_22]).await;
+        let mut response: crate::value::List = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await;
         return self.parse_prediction_orders(self.to_array(&response), &[Value::Null, since, limit]);
         Value::Null
         }).await?))
@@ -4054,8 +4054,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.require_event_query(&[params.clone()]);
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        self.require_event_query(&[&params]);
+        let mut queries: Value = self.parse_search_queries(&[&params]);
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
         }

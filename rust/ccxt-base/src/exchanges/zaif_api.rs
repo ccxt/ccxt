@@ -18,23 +18,23 @@ impl Zaif {
     }
 
     /// Auto-generated wrapper for the `publicGetCurrenciesPair` implicit endpoint.
-    pub async fn public_get_currencies_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currencies_pair".into()), optional_args).await
+    pub async fn public_get_currencies_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrenciesAll` implicit endpoint.
-    pub async fn public_get_currencies_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currencies_all".into()), optional_args).await
+    pub async fn public_get_currencies_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyPairsPair` implicit endpoint.
-    pub async fn public_get_currency_pairs_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currency_pairs_pair".into()), optional_args).await
+    pub async fn public_get_currency_pairs_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency_pairs_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyPairsAll` implicit endpoint.
-    pub async fn public_get_currency_pairs_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currency_pairs_all".into()), optional_args).await
+    pub async fn public_get_currency_pairs_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency_pairs_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetLastPricePair` implicit endpoint.
@@ -48,23 +48,23 @@ impl Zaif {
     }
 
     /// Auto-generated wrapper for the `publicGetTradesPair` implicit endpoint.
-    pub async fn public_get_trades_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trades_pair".into()), optional_args).await
+    pub async fn public_get_trades_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trades_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetVaspInfoVaspMasterId` implicit endpoint.
-    pub async fn public_get_vasp_info_vasp_master_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_vasp_info_vasp_master_id".into()), optional_args).await
+    pub async fn public_get_vasp_info_vasp_master_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_vasp_info_vasp_master_id".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCountryInfoCode` implicit endpoint.
-    pub async fn public_get_country_info_code(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_country_info_code".into()), optional_args).await
+    pub async fn public_get_country_info_code(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_country_info_code".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCorpTypeIdInfoId` implicit endpoint.
-    pub async fn public_get_corp_type_id_info_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_corp_type_id_info_id".into()), optional_args).await
+    pub async fn public_get_corp_type_id_info_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_corp_type_id_info_id".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostActiveOrders` implicit endpoint.
@@ -173,8 +173,8 @@ impl Zaif {
     }
 
     /// Auto-generated wrapper for the `fapiGetGroupsGroupId` implicit endpoint.
-    pub async fn fapi_get_groups_group_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("fapi_get_groups_group_id".into()), optional_args).await
+    pub async fn fapi_get_groups_group_id(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("fapi_get_groups_group_id".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `fapiGetLastPriceGroupIdPair` implicit endpoint.
@@ -188,8 +188,8 @@ impl Zaif {
     }
 
     /// Auto-generated wrapper for the `fapiGetTradesGroupIdPair` implicit endpoint.
-    pub async fn fapi_get_trades_group_id_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("fapi_get_trades_group_id_pair".into()), optional_args).await
+    pub async fn fapi_get_trades_group_id_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("fapi_get_trades_group_id_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `fapiGetDepthGroupIdPair` implicit endpoint.

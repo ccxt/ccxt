@@ -524,31 +524,26 @@ impl Gate {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Option<crate::types::Market> = None;
-        if (symbol == Value::Null) {
-            market = None.clone();
-        }  else {
-            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        }
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut trigger: Option<bool> = self.safe_bool2_opt(&params, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
-        let mut messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel_cp");
         let channelOptionparamsChannelVariable = self.handle_option_string_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("channel".into()), &[Value::from(channel)]);
         let mut channelOption: Option<String> = channelOptionparamsChannelVariable.0.as_str().map(str::to_owned);
         let mut paramsChannel: crate::value::Dict = channelOptionparamsChannelVariable.1;
-        let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsChannel, &["stop", "trigger"], &[]);
-        let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
+        let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), Some(&market), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_deref() == Some("spot")) { self.parent.multi_order_spot_prepare_request(market.as_ref(), &[trigger.map_or(Value::Null, Value::Bool), Value::from(&query)]) } else { self.parent.prepare_request(market.as_ref(), &[type_var.clone().map(Value::from).unwrap_or(Value::Null),
+        let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_deref() == Some("spot")) { self.parent.multi_order_spot_prepare_request(Some(&market), &[trigger.map_or(Value::Null, Value::Bool), Value::from(&query)]) } else { self.parent.prepare_request(Some(&market), &[type_var.clone().map(Value::from).unwrap_or(Value::Null),
             Value::from(&query)]) }).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let __ws_arg_0 = self.extend(request, &[&requestParams]);
         let mut rawOrders: Value = self.request_private(url.as_deref(), __ws_arg_0, channelOption.as_deref(), None).await;
-        return self.parse_orders(rawOrders, market.as_ref(), &[]);
+        return self.parse_orders(rawOrders, Some(&market), &[]);
         Value::Null
         }).await?))
     }
@@ -1458,7 +1453,7 @@ impl Gate {
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsedItem, "symbol").as_str().map(str::to_owned);
             if isTicker {
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedItem)); }
+                    { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedItem)); }
                 }
             }  else {
                 if (symbol.is_some()) {
@@ -2167,7 +2162,7 @@ impl Gate {
     m
 })]).as_str().unwrap_or_default().to_string();
         let mut messageHash: String = format!("{}{}", channelType, ".balance");
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
@@ -3180,18 +3175,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut market: Value = market.into();
         if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut settleKey: String = (if matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) { "usdt".to_string() } else { "btc".to_string() });
-            return self.safe_string(get_value(&self.urls.get("api").cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&market, "type")), Value::from(settleKey), &[Value::Str("".into())]);
-        }  else {
-            return self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), crate::value::get_value_k(&market, "type"), &[Value::Str("".into())]);
+            let mut contractUrl: String = self.safe_string(get_value(&self.urls.get("api").cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&market, "type")), Value::from(settleKey), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            return Value::from(contractUrl);
         }
+        let mut spotUrl: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), crate::value::get_value_k(&market, "type"), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        return Value::from(spotUrl);
 
     Value::Null
 }
 
     pub fn get_type_by_market(&self, market: Option<&crate::types::Market>) -> Value {
-        if (market.is_none()) {
-            return Value::Null;
-        }
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Str("spot".into());
         }  else if matches!(self.safe_bool_k(&market, "option", &[Value::Bool(false)]), Value::Bool(true)) {

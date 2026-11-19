@@ -158,7 +158,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         let mut trades: Option<String> = None; // todo: this.parseTrades (order['trades']);
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut side: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -182,7 +182,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1026,7 +1026,7 @@ impl Btcbox {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_orders", &[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_orders(&[__ws_arg_2]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1196,7 +1196,7 @@ impl Btcbox {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_post_trade_list", &[__ws_arg_6]).await;
+        let mut response: crate::value::List = self.private_post_trade_list(&[__ws_arg_6]).await;
         //
         // [
         //      {

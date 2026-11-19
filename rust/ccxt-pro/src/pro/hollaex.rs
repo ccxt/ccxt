@@ -701,7 +701,7 @@ impl Hollaex {
             }
         }
         }
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         client.resolve(Value::Dict(self.balance.clone()), messageHash.as_deref());
 }
 

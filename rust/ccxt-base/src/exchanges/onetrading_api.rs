@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Onetrading {
     /// Auto-generated wrapper for the `publicGetCurrencies` implicit endpoint.
-    pub async fn public_get_currencies(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currencies".into()), optional_args).await
+    pub async fn public_get_currencies(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesticksInstrumentCode` implicit endpoint.
@@ -23,13 +23,13 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetFees` implicit endpoint.
-    pub async fn public_get_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_fees".into()), optional_args).await
+    pub async fn public_get_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInstruments` implicit endpoint.
-    pub async fn public_get_instruments(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_instruments".into()), optional_args).await
+    pub async fn public_get_instruments(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_instruments".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetOrderBookInstrumentCode` implicit endpoint.
@@ -38,8 +38,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketTicker` implicit endpoint.
-    pub async fn public_get_market_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_ticker".into()), optional_args).await
+    pub async fn public_get_market_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_market_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetMarketTickerInstrumentCode` implicit endpoint.
@@ -53,8 +53,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRate` implicit endpoint.
-    pub async fn public_get_funding_rate(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_funding_rate".into()), optional_args).await
+    pub async fn public_get_funding_rate(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_funding_rate".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRateHistory` implicit endpoint.
@@ -63,8 +63,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRateSettings` implicit endpoint.
-    pub async fn public_get_funding_rate_settings(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_funding_rate_settings".into()), optional_args).await
+    pub async fn public_get_funding_rate_settings(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_funding_rate_settings".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountBalances` implicit endpoint.
@@ -148,8 +148,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `privateDeleteAccountOrders` implicit endpoint.
-    pub async fn private_delete_account_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_account_orders".into()), optional_args).await
+    pub async fn private_delete_account_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_account_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteAccountOrdersOrderId` implicit endpoint.

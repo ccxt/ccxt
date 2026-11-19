@@ -59,14 +59,14 @@ impl crate::exchange_generated::ExchangeBase for Bit2me {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "cancel_all_orders_ws" => self.cancel_all_orders_ws(&args[..]).await,
                 "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
@@ -106,7 +106,7 @@ impl Bit2me {
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "settle_request" => { self.settle_request(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]); crate::Value::Null },
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
@@ -507,7 +507,7 @@ impl Bit2me {
         //     }
         //
         let mut data: crate::value::Dict = message.key_dict("data");
-        let mut order: crate::value::Dict = self.parse_ws_order(&data, None).into_dict();
+        let mut order: crate::value::Dict = self.parse_ws_order(&data, None);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -518,7 +518,7 @@ impl Bit2me {
         client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", "orders:", crate::value::KeyRead::key_read(&&order, "symbol")).into())));
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         //     {
@@ -585,7 +585,7 @@ impl Bit2me {
     m
 }), Some(&resolvedMarket));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -862,14 +862,14 @@ impl Bit2me {
         let mut orderId: Option<String> = self.safe_string_k_opt(&data, "orderId", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut order: Value = self.safe_order(Value::Map({
+        let mut order: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), message);
                 m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(&data, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
             m
-        }), Some(&market));
+        }), Some(&market)));
         self.settle_request(client, Value::Str(format!("{}{}", "canceled-order:", orderId.as_deref().unwrap_or("null")).into()), order, &[]);
 }
 
@@ -935,13 +935,13 @@ impl Bit2me {
             let mut __for_first_100: bool = true;
             while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < (deleted.len() as i64) } {
             let mut entry: Value = deleted.get(i as usize).cloned().unwrap_or(Value::Null);
-            orders.push(self.safe_order(Value::Map({
+            orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("id".to_string(), self.safe_string_k(&entry, "id", &[]));
                     m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(&entry, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
                 m
-            }), None));
+            }), None)));
         }
         }
         {
@@ -949,13 +949,13 @@ impl Bit2me {
             let mut __for_first_101: bool = true;
             while { if !__for_first_101 { i += 1; } __for_first_101 = false; i < (notDeleted.len() as i64) } {
             let mut entry: Value = notDeleted.get(i as usize).cloned().unwrap_or(Value::Null);
-            orders.push(self.safe_order(Value::Map({
+            orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("id".to_string(), self.safe_string_k(&entry, "id", &[]));
                     m.insert("status".to_string(), Value::Null);
                 m
-            }), None));
+            }), None)));
         }
         }
         self.settle_request(client, Value::Str("canceled-orders".into()), Value::from(orders), &[]);
@@ -1019,14 +1019,14 @@ impl Bit2me {
                         let mut i: i64 = 0;
             let mut __for_first_102: bool = true;
             while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (ids.len() as i64) } {
-            orders.push(self.safe_order(Value::Map({
+            orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), message.clone());
                     m.insert("id".to_string(), ids.get(i as usize).cloned().unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), Some(&market)));
+            }), Some(&market))));
         }
         }
         self.settle_request(client, Value::Str(format!("{}{}", "canceled-all-orders:", marketId.as_deref().unwrap_or("null")).into()), Value::from(orders), &[]);
@@ -1040,7 +1040,7 @@ impl Bit2me {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the authentication message
  */
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

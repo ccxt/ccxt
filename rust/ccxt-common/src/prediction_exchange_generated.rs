@@ -94,7 +94,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    fn parse_search_queries(&self, optional_args: &[Value]) -> Value {
+    fn parse_search_queries(&self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -111,7 +111,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    fn require_event_query(&self, optional_args: &[Value]) -> Value {
+    fn require_event_query(&self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2728,9 +2728,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "parse_prediction_ticker" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_trade" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_trades" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trades(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "parse_search_queries" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_search_queries(self, &args[..]),
+            "parse_search_queries" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_search_queries(self, &args[..].iter().collect::<Vec<_>>()),
             "price_to_prediction_precision" => <Self as crate::prediction_exchange_generated::PredictionBase>::price_to_prediction_precision(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "require_event_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::require_event_query(self, &args[..]),
+            "require_event_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::require_event_query(self, &args[..].iter().collect::<Vec<_>>()),
             "rlp_encode_bytes" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_bytes(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "rlp_encode_list" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_list(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "safe_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),

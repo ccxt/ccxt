@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "find_timeframe" => crate::Value::from(self.find_timeframe(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "handle_authentication_message" => self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -254,7 +254,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut messageHash: String = "balance".to_string();
         let mut subscribeHash: String = "ACCOUNT_HISTORY".to_string();
@@ -332,7 +332,7 @@ impl Onetrading {
             { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&balance, &Value::from(key))); }
         }
         }
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         let mut messageHash: String = "balance".to_string();
         client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
@@ -456,11 +456,11 @@ impl Onetrading {
             let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             std::sync::Arc::make_mut(&mut parsedTicker).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut parsedTicker).insert("datetime".into(), self.iso8601(timestamp));
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
             client.resolve(Value::Dict(parsedTicker), &(Value::Str(format!("{}{}", "ticker.", symbol.as_deref().unwrap_or("null")).into())));
         }
         }
-        client.resolve(self.tickers.clone(), "tickers");
+        client.resolve(Value::Dict(self.tickers.clone()), "tickers");
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -539,7 +539,7 @@ impl Onetrading {
             symbolResolved = Some(symbolValue.clone());
             messageHash = format!("{}{}", "myTrades:", symbolValue);
         }
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut subscribeHash: String = "ACCOUNT_HISTORY".to_string();
         let mut bpRemainingQuota: i64 = self.safe_integer_k(&self.options, "bp_remaining_quota", &[Value::Int(200)]).as_i64().unwrap_or(200);
@@ -747,7 +747,7 @@ impl Onetrading {
             symbolResolved = Some(symbolValue.clone());
             messageHash = format!("{}{}", "orders:", symbolValue);
         }
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut subscribeHash: String = self.safe_string_k(&params, "channel", &[Value::Str("ACCOUNT_HISTORY".into())]).as_str().unwrap_or("ACCOUNT_HISTORY").to_string();
         let mut bpRemainingQuota: i64 = self.safe_integer_k(&self.options, "bp_remaining_quota", &[Value::Int(200)]).as_i64().unwrap_or(200);
@@ -923,7 +923,7 @@ impl Onetrading {
         let mut datetime: Option<String> = self.safe_string_k_opt(&order, "time", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "instrument_code", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_id", &[]));
@@ -947,7 +947,7 @@ impl Onetrading {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1381,7 +1381,7 @@ impl Onetrading {
         if (code.is_some()) {
             { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
         }
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
 }
 
 /*
@@ -1741,7 +1741,7 @@ impl Onetrading {
     Value::Null
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

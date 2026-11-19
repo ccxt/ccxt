@@ -98,8 +98,8 @@ impl Hibachi {
     }
 
     /// Auto-generated wrapper for the `privateGetTradeOrders` implicit endpoint.
-    pub async fn private_get_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_orders".into()), optional_args).await
+    pub async fn private_get_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetTradeOrder` implicit endpoint.

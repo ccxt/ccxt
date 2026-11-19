@@ -608,7 +608,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
             let mut fetchOrderPriceTriggerOptions: crate::value::Dict = self.safe_dict_k_t(&orderDictFromFetchOrder, "priceTriggerOptions");
             let mut fetchOrderTriggerPrice: Option<String> = self.safe_string_k_opt(&fetchOrderPriceTriggerOptions, "triggerPrice", &[]);
             let mut unifiedSymbol: Option<String> = self.safe_symbol(self.safe_string_k(&orderDictFromFetchOrder, "symbol", &[]), market, &[]).as_str().map(str::to_owned);
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&orderDictFromFetchOrder, "orderId", &[]));
@@ -636,18 +636,18 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         m.insert("fees".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), None);
+}), None));
         }
         let mut orderEvents: crate::value::List = self.safe_list_k_t(&order, "orderEvents");
         let mut errorStatus: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         let mut orderEventsLength: i64 = orderEvents.len() as i64;
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("orderEvents"))) && (errorStatus.is_some()) && (orderEventsLength == 0) {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("status".to_string(), Value::Str("rejected".into()));
     m
-}), None);
+}), None));
         }
         let mut details: Value = Value::Null;
         let mut isPrior: bool = false;
@@ -780,7 +780,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         if (triggerPrice.is_none()) {
             triggerPrice = self.safe_string_k_opt(&priceTriggerOptions, "triggerPrice", &[]);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -808,7 +808,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         m.insert("fees".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Arr(trades));
     m
-}), None);
+}), None));
 
     Value::Null
 }

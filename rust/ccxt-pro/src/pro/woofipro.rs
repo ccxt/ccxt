@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -120,7 +120,7 @@ impl Woofipro {
             "handle_trade" => { self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -465,7 +465,7 @@ impl Woofipro {
         data.insert("date".into(), Value::from(timestamp));
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Map(data), Some(&market)).into_dict();
         std::sync::Arc::make_mut(&mut ticker).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "symbol"));
-        add_element_to_object(&mut self.tickers, &crate::value::KeyRead::key_read(&&market, "symbol"), Value::from(&ticker));
+        std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
         client.resolve(Value::Dict(ticker), topic.as_deref());
         return message;
 
@@ -549,7 +549,7 @@ impl Woofipro {
                 m
             })]);
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(__ws_arg_0, Some(&market)).into_dict();
-            add_element_to_object(&mut self.tickers, &crate::value::KeyRead::key_read(&&market, "symbol"), Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(ticker));
         }
         }
@@ -629,7 +629,7 @@ impl Woofipro {
             let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(__ws_arg_1, None).into_dict();
             let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (tickerSymbol.is_some()) {
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(ticker));
         }
@@ -949,7 +949,7 @@ impl Woofipro {
         }
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1001,7 +1001,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.authenticate(&[params]).await;
+        self.authenticate(&[&params]).await;
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1027,7 +1027,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.authenticate(&[params]).await;
+        self.authenticate(&[&params]).await;
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1169,7 +1169,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         //     {
@@ -1294,7 +1294,7 @@ impl Woofipro {
     m
 }), None);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_order_update(&mut self, client: &Value, mut message: Value) {
@@ -1355,7 +1355,7 @@ impl Woofipro {
 
     pub fn handle_order(&mut self, client: &Value, message: impl Into<crate::Value>, mut topic: Value) {
         let mut message: Value = message.into();
-        let mut parsed: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
+        let mut parsed: crate::value::Dict = self.parse_ws_order(message, None);
         let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);
         if (symbol.is_some()) {
@@ -1786,7 +1786,7 @@ impl Woofipro {
             }
         }
         }
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 

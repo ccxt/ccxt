@@ -23,8 +23,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetCategories` implicit endpoint.
-    pub async fn limitless_public_get_categories(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_categories".into()), optional_args).await
+    pub async fn limitless_public_get_categories(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_public_get_categories".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsAddressOrSlug` implicit endpoint.
@@ -38,8 +38,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsActiveSlugs` implicit endpoint.
-    pub async fn limitless_public_get_markets_active_slugs(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_markets_active_slugs".into()), optional_args).await
+    pub async fn limitless_public_get_markets_active_slugs(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_public_get_markets_active_slugs".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSearch` implicit endpoint.
@@ -88,8 +88,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetNavigation` implicit endpoint.
-    pub async fn limitless_public_get_navigation(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_navigation".into()), optional_args).await
+    pub async fn limitless_public_get_navigation(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_public_get_navigation".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketPagesByPath` implicit endpoint.
@@ -103,8 +103,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPropertyKeys` implicit endpoint.
-    pub async fn limitless_public_get_property_keys(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_property_keys".into()), optional_args).await
+    pub async fn limitless_public_get_property_keys(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_public_get_property_keys".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPropertyKeysId` implicit endpoint.
@@ -113,8 +113,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPropertyKeysIdOptions` implicit endpoint.
-    pub async fn limitless_public_get_property_keys_id_options(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_property_keys_id_options".into()), optional_args).await
+    pub async fn limitless_public_get_property_keys_id_options(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_public_get_property_keys_id_options".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetPortfolioAccountTradedVolume` implicit endpoint.
@@ -143,8 +143,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetMarketsSlugUserOrders` implicit endpoint.
-    pub async fn limitless_private_get_markets_slug_user_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_get_markets_slug_user_orders".into()), optional_args).await
+    pub async fn limitless_private_get_markets_slug_user_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_private_get_markets_slug_user_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioPositions` implicit endpoint.
@@ -198,8 +198,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetAuthApiTokens` implicit endpoint.
-    pub async fn limitless_private_get_auth_api_tokens(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_get_auth_api_tokens".into()), optional_args).await
+    pub async fn limitless_private_get_auth_api_tokens(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("limitless_private_get_auth_api_tokens".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances` implicit endpoint.

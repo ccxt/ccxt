@@ -167,7 +167,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         let mut price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
         let mut id: Option<String> = self.safe_string2_opt(&order, Value::Str("id".into()), Value::Str("order_id".into()), &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -191,7 +191,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -935,7 +935,7 @@ impl Zaif {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut markets: crate::value::List = self.call_method_lt("public_get_currency_pairs_all", &[params]).await;
+        let mut markets: crate::value::List = self.public_get_currency_pairs_all(&[params]).await;
         return self.parse_markets(&markets);
         Value::Null
         }).await?))
@@ -1080,7 +1080,7 @@ impl Zaif {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_trades_pair", &[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_trades_pair(&[__ws_arg_2]).await;
         //
         //      [
         //          {
@@ -1158,12 +1158,12 @@ impl Zaif {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), Value::from(self.number_to_string(data.get("order_id").cloned().unwrap_or(Value::Null))));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

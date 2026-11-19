@@ -13,118 +13,118 @@ use crate::exchange::ExchangeRuntime;
 
 impl Upbit {
     /// Auto-generated wrapper for the `publicGetMarketAll` implicit endpoint.
-    pub async fn public_get_market_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_all".into()), optional_args).await
+    pub async fn public_get_market_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_market_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesTimeframe` implicit endpoint.
-    pub async fn public_get_candles_timeframe(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_timeframe".into()), optional_args).await
+    pub async fn public_get_candles_timeframe(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_timeframe".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesTimeframeUnit` implicit endpoint.
-    pub async fn public_get_candles_timeframe_unit(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_timeframe_unit".into()), optional_args).await
+    pub async fn public_get_candles_timeframe_unit(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_timeframe_unit".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesSeconds` implicit endpoint.
-    pub async fn public_get_candles_seconds(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_seconds".into()), optional_args).await
+    pub async fn public_get_candles_seconds(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_seconds".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutesUnit` implicit endpoint.
-    pub async fn public_get_candles_minutes_unit(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes_unit".into()), optional_args).await
+    pub async fn public_get_candles_minutes_unit(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes_unit".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes1` implicit endpoint.
-    pub async fn public_get_candles_minutes1(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes1".into()), optional_args).await
+    pub async fn public_get_candles_minutes1(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes1".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes3` implicit endpoint.
-    pub async fn public_get_candles_minutes3(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes3".into()), optional_args).await
+    pub async fn public_get_candles_minutes3(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes3".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes5` implicit endpoint.
-    pub async fn public_get_candles_minutes5(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes5".into()), optional_args).await
+    pub async fn public_get_candles_minutes5(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes5".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes10` implicit endpoint.
-    pub async fn public_get_candles_minutes10(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes10".into()), optional_args).await
+    pub async fn public_get_candles_minutes10(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes10".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes15` implicit endpoint.
-    pub async fn public_get_candles_minutes15(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes15".into()), optional_args).await
+    pub async fn public_get_candles_minutes15(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes15".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes30` implicit endpoint.
-    pub async fn public_get_candles_minutes30(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes30".into()), optional_args).await
+    pub async fn public_get_candles_minutes30(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes30".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes60` implicit endpoint.
-    pub async fn public_get_candles_minutes60(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes60".into()), optional_args).await
+    pub async fn public_get_candles_minutes60(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes60".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMinutes240` implicit endpoint.
-    pub async fn public_get_candles_minutes240(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_minutes240".into()), optional_args).await
+    pub async fn public_get_candles_minutes240(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_minutes240".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesDays` implicit endpoint.
-    pub async fn public_get_candles_days(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_days".into()), optional_args).await
+    pub async fn public_get_candles_days(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_days".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesWeeks` implicit endpoint.
-    pub async fn public_get_candles_weeks(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_weeks".into()), optional_args).await
+    pub async fn public_get_candles_weeks(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_weeks".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesMonths` implicit endpoint.
-    pub async fn public_get_candles_months(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_months".into()), optional_args).await
+    pub async fn public_get_candles_months(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_months".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesYears` implicit endpoint.
-    pub async fn public_get_candles_years(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_candles_years".into()), optional_args).await
+    pub async fn public_get_candles_years(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_candles_years".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTradesTicks` implicit endpoint.
-    pub async fn public_get_trades_ticks(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trades_ticks".into()), optional_args).await
+    pub async fn public_get_trades_ticks(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trades_ticks".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
-    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_ticker".into()), optional_args).await
+    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTickerAll` implicit endpoint.
-    pub async fn public_get_ticker_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_ticker_all".into()), optional_args).await
+    pub async fn public_get_ticker_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_ticker_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
-    pub async fn public_get_orderbook(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_orderbook".into()), optional_args).await
+    pub async fn public_get_orderbook(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_orderbook".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetOrderbookInstruments` implicit endpoint.
-    pub async fn public_get_orderbook_instruments(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_orderbook_instruments".into()), optional_args).await
+    pub async fn public_get_orderbook_instruments(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_orderbook_instruments".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccounts` implicit endpoint.
-    pub async fn private_get_accounts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_accounts".into()), optional_args).await
+    pub async fn private_get_accounts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_accounts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersChance` implicit endpoint.
@@ -138,23 +138,23 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersClosed` implicit endpoint.
-    pub async fn private_get_orders_closed(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_closed".into()), optional_args).await
+    pub async fn private_get_orders_closed(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_orders_closed".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersOpen` implicit endpoint.
-    pub async fn private_get_orders_open(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_open".into()), optional_args).await
+    pub async fn private_get_orders_open(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_orders_open".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersUuids` implicit endpoint.
-    pub async fn private_get_orders_uuids(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_uuids".into()), optional_args).await
+    pub async fn private_get_orders_uuids(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_orders_uuids".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdraws` implicit endpoint.
-    pub async fn private_get_withdraws(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdraws".into()), optional_args).await
+    pub async fn private_get_withdraws(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_withdraws".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdraw` implicit endpoint.
@@ -168,13 +168,13 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawsCoinAddresses` implicit endpoint.
-    pub async fn private_get_withdraws_coin_addresses(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdraws_coin_addresses".into()), optional_args).await
+    pub async fn private_get_withdraws_coin_addresses(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_withdraws_coin_addresses".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetDeposits` implicit endpoint.
-    pub async fn private_get_deposits(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposits".into()), optional_args).await
+    pub async fn private_get_deposits(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_deposits".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsChanceCoin` implicit endpoint.
@@ -188,8 +188,8 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsCoinAddresses` implicit endpoint.
-    pub async fn private_get_deposits_coin_addresses(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposits_coin_addresses".into()), optional_args).await
+    pub async fn private_get_deposits_coin_addresses(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_deposits_coin_addresses".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsCoinAddress` implicit endpoint.
@@ -198,43 +198,43 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetTravelRuleVasps` implicit endpoint.
-    pub async fn private_get_travel_rule_vasps(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_travel_rule_vasps".into()), optional_args).await
+    pub async fn private_get_travel_rule_vasps(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_travel_rule_vasps".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetStatusWallet` implicit endpoint.
-    pub async fn private_get_status_wallet(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_status_wallet".into()), optional_args).await
+    pub async fn private_get_status_wallet(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_status_wallet".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiKeys` implicit endpoint.
-    pub async fn private_get_api_keys(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_keys".into()), optional_args).await
+    pub async fn private_get_api_keys(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_keys".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetPockets` implicit endpoint.
-    pub async fn private_get_pockets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_pockets".into()), optional_args).await
+    pub async fn private_get_pockets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_pockets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetPocketsApiKeys` implicit endpoint.
-    pub async fn private_get_pockets_api_keys(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_pockets_api_keys".into()), optional_args).await
+    pub async fn private_get_pockets_api_keys(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_pockets_api_keys".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetPocketsAssets` implicit endpoint.
-    pub async fn private_get_pockets_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_pockets_assets".into()), optional_args).await
+    pub async fn private_get_pockets_assets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_pockets_assets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetPocketsUniversalTransfers` implicit endpoint.
-    pub async fn private_get_pockets_universal_transfers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_pockets_universal_transfers".into()), optional_args).await
+    pub async fn private_get_pockets_universal_transfers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_pockets_universal_transfers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetPocketsTransfers` implicit endpoint.
-    pub async fn private_get_pockets_transfers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_pockets_transfers".into()), optional_args).await
+    pub async fn private_get_pockets_transfers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_pockets_transfers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.

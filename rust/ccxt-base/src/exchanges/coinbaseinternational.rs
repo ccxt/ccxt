@@ -343,7 +343,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 m
             });
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
@@ -369,7 +369,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), self.safe_list_k(order, "trades", &[]));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3927,11 +3927,11 @@ impl Coinbaseinternational {
         //         "result": 4
         //     }
         //
-        let mut order: Value = self.safe_order(Value::Map({
+        let mut order: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
             m
-        }), None);
+        }), None));
         return Value::from(vec![order]);
         Value::Null
         }).await?))
@@ -4651,7 +4651,7 @@ impl Coinbaseinternational {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
  */
-    pub fn handle_route_and_params(&self, methodName: &str, optional_args: &[Value]) -> crate::value::Dict {
+    pub fn handle_route_and_params(&mut self, methodName: &str, optional_args: &[Value]) -> crate::value::Dict {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4673,13 +4673,13 @@ impl Coinbaseinternational {
         }
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if deribit {
-            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
         }  else {
-            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
         }
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.has) }; std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.has) }; std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
+        { let __d = &mut self.has; std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
+        { let __d = &mut self.has; std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
         return self.omit_t(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);
 
     Default::default()

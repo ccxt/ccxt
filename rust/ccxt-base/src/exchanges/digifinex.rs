@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
                 }
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("order_id".into()), Value::Str("data".into()), &[]));
@@ -432,7 +432,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3768,12 +3768,12 @@ impl Digifinex {
             let mut canceled: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
             return canceled.map_or(Value::Null, Value::Dict);
         }  else {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), self.safe_string_k(&response, "data", &[]));
     m
-}), None);
+}), None));
         }
         Value::Null
         }).await?))
@@ -3795,14 +3795,14 @@ impl Digifinex {
             let mut __for_first_648: bool = true;
             while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (success.len() as i64) } {
             let mut order: Value = success.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone());
                     m.insert("id".to_string(), order.clone());
                     m.insert("symbol".to_string(), self.safe_string(&symbolsById, order, &[]));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), None));
+            }), None)));
         }
         }
         {
@@ -3810,14 +3810,14 @@ impl Digifinex {
             let mut __for_first_649: bool = true;
             while { if !__for_first_649 { i += 1; } __for_first_649 = false; i < (error.len() as i64) } {
             let mut order: Value = error.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone());
                     m.insert("id".to_string(), order.clone());
                     m.insert("symbol".to_string(), self.safe_string(&symbolsById, order, &[]));
                     m.insert("status".to_string(), Value::Str("failed".into()));
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(result);
@@ -3993,14 +3993,14 @@ impl Digifinex {
                 let mut orderId: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut isCanceled: bool = self.in_array(&orderId, Value::from(&data));
                 let mut status: String = (if isCanceled { "canceled".to_string() } else { "failed".to_string() });
-                result.push(self.safe_order(Value::Map({
+                result.push(Value::Dict(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), symbols.get(i as usize).cloned().unwrap_or(Value::Null));
                         m.insert("status".to_string(), Value::from(status));
                     m
-                }), None));
+                }), None)));
             }
             }
             return Value::from(result);

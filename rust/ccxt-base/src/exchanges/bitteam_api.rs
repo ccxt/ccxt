@@ -88,8 +88,8 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcSummary` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_summary(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_api_cmc_summary".into()), optional_args).await
+    pub async fn public_get_trade_api_cmc_summary(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trade_api_cmc_summary".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcTicker` implicit endpoint.
@@ -98,8 +98,8 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcTradesPair` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_trades_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_api_cmc_trades_pair".into()), optional_args).await
+    pub async fn public_get_trade_api_cmc_trades_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trade_api_cmc_trades_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtBalance` implicit endpoint.

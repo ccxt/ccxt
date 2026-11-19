@@ -328,7 +328,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(&order, "tpTriggerPrice", &[]).as_f64();
         let mut reduceOnlyRaw: Option<String> = self.safe_string_k_opt(&order, "reduceOnly", &[]);
         let mut reduceOnly: bool = reduceOnlyRaw.as_deref() == Some("true");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -355,7 +355,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("trades".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }

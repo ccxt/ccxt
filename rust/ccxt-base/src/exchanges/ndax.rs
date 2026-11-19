@@ -393,7 +393,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&order, "ReceiveTime", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "Instrument", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("ReplacementOrderId".into()), Value::Str("OrderId".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(&order, Value::Str("ReplacementClOrdId".into()), Value::Str("ClientOrderId".into()), &[]));
@@ -417,7 +417,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -2013,7 +2013,7 @@ impl Ndax {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_get_products", &[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_get_products(&[__ws_arg_2]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -2045,7 +2045,7 @@ impl Ndax {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_get_instruments", &[__ws_arg_3]).await;
+        let mut response: crate::value::List = self.public_get_get_instruments(&[__ws_arg_3]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -2089,7 +2089,7 @@ impl Ndax {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_get_l2_snapshot", &[__ws_arg_4]).await;
+        let mut response: crate::value::List = self.public_get_get_l2_snapshot(&[__ws_arg_4]).await;
         return Value::Dict(self.parse_order_book(&response, symbol, &[]));
         Value::Null
         }).await?))
@@ -2120,7 +2120,7 @@ impl Ndax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_summary", &[params]).await;
+        let mut response: crate::value::List = self.public_get_summary(&[params]).await;
         return self.filter_by_array_tickers(self.parse_tickers(&response, &[]), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2275,7 +2275,7 @@ impl Ndax {
             request.insert("Count".into(), limit.clone());
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_get_last_trades", &[__ws_arg_7]).await;
+        let mut response: crate::value::List = self.public_get_get_last_trades(&[__ws_arg_7]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2312,7 +2312,7 @@ impl Ndax {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_user_accounts", &[__ws_arg_8]).await;
+        let mut response: crate::value::List = self.private_get_get_user_accounts(&[__ws_arg_8]).await;
         //
         //     [ 449 ] // comma-separated list of account ids
         //
@@ -2401,7 +2401,7 @@ impl Ndax {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_account_positions", &[__ws_arg_9]).await;
+        let mut response: crate::value::List = self.private_get_get_account_positions(&[__ws_arg_9]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -2471,7 +2471,7 @@ impl Ndax {
             request.insert("Depth".into(), limit.clone());
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_account_transactions", &[__ws_arg_10]).await;
+        let mut response: crate::value::List = self.private_get_get_account_transactions(&[__ws_arg_10]).await;
         //
         //     [
         //         {
@@ -2720,7 +2720,7 @@ impl Ndax {
             request.insert("Depth".into(), limit.clone());
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_trades_history", &[__ws_arg_13]).await;
+        let mut response: crate::value::List = self.private_get_get_trades_history(&[__ws_arg_13]).await;
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2766,11 +2766,11 @@ impl Ndax {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_all_orders", &[__ws_arg_14]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -2878,7 +2878,7 @@ impl Ndax {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_open_orders", &[__ws_arg_16]).await;
+        let mut response: crate::value::List = self.private_get_get_open_orders(&[__ws_arg_16]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2934,7 +2934,7 @@ impl Ndax {
             request.insert("Depth".into(), limit.clone());
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_orders_history", &[__ws_arg_17]).await;
+        let mut response: crate::value::List = self.private_get_get_orders_history(&[__ws_arg_17]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3033,7 +3033,7 @@ impl Ndax {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_get_order_history_by_order_id(&[__ws_arg_19]).await;
+        let mut response: Value = self.call_method(Value::Str("private_post_get_order_history_by_order_id".into()), &[__ws_arg_19]).await;
         //
         //     [
         //         {
@@ -3208,7 +3208,7 @@ impl Ndax {
             m
         });
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_deposits(&[__ws_arg_22]).await;
+        let mut response: Value = self.call_method(Value::Str("private_get_get_deposits".into()), &[__ws_arg_22]).await;
         //
         //    "[
         //        {
@@ -3288,7 +3288,7 @@ impl Ndax {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_get_withdraws", &[__ws_arg_23]).await;
+        let mut response: crate::value::List = self.private_get_get_withdraws(&[__ws_arg_23]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

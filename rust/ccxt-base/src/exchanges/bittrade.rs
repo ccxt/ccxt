@@ -298,7 +298,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -322,7 +322,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2855,7 +2855,7 @@ impl Bittrade {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support the ").into()), method).into()), " method")));
         }
         let mut id: Option<String> = self.safe_string_k_opt(&response, "data", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2876,7 +2876,7 @@ impl Bittrade {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -3004,13 +3004,13 @@ impl Bittrade {
             let mut __for_first_453: bool = true;
             while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (success.len() as i64) } {
             let mut order: Option<String> = self.safe_string_opt(&success, Value::Int(i), &[]);
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(order.as_deref()));
                     m.insert("id".to_string(), order.map(Value::from).unwrap_or(Value::Null));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), None));
+            }), None)));
         }
         }
         {
@@ -3018,14 +3018,14 @@ impl Bittrade {
             let mut __for_first_454: bool = true;
             while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (failed.len() as i64) } {
             let mut order: Option<crate::value::Dict> = crate::value::KeyRead::read(&&failed, &Value::Int(i)).into_opt_dict();
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
                     m.insert("id".to_string(), self.safe_string2(&order, Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
                     m.insert("status".to_string(), Value::Str("failed".into()));
                     m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client-order-id", &[]));
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(result);
@@ -3080,11 +3080,11 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(data));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

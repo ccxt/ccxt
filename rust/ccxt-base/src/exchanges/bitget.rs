@@ -579,14 +579,14 @@ impl crate::exchange::DerivedExchange for Bitget {
         //
         let mut errorMessage: Option<String> = self.safe_string_k_opt(&order, "errorMsg", &[]);
         if (errorMessage.is_some()) {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string2(&order, Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]));
         m.insert("status".to_string(), Value::Str("rejected".into()));
     m
-}), market);
+}), market));
         }
         let mut posSide: Option<String> = self.safe_string_k_opt(&order, "posSide", &[]);
         let mut isContractOrder: bool = posSide.is_some();
@@ -697,7 +697,7 @@ impl crate::exchange::DerivedExchange for Bitget {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = self.safe_string_k_opt(&order, "baseVolume", &[]);
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("orderId".into()), Value::Str("data".into()), &[]));
@@ -725,7 +725,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2050,7 +2050,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         {
                         let mut i: i64 = 0;
             let mut __for_first_376: bool = true;
-            while { if !__for_first_376 { i += 1; } __for_first_376 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_376 { i += 1; } __for_first_376 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut item: crate::value::Dict = self.safe_dict_t(&info, Value::Int(i));
             let mut minimumNotional: Option<f64> = self.safe_number2(&item, Value::Str("startUnit".into()), Value::Str("minTierValue".into()), &[]).as_f64();
             if (minimumNotional.is_some()) {
@@ -12362,14 +12362,14 @@ if _try_result.is_err() {
                 let mut timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
                 let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                 let mut marketId: Option<String> = self.safe_string_k_opt(&responseData, "symbol", &[]);
-                let mut parsedOrder: Value = self.safe_order(Value::Map({
+                let mut parsedOrder: Value = Value::Dict(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
                         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("spot".into())]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                         m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m
-                }), None);
+                }), None));
                 return Value::from(vec![parsedOrder]);
             }
         }  else {

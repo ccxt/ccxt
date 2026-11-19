@@ -277,7 +277,7 @@ impl Mudrex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array_tickers(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array_tickers(Value::Dict(self.tickers.clone()), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -428,7 +428,7 @@ impl Mudrex {
                     m.insert("info".to_string(), Value::Dict(t));
                 m
             }), None);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
             let mut messageHash: String = format!("{}{}", "ticker:", symbol);
             client.resolve(result.clone(), messageHash.as_str());
             client.resolve(result, "tickers");

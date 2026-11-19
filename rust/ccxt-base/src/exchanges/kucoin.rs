@@ -1229,7 +1229,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_911: bool = true;
-            while { if !__for_first_911 { i += 1; } __for_first_911 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_911 { i += 1; } __for_first_911 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: crate::value::Dict = self.safe_dict_t(&info, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&tier, "symbol", &[]);
             let mut tierMarket: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketCursor.clone()).as_ref(), &[]));
@@ -8589,12 +8589,12 @@ impl Kucoin {
                     let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
                     let mut orderIds: crate::value::List = self.safe_list_k_t(&data, "cancelledOrderIds");
                     let mut orderId: Option<String> = self.safe_string_opt(&orderIds, Value::Int(0), &[]);
-                    return self.safe_order(Value::Map({
+                    return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
     m
-}), None);
+}), None));
                 }  else {
                     //
                     //    {
@@ -8669,12 +8669,12 @@ impl Kucoin {
             let mut orderId: Value = self.safe_string_k(&data, "orderId", &[]);
             let mut orderIds: crate::value::List = self.safe_list_k_t(&data, "cancelledOrderIds");
             orderId = self.safe_string(&orderIds, Value::Int(0), &[std::mem::take(&mut orderId)]);
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId);
     m
-}), None);
+}), None));
         }
         Value::Null
         }).await?))
@@ -8728,11 +8728,11 @@ impl Kucoin {
             let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method_o("futures_private_delete_orders_order_id", &[__ws_arg_45]).await;
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -8947,11 +8947,11 @@ impl Kucoin {
             let __ws_arg_52 = self.extend(Value::Map(request), &[&query]);
             response = self.call_method_o("private_delete_orders", &[__ws_arg_52]).await;
         }
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -9009,11 +9009,11 @@ impl Kucoin {
         //   }
         //
         let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[]).as_map().cloned().unwrap_or_default();
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(data));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -9311,7 +9311,28 @@ impl Kucoin {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".into()), &[Value::from(symbol), Value::from(since), Value::from(limit), Value::from(&paramsPaginate)]).await;
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            let mut paramsContract: crate::value::Dict = self.extend_t(&paramsPaginate, &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("paginate".to_string(), Value::Bool(false));
+                    m.insert("uta".to_string(), Value::Bool(false));
+                m
+            })]);
+            if (symbol.is_none()) {
+                paramsContract = self.extend_t(&paramsContract, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("type".to_string(), Value::Str("contract".into()));
+    m
+})]);
+            }
+            let mut paginatedMethods: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("active".to_string(), Value::Str("fetchOpenOrders".into()));
+                    m.insert("open".to_string(), Value::Str("fetchOpenOrders".into()));
+                m
+            });
+            let mut paginatedMethod: String = self.safe_string(&paginatedMethods, Value::from(status), &[Value::Str("fetchClosedOrders".into())]).as_str().unwrap_or("fetchClosedOrders").to_string();
+            return self.fetch_paginated_call_dynamic(Value::from(paginatedMethod), &[Value::from(symbol), Value::from(since), Value::from(limit), Value::from(&paramsContract)]).await;
         }
         let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
@@ -10167,7 +10188,7 @@ impl Kucoin {
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(&order, "postOnly", &[]);
         let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(&order, "reduceOnly", &[]);
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&order, "updatedAt", &[]).as_i64();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -10193,7 +10214,7 @@ impl Kucoin {
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -10350,7 +10371,7 @@ impl Kucoin {
         if (responseStatus.as_deref() == Some("fail")) {
             status = Some("rejected".to_string());
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_n(&order, Value::from(vec![Value::Str("id".into()), Value::Str("orderId".into()), Value::Str("newOrderId".into()), Value::Str("cancelledOrderId".into())]), &[]));
@@ -10379,7 +10400,7 @@ impl Kucoin {
         m.insert("average".to_string(), self.safe_string_k(order, "avgDealPrice", &[]));
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -10458,7 +10479,7 @@ impl Kucoin {
                 m.insert("cost".to_string(), self.safe_string_k(&order, "fee", &[]));
             m
         });
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOid", &[]));
@@ -10486,7 +10507,7 @@ impl Kucoin {
         m.insert("takeProfitPrice".to_string(), self.safe_string_k(&order, "tpTriggerPrice", &[]));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -13224,12 +13245,8 @@ impl Kucoin {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let mut assets: Option<crate::value::List> = None;
-        if (marginMode.as_deref() == Some("isolated")) {
-            assets = self.safe_list_k_or_o(&data, "assets", Value::from(vec![]));
-        }  else {
-            assets = self.safe_list_k_or_o(&data, "accounts", Value::from(vec![]));
-        }
+        let mut assetsKey: String = (if (marginMode.as_deref() == Some("isolated")) { "assets".to_string() } else { "accounts".to_string() });
+        let mut assets: crate::value::List = self.safe_list_t(&data, Value::from(assetsKey));
         let mut interest: crate::value::List = self.parse_borrow_interests(&assets, market.as_ref()).into_list();
         let mut filteredByCurrency: crate::value::List = self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]).into_list();
         return self.filter_by_symbol_since_limit(&filteredByCurrency, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
@@ -15622,18 +15639,23 @@ impl Kucoin {
         return self.safe_string_k_opt(&getVersions, "deposit-addresses", &[Value::Str("v1".into())]);
 }
 
-    pub fn set_deposit_addresses_version(&self, version: &str) {
-        { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) };
-            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("versions".to_string()).or_insert(Value::Null);
-            if let Value::Dict(__bf03d1) = __bf03e1 {
-                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("private".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__bf03d2) = __bf03e2 {
-                    let __bf03e3 = std::sync::Arc::make_mut(__bf03d2).entry("GET".to_string()).or_insert(Value::Null);
-                    if let Value::Dict(__r05d) = __bf03e3 { std::sync::Arc::make_mut(__r05d).insert("deposit-addresses".to_string(), Value::from(version));
-                    }
-                }
-            }
-        }
+    pub fn set_deposit_addresses_version(&mut self, version: &str) {
+        let mut versions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "versions", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        let mut privateVersions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&versions, "private", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        let mut getVersions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&privateVersions, "GET", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        getVersions.insert("deposit-addresses".into(), Value::from(version));
+        privateVersions.insert("GET".into(), Value::Map(getVersions));
+        versions.insert("private".into(), Value::Map(privateVersions));
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("versions".into(), Value::Map(versions)); }
 }
 
 

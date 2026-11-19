@@ -28,23 +28,23 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `binanceGetTrades` implicit endpoint.
-    pub async fn binance_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("binance_get_trades".into()), optional_args).await
+    pub async fn binance_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("binance_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `binanceGetAggTrades` implicit endpoint.
-    pub async fn binance_get_agg_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("binance_get_agg_trades".into()), optional_args).await
+    pub async fn binance_get_agg_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("binance_get_agg_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `binanceGetHistoricalTrades` implicit endpoint.
-    pub async fn binance_get_historical_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("binance_get_historical_trades".into()), optional_args).await
+    pub async fn binance_get_historical_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("binance_get_historical_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `binanceGetKlines` implicit endpoint.
-    pub async fn binance_get_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("binance_get_klines".into()), optional_args).await
+    pub async fn binance_get_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("binance_get_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `binanceGetTicker24hr` implicit endpoint.
@@ -58,8 +58,8 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `binanceGetTickerBookTicker` implicit endpoint.
-    pub async fn binance_get_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("binance_get_ticker_book_ticker".into()), optional_args).await
+    pub async fn binance_get_ticker_book_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("binance_get_ticker_book_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `binanceGetExchangeInfo` implicit endpoint.

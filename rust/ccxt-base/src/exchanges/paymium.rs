@@ -802,7 +802,7 @@ impl Paymium {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_data_currency_trades", &[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_data_currency_trades(&[__ws_arg_2]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -895,7 +895,7 @@ impl Paymium {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_get_user_addresses", &[params]).await;
+        let mut response: crate::value::List = self.private_get_user_addresses(&[params]).await;
         return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))
@@ -947,12 +947,12 @@ impl Paymium {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_user_orders", &[__ws_arg_4]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
         m.insert("id".to_string(), self.safe_string_k(&response, "uuid", &[]));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -986,11 +986,11 @@ impl Paymium {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_user_orders_uuid_cancel", &[__ws_arg_5]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

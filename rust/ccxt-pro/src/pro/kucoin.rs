@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "negotiate_helper" => self.negotiate_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_funding_rate" => self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_uta_order" => self.parse_ws_uta_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_uta_position" => self.parse_ws_uta_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -171,7 +171,7 @@ impl Kucoin {
             "negotiate_helper" => { crate::exchange_stubs::enqueue_spawn("negotiate_helper", args.to_vec()); crate::Value::Null },
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_funding_rate" => self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_uta_order" => self.parse_ws_uta_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_uta_position" => self.parse_ws_uta_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1026,7 +1026,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut rawTicker: crate::value::Dict = self.safe_dict_k_or(&data, "data", Value::from(&data));
             let mut ticker: crate::value::Dict = self.parent.parse_spot_or_uta_ticker(&rawTicker, market.as_ref()).into_dict();
             let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
             client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
             // watchTickers
             let mut allTickers: indexmap::IndexMap<String, Value> = ({
@@ -1068,7 +1068,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), Some(&market)).into_dict();
-        add_element_to_object(&mut self.tickers, &crate::value::KeyRead::key_read(&&market, "symbol"), Value::from(&ticker));
+        std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
         client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into())));
 }
 
@@ -1111,7 +1111,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut ticker: crate::value::Dict = self.parse_ws_uta_ticker(&data, Some(&market)).into_dict();
-        add_element_to_object(&mut self.tickers, &crate::value::KeyRead::key_read(&&market, "symbol"), Value::from(&ticker));
+        std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
         client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("uta:ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into())));
 }
 
@@ -2778,7 +2778,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         // /spotMarket/tradeOrders
@@ -2884,7 +2884,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn parse_ws_uta_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
@@ -2945,7 +2945,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&order, "fC", &[]), None).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "oi", &[]));
@@ -2973,7 +2973,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "rO", &[]));
         m.insert("postOnly".to_string(), self.safe_bool_k(order, "pO", &[]));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3006,7 +3006,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (tradeId.is_some()) {
             self.handle_my_trade(client, message);
         }
-        let mut parsed: crate::value::Dict = self.parse_ws_order(&data, None).into_dict();
+        let mut parsed: crate::value::Dict = self.parse_ws_order(&data, None);
         let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&parsed, "triggerPrice", &[]);
@@ -4512,7 +4512,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 type_var.push_str("Futures");
             }
-            { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("urls".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(type_var.to_string(), Value::Null); } }
+            { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("urls".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(type_var.to_string(), Value::Null); } }
         }
         self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), Value::Str("".into()), Value::Map({
             let mut m = indexmap::IndexMap::new();

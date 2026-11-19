@@ -13,13 +13,13 @@ use crate::exchange::ExchangeRuntime;
 
 impl Paymium {
     /// Auto-generated wrapper for the `publicGetCountries` implicit endpoint.
-    pub async fn public_get_countries(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_countries".into()), optional_args).await
+    pub async fn public_get_countries(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_countries".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencies` implicit endpoint.
-    pub async fn public_get_currencies(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currencies".into()), optional_args).await
+    pub async fn public_get_currencies(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currencies".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetDataCurrencyTicker` implicit endpoint.
@@ -28,8 +28,8 @@ impl Paymium {
     }
 
     /// Auto-generated wrapper for the `publicGetDataCurrencyTrades` implicit endpoint.
-    pub async fn public_get_data_currency_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_data_currency_trades".into()), optional_args).await
+    pub async fn public_get_data_currency_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_data_currency_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetDataCurrencyDepth` implicit endpoint.
@@ -38,8 +38,8 @@ impl Paymium {
     }
 
     /// Auto-generated wrapper for the `publicGetBitcoinChartsIdTrades` implicit endpoint.
-    pub async fn public_get_bitcoin_charts_id_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_bitcoin_charts_id_trades".into()), optional_args).await
+    pub async fn public_get_bitcoin_charts_id_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_bitcoin_charts_id_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetBitcoinChartsIdDepth` implicit endpoint.
@@ -53,8 +53,8 @@ impl Paymium {
     }
 
     /// Auto-generated wrapper for the `privateGetUserAddresses` implicit endpoint.
-    pub async fn private_get_user_addresses(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_user_addresses".into()), optional_args).await
+    pub async fn private_get_user_addresses(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_user_addresses".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetUserAddressesAddress` implicit endpoint.
@@ -63,8 +63,8 @@ impl Paymium {
     }
 
     /// Auto-generated wrapper for the `privateGetUserOrders` implicit endpoint.
-    pub async fn private_get_user_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_user_orders".into()), optional_args).await
+    pub async fn private_get_user_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_user_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetUserOrdersUuid` implicit endpoint.
@@ -73,13 +73,13 @@ impl Paymium {
     }
 
     /// Auto-generated wrapper for the `privateGetUserPriceAlerts` implicit endpoint.
-    pub async fn private_get_user_price_alerts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_user_price_alerts".into()), optional_args).await
+    pub async fn private_get_user_price_alerts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_user_price_alerts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetUserWithdrawals` implicit endpoint.
-    pub async fn private_get_user_withdrawals(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_user_withdrawals".into()), optional_args).await
+    pub async fn private_get_user_withdrawals(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_user_withdrawals".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetMerchantGetPaymentUuid` implicit endpoint.
@@ -108,8 +108,8 @@ impl Paymium {
     }
 
     /// Auto-generated wrapper for the `privatePostUserPaymentRequests` implicit endpoint.
-    pub async fn private_post_user_payment_requests(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_user_payment_requests".into()), optional_args).await
+    pub async fn private_post_user_payment_requests(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_user_payment_requests".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostUserPriceAlerts` implicit endpoint.

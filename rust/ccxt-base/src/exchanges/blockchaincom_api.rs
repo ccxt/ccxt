@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Blockchaincom {
     /// Auto-generated wrapper for the `publicGetTickers` implicit endpoint.
-    pub async fn public_get_tickers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_tickers".into()), optional_args).await
+    pub async fn public_get_tickers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_tickers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTickersSymbol` implicit endpoint.
@@ -53,8 +53,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetOrders` implicit endpoint.
-    pub async fn private_get_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders".into()), optional_args).await
+    pub async fn private_get_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersOrderId` implicit endpoint.
@@ -63,18 +63,18 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetTrades` implicit endpoint.
-    pub async fn private_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_trades".into()), optional_args).await
+    pub async fn private_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFills` implicit endpoint.
-    pub async fn private_get_fills(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_fills".into()), optional_args).await
+    pub async fn private_get_fills(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_fills".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetDeposits` implicit endpoint.
-    pub async fn private_get_deposits(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposits".into()), optional_args).await
+    pub async fn private_get_deposits(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_deposits".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsDepositId` implicit endpoint.
@@ -93,18 +93,18 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetWhitelist` implicit endpoint.
-    pub async fn private_get_whitelist(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_whitelist".into()), optional_args).await
+    pub async fn private_get_whitelist(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_whitelist".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetWhitelistCurrency` implicit endpoint.
-    pub async fn private_get_whitelist_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_whitelist_currency".into()), optional_args).await
+    pub async fn private_get_whitelist_currency(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_whitelist_currency".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawals` implicit endpoint.
-    pub async fn private_get_withdrawals(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdrawals".into()), optional_args).await
+    pub async fn private_get_withdrawals(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_withdrawals".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawalsWithdrawalId` implicit endpoint.

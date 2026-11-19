@@ -239,7 +239,7 @@ impl crate::exchange::DerivedExchange for Luno {
             }));
         }
         let mut id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -263,7 +263,7 @@ impl crate::exchange::DerivedExchange for Luno {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2107,12 +2107,12 @@ impl Luno {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " createOrder() returned empty response")));
         }
         let mut orderId: Option<String> = self.safe_string_k_opt(&response, "order_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -2149,11 +2149,11 @@ impl Luno {
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_stoporder", &[__ws_arg_13]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

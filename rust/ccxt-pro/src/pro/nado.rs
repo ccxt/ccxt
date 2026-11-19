@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "cancel_all_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order_ws" => crate::types::IntoRaw::into_raw(self.cancel_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_orders_ws(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -74,7 +74,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "parse_ws_all_bids_asks" => self.parse_ws_all_bids_asks(args.get(0).unwrap_or(&crate::Value::Null)),
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_timestamp" => self.parse_ws_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -151,7 +151,7 @@ impl Nado {
             "parse_ws_all_bids_asks" => self.parse_ws_all_bids_asks(args.get(0).unwrap_or(&crate::Value::Null)),
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_timestamp" => self.parse_ws_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1066,7 +1066,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[&params]);
-        self.authenticate(&[__ws_arg_3]).await;
+        self.authenticate(&[&__ws_arg_3]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "orders".to_string();
         let mut productId: Option<i64> = None;
@@ -1128,7 +1128,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[&params]);
-        self.authenticate(&[__ws_arg_4]).await;
+        self.authenticate(&[&__ws_arg_4]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "orders".to_string();
         let mut productId: Option<i64> = None;
@@ -1188,7 +1188,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[&params]);
-        self.authenticate(&[__ws_arg_5]).await;
+        self.authenticate(&[&__ws_arg_5]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "myTrades".to_string();
         let mut productId: Option<i64> = None;
@@ -1250,7 +1250,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[&params]);
-        self.authenticate(&[__ws_arg_6]).await;
+        self.authenticate(&[&__ws_arg_6]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "myTrades".to_string();
         let mut productId: Option<i64> = None;
@@ -1310,7 +1310,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[&params]);
-        self.authenticate(&[__ws_arg_7]).await;
+        self.authenticate(&[&__ws_arg_7]).await;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut messageHash: String = "positions".to_string();
         let mut productId: Option<i64> = None;
@@ -1372,7 +1372,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[&params]);
-        self.authenticate(&[__ws_arg_8]).await;
+        self.authenticate(&[&__ws_arg_8]).await;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut messageHash: String = "positions".to_string();
         let mut productId: Option<i64> = None;
@@ -1854,7 +1854,7 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2266,7 +2266,7 @@ impl Nado {
         client.resolve(Value::from(vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]), messageHash.as_str());
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         //     {
@@ -2332,11 +2332,11 @@ impl Nado {
     m
 }), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_order(&mut self, client: &Value, mut message: Value) {
-        let mut order: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
+        let mut order: crate::value::Dict = self.parse_ws_order(message, None);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2484,7 +2484,7 @@ impl Nado {
             return;
         }
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut tickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2556,7 +2556,7 @@ impl Nado {
             let mut symbol: Option<&str> = symbols.get(i as usize).and_then(Value::as_str);
             let mut ticker: Value = crate::value::KeyRead::read(&&tickers, &Value::from(symbol));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
             client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
             client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null")).into())));
         }
@@ -2749,17 +2749,17 @@ impl Nado {
             }
         }  else if (Value::Int(Some(messageHash).and_then(|__s| __s.find("ticker:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: String = messageHash.to_string().replace("ticker:", "");
-            if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
-                if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+            if (self.tickers.contains_key(symbol.as_str())) {
+                if let (__d, Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
         }  else if (messageHash == "ticker") {
-            let mut symbols: Value = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut symbols: Value = Value::Array(self.tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_522: bool = true;
                 while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (symbols.len() as i64) } {
                 let mut tickerSymbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                if let (__d, Some(__k)) = (&mut self.tickers, tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
             }
         }  else if (Value::Int(Some(messageHash).and_then(|__s| __s.find("bidask:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {

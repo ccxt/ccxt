@@ -188,8 +188,8 @@ impl Paradex {
     }
 
     /// Auto-generated wrapper for the `privateGetAccount` implicit endpoint.
-    pub async fn private_get_account(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account".into()), optional_args).await
+    pub async fn private_get_account(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_account".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountCompliance` implicit endpoint.

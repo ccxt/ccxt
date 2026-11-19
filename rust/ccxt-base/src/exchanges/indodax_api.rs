@@ -18,8 +18,8 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `publicGetApiPairs` implicit endpoint.
-    pub async fn public_get_api_pairs(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_pairs".into()), optional_args).await
+    pub async fn public_get_api_pairs(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_pairs".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiPriceIncrements` implicit endpoint.
@@ -43,8 +43,8 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `publicGetApiTradesPair` implicit endpoint.
-    pub async fn public_get_api_trades_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_trades_pair".into()), optional_args).await
+    pub async fn public_get_api_trades_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_trades_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiDepthPair` implicit endpoint.
@@ -53,8 +53,8 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `publicGetTradingviewHistoryV2` implicit endpoint.
-    pub async fn public_get_tradingview_history_v2(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_tradingview_history_v2".into()), optional_args).await
+    pub async fn public_get_tradingview_history_v2(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_tradingview_history_v2".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostGetInfo` implicit endpoint.

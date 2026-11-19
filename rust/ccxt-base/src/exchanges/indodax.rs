@@ -197,7 +197,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         let mut timestamp: Option<i64> = self.safe_integer_k(&order, "submit_time", &[]).as_i64();
         let mut fee: Option<String> = None;
         let mut id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -221,7 +221,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         m.insert("fee".to_string(), Value::from(fee.as_deref()));
         m.insert("trades".to_string(), Value::Null);
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -976,7 +976,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("public_get_api_pairs", &[params]).await;
+        let mut response: crate::value::List = self.public_get_api_pairs(&[params]).await;
         //
         //     [
         //         {
@@ -1312,7 +1312,7 @@ impl Indodax {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_api_trades_pair", &[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_api_trades_pair(&[__ws_arg_2]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1372,7 +1372,7 @@ impl Indodax {
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_tradingview_history_v2", &[__ws_arg_3]).await;
+        let mut response: crate::value::List = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -1651,12 +1651,12 @@ impl Indodax {
         let mut result: crate::value::Dict = self.call_method_t("private_post_trade", &[__ws_arg_8]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "return");
         let mut id: Option<String> = self.safe_string_k_opt(&data, "order_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(result));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

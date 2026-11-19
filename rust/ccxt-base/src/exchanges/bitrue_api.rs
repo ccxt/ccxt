@@ -43,23 +43,23 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTrades` implicit endpoint.
-    pub async fn spot_v1_public_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_public_get_trades".into()), optional_args).await
+    pub async fn spot_v1_public_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v1_public_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetHistoricalTrades` implicit endpoint.
-    pub async fn spot_v1_public_get_historical_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_public_get_historical_trades".into()), optional_args).await
+    pub async fn spot_v1_public_get_historical_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v1_public_get_historical_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetAggTrades` implicit endpoint.
-    pub async fn spot_v1_public_get_agg_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_public_get_agg_trades".into()), optional_args).await
+    pub async fn spot_v1_public_get_agg_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v1_public_get_agg_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTicker24hr` implicit endpoint.
-    pub async fn spot_v1_public_get_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), optional_args).await
+    pub async fn spot_v1_public_get_ticker24hr(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTickerPrice` implicit endpoint.
@@ -88,8 +88,8 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetAllOrders` implicit endpoint.
-    pub async fn spot_v1_private_get_all_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_private_get_all_orders".into()), optional_args).await
+    pub async fn spot_v1_private_get_all_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v1_private_get_all_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetAccount` implicit endpoint.
@@ -98,8 +98,8 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetMyTrades` implicit endpoint.
-    pub async fn spot_v1_private_get_my_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_private_get_my_trades".into()), optional_args).await
+    pub async fn spot_v1_private_get_my_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v1_private_get_my_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV1PrivateGetEtfNetValueSymbol` implicit endpoint.
@@ -148,8 +148,8 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetContracts` implicit endpoint.
-    pub async fn fapi_v1_public_get_contracts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("fapi_v1_public_get_contracts".into()), optional_args).await
+    pub async fn fapi_v1_public_get_contracts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("fapi_v1_public_get_contracts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetDepth` implicit endpoint.
@@ -163,8 +163,8 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `fapiV1PublicGetKlines` implicit endpoint.
-    pub async fn fapi_v1_public_get_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("fapi_v1_public_get_klines".into()), optional_args).await
+    pub async fn fapi_v1_public_get_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("fapi_v1_public_get_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `fapiV2PrivateGetMyTrades` implicit endpoint.
@@ -248,8 +248,8 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetContracts` implicit endpoint.
-    pub async fn dapi_v1_public_get_contracts(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("dapi_v1_public_get_contracts".into()), optional_args).await
+    pub async fn dapi_v1_public_get_contracts(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("dapi_v1_public_get_contracts".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetDepth` implicit endpoint.
@@ -263,8 +263,8 @@ impl Bitrue {
     }
 
     /// Auto-generated wrapper for the `dapiV1PublicGetKlines` implicit endpoint.
-    pub async fn dapi_v1_public_get_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("dapi_v1_public_get_klines".into()), optional_args).await
+    pub async fn dapi_v1_public_get_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("dapi_v1_public_get_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `dapiV2PrivateGetMyTrades` implicit endpoint.

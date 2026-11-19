@@ -319,7 +319,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             type_var = Some("limit".to_string());
         }
         let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(&order, "stopPrice", &[]))), &[]).as_f64();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -343,7 +343,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Arr(fills));
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -2373,9 +2373,9 @@ impl Bitrue {
             if (marketType.as_deref() == Some("spot")) {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[params.clone()]).await);
             }  else if (marketType.as_deref() == Some("linear")) {
-                promisesRaw.push(self.fapi_v1_public_get_contracts(&[params.clone()]).await);
+                promisesRaw.push(self.call_method(Value::Str("fapi_v1_public_get_contracts".into()), &[params.clone()]).await);
             }  else if (marketType.as_deref() == Some("inverse")) {
-                promisesRaw.push(self.dapi_v1_public_get_contracts(&[params.clone()]).await);
+                promisesRaw.push(self.call_method(Value::Str("dapi_v1_public_get_contracts".into()), &[params.clone()]).await);
             }  else {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() this.options fetchMarkets \"").into()), marketType.as_deref().unwrap_or("null")).into()), "\" is not a supported market type")));
             }
@@ -2666,7 +2666,7 @@ impl Bitrue {
                 m
             }).into_dict();
             let __ws_arg_5 = self.extend(request, &[params]);
-            response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_5]).await;
+            response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), &[__ws_arg_5]).await;
             data = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2727,10 +2727,10 @@ impl Bitrue {
             }
             if ((market).linear == Some(true)) {
                 let __ws_arg_6 = self.extend(&request, &[&params]);
-                response = self.fapi_v1_public_get_klines(&[__ws_arg_6]).await;
+                response = self.call_method(Value::Str("fapi_v1_public_get_klines".into()), &[__ws_arg_6]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_7 = self.extend(request, &[&params]);
-                response = self.dapi_v1_public_get_klines(&[__ws_arg_7]).await;
+                response = self.call_method(Value::Str("dapi_v1_public_get_klines".into()), &[__ws_arg_7]).await;
             }
             data = response.clone();
         }  else if (market).spot {
@@ -2887,7 +2887,7 @@ impl Bitrue {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTickers does not support swap markets, please use fetchTicker instead")));
             }  else if (market).spot {
                 let __ws_arg_12 = self.extend(&request, &[&params]);
-                response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_12]).await;
+                response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), &[__ws_arg_12]).await;
                 data = self.to_array_t(response.clone());
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTickers only support spot & swap markets")));
@@ -2900,7 +2900,7 @@ impl Bitrue {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTickers only support spot when symbols are not proved")));
             }
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_13]).await;
+            response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), &[__ws_arg_13]).await;
             data = self.to_array_t(response);
         }
         //
@@ -3008,7 +3008,7 @@ impl Bitrue {
                 request.insert("limit".into(), limit.clone()); // default 100, max 1000
             }
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_lt("spot_v1_public_get_trades", &[__ws_arg_14]).await;
+            response = self.spot_v1_public_get_trades(&[__ws_arg_14]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades only support spot markets")));
         }
@@ -3335,7 +3335,7 @@ impl Bitrue {
             request.insert("limit".into(), limit.clone()); // default 100, max 1000
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("spot_v1_private_get_all_orders", &[__ws_arg_21]).await;
+        let mut response: crate::value::List = self.spot_v1_private_get_all_orders(&[__ws_arg_21]).await;
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

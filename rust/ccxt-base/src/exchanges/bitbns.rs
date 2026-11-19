@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
         }  else {
             status = self.parse_status(status.as_deref());
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -283,7 +283,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1030,7 +1030,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("www_get_order_fetch_markets", &[params]).await;
+        let mut response: crate::value::List = self.www_get_order_fetch_markets(&[params]).await;
         //
         //     [
         //         {
@@ -1696,7 +1696,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("www_get_exchange_data_tradedetails", &[__ws_arg_7]).await;
+        let mut response: crate::value::List = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

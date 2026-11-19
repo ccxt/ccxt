@@ -628,7 +628,7 @@ impl crate::exchange::DerivedExchange for Htx {
                 }
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -655,7 +655,7 @@ impl crate::exchange::DerivedExchange for Htx {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), trades.map_or(Value::Null, Value::Arr));
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref()));
 
     Value::Null
 }
@@ -1048,14 +1048,15 @@ impl crate::exchange::DerivedExchange for Htx {
             type_var = "crypto".to_string();
         }
         if (code.is_some()) {
-            { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) };
-                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networkChainIdsByNames".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
+            let mut chainIdsByNames: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkChainIdsByNames", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+            chainIdsByNames.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-                }
-            }
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNames)); }
         }
         let mut chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "chains");
         let mut networks: indexmap::IndexMap<String, Value> = ({
@@ -1070,7 +1071,17 @@ impl crate::exchange::DerivedExchange for Htx {
             let mut uniqueChainId: Option<String> = self.safe_string_k_opt(&chainEntry, "chain", &[]); // i.e. usdterc20, trc20usdt ...
             let mut title: Option<String> = self.safe_string2_opt(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code.is_some()) && (title.is_some()) {
-                if let Value::Dict(__r05d) = get_value_mut(std::sync::Arc::make_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }).entry("networkChainIdsByNames".to_string()).or_insert(Value::Null), &Value::from(code.as_deref())) { std::sync::Arc::make_mut(__r05d).insert(title.as_deref().unwrap_or("null").to_string(), Value::from(uniqueChainId.as_deref())); }
+                let mut chainIdsByNamesDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkChainIdsByNames", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                let mut chainIdsByTitle: indexmap::IndexMap<String, Value> = self.safe_dict(&chainIdsByNamesDict, Value::from(code.as_deref()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                chainIdsByTitle.insert(title.as_deref().unwrap_or("null").to_string(), Value::from(uniqueChainId.as_deref()));
+                chainIdsByNamesDict.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(chainIdsByTitle));
+                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNamesDict)); }
             }
             if (uniqueChainId.is_some()) {
                 let mut networkNamesByChainIdsDict3: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkNamesByChainIds", &[Value::Map({
@@ -1080,7 +1091,7 @@ impl crate::exchange::DerivedExchange for Htx {
                 networkNamesByChainIdsDict3.insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title.map(Value::from).unwrap_or(Value::Null));
                 { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map(networkNamesByChainIdsDict3)); }
             }
-            let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(uniqueChainId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(uniqueChainId.as_deref()), Value::from(code.as_deref())]);
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9369,7 +9380,7 @@ impl Htx {
         let mut data: Value = Value::Null;
         let mut result: Option<crate::value::Dict> = None;
         if (market).spot {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), self.safe_string_k(&response, "data", &[]));
@@ -9390,7 +9401,7 @@ impl Htx {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
     m
-}), Some(&market));
+}), Some(&market)));
         }  else if ((market).linear == Some(true)) {
             if isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder {
                 data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
@@ -10102,14 +10113,14 @@ impl Htx {
             let mut __for_first_786: bool = true;
             while { if !__for_first_786 { i += 1; } __for_first_786 = false; i < (data.len() as i64) } {
             let mut order: Option<crate::value::Dict> = data.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
                     m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                     m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
                 m
-            }), None));
+            }), None)));
         }
         }
         {
@@ -10117,13 +10128,13 @@ impl Htx {
             let mut __for_first_787: bool = true;
             while { if !__for_first_787 { i += 1; } __for_first_787 = false; i < (success.len() as i64) } {
             let mut order: Option<String> = success.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(order.as_deref()));
                     m.insert("id".to_string(), order.map(Value::from).unwrap_or(Value::Null));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
-            }), None));
+            }), None)));
         }
         }
         {
@@ -10131,14 +10142,14 @@ impl Htx {
             let mut __for_first_788: bool = true;
             while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (failed.len() as i64) } {
             let mut order: Option<crate::value::Dict> = crate::value::KeyRead::read(&&failed, &Value::Int(i)).into_opt_dict();
-            result.push(self.safe_order(Value::Map({
+            result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
                     m.insert("id".to_string(), self.safe_string2(&order, Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
                     m.insert("status".to_string(), Value::Str("failed".into()));
                     m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client-order-id", &[]));
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(result);
@@ -10201,11 +10212,11 @@ impl Htx {
             //     }
             //
             let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-            return Value::from(vec![self.safe_order(Value::Map({
+            return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument")));
@@ -12786,7 +12797,7 @@ impl Htx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_798: bool = true;
-            while { if !__for_first_798 { i += 1; } __for_first_798 = false; (i as f64) < get_array_length(&settlements).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_798 { i += 1; } __for_first_798 = false; (i as f64) < Value::Int(settlements.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut settlement: crate::value::Dict = self.safe_dict_t(&settlements, Value::Int(i));
             let mut list: Option<crate::value::List> = self.safe_list_k_o(&settlement, "list");
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {

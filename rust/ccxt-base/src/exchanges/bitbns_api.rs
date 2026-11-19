@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Bitbns {
     /// Auto-generated wrapper for the `wwwGetOrderFetchMarkets` implicit endpoint.
-    pub async fn www_get_order_fetch_markets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("www_get_order_fetch_markets".into()), optional_args).await
+    pub async fn www_get_order_fetch_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("www_get_order_fetch_markets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `wwwGetOrderFetchTickers` implicit endpoint.
@@ -33,8 +33,8 @@ impl Bitbns {
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataOhlc` implicit endpoint.
-    pub async fn www_get_exchange_data_ohlc(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("www_get_exchange_data_ohlc".into()), optional_args).await
+    pub async fn www_get_exchange_data_ohlc(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("www_get_exchange_data_ohlc".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataOrderBook` implicit endpoint.
@@ -43,8 +43,8 @@ impl Bitbns {
     }
 
     /// Auto-generated wrapper for the `wwwGetExchangeDataTradedetails` implicit endpoint.
-    pub async fn www_get_exchange_data_tradedetails(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("www_get_exchange_data_tradedetails".into()), optional_args).await
+    pub async fn www_get_exchange_data_tradedetails(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("www_get_exchange_data_tradedetails".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v1GetPlatformStatus` implicit endpoint.

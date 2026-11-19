@@ -276,7 +276,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(&rawOrder, "time_in_force", &[])).as_str());
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(&rawOrder, "is_post_only", &[]);
         let mut rawTrades: crate::value::List = self.safe_list_k_t(&order, "trades");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -299,7 +299,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1316,7 +1316,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("public_get_currencies", &[params]).await;
+        let mut response: crate::value::List = self.public_get_currencies(&[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -1341,7 +1341,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("public_get_instruments", &[params]).await;
+        let mut response: crate::value::List = self.public_get_instruments(&[params]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -1393,7 +1393,7 @@ impl Onetrading {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("public_get_fees", &[params]).await;
+        let mut response: crate::value::List = self.public_get_fees(&[params]).await;
         //
         // [
         //     {
@@ -1653,7 +1653,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_market_ticker", &[params]).await;
+        let mut response: crate::value::List = self.public_get_market_ticker(&[params]).await;
         //
         //     [
         //         {
@@ -2085,12 +2085,12 @@ impl Onetrading {
             request.insert("instrument_code".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_delete_account_orders", &[__ws_arg_6]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        let mut response: crate::value::List = self.private_delete_account_orders(&[__ws_arg_6]).await;
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -2126,17 +2126,17 @@ impl Onetrading {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_delete_account_orders", &[__ws_arg_7]).await;
+        let mut response: crate::value::List = self.private_delete_account_orders(&[__ws_arg_7]).await;
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        let mut order: Value = self.safe_order(Value::Map({
+        let mut order: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Arr(response));
             m
-        }), None);
+        }), None));
         return Value::from(vec![order]);
         Value::Null
         }).await?))

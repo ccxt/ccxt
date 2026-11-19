@@ -1343,7 +1343,7 @@ impl Kalshi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
+        let mut queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
         let mut queriesLength: i64 = queries.len() as i64;
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
         // force a client-side scan of every open market (thousands, paged 1000 at a time, which
@@ -1855,7 +1855,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }), market);
         add_element_to_object(&mut openInterest, &Value::Str("outcome".into()), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
         add_element_to_object(&mut openInterest, &Value::Str("outcomeId".into()), self.safe_string_k(&market, "outcomeId", &[]));
-        remove(&mut openInterest, &Value::Str("symbol".into()));
+        if let Value::Dict(__d) = &mut openInterest { std::sync::Arc::make_mut(__d).shift_remove("symbol"); }
         return openInterest;
 
     Value::Null
@@ -3294,7 +3294,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        let mut queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
         }
@@ -3338,7 +3338,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut seriesTickers: crate::value::List = self.resolve_event_series_tickers(&[Value::from(&paramsOmitted)]).await.into_list();
             let mut seriesTickersLength: i64 = seriesTickers.len() as i64;
             if (seriesTickersLength == 0) {
-                self.require_event_query(&[Value::from(&paramsOmitted)]);
+                self.require_event_query(&[&Value::from(&paramsOmitted)]);
             }
             rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[Value::Dict(rest)]).await.into_list();
         }

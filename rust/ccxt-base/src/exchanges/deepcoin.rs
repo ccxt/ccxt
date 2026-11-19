@@ -276,7 +276,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "ordId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clOrdId", &[]));
@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         m.insert("postOnly".to_string(), (if ((orderType.is_some()) && (orderType.as_deref() != Some(""))) { (Value::Bool(orderType.as_deref() == Some("post_only"))) } else { Value::Null }));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }

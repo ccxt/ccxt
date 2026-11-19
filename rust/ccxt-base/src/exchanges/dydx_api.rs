@@ -103,8 +103,8 @@ impl Dydx {
     }
 
     /// Auto-generated wrapper for the `indexerGetOrders` implicit endpoint.
-    pub async fn indexer_get_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("indexer_get_orders".into()), optional_args).await
+    pub async fn indexer_get_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("indexer_get_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `indexerGetOrdersParentSubaccountNumber` implicit endpoint.

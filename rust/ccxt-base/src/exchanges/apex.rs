@@ -219,7 +219,7 @@ impl crate::exchange::DerivedExchange for Apex {
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(&order, "remainingSize", &[]));
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&order, "updatedTime", &[]).as_i64();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -252,7 +252,7 @@ impl crate::exchange::DerivedExchange for Apex {
 }));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2412,7 +2412,7 @@ impl Apex {
             response = self.call_method_o("private_post_v3_delete_order", &[__ws_arg_16]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.safe_order(Value::Dict(data), None);
+        return Value::Dict(self.safe_order(Value::Dict(data), None));
         Value::Null
         }).await?))
     }

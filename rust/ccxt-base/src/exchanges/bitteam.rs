@@ -418,7 +418,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -443,7 +443,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         m.insert("info".to_string(), order);
         m.insert("postOnly".to_string(), Value::Bool(false));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2754,7 +2754,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_trade_api_cmc_trades_pair", &[__ws_arg_11]).await;
+        let mut response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[__ws_arg_11]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

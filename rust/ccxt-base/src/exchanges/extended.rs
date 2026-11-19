@@ -249,7 +249,7 @@ impl crate::exchange::DerivedExchange for Extended {
                 m.insert("currency".to_string(), (if (false) { Value::Null } else { crate::value::KeyRead::key_read(&&marketResolved, "settle") }));
             m
         });
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
@@ -277,7 +277,7 @@ impl crate::exchange::DerivedExchange for Extended {
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -4457,7 +4457,7 @@ impl Extended {
         //     }
         //
         let mut orderId: Option<String> = (if (clientOrderId.is_none()) { id.as_str().map(str::to_owned) } else { None });
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -4467,7 +4467,7 @@ impl Extended {
         m.insert("symbol".to_string(), orderSymbol);
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), market.as_ref());
+}), market.as_ref()));
         Value::Null
         }).await?))
     }

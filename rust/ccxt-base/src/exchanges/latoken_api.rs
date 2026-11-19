@@ -28,18 +28,18 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `publicGetCurrency` implicit endpoint.
-    pub async fn public_get_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currency".into()), optional_args).await
+    pub async fn public_get_currency(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyAvailable` implicit endpoint.
-    pub async fn public_get_currency_available(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currency_available".into()), optional_args).await
+    pub async fn public_get_currency_available(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency_available".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyQuotes` implicit endpoint.
-    pub async fn public_get_currency_quotes(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_currency_quotes".into()), optional_args).await
+    pub async fn public_get_currency_quotes(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_currency_quotes".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCurrencyCurrency` implicit endpoint.
@@ -48,18 +48,18 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `publicGetPair` implicit endpoint.
-    pub async fn public_get_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_pair".into()), optional_args).await
+    pub async fn public_get_pair(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_pair".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetPairAvailable` implicit endpoint.
-    pub async fn public_get_pair_available(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_pair_available".into()), optional_args).await
+    pub async fn public_get_pair_available(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_pair_available".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
-    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_ticker".into()), optional_args).await
+    pub async fn public_get_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTickerBaseQuote` implicit endpoint.
@@ -73,8 +73,8 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeHistoryCurrencyQuote` implicit endpoint.
-    pub async fn public_get_trade_history_currency_quote(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_history_currency_quote".into()), optional_args).await
+    pub async fn public_get_trade_history_currency_quote(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trade_history_currency_quote".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeFeeCurrencyQuote` implicit endpoint.
@@ -83,38 +83,38 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeFeeLevels` implicit endpoint.
-    pub async fn public_get_trade_fee_levels(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_fee_levels".into()), optional_args).await
+    pub async fn public_get_trade_fee_levels(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_trade_fee_levels".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTransactionBindings` implicit endpoint.
-    pub async fn public_get_transaction_bindings(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_transaction_bindings".into()), optional_args).await
+    pub async fn public_get_transaction_bindings(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_transaction_bindings".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthAccount` implicit endpoint.
-    pub async fn private_get_auth_account(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_account".into()), optional_args).await
+    pub async fn private_get_auth_account(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_account".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthAccountCurrencyCurrencyType` implicit endpoint.
-    pub async fn private_get_auth_account_currency_currency_type(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_account_currency_currency_type".into()), optional_args).await
+    pub async fn private_get_auth_account_currency_currency_type(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_account_currency_currency_type".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthAccountFiltered` implicit endpoint.
-    pub async fn private_get_auth_account_filtered(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_account_filtered".into()), optional_args).await
+    pub async fn private_get_auth_account_filtered(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_account_filtered".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrder` implicit endpoint.
-    pub async fn private_get_auth_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_order".into()), optional_args).await
+    pub async fn private_get_auth_order(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_order".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderActive` implicit endpoint.
-    pub async fn private_get_auth_order_active(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_order_active".into()), optional_args).await
+    pub async fn private_get_auth_order_active(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_order_active".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderGetOrderId` implicit endpoint.
@@ -123,18 +123,18 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderPairCurrencyQuote` implicit endpoint.
-    pub async fn private_get_auth_order_pair_currency_quote(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_order_pair_currency_quote".into()), optional_args).await
+    pub async fn private_get_auth_order_pair_currency_quote(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_order_pair_currency_quote".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderPairCurrencyQuoteActive` implicit endpoint.
-    pub async fn private_get_auth_order_pair_currency_quote_active(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_order_pair_currency_quote_active".into()), optional_args).await
+    pub async fn private_get_auth_order_pair_currency_quote_active(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_order_pair_currency_quote_active".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthStopOrder` implicit endpoint.
-    pub async fn private_get_auth_stop_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_stop_order".into()), optional_args).await
+    pub async fn private_get_auth_stop_order(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_stop_order".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthStopOrderGetOrderId` implicit endpoint.
@@ -143,23 +143,23 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthStopOrderPairCurrencyQuote` implicit endpoint.
-    pub async fn private_get_auth_stop_order_pair_currency_quote(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_stop_order_pair_currency_quote".into()), optional_args).await
+    pub async fn private_get_auth_stop_order_pair_currency_quote(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_stop_order_pair_currency_quote".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthStopOrderPairCurrencyQuoteActive` implicit endpoint.
-    pub async fn private_get_auth_stop_order_pair_currency_quote_active(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_stop_order_pair_currency_quote_active".into()), optional_args).await
+    pub async fn private_get_auth_stop_order_pair_currency_quote_active(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_stop_order_pair_currency_quote_active".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTrade` implicit endpoint.
-    pub async fn private_get_auth_trade(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_trade".into()), optional_args).await
+    pub async fn private_get_auth_trade(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_trade".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTradePairCurrencyQuote` implicit endpoint.
-    pub async fn private_get_auth_trade_pair_currency_quote(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_trade_pair_currency_quote".into()), optional_args).await
+    pub async fn private_get_auth_trade_pair_currency_quote(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_trade_pair_currency_quote".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTradeFeeCurrencyQuote` implicit endpoint.
@@ -178,8 +178,8 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTransactionBindingsCurrency` implicit endpoint.
-    pub async fn private_get_auth_transaction_bindings_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_transaction_bindings_currency".into()), optional_args).await
+    pub async fn private_get_auth_transaction_bindings_currency(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_auth_transaction_bindings_currency".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTransactionId` implicit endpoint.

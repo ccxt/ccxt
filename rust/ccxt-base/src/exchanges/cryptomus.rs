@@ -209,7 +209,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         let mut cost: Option<f64> = self.safe_number_k(&order, "value", &[]).as_f64();
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&order, "state", &[])).as_str());
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -234,7 +234,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1427,11 +1427,11 @@ impl Cryptomus {
         request.insert("orderId".into(), id);
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_v2_user_api_exchange_orders_order_id", &[__ws_arg_6]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

@@ -230,7 +230,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "currencyPair", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
         m.insert("info".to_string(), order);
         m.insert("fee".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1971,12 +1971,12 @@ impl Coinmate {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support order type ").into()), type_var)));
         }
         let mut id: Option<String> = self.safe_string_k_opt(&response, "data", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

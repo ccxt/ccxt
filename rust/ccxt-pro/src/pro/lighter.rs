@@ -569,7 +569,7 @@ impl Lighter {
                 let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut ticker: crate::value::Dict = self.parse_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
                 client.resolve(Value::from(&ticker), &self.get_message_hash("ticker", &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
                 client.resolve(Value::Dict(ticker), &self.get_message_hash("ticker", &[]).map(Value::from).unwrap_or(Value::Null));
             }
@@ -579,7 +579,7 @@ impl Lighter {
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::Map(data), Some(&market)).into_dict();
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             client.resolve(Value::Dict(ticker), &self.get_message_hash("ticker", &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         }
 }
@@ -2276,8 +2276,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHash: Option<String> = self.get_message_hash("ticker", &[Value::from(symbol.as_deref())]);
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
-        if (matches!((&self.tickers, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-            if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+        if (matches!((&self.tickers, symbol.as_deref()), (__d, Some(__k)) if __d.contains_key(__k))) {
+            if let (__d, Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
         }
 }
 

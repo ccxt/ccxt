@@ -286,7 +286,7 @@ impl crate::exchange::DerivedExchange for Coinone {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -310,7 +310,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
     Value::Null
 }
@@ -1931,7 +1931,7 @@ impl Coinone {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v2_private_post_order_cancel(&[__ws_arg_9]).await;
-        return self.safe_order(response, None);
+        return Value::Dict(self.safe_order(response, None));
         Value::Null
         }).await?))
     }

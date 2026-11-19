@@ -214,7 +214,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&order, "status", &[])).as_str());
         let mut meta: crate::value::Dict = self.safe_dict_k_t(&order, "meta");
         let mut postOnly: bool = self.safe_bool_k_opt(&meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -238,7 +238,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1865,7 +1865,7 @@ impl Hollaex {
         request.insert("to".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_chart", &[__ws_arg_4]).await;
+        let mut response: crate::value::List = self.public_get_chart(&[__ws_arg_4]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -2300,7 +2300,7 @@ impl Hollaex {
         market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_delete_order_all", &[__ws_arg_12]).await;
+        let mut response: crate::value::List = self.private_delete_order_all(&[__ws_arg_12]).await;
         return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null
         }).await?))
@@ -2443,13 +2443,11 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let mut wallet: Value = self.safe_list_k(&response, "wallet", &[Value::from(vec![])]);
-        let mut addresses: Value = Value::Null;
+        let mut wallet: crate::value::List = self.safe_list_k_t(&response, "wallet");
         if (network.is_none()) {
-            addresses = wallet.clone();
-        }  else {
-            addresses = self.filter_by(wallet, Value::Str("network".into()), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[]), &[]);
+            return self.parse_deposit_addresses(&wallet, &[codes.clone(), Value::Bool(false)]);
         }
+        let mut addresses: Value = self.filter_by(Value::Arr(wallet), Value::Str("network".into()), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[]), &[]);
         return self.parse_deposit_addresses(addresses, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))

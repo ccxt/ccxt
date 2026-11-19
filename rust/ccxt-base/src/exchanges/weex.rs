@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Weex {
         if (stopLossPrice.is_none()) {
             stopLossPrice = self.omit_zero(self.safe_string_k(&order, "slTriggerPrice", &[])); // attached stop loss of a regular or conditional order
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_n(&order, Value::from(vec![Value::Str("orderId".into()), Value::Str("algoId".into()), Value::Str("successOrderId".into())]), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_n(&order, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into()), Value::Str("clientAlgoId".into())]), &[]));
@@ -431,7 +431,7 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2632,7 +2632,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("public_get_api_v3_coins", &[params]).await;
+        let mut response: crate::value::List = self.public_get_api_v3_coins(&[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -2762,7 +2762,7 @@ impl Weex {
             //     ]
             //
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.contract_get_capi_v3_market_ticker24hr(&[__ws_arg_1]).await;
+            response = self.call_method(Value::Str("contract_get_capi_v3_market_ticker24hr".into()), &[__ws_arg_1]).await;
         }
         if !(matches!(&response, Value::Arr(_))) {
             response = Value::from(vec![response]);
@@ -2804,9 +2804,9 @@ impl Weex {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            response = self.public_get_api_v3_market_ticker_book_ticker(&[Value::from(&paramsMarketType)]).await;
+            response = self.call_method(Value::Str("public_get_api_v3_market_ticker_book_ticker".into()), &[Value::from(&paramsMarketType)]).await;
         }  else {
-            response = self.contract_get_capi_v3_market_ticker_book_ticker(&[Value::Dict(paramsMarketType)]).await;
+            response = self.call_method(Value::Str("contract_get_capi_v3_market_ticker_book_ticker".into()), &[Value::Dict(paramsMarketType)]).await;
         }
         if !(matches!(&response, Value::Arr(_))) {
             response = Value::from(vec![response]);
@@ -2860,7 +2860,7 @@ impl Weex {
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")));
         }
-        let mut response: crate::value::List = self.call_method_lt("public_get_api_v3_market_ticker_price", &[Value::Dict(paramsMarketType)]).await;
+        let mut response: crate::value::List = self.public_get_api_v3_market_ticker_price(&[Value::Dict(paramsMarketType)]).await;
         return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2952,7 +2952,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into())]); // reject non-contract symbols instead of silently filtering the result to an empty dict
-        let mut response: crate::value::List = self.call_method_lt("contract_get_capi_v3_market_premium_index", &[params]).await;
+        let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[params]).await;
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3107,7 +3107,7 @@ impl Weex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_api_v3_market_klines", &[__ws_arg_5]).await;
+        let mut response: crate::value::List = self.public_get_api_v3_market_klines(&[__ws_arg_5]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -3389,7 +3389,7 @@ impl Weex {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("contract_get_capi_v3_market_premium_index", &[__ws_arg_13]).await;
+        let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await;
         return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3443,7 +3443,7 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("contract_get_capi_v3_market_funding_rate", &[__ws_arg_14]).await;
+        let mut response: crate::value::List = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await;
         return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -3526,9 +3526,9 @@ impl Weex {
             //     ]
             //
             if sandboxMode {
-                response = self.contract_private_get_capi_v3_sim_balance(&[Value::from(&paramsMarketType)]).await;
+                response = self.call_method(Value::Str("contract_private_get_capi_v3_sim_balance".into()), &[Value::from(&paramsMarketType)]).await;
             }  else {
-                response = self.contract_private_get_capi_v3_account_balance(&[Value::Dict(paramsMarketType)]).await;
+                response = self.call_method(Value::Str("contract_private_get_capi_v3_account_balance".into()), &[Value::Dict(paramsMarketType)]).await;
             }
         }
         return self.parse_balance_list(response);
@@ -3622,7 +3622,7 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_api_v3_account_transfer_records", &[__ws_arg_15]).await;
+        let mut response: crate::value::List = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await;
         return self.parse_transfers(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -4651,7 +4651,7 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_api_v3_all_orders", &[__ws_arg_29]).await;
+        let mut response: crate::value::List = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await;
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -5031,7 +5031,7 @@ impl Weex {
             let mut requestUntil: crate::value::Dict = __until0;
             let mut paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
-            let mut billsResponse: crate::value::List = self.call_method_lt("private_post_api_v3_account_bills", &[__ws_arg_37]).await;
+            let mut billsResponse: crate::value::List = self.private_post_api_v3_account_bills(&[__ws_arg_37]).await;
             items = self.to_array(&billsResponse);
         }
         return self.parse_ledger(items, currency.as_ref(), &[since, limit]);
@@ -5250,7 +5250,7 @@ impl Weex {
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_position_single_position", &[__ws_arg_39]).await;
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_position_single_position(&[__ws_arg_39]).await;
         return self.parse_positions(&response, &[Value::from(vec![Value::from((market).symbol.clone())])]);
         Value::Null
         }).await?))
@@ -5278,7 +5278,7 @@ impl Weex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("contract_private_post_capi_v3_close_positions", &[params]).await;
+        let mut response: crate::value::List = self.contract_private_post_capi_v3_close_positions(&[params]).await;
         return self.parse_positions(&response, &[]);
         Value::Null
         }).await?))
@@ -5316,7 +5316,7 @@ impl Weex {
             m
         });
         let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_post_capi_v3_close_positions", &[__ws_arg_40]).await;
+        let mut response: crate::value::List = self.contract_private_post_capi_v3_close_positions(&[__ws_arg_40]).await;
         let mut order: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
         Value::Null
@@ -5417,7 +5417,7 @@ impl Weex {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[__ws_arg_42]).await;
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_42]).await;
         //
         //     [
         //         {
@@ -5460,7 +5460,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[params]).await;
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await;
         return self.parse_margin_modes(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
@@ -5562,7 +5562,7 @@ impl Weex {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[__ws_arg_44]).await;
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_44]).await;
         let mut marginMode: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &marginMode, Some(&market));
         Value::Null
@@ -5593,7 +5593,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[params]).await;
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await;
         return self.parse_leverages(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
@@ -5696,7 +5696,7 @@ impl Weex {
             m
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[__ws_arg_46]).await;
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_46]).await;
         let mut entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut separatedType: Option<String> = self.safe_string_k_opt(&entry, "separatedType", &[]);
         return Value::Map({

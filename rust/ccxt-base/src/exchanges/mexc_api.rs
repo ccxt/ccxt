@@ -48,23 +48,23 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPublicGetTrades` implicit endpoint.
-    pub async fn spot_public_get_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_public_get_trades".into()), optional_args).await
+    pub async fn spot_public_get_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_public_get_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPublicGetHistoricalTrades` implicit endpoint.
-    pub async fn spot_public_get_historical_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_public_get_historical_trades".into()), optional_args).await
+    pub async fn spot_public_get_historical_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_public_get_historical_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPublicGetAggTrades` implicit endpoint.
-    pub async fn spot_public_get_agg_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_public_get_agg_trades".into()), optional_args).await
+    pub async fn spot_public_get_agg_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_public_get_agg_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPublicGetKlines` implicit endpoint.
-    pub async fn spot_public_get_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_public_get_klines".into()), optional_args).await
+    pub async fn spot_public_get_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_public_get_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPublicGetAvgPrice` implicit endpoint.
@@ -83,8 +83,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPublicGetTickerBookTicker` implicit endpoint.
-    pub async fn spot_public_get_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_public_get_ticker_book_ticker".into()), optional_args).await
+    pub async fn spot_public_get_ticker_book_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_public_get_ticker_book_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPublicGetEtfInfo` implicit endpoint.
@@ -113,13 +113,13 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetOpenOrders` implicit endpoint.
-    pub async fn spot_private_get_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_open_orders".into()), optional_args).await
+    pub async fn spot_private_get_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetAllOrders` implicit endpoint.
-    pub async fn spot_private_get_all_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_all_orders".into()), optional_args).await
+    pub async fn spot_private_get_all_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_all_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetAccount` implicit endpoint.
@@ -128,8 +128,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetMyTrades` implicit endpoint.
-    pub async fn spot_private_get_my_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_my_trades".into()), optional_args).await
+    pub async fn spot_private_get_my_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_my_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetStrategyGroup` implicit endpoint.
@@ -163,18 +163,18 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalConfigGetall` implicit endpoint.
-    pub async fn spot_private_get_capital_config_getall(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_capital_config_getall".into()), optional_args).await
+    pub async fn spot_private_get_capital_config_getall(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_capital_config_getall".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalDepositHisrec` implicit endpoint.
-    pub async fn spot_private_get_capital_deposit_hisrec(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_capital_deposit_hisrec".into()), optional_args).await
+    pub async fn spot_private_get_capital_deposit_hisrec(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_capital_deposit_hisrec".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalWithdrawHistory` implicit endpoint.
-    pub async fn spot_private_get_capital_withdraw_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_capital_withdraw_history".into()), optional_args).await
+    pub async fn spot_private_get_capital_withdraw_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_capital_withdraw_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalWithdrawAddress` implicit endpoint.
@@ -183,8 +183,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalDepositAddress` implicit endpoint.
-    pub async fn spot_private_get_capital_deposit_address(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_capital_deposit_address".into()), optional_args).await
+    pub async fn spot_private_get_capital_deposit_address(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_capital_deposit_address".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalTransfer` implicit endpoint.
@@ -213,8 +213,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetCapitalConvertList` implicit endpoint.
-    pub async fn spot_private_get_capital_convert_list(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_capital_convert_list".into()), optional_args).await
+    pub async fn spot_private_get_capital_convert_list(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_capital_convert_list".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetMarginLoan` implicit endpoint.
@@ -223,8 +223,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetMarginAllOrders` implicit endpoint.
-    pub async fn spot_private_get_margin_all_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_margin_all_orders".into()), optional_args).await
+    pub async fn spot_private_get_margin_all_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_margin_all_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetMarginMyTrades` implicit endpoint.
@@ -233,8 +233,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetMarginOpenOrders` implicit endpoint.
-    pub async fn spot_private_get_margin_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_get_margin_open_orders".into()), optional_args).await
+    pub async fn spot_private_get_margin_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_get_margin_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateGetMarginMaxTransferable` implicit endpoint.
@@ -398,8 +398,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivatePostBatchOrders` implicit endpoint.
-    pub async fn spot_private_post_batch_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_post_batch_orders".into()), optional_args).await
+    pub async fn spot_private_post_batch_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_post_batch_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivatePostStrategyGroup` implicit endpoint.
@@ -463,13 +463,13 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateDeleteOrder` implicit endpoint.
-    pub async fn spot_private_delete_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_delete_order".into()), optional_args).await
+    pub async fn spot_private_delete_order(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_delete_order".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateDeleteOpenOrders` implicit endpoint.
-    pub async fn spot_private_delete_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_delete_open_orders".into()), optional_args).await
+    pub async fn spot_private_delete_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_delete_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateDeleteOrderAll` implicit endpoint.
@@ -493,8 +493,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `spotPrivateDeleteMarginOrder` implicit endpoint.
-    pub async fn spot_private_delete_margin_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_private_delete_margin_order".into()), optional_args).await
+    pub async fn spot_private_delete_margin_order(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_private_delete_margin_order".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotPrivateDeleteMarginOpenOrders` implicit endpoint.
@@ -1138,8 +1138,8 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetSubAccountUniversalTransfer` implicit endpoint.
-    pub async fn broker_private_get_sub_account_universal_transfer(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("broker_private_get_sub_account_universal_transfer".into()), optional_args).await
+    pub async fn broker_private_get_sub_account_universal_transfer(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("broker_private_get_sub_account_universal_transfer".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetSubAccountList` implicit endpoint.
@@ -1158,18 +1158,18 @@ impl Mexc {
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetCapitalDepositSubAddress` implicit endpoint.
-    pub async fn broker_private_get_capital_deposit_sub_address(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("broker_private_get_capital_deposit_sub_address".into()), optional_args).await
+    pub async fn broker_private_get_capital_deposit_sub_address(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("broker_private_get_capital_deposit_sub_address".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetCapitalDepositSubHisrec` implicit endpoint.
-    pub async fn broker_private_get_capital_deposit_sub_hisrec(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("broker_private_get_capital_deposit_sub_hisrec".into()), optional_args).await
+    pub async fn broker_private_get_capital_deposit_sub_hisrec(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("broker_private_get_capital_deposit_sub_hisrec".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetCapitalDepositSubHisrecGetall` implicit endpoint.
-    pub async fn broker_private_get_capital_deposit_sub_hisrec_getall(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("broker_private_get_capital_deposit_sub_hisrec_getall".into()), optional_args).await
+    pub async fn broker_private_get_capital_deposit_sub_hisrec_getall(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("broker_private_get_capital_deposit_sub_hisrec_getall".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `brokerPrivateGetRebateTaxQuery` implicit endpoint.

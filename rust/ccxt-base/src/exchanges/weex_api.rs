@@ -18,8 +18,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3Coins` implicit endpoint.
-    pub async fn public_get_api_v3_coins(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v3_coins".into()), optional_args).await
+    pub async fn public_get_api_v3_coins(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v3_coins".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3ExchangeInfo` implicit endpoint.
@@ -33,13 +33,13 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3ApiTradingSymbols` implicit endpoint.
-    pub async fn public_get_api_v3_api_trading_symbols(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v3_api_trading_symbols".into()), optional_args).await
+    pub async fn public_get_api_v3_api_trading_symbols(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v3_api_trading_symbols".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3MarketTickerPrice` implicit endpoint.
-    pub async fn public_get_api_v3_market_ticker_price(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v3_market_ticker_price".into()), optional_args).await
+    pub async fn public_get_api_v3_market_ticker_price(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v3_market_ticker_price".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3MarketTicker24hr` implicit endpoint.
@@ -48,13 +48,13 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3MarketTrades` implicit endpoint.
-    pub async fn public_get_api_v3_market_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v3_market_trades".into()), optional_args).await
+    pub async fn public_get_api_v3_market_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v3_market_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3MarketKlines` implicit endpoint.
-    pub async fn public_get_api_v3_market_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v3_market_klines".into()), optional_args).await
+    pub async fn public_get_api_v3_market_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v3_market_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3MarketDepth` implicit endpoint.
@@ -63,8 +63,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV3MarketTickerBookTicker` implicit endpoint.
-    pub async fn public_get_api_v3_market_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v3_market_ticker_book_ticker".into()), optional_args).await
+    pub async fn public_get_api_v3_market_ticker_book_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_api_v3_market_ticker_book_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3Account` implicit endpoint.
@@ -73,8 +73,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3AccountTransferRecords` implicit endpoint.
-    pub async fn private_get_api_v3_account_transfer_records(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v3_account_transfer_records".into()), optional_args).await
+    pub async fn private_get_api_v3_account_transfer_records(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v3_account_transfer_records".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3Order` implicit endpoint.
@@ -83,18 +83,18 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3OpenOrders` implicit endpoint.
-    pub async fn private_get_api_v3_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v3_open_orders".into()), optional_args).await
+    pub async fn private_get_api_v3_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v3_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3AllOrders` implicit endpoint.
-    pub async fn private_get_api_v3_all_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v3_all_orders".into()), optional_args).await
+    pub async fn private_get_api_v3_all_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v3_all_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3MyTrades` implicit endpoint.
-    pub async fn private_get_api_v3_my_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v3_my_trades".into()), optional_args).await
+    pub async fn private_get_api_v3_my_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v3_my_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3RebateAffiliateGetAffiliateUIDs` implicit endpoint.
@@ -123,8 +123,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3AgencyVerifyReferrals` implicit endpoint.
-    pub async fn private_get_api_v3_agency_verify_referrals(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v3_agency_verify_referrals".into()), optional_args).await
+    pub async fn private_get_api_v3_agency_verify_referrals(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_api_v3_agency_verify_referrals".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV3AgencyGetAssert` implicit endpoint.
@@ -173,8 +173,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV3AccountBills` implicit endpoint.
-    pub async fn private_post_api_v3_account_bills(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v3_account_bills".into()), optional_args).await
+    pub async fn private_post_api_v3_account_bills(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_api_v3_account_bills".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV3AccountFundingBills` implicit endpoint.
@@ -198,8 +198,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV3TaxIncome` implicit endpoint.
-    pub async fn private_post_api_v3_tax_income(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v3_tax_income".into()), optional_args).await
+    pub async fn private_post_api_v3_tax_income(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_api_v3_tax_income".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV3Order` implicit endpoint.
@@ -208,8 +208,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV3OpenOrders` implicit endpoint.
-    pub async fn private_delete_api_v3_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_api_v3_open_orders".into()), optional_args).await
+    pub async fn private_delete_api_v3_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_api_v3_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV3OrderBatch` implicit endpoint.
@@ -233,38 +233,38 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketTicker24hr` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_ticker24hr(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_ticker24hr".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_ticker24hr(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_ticker24hr".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketTickerBookTicker` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_ticker_book_ticker(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_ticker_book_ticker".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_ticker_book_ticker(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_ticker_book_ticker".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketTrades` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_trades".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketKlines` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_klines".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketIndexPriceKlines` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_index_price_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_index_price_klines".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_index_price_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_index_price_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketMarkPriceKlines` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_mark_price_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_mark_price_klines".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_mark_price_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_mark_price_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketHistoryKlines` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_history_klines(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_history_klines".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_history_klines(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_history_klines".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketSymbolPrice` implicit endpoint.
@@ -278,23 +278,23 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketPremiumIndex` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_premium_index(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_premium_index".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_premium_index(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_premium_index".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketFundingRate` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_funding_rate(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_funding_rate".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_funding_rate(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_funding_rate".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractGetCapiV3MarketApiTradingSymbols` implicit endpoint.
-    pub async fn contract_get_capi_v3_market_api_trading_symbols(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_get_capi_v3_market_api_trading_symbols".into()), optional_args).await
+    pub async fn contract_get_capi_v3_market_api_trading_symbols(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_get_capi_v3_market_api_trading_symbols".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3AccountBalance` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_account_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_account_balance".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_account_balance(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_account_balance".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3AccountCommissionRate` implicit endpoint.
@@ -308,18 +308,18 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3AccountSymbolConfig` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_account_symbol_config(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_account_symbol_config(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_account_symbol_config".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3AccountPositionAllPosition` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_account_position_all_position(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_account_position_all_position".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_account_position_all_position(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_account_position_all_position".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3AccountPositionSinglePosition` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_account_position_single_position(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_account_position_single_position".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_account_position_single_position(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_account_position_single_position".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3Order` implicit endpoint.
@@ -328,23 +328,23 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3OpenOrders` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_open_orders".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3OrderHistory` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_order_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_order_history".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_order_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_order_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3UserTrades` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_user_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_user_trades".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_user_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_user_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3OpenAlgoOrders` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_open_algo_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_open_algo_orders".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_open_algo_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_open_algo_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3AllAlgoOrders` implicit endpoint.
@@ -353,18 +353,18 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3SimBalance` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_sim_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_sim_balance".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_sim_balance(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_sim_balance".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3SimPositionAllPosition` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_sim_position_all_position(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_sim_position_all_position".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_sim_position_all_position(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_sim_position_all_position".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3SimOrderHistory` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_sim_order_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_sim_order_history".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_sim_order_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_sim_order_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerHistoryOrders` implicit endpoint.
@@ -378,13 +378,13 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerOpenOrders` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_copy_follower_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_open_orders".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_copy_follower_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerSettings` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_copy_follower_settings(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_settings".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_copy_follower_settings(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_settings".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyTraderHistoryOrders` implicit endpoint.
@@ -393,23 +393,23 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyTraderOpenOrders` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_copy_trader_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_open_orders".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_copy_trader_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyTraderPairs` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_copy_trader_pairs(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_pairs".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_copy_trader_pairs(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_pairs".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3TrailingOpenOrders` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_trailing_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_trailing_open_orders".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_trailing_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_trailing_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateGetCapiV3TrailingHistoryOrders` implicit endpoint.
-    pub async fn contract_private_get_capi_v3_trailing_history_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_get_capi_v3_trailing_history_orders".into()), optional_args).await
+    pub async fn contract_private_get_capi_v3_trailing_history_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_get_capi_v3_trailing_history_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3AccountIncome` implicit endpoint.
@@ -443,13 +443,13 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3BatchOrders` implicit endpoint.
-    pub async fn contract_private_post_capi_v3_batch_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_capi_v3_batch_orders".into()), optional_args).await
+    pub async fn contract_private_post_capi_v3_batch_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_post_capi_v3_batch_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3ClosePositions` implicit endpoint.
-    pub async fn contract_private_post_capi_v3_close_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_capi_v3_close_positions".into()), optional_args).await
+    pub async fn contract_private_post_capi_v3_close_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_post_capi_v3_close_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3AlgoOrder` implicit endpoint.
@@ -458,8 +458,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3PlaceTpSlOrder` implicit endpoint.
-    pub async fn contract_private_post_capi_v3_place_tp_sl_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_post_capi_v3_place_tp_sl_order".into()), optional_args).await
+    pub async fn contract_private_post_capi_v3_place_tp_sl_order(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_post_capi_v3_place_tp_sl_order".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3ModifyTpSlOrder` implicit endpoint.
@@ -498,8 +498,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateDeleteCapiV3AllOpenOrders` implicit endpoint.
-    pub async fn contract_private_delete_capi_v3_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_delete_capi_v3_all_open_orders".into()), optional_args).await
+    pub async fn contract_private_delete_capi_v3_all_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_delete_capi_v3_all_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `contractPrivateDeleteCapiV3AlgoOrder` implicit endpoint.
@@ -508,8 +508,8 @@ impl Weex {
     }
 
     /// Auto-generated wrapper for the `contractPrivateDeleteCapiV3AlgoOpenOrders` implicit endpoint.
-    pub async fn contract_private_delete_capi_v3_algo_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("contract_private_delete_capi_v3_algo_open_orders".into()), optional_args).await
+    pub async fn contract_private_delete_capi_v3_algo_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("contract_private_delete_capi_v3_algo_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
 }

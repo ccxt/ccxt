@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -278,7 +278,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1831,13 +1831,13 @@ impl Bitopro {
                                 let mut j: i64 = 0;
                 let mut __for_first_413: bool = true;
                 while { if !__for_first_413 { j += 1; } __for_first_413 = false; j < (orderIds.len() as i64) } {
-                orders.push(self.safe_order(Value::Map({
+                orders.push(Value::Dict(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));
                         m.insert("id".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), self.safe_symbol(Value::from(marketId.as_deref()), None, &[]));
                     m
-                }), None));
+                }), None)));
             }
             }
         }

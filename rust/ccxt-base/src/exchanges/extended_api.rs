@@ -173,8 +173,8 @@ impl Extended {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetUserReferralsLinks` implicit endpoint.
-    pub async fn v1_private_get_user_referrals_links(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_user_referrals_links".into()), optional_args).await
+    pub async fn v1_private_get_user_referrals_links(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v1_private_get_user_referrals_links".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetUserReferralsDashboard` implicit endpoint.

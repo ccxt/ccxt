@@ -176,9 +176,9 @@ impl crate::exchange::DerivedExchange for Coinspot {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_value2(response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
+        let mut balances: Value = self.safe_value2(&response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
         if (matches!(&balances, Value::Arr(_))) {
-            let mut rows: crate::value::List = self.to_array_t(balances.clone());
+            let mut rows: crate::value::List = self.safe_list2_t(response, Value::Str("balance".into()), Value::Str("balances".into()));
             let mut numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -1514,11 +1514,11 @@ impl Coinspot {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder only support buy/sell side")));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -1564,11 +1564,11 @@ impl Coinspot {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method_o("private_post_my_sell_cancel", &[__ws_arg_6]).await;
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

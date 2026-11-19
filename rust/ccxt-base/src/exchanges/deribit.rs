@@ -306,7 +306,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut trades: Option<crate::value::List> = self.safe_list_k_o(&order, "trades");
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(&order, "time_in_force", &[])).as_str());
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(&order, "post_only", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -330,7 +330,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), trades.map_or(Value::Null, Value::Arr));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2491,7 +2491,7 @@ impl Deribit {
         let mut fetchAllMarkets: bool = fetchAllMarketsparamsFetchAllMarketsVariable.0 == Some(true);
         let mut paramsFetchAllMarkets: crate::value::Dict = fetchAllMarketsparamsFetchAllMarketsVariable.1;
         if fetchAllMarkets {
-            let mut instrumentsResponse: Value = self.public_get_get_instruments(&[Value::from(&paramsFetchAllMarkets)]).await;
+            let mut instrumentsResponse: Value = self.call_method(Value::Str("public_get_get_instruments".into()), &[Value::from(&paramsFetchAllMarkets)]).await;
             instrumentsResponses.push(instrumentsResponse.clone());
         }  else {
             let mut currenciesResponse: crate::value::Dict = self.call_method_t("public_get_get_currencies", &[Value::from(&paramsFetchAllMarkets)]).await;
@@ -2531,7 +2531,7 @@ impl Deribit {
                     m
                 });
                 let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsFetchAllMarkets]);
-                let mut instrumentsResponse: Value = self.public_get_get_instruments(&[__ws_arg_0]).await;
+                let mut instrumentsResponse: Value = self.call_method(Value::Str("public_get_get_instruments".into()), &[__ws_arg_0]).await;
                 //
                 //     {
                 //         "jsonrpc":"2.0",
@@ -4024,11 +4024,11 @@ impl Deribit {
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
             response = self.call_method_o("private_get_cancel_all_by_instrument", &[__ws_arg_21]).await;
         }
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

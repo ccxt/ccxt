@@ -59,13 +59,13 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_order" => self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order_trade" => self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -114,7 +114,7 @@ impl Krakenfutures {
             "handle_ticker" => { self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trade" => { self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_order_trade" => self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -225,7 +225,7 @@ impl Krakenfutures {
  * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
  * @returns {object} response from exchange
  */
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -936,14 +936,14 @@ impl Krakenfutures {
                 CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
             }
             if (channel.as_deref() == Some("trade_snapshot")) {
-                let mut trades: Value = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+                let mut trades: crate::value::List = __pro_message.key_list("trades");
                 let mut length: i64 = trades.len() as i64;
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_439: bool = true;
                     while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < length } {
                     // need reverse to correct chronology
-                    let mut item: crate::value::Dict = get_value(&trades, &Value::Int((((length - 1)) - i))).into_dict();
+                    let mut item: crate::value::Dict = trades.get(((length - 1) - i) as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut trade: crate::value::Dict = self.parse_ws_trade(&item, None).into_dict();
                     tradesArray.append(Value::Dict(trade));
                 }
@@ -1165,7 +1165,7 @@ impl Krakenfutures {
             let mut previousOrder: Value = self.safe_dict(&previousOrders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut reason: Option<String> = (match __pro_message.get("reason") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if (previousOrder == Value::Null) || (reason.as_deref() == Some("edited_by_user")) {
-                let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
+                let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None);
                 orders.append(Value::Dict(parsed));
                 client.resolve(orders.clone(), messageHash.as_str());
                 client.resolve(orders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null")).into())));
@@ -1218,7 +1218,7 @@ impl Krakenfutures {
                     add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                 }
                 // update the newUpdates count
-                orders.append(self.safe_order(previousOrder, None));
+                orders.append(Value::Dict(self.safe_order(previousOrder, None)));
                 client.resolve(orders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null")).into())));
                 client.resolve(orders.clone(), messageHash.as_str());
             }
@@ -1352,7 +1352,7 @@ impl Krakenfutures {
             let mut __for_first_442: bool = true;
             while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None);
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1422,7 +1422,7 @@ impl Krakenfutures {
         }
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         // update
@@ -1507,7 +1507,7 @@ impl Krakenfutures {
     m
 }), None);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
@@ -1549,7 +1549,7 @@ impl Krakenfutures {
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(message, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
             let mut messageHash: Option<String> = self.get_message_hash("ticker", &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
             client.resolve(Value::Dict(ticker), messageHash.as_deref());

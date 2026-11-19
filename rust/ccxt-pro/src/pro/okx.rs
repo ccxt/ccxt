@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "cancel_all_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order_ws" => crate::types::IntoRaw::into_raw(self.cancel_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_orders_ws(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -524,7 +524,7 @@ impl Okx {
         let mut access: String = "public".to_string();
         if (channel.as_deref() == Some("trades-all")) {
             access = "business".to_string();
-            self.authenticate(&[Value::Map({
+            self.authenticate(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), Value::from(access.clone()));
     m
@@ -595,7 +595,7 @@ impl Okx {
         let mut access: String = "public".to_string();
         if (channel.as_deref() == Some("trades-all")) {
             access = "business".to_string();
-            self.authenticate(&[Value::Map({
+            self.authenticate(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), Value::from(access.clone()));
     m
@@ -1105,7 +1105,7 @@ impl Okx {
             let mut __for_first_538: bool = true;
             while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (data.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker.clone())); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker.clone())); }
             newTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
         }
         }
@@ -1439,7 +1439,7 @@ impl Okx {
         if isTrigger {
             accessType = "business".to_string();
         }
-        self.authenticate(&[Value::Map({
+        self.authenticate(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), Value::from(accessType));
     m
@@ -1973,7 +1973,7 @@ impl Okx {
             if !(self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")));
             }
-            self.authenticate(&[Value::Map({
+            self.authenticate(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), Value::Str("public".into()));
     m
@@ -2398,7 +2398,7 @@ impl Okx {
     Value::Null
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2594,7 +2594,7 @@ impl Okx {
             { let __be_tmp = self.safe_value(&balance, Value::from(key.as_deref()), &[]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
         }
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         client.resolve(Value::Dict(self.balance.clone()), channel.as_deref());
 }
 
@@ -2669,7 +2669,7 @@ impl Okx {
         if isTrigger {
             access = "business".to_string();
         }
-        self.authenticate(&[Value::Map({
+        self.authenticate(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), Value::from(access));
     m
@@ -2746,7 +2746,7 @@ impl Okx {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.authenticate(&[params.clone()]).await;
+        self.authenticate(&[&params]).await;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2928,7 +2928,7 @@ impl Okx {
         if isTrigger {
             accessType = "business".to_string();
         }
-        self.authenticate(&[Value::Map({
+        self.authenticate(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access".to_string(), Value::from(accessType));
     m
@@ -3842,8 +3842,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), "::").into()), Value::from(symbol));
         let mut messageHash: String = format!("{}{}", "unsubscribe:ticker:", Value::from(symbol));
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
-        if (matches!((&self.tickers, &Value::from(symbol)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &Value::from(symbol)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+        if (matches!((&self.tickers, &Value::from(symbol)), (__d, Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let (__d, Value::Str(__k)) = (&mut self.tickers, &Value::from(symbol)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 }
 

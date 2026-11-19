@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
     {
         Box::pin(async move {
             match method {
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "cancel_all_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order_ws" => crate::types::IntoRaw::into_raw(self.cancel_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -93,7 +93,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_options_position" => self.parse_ws_options_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -215,7 +215,7 @@ impl Binance {
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_options_position" => self.parse_ws_options_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -572,7 +572,7 @@ impl Binance {
             if newNumSubscriptions.as_f64().unwrap_or(f64::NAN) > (subscriptionLimitByStream as f64) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")));
             }
-            { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("numSubscriptionsByStream".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(stream.as_deref().unwrap_or("null").to_string(), newNumSubscriptions); } }
+            { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("numSubscriptionsByStream".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(stream.as_deref().unwrap_or("null").to_string(), newNumSubscriptions); } }
         }
         return stream;
 }
@@ -1074,7 +1074,7 @@ impl Binance {
         m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&paramsValue]);
-        self.authenticate(&[__ws_arg_2]).await;
+        self.authenticate(&[&__ws_arg_2]).await;
         let mut optionsType: crate::value::Dict = self.safe_dict_t(&self.options, type_var.clone().map(Value::from).unwrap_or(Value::Null));
         let mut listenKey: Option<String> = self.safe_string_k_opt(&optionsType, "listenKey", &[]);
         let mut url: Option<String> = self.get_private_ws_url(type_var.as_deref(), listenKey.map(Value::from).unwrap_or(Value::Null));
@@ -3877,7 +3877,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 }
             }  else {
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
+                    { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
                 }
             }
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), ":").into()), channelName.as_deref().unwrap_or("null")).into()), "@").into()), symbol.as_deref().unwrap_or("null"));
@@ -4190,7 +4190,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4862,7 +4862,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&paramsValue]);
-        self.authenticate(&[__ws_arg_24]).await;
+        self.authenticate(&[&__ws_arg_24]).await;
         let mut isPortfolioMargin: Option<bool> = (self.handle_option_bool_and_params2(&paramsValue, Value::Str("watchBalance".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)])).0;
         let mut url: Option<String> = Some("".to_string());
         let mut urlType: Option<String> = type_var.clone();
@@ -5981,7 +5981,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("type".to_string(), Value::Str("stock".into()));
     m
 })]);
-            self.authenticate(&[__ws_arg_33]).await;
+            self.authenticate(&[&__ws_arg_33]).await;
             let mut stockOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "stock");
             let mut stockListenKey: Option<String> = self.safe_string_k_opt(&stockOptions, "listenKey", &[]);
             if (stockListenKey.is_none()) {
@@ -6033,7 +6033,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
             m
         })]); // needed inside authenticate for isolated margin
-        self.authenticate(&[Value::from(&paramsExtended)]).await;
+        self.authenticate(&[&Value::from(&paramsExtended)]).await;
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[Value::Dict(paramsExtended)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6078,7 +6078,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }).await?))
     }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         // spot
@@ -6356,7 +6356,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     m
 }), None);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_order_update(&mut self, client: &Value, mut message: Value) {
@@ -6549,7 +6549,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     m.insert("info".to_string(), Value::from(&rate));
                 m
             }), None);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
             tickers.insert(crate::runtime::stringify_param(&symbol), parsed.clone());
             client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:price:", symbol).into())));
         }
@@ -6745,7 +6745,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         marketTypeObject.insert("type".into(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         marketTypeObject.insert("subType".into(), subType.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_35 = self.extend(Value::Map(marketTypeObject), &[&paramsAuth]);
-        self.authenticate(&[__ws_arg_35]).await;
+        self.authenticate(&[&__ws_arg_35]).await;
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":positions").into()), messageHash);
         let portfolioMarginAndParams = self.handle_option_bool_and_params2(paramsAuth, Value::Str("watchPositions".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]);
         let mut isPortfolioMargin: Option<bool> = portfolioMarginAndParams.0;
@@ -7313,7 +7313,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&paramsSymbol]);
-        self.authenticate(&[__ws_arg_37]).await;
+        self.authenticate(&[&__ws_arg_37]).await;
         let mut urlType: Option<String> = type_var.clone(); // we don't change type because the listening key is different
         if (type_var.as_deref() == Some("margin")) {
             urlType = Some("spot".to_string()); // spot-margin shares the same stream as regular spot
@@ -7452,7 +7452,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 
     pub fn handle_order(&mut self, client: &Value, message: impl Into<crate::Value>) {
         let mut message: Value = message.into();
-        let mut parsed: Value = self.parse_ws_order(message, None);
+        let mut parsed: Value = Value::Dict(self.parse_ws_order(message, None));
         let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);
         if (symbol.is_some()) {

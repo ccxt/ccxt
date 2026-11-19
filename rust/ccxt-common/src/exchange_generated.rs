@@ -476,7 +476,7 @@ pub trait ExchangeBase:
     fn clean_ws_data(&mut self) {
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() }; }
         self.orderbooks = crate::pro::order_book::BookMap::new();
-        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.tickers = __t; }
+        self.tickers = crate::value::Dict::default();
         self.liquidations = None;
         self.myLiquidations = None;
         self.orders = None;
@@ -496,7 +496,7 @@ pub trait ExchangeBase:
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        let mut value: Value = self.safe_value_n(dictionaryOrList, keys, &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value_n(&dictionaryOrList, keys, &[defaultValue.clone()]);
         if matches!(&value, Value::Bool(_)) {
             return value;
         }
@@ -513,11 +513,11 @@ pub trait ExchangeBase:
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1, &[]);
+        let mut value: Value = self.safe_value(&dictionaryOrList, key1, &[]);
         if matches!(&value, Value::Bool(_)) {
             return value;
         }
-        let mut value2: Value = self.safe_value(dictionaryOrList, key2, &[]);
+        let mut value2: Value = self.safe_value(&dictionaryOrList, key2, &[]);
         if matches!(&value2, Value::Bool(_)) {
             return value2;
         }
@@ -534,7 +534,7 @@ pub trait ExchangeBase:
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        let mut value: Value = self.safe_value(dictionaryOrList, key, &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value(&dictionaryOrList, key, &[defaultValue.clone()]);
         if matches!(&value, Value::Bool(_)) {
             return value;
         }
@@ -551,7 +551,7 @@ pub trait ExchangeBase:
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        let mut value: Value = self.safe_value_n(dictionaryOrList, keys, &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value_n(&dictionaryOrList, keys, &[defaultValue.clone()]);
         if self.is_dictionary(value.clone()).as_bool() == Some(true) {
             return value;
         }
@@ -569,7 +569,7 @@ pub trait ExchangeBase:
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        let mut value: Value = self.safe_value(dictionaryOrList, key, &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value(&dictionaryOrList, key, &[defaultValue.clone()]);
         if self.is_dictionary(value.clone()).as_bool() == Some(true) {
             return value;
         }
@@ -586,11 +586,11 @@ pub trait ExchangeBase:
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1, &[]);
+        let mut value: Value = self.safe_value(&dictionaryOrList, key1, &[]);
         if self.is_dictionary(value.clone()).as_bool() == Some(true) {
             return value;
         }
-        let mut value2: Value = self.safe_value(dictionaryOrList, key2, &[]);
+        let mut value2: Value = self.safe_value(&dictionaryOrList, key2, &[]);
         if self.is_dictionary(value2.clone()).as_bool() == Some(true) {
             return value2;
         }
@@ -607,7 +607,7 @@ pub trait ExchangeBase:
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        let mut value: Value = self.safe_value_n(dictionaryOrList, keys, &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value_n(&dictionaryOrList, keys, &[defaultValue.clone()]);
         if (value == Value::Null) {
             return defaultValue;
         }
@@ -627,11 +627,11 @@ pub trait ExchangeBase:
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1, &[]);
+        let mut value: Value = self.safe_value(&dictionaryOrList, key1, &[]);
         if (value != Value::Null) && (matches!(&value, Value::Arr(_))) {
             return value;
         }
-        let mut value2: Value = self.safe_value(dictionaryOrList, key2, &[]);
+        let mut value2: Value = self.safe_value(&dictionaryOrList, key2, &[]);
         if (value2 != Value::Null) && (matches!(&value2, Value::Arr(_))) {
             return value2;
         }
@@ -648,7 +648,7 @@ pub trait ExchangeBase:
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        let mut value: Value = self.safe_value(dictionaryOrList, key, &[defaultValue.clone()]);
+        let mut value: Value = self.safe_value(&dictionaryOrList, key, &[defaultValue.clone()]);
         if (value == Value::Null) {
             return defaultValue;
         }
@@ -2272,7 +2272,7 @@ pub trait ExchangeBase:
 
     fn safe_number_omit_zero(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let mut value: Option<String> = self.safe_string_opt(obj, key, &[]);
+        let mut value: Option<String> = self.safe_string_opt(&obj, key, &[]);
         let mut final_val: Option<f64> = self.parse_number(Value::from(self.omit_zero(value.map(Value::from).unwrap_or(Value::Null))), &[]).as_f64();
         return (if (final_val.is_none()) { defaultValue } else { Value::from(final_val) });
 
@@ -2281,7 +2281,7 @@ pub trait ExchangeBase:
 
     fn safe_integer_omit_zero(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_integer(obj, key, &[defaultValue]);
+        let mut timestamp: Value = self.safe_integer(&obj, key, &[defaultValue]);
         if (timestamp == Value::Null) || (timestamp.as_f64() == Some(0.0)) {
             return Value::Null;
         }
@@ -2625,10 +2625,10 @@ pub trait ExchangeBase:
 
     fn safe_ledger_entry(&self, entry: impl KeyRead, currency: Option<&crate::types::Currency>) -> Value {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(Value::Null, currency);
-        let mut direction: Option<String> = self.safe_string_k_opt(entry.clone(), "direction", &[]);
-        let mut before: Option<String> = self.safe_string_k_opt(entry.clone(), "before", &[]);
-        let mut after: Option<String> = self.safe_string_k_opt(entry.clone(), "after", &[]);
-        let mut amount: Option<String> = self.safe_string_k_opt(entry.clone(), "amount", &[]);
+        let mut direction: Option<String> = self.safe_string_k_opt(&entry, "direction", &[]);
+        let mut before: Option<String> = self.safe_string_k_opt(&entry, "before", &[]);
+        let mut after: Option<String> = self.safe_string_k_opt(&entry, "after", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(&entry, "amount", &[]);
         if (amount.is_some()) {
             if (before.is_none()) && (after.is_some()) {
                 before = crate::precise::Precise::stringSub(&after, &amount).as_str().map(str::to_owned);
@@ -2646,27 +2646,27 @@ pub trait ExchangeBase:
                 }
             }
         }
-        let mut fee: Value = self.safe_value_k(entry.clone(), "fee", &[]);
+        let mut fee: Value = self.safe_value_k(&entry, "fee", &[]);
         if (fee != Value::Null) {
             { let __be_tmp = self.safe_number_k(&fee, "cost", &[]); add_element_to_object(&mut fee, &Value::Str("cost".into()), __be_tmp); }
         }
-        let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
-        let mut info: crate::value::Dict = self.safe_dict_k_t(entry.clone(), "info");
+        let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
+        let mut info: crate::value::Dict = self.safe_dict_k_t(&entry, "info");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(entry.clone(), "id", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&entry, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
-        m.insert("account".to_string(), self.safe_string_k(entry.clone(), "account", &[]));
-        m.insert("referenceId".to_string(), self.safe_string_k(entry.clone(), "referenceId", &[]));
-        m.insert("referenceAccount".to_string(), self.safe_string_k(entry.clone(), "referenceAccount", &[]));
-        m.insert("type".to_string(), self.safe_string_k(entry.clone(), "type", &[]));
+        m.insert("account".to_string(), self.safe_string_k(&entry, "account", &[]));
+        m.insert("referenceId".to_string(), self.safe_string_k(&entry, "referenceId", &[]));
+        m.insert("referenceAccount".to_string(), self.safe_string_k(&entry, "referenceAccount", &[]));
+        m.insert("type".to_string(), self.safe_string_k(&entry, "type", &[]));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("status".to_string(), self.safe_string_k(entry, "status", &[]));
+        m.insert("status".to_string(), self.safe_string_k(&entry, "status", &[]));
         m.insert("fee".to_string(), fee);
         m.insert("info".to_string(), Value::Dict(info));
     m
@@ -3177,7 +3177,7 @@ pub trait ExchangeBase:
     Default::default()
 }
 
-    fn safe_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {
+    fn safe_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let mut orderDict: Value = order.clone();
@@ -3453,7 +3453,7 @@ pub trait ExchangeBase:
         let mut triggerPrice: Option<f64> = self.parse_number(self.safe_string2(&orderDict, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]), &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.parse_number(self.safe_string_k(&orderDict, "takeProfitPrice", &[]), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = self.parse_number(self.safe_string_k(&orderDict, "stopLossPrice", &[]), &[]).as_f64();
-        return self.extend(orderDict.clone(), &[Value::Map({
+        return self.extend_t(orderDict.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&orderDict, "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&orderDict, "clientOrderId", &[]));
@@ -3483,7 +3483,7 @@ pub trait ExchangeBase:
     m
 })]);
 
-    Value::Null
+    Default::default()
 }
 
     fn parse_orders(&self, orders: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
@@ -4810,7 +4810,7 @@ pub trait ExchangeBase:
 
     fn safe_number2(&self, dictionary: impl KeyRead, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
         let mut d = get_arg(optional_args, 0, Value::Null);
-        let mut value: Option<String> = self.safe_string2_opt(dictionary, key1, key2, &[]);
+        let mut value: Option<String> = self.safe_string2_opt(&dictionary, key1, key2, &[]);
         return self.parse_number(value.map(Value::from).unwrap_or(Value::Null), &[d]);
 
     Value::Null
@@ -6176,7 +6176,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("quote".into(), quote.clone().map(Value::from).unwrap_or(Value::Null)); }
                     }
                     if (base.is_some()) && (quote.is_some()) {
-                        add_element_to_object(&mut result, &Value::Str("symbol".into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
+                        if let Value::Dict(__rda) = &mut result { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())); }
                     }
                 }
                 return <crate::types::Market as crate::types::FromRaw>::from_raw(result);
@@ -7838,7 +7838,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn safe_number(&self, obj: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let mut defaultNumber = get_arg(optional_args, 0, Value::Null);
-        let mut value: Option<String> = self.safe_string_opt(obj, key, &[]);
+        let mut value: Option<String> = self.safe_string_opt(&obj, key, &[]);
         return self.parse_number(value.map(Value::from).unwrap_or(Value::Null), &[defaultNumber]);
 
     Value::Null
@@ -7846,7 +7846,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn safe_number_n(&self, obj: impl KeyRead, mut arr: Value, optional_args: &[Value]) -> Value {
         let mut defaultNumber = get_arg(optional_args, 0, Value::Null);
-        let mut value: Option<String> = self.safe_string_n_opt(obj, arr, &[]);
+        let mut value: Option<String> = self.safe_string_n_opt(&obj, arr, &[]);
         return self.parse_number(value.map(Value::from).unwrap_or(Value::Null), &[defaultNumber]);
 
     Value::Null
@@ -8186,7 +8186,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i += 1; } __for_first_150 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_150 { i += 1; } __for_first_150 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::Int(i));
             let mut borrowRate: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, item.map_or(Value::Null, Value::Dict), None);
             result.push(borrowRate);
@@ -8573,7 +8573,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i += 1; } __for_first_156 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_156 { i += 1; } __for_first_156 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&response, &Value::Int(i));
             let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, market);
             interests.push(interest);
@@ -9009,7 +9009,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i += 1; } __for_first_159 = false; (i as f64) < get_array_length(&incomes).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_159 { i += 1; } __for_first_159 = false; (i as f64) < Value::Int(incomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&incomes, &Value::Int(i));
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_income(self, entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
             result.push(parsed);
@@ -10294,12 +10294,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         self.orderbooks.forget(&symbol);
                     }
                 }  else if (topic.as_deref() == Some("ticker")) {
-                    if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
-                        if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers.clone(), Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                    if (self.tickers.contains_key(symbol.as_str())) {
+                        if let (__d, Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }  else if (topic.as_deref() == Some("bidsasks")) {
                     if (matches!(&self.bidsasks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
-                        if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks.clone(), Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }
             }
@@ -10323,15 +10323,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                 }
                 }
-            }  else if ((topic.as_deref() == Some("ticker")) || (topic.as_deref() == Some("markPrice"))) && (self.tickers != Value::Null) {
-                let mut tickerSymbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            }  else if ((topic.as_deref() == Some("ticker")) || (topic.as_deref() == Some("markPrice"))) && true {
+                let mut tickerSymbols: Vec<Value> = Value::Array(self.tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_183: bool = true;
                     while { if !__for_first_183 { i += 1; } __for_first_183 = false; i < (tickerSymbols.len() as i64) } {
                     let mut tickerSymbol: Option<String> = tickerSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    if (matches!((&self.tickers, tickerSymbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                        if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers.clone(), tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                    if (matches!((&self.tickers, tickerSymbol.as_deref()), (__d, Some(__k)) if __d.contains_key(__k))) {
+                        if let (__d, Some(__k)) = (&mut self.tickers, tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }
                 }
@@ -10343,7 +10343,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_184 { i += 1; } __for_first_184 = false; i < (bidsaskSymbols.len() as i64) } {
                     let mut bidsaskSymbol: Option<String> = bidsaskSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     if (matches!((&self.bidsasks, bidsaskSymbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                        if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks.clone(), bidsaskSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, bidsaskSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }
                 }
@@ -13631,7 +13631,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "safe_market_structure" => self.safe_market_structure(&args[..]),
             "safe_network" => self.safe_network(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "safe_open_interest" => self.safe_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "safe_order" => self.safe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "safe_order" => Value::Dict(self.safe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "safe_position" => self.safe_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "safe_symbol" => self.safe_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "safe_ticker" => self.safe_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),

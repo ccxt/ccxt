@@ -924,11 +924,11 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.require_event_query(&[params.clone()]);
+        self.require_event_query(&[&params]);
         let mut eventId: Option<String> = self.safe_string2_opt(&params, Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
         let mut leagueId: Option<String> = self.safe_string_k_opt(&params, "leagueId", &[]);
         let mut sportId: Option<String> = self.safe_string_k_opt(&params, "sportId", &[]);
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: Value = self.parse_search_queries(&[&params]);
         let mut tags: crate::value::List = self.safe_list_k_t(&params, "tags");
         let mut tagsLength: i64 = tags.len() as i64;
         {
@@ -3188,7 +3188,7 @@ impl Sxbet {
     Value::Null
 }
 
-    pub fn set_ws_option(&self, group: &str, key: &str, mut value: Value) {
+    pub fn set_ws_option(&mut self, group: &str, key: &str, mut value: Value) {
         let mut entry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3198,19 +3198,19 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(__ws_arg_19, &[Value::Map(entry)]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(group)), __be_tmp); } }
+        { let __be_tmp = self.extend(__ws_arg_19, &[Value::Map(entry)]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(group)), __be_tmp); } }
 }
 
-    pub fn request_id(&self, url: Option<&str>) -> i64 {
+    pub fn request_id(&mut self, url: Option<&str>) -> i64 {
         let existing: bool = self.safe_value_k(&self.options, "requestId", &[]) != Value::Null;
         if (!existing) {
-            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
+            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
         }
         let mut options: Value = self.options.get("requestId").cloned().unwrap_or(Value::Null);
         let mut previousValue: i64 = self.safe_integer(&options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         if (url.is_some()) {
-            { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }
+            { let __rda = &mut self.options; if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("requestId".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }
         }
         return newValue;
 }
@@ -3224,7 +3224,7 @@ impl Sxbet {
  * @param {string} messageHash the future hash the caller awaits
  * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
  */
-    pub fn register_sxbet_ws_request(&self, requestId: f64, messageHash: &str, subscription: &str) {
+    pub fn register_sxbet_ws_request(&mut self, requestId: f64, messageHash: &str, subscription: &str) {
         let mut requestIdString: Option<String> = self.number_to_string(Value::from(requestId));
         self.set_ws_option("wsPendingRequests", requestIdString.as_deref().unwrap_or_default(), Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3499,7 +3499,7 @@ impl Sxbet {
  * @param {object} snapshot the raw book publication
  * @returns {string[]} the outcome handles whose books were refreshed
  */
-    pub fn apply_sxbet_ws_snapshot(&self, snapshot: impl Into<crate::Value>) -> Value {
+    pub fn apply_sxbet_ws_snapshot(&mut self, snapshot: impl Into<crate::Value>) -> Value {
         let mut snapshot: Value = snapshot.into();
         let mut marketHash: Option<String> = self.safe_string_k_opt(&snapshot, "marketHash", &[]);
         let mut version: String = self.safe_string_k(&snapshot, "version", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3538,7 +3538,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]));
-                CacheStore::put(&mut self.orderbooks.clone(), &sym, orderbook.clone());
+                CacheStore::put(&mut self.orderbooks, &sym, orderbook.clone());
             }
             let mut bookSnapshot: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3558,7 +3558,7 @@ impl Sxbet {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, rows: impl Into<crate::Value>) {
+    pub fn handle_order_book(&mut self, mut client: Value, rows: impl Into<crate::Value>) {
         let mut rows: Value = rows.into();
         let __rows_empty = Vec::new();
         let rows = rows.as_array().unwrap_or(&__rows_empty);
@@ -3659,7 +3659,7 @@ impl Sxbet {
         }).await?))
     }
 
-    pub fn handle_ticker(&self, mut client: Value, rows: impl Into<crate::Value>) {
+    pub fn handle_ticker(&mut self, mut client: Value, rows: impl Into<crate::Value>) {
         let mut rows: Value = rows.into();
         //
         //     {

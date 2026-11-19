@@ -23,8 +23,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `publicGetV1Symbols` implicit endpoint.
-    pub async fn public_get_v1_symbols(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_symbols".into()), optional_args).await
+    pub async fn public_get_v1_symbols(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_symbols".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1SymbolsDetailsSymbol` implicit endpoint.
@@ -58,13 +58,13 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `publicGetV2CandlesSymbolTimeframe` implicit endpoint.
-    pub async fn public_get_v2_candles_symbol_timeframe(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v2_candles_symbol_timeframe".into()), optional_args).await
+    pub async fn public_get_v2_candles_symbol_timeframe(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_candles_symbol_timeframe".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1TradesSymbol` implicit endpoint.
-    pub async fn public_get_v1_trades_symbol(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_trades_symbol".into()), optional_args).await
+    pub async fn public_get_v1_trades_symbol(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_trades_symbol".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1AuctionSymbol` implicit endpoint.
@@ -73,13 +73,13 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `publicGetV1AuctionSymbolHistory` implicit endpoint.
-    pub async fn public_get_v1_auction_symbol_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_auction_symbol_history".into()), optional_args).await
+    pub async fn public_get_v1_auction_symbol_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_auction_symbol_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1Pricefeed` implicit endpoint.
-    pub async fn public_get_v1_pricefeed(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_pricefeed".into()), optional_args).await
+    pub async fn public_get_v1_pricefeed(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_pricefeed".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1FundingamountSymbol` implicit endpoint.
@@ -103,8 +103,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `publicGetV2DerivativesCandlesSymbolTimeFrame` implicit endpoint.
-    pub async fn public_get_v2_derivatives_candles_symbol_time_frame(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v2_derivatives_candles_symbol_time_frame".into()), optional_args).await
+    pub async fn public_get_v2_derivatives_candles_symbol_time_frame(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_derivatives_candles_symbol_time_frame".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV2FxrateSymbolTimestamp` implicit endpoint.
@@ -153,13 +153,13 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsVolumeDate` implicit endpoint.
-    pub async fn public_get_v1_prediction_markets_volume_date(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date".into()), optional_args).await
+    pub async fn public_get_v1_prediction_markets_volume_date(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsVolumeDateHourly` implicit endpoint.
-    pub async fn public_get_v1_prediction_markets_volume_date_hourly(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date_hourly".into()), optional_args).await
+    pub async fn public_get_v1_prediction_markets_volume_date_hourly(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_prediction_markets_volume_date_hourly".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetV1PredictionMarketsTerms` implicit endpoint.
@@ -233,8 +233,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1StakingHistory` implicit endpoint.
-    pub async fn private_post_v1_staking_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_staking_history".into()), optional_args).await
+    pub async fn private_post_v1_staking_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_staking_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1OrderNew` implicit endpoint.
@@ -268,13 +268,13 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1Orders` implicit endpoint.
-    pub async fn private_post_v1_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_orders".into()), optional_args).await
+    pub async fn private_post_v1_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1Mytrades` implicit endpoint.
-    pub async fn private_post_v1_mytrades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_mytrades".into()), optional_args).await
+    pub async fn private_post_v1_mytrades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_mytrades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1Notionalvolume` implicit endpoint.
@@ -283,8 +283,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1Tradevolume` implicit endpoint.
-    pub async fn private_post_v1_tradevolume(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_tradevolume".into()), optional_args).await
+    pub async fn private_post_v1_tradevolume(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_tradevolume".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1ClearingNew` implicit endpoint.
@@ -308,28 +308,28 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1Balances` implicit endpoint.
-    pub async fn private_post_v1_balances(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_balances".into()), optional_args).await
+    pub async fn private_post_v1_balances(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_balances".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1BalancesStaking` implicit endpoint.
-    pub async fn private_post_v1_balances_staking(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_balances_staking".into()), optional_args).await
+    pub async fn private_post_v1_balances_staking(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_balances_staking".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1NotionalbalancesCurrency` implicit endpoint.
-    pub async fn private_post_v1_notionalbalances_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_notionalbalances_currency".into()), optional_args).await
+    pub async fn private_post_v1_notionalbalances_currency(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_notionalbalances_currency".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1Transfers` implicit endpoint.
-    pub async fn private_post_v1_transfers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_transfers".into()), optional_args).await
+    pub async fn private_post_v1_transfers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_transfers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1AddressesNetwork` implicit endpoint.
-    pub async fn private_post_v1_addresses_network(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_addresses_network".into()), optional_args).await
+    pub async fn private_post_v1_addresses_network(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_addresses_network".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1DepositNetworkNewAddress` implicit endpoint.
@@ -378,8 +378,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1EarnHistory` implicit endpoint.
-    pub async fn private_post_v1_earn_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_earn_history".into()), optional_args).await
+    pub async fn private_post_v1_earn_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_earn_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1ApprovedAddressesNetworkRequest` implicit endpoint.
@@ -408,8 +408,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1AccountList` implicit endpoint.
-    pub async fn private_post_v1_account_list(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_account_list".into()), optional_args).await
+    pub async fn private_post_v1_account_list(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_account_list".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1Heartbeat` implicit endpoint.
@@ -423,8 +423,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1Custodyaccountfees` implicit endpoint.
-    pub async fn private_post_v1_custodyaccountfees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_custodyaccountfees".into()), optional_args).await
+    pub async fn private_post_v1_custodyaccountfees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_custodyaccountfees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate` implicit endpoint.
@@ -503,13 +503,13 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV1PerpetualsFundingPayment` implicit endpoint.
-    pub async fn private_post_v1_perpetuals_funding_payment(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_perpetuals_funding_payment".into()), optional_args).await
+    pub async fn private_post_v1_perpetuals_funding_payment(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_perpetuals_funding_payment".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1PerpetualsFundingpaymentreportRecordsJson` implicit endpoint.
-    pub async fn private_post_v1_perpetuals_fundingpaymentreport_records_json(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_perpetuals_fundingpaymentreport_records_json".into()), optional_args).await
+    pub async fn private_post_v1_perpetuals_fundingpaymentreport_records_json(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v1_perpetuals_fundingpaymentreport_records_json".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV1Positions` implicit endpoint.
@@ -573,8 +573,8 @@ impl Gemini {
     }
 
     /// Auto-generated wrapper for the `privatePostV2Transfers` implicit endpoint.
-    pub async fn private_post_v2_transfers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_v2_transfers".into()), optional_args).await
+    pub async fn private_post_v2_transfers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_v2_transfers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostV2WithdrawNetworkTicker` implicit endpoint.

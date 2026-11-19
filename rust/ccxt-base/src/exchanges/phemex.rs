@@ -4295,7 +4295,7 @@ impl Phemex {
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(&order, "timeInForce", &[])).as_str());
         let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.from_ep((self.safe_string_k(&order, "stopPxEp", &[])).as_str(), &[crate::Value::from(&marketResolved)]).map(Value::from).unwrap_or(Value::Null))), &[]).as_f64();
         let mut postOnly: bool = timeInForce.as_deref() == Some("PO");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -4319,7 +4319,7 @@ impl Phemex {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -4496,7 +4496,7 @@ impl Phemex {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -4523,7 +4523,7 @@ impl Phemex {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -5064,11 +5064,11 @@ impl Phemex {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method_o("private_delete_spot_orders_all", &[__ws_arg_26]).await;
         }
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

@@ -509,7 +509,7 @@ impl crate::exchange::DerivedExchange for Xt {
                 }
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_n(&order, Value::from(vec![Value::Str("orderId".into()), Value::Str("result".into()), Value::Str("cancelId".into()), Value::Str("entrustId".into()), Value::Str("profitId".into()), Value::Str("trackId".into())]), &[]));
@@ -541,7 +541,7 @@ impl crate::exchange::DerivedExchange for Xt {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3360,7 +3360,7 @@ impl Xt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promisesRaw: crate::value::List = std::sync::Arc::new(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params]).await]);
+        let mut promisesRaw: crate::value::List = std::sync::Arc::new(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.call_method(Value::Str("public_spot_get_currencies".into()), &[params]).await]);
         let chainsResponsecurrenciesResponseVariable: Vec<Value> = promise_all(&Value::Arr(promisesRaw)).await.as_array().cloned().unwrap_or_default();
         let mut chainsResponse: crate::value::Dict = chainsResponsecurrenciesResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut currenciesResponse: crate::value::Dict = chainsResponsecurrenciesResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6137,7 +6137,7 @@ impl Xt {
             let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.private_spot_delete_open_order(&[__ws_arg_75]).await;
         }
-        return Value::from(vec![self.safe_order(response, None)]);
+        return Value::from(vec![Value::Dict(self.safe_order(response, None))]);
         Value::Null
         }).await?))
     }
@@ -6184,7 +6184,7 @@ impl Xt {
         }
         let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsSubType]);
         let mut response: Value = self.private_spot_delete_batch_order(&[__ws_arg_76]).await;
-        return Value::from(vec![self.safe_order(response, None)]);
+        return Value::from(vec![Value::Dict(self.safe_order(response, None))]);
         Value::Null
         }).await?))
     }
@@ -6870,7 +6870,7 @@ impl Xt {
         {
                         let mut i: i64 = 0;
             let mut __for_first_1195: bool = true;
-            while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::Str("contract".into())]);

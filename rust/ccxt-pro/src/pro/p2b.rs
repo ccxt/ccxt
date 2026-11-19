@@ -645,7 +645,7 @@ impl P2b {
             ticker = self.parse_ticker(tickerData.map_or(Value::Null, Value::Dict), Some(&market));
         }
         let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
         if (messageHashStart.is_some()) {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashStart.as_deref().unwrap_or("null"), "::").into()), symbol);
             client.resolve(ticker, messageHash.as_str());

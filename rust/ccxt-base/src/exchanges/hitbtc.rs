@@ -302,7 +302,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut postOnly: Option<bool> = self.safe_bool_k_opt(&order, "post_only", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "time_in_force", &[]);
         let mut rawTrades: Option<crate::value::List> = self.safe_list_k_o(&order, "trades");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -330,7 +330,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2532,7 +2532,7 @@ impl Hitbtc {
             paramsOmitted = self.omit_t(params, Value::Str("network".into()), &[]);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_wallet_crypto_address", &[__ws_arg_1]).await;
+        let mut response: crate::value::List = self.private_get_wallet_crypto_address(&[__ws_arg_1]).await;
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
@@ -2771,7 +2771,7 @@ impl Hitbtc {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_4 = self.extend(&request, &[&params]);
-            let mut responseInner: crate::value::List = self.call_method_lt("public_get_public_trades_symbol", &[__ws_arg_4]).await;
+            let mut responseInner: crate::value::List = self.public_get_public_trades_symbol(&[__ws_arg_4]).await;
             return self.parse_trades(&responseInner, market.as_ref(), &[]);
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -2850,17 +2850,17 @@ impl Hitbtc {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         if (marginMode.is_some()) {
             let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_lt("private_get_margin_history_trade", &[__ws_arg_6]).await;
+            response = self.private_get_margin_history_trade(&[__ws_arg_6]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
                 let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
-                response = self.call_method_lt("private_get_spot_history_trade", &[__ws_arg_7]).await;
+                response = self.private_get_spot_history_trade(&[__ws_arg_7]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
-                response = self.call_method_lt("private_get_futures_history_trade", &[__ws_arg_8]).await;
+                response = self.private_get_futures_history_trade(&[__ws_arg_8]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.call_method_lt("private_get_margin_history_trade", &[__ws_arg_9]).await;
+                response = self.private_get_margin_history_trade(&[__ws_arg_9]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchMyTrades() not support this market type")));
             }
@@ -2892,7 +2892,7 @@ impl Hitbtc {
             request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_wallet_transactions", &[__ws_arg_10]).await;
+        let mut response: crate::value::List = self.private_get_wallet_transactions(&[__ws_arg_10]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[Value::from(since), Value::from(limit), params]);
 
     Value::Null
@@ -3314,16 +3314,16 @@ impl Hitbtc {
         let mut response: Value = Value::from(vec![]);
         if (price.as_deref() == Some("mark")) {
             let __ws_arg_15 = self.extend(&requestUntil, &[&paramsOmitted]);
-            response = self.public_get_public_futures_candles_mark_price_symbol(&[__ws_arg_15]).await;
+            response = self.call_method(Value::Str("public_get_public_futures_candles_mark_price_symbol".into()), &[__ws_arg_15]).await;
         }  else if (price.as_deref() == Some("index")) {
             let __ws_arg_16 = self.extend(&requestUntil, &[&paramsOmitted]);
-            response = self.public_get_public_futures_candles_index_price_symbol(&[__ws_arg_16]).await;
+            response = self.call_method(Value::Str("public_get_public_futures_candles_index_price_symbol".into()), &[__ws_arg_16]).await;
         }  else if (price.as_deref() == Some("premiumIndex")) {
             let __ws_arg_17 = self.extend(&requestUntil, &[&paramsOmitted]);
-            response = self.public_get_public_futures_candles_premium_index_symbol(&[__ws_arg_17]).await;
+            response = self.call_method(Value::Str("public_get_public_futures_candles_premium_index_symbol".into()), &[__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(requestUntil, &[&paramsOmitted]);
-            response = self.public_get_public_candles_symbol(&[__ws_arg_18]).await;
+            response = self.call_method(Value::Str("public_get_public_candles_symbol".into()), &[__ws_arg_18]).await;
         }
         //
         // Spot and Swap
@@ -3587,17 +3587,17 @@ impl Hitbtc {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marginMode.is_some()) {
             let __ws_arg_27 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_lt("private_get_margin_history_trade", &[__ws_arg_27]).await;
+            response = self.private_get_margin_history_trade(&[__ws_arg_27]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
                 let __ws_arg_28 = self.extend(&request, &[&paramsOmitted]);
-                response = self.call_method_lt("private_get_spot_history_trade", &[__ws_arg_28]).await;
+                response = self.private_get_spot_history_trade(&[__ws_arg_28]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_29 = self.extend(&request, &[&paramsOmitted]);
-                response = self.call_method_lt("private_get_futures_history_trade", &[__ws_arg_29]).await;
+                response = self.private_get_futures_history_trade(&[__ws_arg_29]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.call_method_lt("private_get_margin_history_trade", &[__ws_arg_30]).await;
+                response = self.private_get_margin_history_trade(&[__ws_arg_30]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrderTrades() not support this market type")));
             }
@@ -4233,7 +4233,7 @@ impl Hitbtc {
             m
         });
         let __ws_arg_55 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_post_wallet_convert", &[__ws_arg_55]).await;
+        let mut response: crate::value::List = self.private_post_wallet_convert(&[__ws_arg_55]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(response));

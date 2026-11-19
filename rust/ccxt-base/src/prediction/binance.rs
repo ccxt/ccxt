@@ -636,7 +636,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
+        let mut queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
             let mut eventParams: crate::value::Dict = self.omit_t(params.clone(), &["limit"], &[]);
@@ -883,9 +883,9 @@ impl Binance {
 }));
         let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(&self.options, "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
-            self.require_event_query(&[params.clone()]);
+            self.require_event_query(&[&params]);
         }
-        let mut queries: Vec<Value> = self.parse_search_queries(&[params.clone()]).as_array().cloned().unwrap_or_default();
+        let mut queries: Vec<Value> = self.parse_search_queries(&[&params]).as_array().cloned().unwrap_or_default();
         // binance has no tag taxonomy — resolve requested tags through the semantic search too
         let mut tags: crate::value::List = self.safe_list_k_t(&params, "tags");
         let mut tagsLength: i64 = tags.len() as i64;
@@ -1035,7 +1035,7 @@ impl Binance {
             });
             request.insert("topK".into(), Value::from(limitResolved));
             let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: crate::value::List = self.call_method_lt("sapi_private_get_market_search", &[__ws_arg_3]).await;
+            let mut response: crate::value::List = self.sapi_private_get_market_search(&[__ws_arg_3]).await;
             //
             //     [
             //         {

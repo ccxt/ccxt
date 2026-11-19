@@ -213,13 +213,13 @@ impl Bingx {
     }
 
     /// Auto-generated wrapper for the `spotV3PrivateGetCapitalDepositHisrec` implicit endpoint.
-    pub async fn spot_v3_private_get_capital_deposit_hisrec(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v3_private_get_capital_deposit_hisrec".into()), optional_args).await
+    pub async fn spot_v3_private_get_capital_deposit_hisrec(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v3_private_get_capital_deposit_hisrec".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV3PrivateGetCapitalWithdrawHistory` implicit endpoint.
-    pub async fn spot_v3_private_get_capital_withdraw_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("spot_v3_private_get_capital_withdraw_history".into()), optional_args).await
+    pub async fn spot_v3_private_get_capital_withdraw_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("spot_v3_private_get_capital_withdraw_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `spotV3PrivatePostPostAssetTransfer` implicit endpoint.

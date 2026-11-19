@@ -173,7 +173,7 @@ impl crate::exchange::DerivedExchange for Cex {
         let mut executedBase: Option<f64> = self.safe_number_k(&order, "executedAmountCcy1", &[]).as_f64();
         // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
         let mut executedQuote: Option<f64> = self.safe_number_k(&order, "executedAmountCcy2", &[]).as_f64();
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOrderId", &[]));
@@ -198,7 +198,7 @@ impl crate::exchange::DerivedExchange for Cex {
         m.insert("trades".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }

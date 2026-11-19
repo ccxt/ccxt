@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         if (flags.is_some()) {
             reduceOnly = Some(self.in_array(Value::Str("REDUCE_ONLY".into()), flags.map_or(Value::Null, Value::Arr)));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -287,7 +287,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 }));
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3693,12 +3693,12 @@ impl Paradex {
                 result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &responseOrder, None));
             }  else {
                 let mut error: Option<crate::value::Dict> = self.safe_dict_o(&errors, Value::Int(i));
-                result.push(self.safe_order(Value::Map({
+                result.push(Value::Dict(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), error.map_or(Value::Null, Value::Dict));
                         m.insert("status".to_string(), Value::Str("rejected".into()));
                     m
-                }), None));
+                }), None)));
             }
         }
         }
@@ -3843,7 +3843,7 @@ impl Paradex {
             }  else if (status.as_deref() == Some("NOT_FOUND")) {
                 orderStatus = Some("rejected".to_string());
             }
-            orders.push(self.safe_order(Value::Map({
+            orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&result));
                     m.insert("id".to_string(), self.safe_string_k(&result, "id", &[]));
@@ -3851,7 +3851,7 @@ impl Paradex {
                     m.insert("status".to_string(), orderStatus.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m
-            }), Some(&market)));
+            }), Some(&market))));
         }
         }
         return Value::from(orders);
@@ -3894,11 +3894,11 @@ impl Paradex {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_orders", &[__ws_arg_11]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

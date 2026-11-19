@@ -18,8 +18,8 @@ impl Btcbox {
     }
 
     /// Auto-generated wrapper for the `publicGetOrders` implicit endpoint.
-    pub async fn public_get_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_orders".into()), optional_args).await
+    pub async fn public_get_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetTicker` implicit endpoint.
@@ -38,8 +38,8 @@ impl Btcbox {
     }
 
     /// Auto-generated wrapper for the `privatePostOrderHistory` implicit endpoint.
-    pub async fn private_post_order_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_history".into()), optional_args).await
+    pub async fn private_post_order_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_order_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostTradeAdd` implicit endpoint.
@@ -53,8 +53,8 @@ impl Btcbox {
     }
 
     /// Auto-generated wrapper for the `privatePostTradeList` implicit endpoint.
-    pub async fn private_post_trade_list(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_list".into()), optional_args).await
+    pub async fn private_post_trade_list(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_trade_list".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostTradeView` implicit endpoint.

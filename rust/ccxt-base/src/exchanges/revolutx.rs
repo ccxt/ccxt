@@ -211,7 +211,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         if (leavesQuantity.is_some()) {
             remainingValue = leavesQuantity.take();
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -234,7 +234,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), order);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1786,13 +1786,13 @@ impl Revolutx {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete10_orders_venue_order_id", &[__ws_arg_8]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

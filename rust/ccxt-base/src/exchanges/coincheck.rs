@@ -209,7 +209,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         let mut status: Option<String> = None;
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "pair", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -233,7 +233,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         m.insert("average".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1405,12 +1405,12 @@ impl Coincheck {
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("cost".into()), &[])]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_exchange_orders", &[__ws_arg_4]).await;
         let mut id: Option<String> = self.safe_string_k_opt(&response, "id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

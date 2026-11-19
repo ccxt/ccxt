@@ -537,7 +537,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                 if (category.as_deref() == Some("spot")) {
                     inferredMarketType = "spot".to_string();
                 }
-                return self.safe_order(Value::Map({
+                return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("status".to_string(), Value::Str("rejected".into()));
@@ -545,7 +545,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "orderLinkId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(&order, "symbol", &[]), None, &[Value::Null, Value::from(inferredMarketType)]));
     m
-}), None);
+}), None));
             }
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -629,7 +629,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                 takeProfitPrice = triggerPrice.clone();
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -657,7 +657,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1972,7 +1972,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         {
                         let mut i: i64 = 0;
             let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { i += 1; } __for_first_528 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_528 { i += 1; } __for_first_528 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&tier, "symbol", &[]);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]);
@@ -8335,7 +8335,7 @@ impl Bybit {
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let mut orderRequest: Value = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(orderParams), Value::Bool(isUta)]);
-            remove(&mut orderRequest, &Value::Str("category".into()));
+            if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).shift_remove("category"); }
             ordersRequests.push(orderRequest);
         }
         }
@@ -8518,13 +8518,13 @@ impl Bybit {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), self.safe_string_k(&result, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&result, "orderLinkId", &[]));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -8568,7 +8568,7 @@ impl Bybit {
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let mut orderRequest: Value = self.edit_order_request(id.as_deref(), symbol.as_deref(), type_var.as_deref(), side.as_deref(), &[amount, price, Value::Dict(orderParams)]);
-            remove(&mut orderRequest, &Value::Str("category".into()));
+            if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).shift_remove("category"); }
             ordersRequests.push(orderRequest);
         }
         }
@@ -9061,11 +9061,11 @@ impl Bybit {
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orders: Option<crate::value::List> = self.safe_list_k_o(&result, "list");
         if !(orders.is_some()) {
-            return Value::from(vec![self.safe_order(Value::Map({
+            return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         }
         return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null

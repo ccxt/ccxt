@@ -738,8 +738,8 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteOrders` implicit endpoint.
-    pub async fn v1_private_delete_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_orders".into()), optional_args).await
+    pub async fn v1_private_delete_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v1_private_delete_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteBatchOrder` implicit endpoint.

@@ -58,8 +58,8 @@ impl Hollaex {
     }
 
     /// Auto-generated wrapper for the `publicGetChart` implicit endpoint.
-    pub async fn public_get_chart(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_chart".into()), optional_args).await
+    pub async fn public_get_chart(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_chart".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetCharts` implicit endpoint.
@@ -158,8 +158,8 @@ impl Hollaex {
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrderAll` implicit endpoint.
-    pub async fn private_delete_order_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_order_all".into()), optional_args).await
+    pub async fn private_delete_order_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_order_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.

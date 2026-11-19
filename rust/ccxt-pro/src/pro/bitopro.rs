@@ -605,7 +605,7 @@ impl Bitopro {
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&result)); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&result)); }
         if (event.is_some()) {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(result), messageHash.as_str());
@@ -753,7 +753,7 @@ impl Bitopro {
             }
         }
         }
-        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         client.resolve(Value::Dict(self.balance.clone()), event.as_deref());
 }
 

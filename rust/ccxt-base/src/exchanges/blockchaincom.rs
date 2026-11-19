@@ -180,7 +180,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
         let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k_opt(&order, "cumQty", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(&order, "leavesQty", &[]);
-        let mut result: Value = self.safe_order(Value::Map({
+        let mut result: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), exchangeOrderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -202,7 +202,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
                 m.insert("fees".to_string(), Value::from(vec![]));
                 m.insert("info".to_string(), order);
             m
-        }), None);
+        }), None));
         return result;
 
     Value::Null
@@ -1157,7 +1157,7 @@ impl Blockchaincom {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut tickers: crate::value::List = self.call_method_lt("public_get_tickers", &[params]).await;
+        let mut tickers: crate::value::List = self.public_get_tickers(&[params]).await;
         return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
         }).await?))
@@ -1289,12 +1289,12 @@ impl Blockchaincom {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_order_id", &[__ws_arg_4]).await;
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }
@@ -1334,11 +1334,11 @@ impl Blockchaincom {
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_orders", &[__ws_arg_5]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }
@@ -1509,7 +1509,7 @@ impl Blockchaincom {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_orders", &[__ws_arg_6]).await;
+        let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_6]).await;
         return self.parse_orders(&response, market.as_ref(), &[Value::from(since), Value::from(limit)]);
 
     Value::Null
@@ -1556,7 +1556,7 @@ impl Blockchaincom {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let mut trades: crate::value::List = self.call_method_lt("private_get_fills", &[__ws_arg_7]).await;
+        let mut trades: crate::value::List = self.private_get_fills(&[__ws_arg_7]).await;
         return self.parse_trades(&trades, market.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
@@ -1712,7 +1712,7 @@ impl Blockchaincom {
             currency = Some(self.currency(code));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_withdrawals", &[__ws_arg_10]).await;
+        let mut response: crate::value::List = self.private_get_withdrawals(&[__ws_arg_10]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -1787,7 +1787,7 @@ impl Blockchaincom {
             currency = Some(self.currency(code));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_deposits", &[__ws_arg_12]).await;
+        let mut response: crate::value::List = self.private_get_deposits(&[__ws_arg_12]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

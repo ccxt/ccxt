@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "handle_heartbeats" => self.handle_heartbeats(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
@@ -106,7 +106,7 @@ impl Coinbase {
             "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_tickers" => { self.handle_tickers(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trade" => { self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
@@ -565,7 +565,7 @@ impl Coinbase {
             tickers.insert(symbol, Value::Dict(ticker));
             return Value::Map(tickers);
         }
-        return self.tickers.clone();
+        return Value::Dict(self.tickers.clone());
         Value::Null
         }).await?))
     }
@@ -718,7 +718,7 @@ impl Coinbase {
                 std::sync::Arc::make_mut(&mut result).insert("datetime".into(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut symbol: String = self.safe_string_k(&result, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (true) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&result)); }
+                    { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&result)); }
                 }
                 newTickers.push(Value::from(&result));
                 if (channel.is_some()) {
@@ -1231,17 +1231,17 @@ impl Coinbase {
             let mut __for_first_234: bool = true;
             while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut currentEvent: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
-            let mut currentTrades: Value = self.safe_list_k(&currentEvent, "trades", &[]);
-            if (currentTrades == Value::Null) {
+            let mut currentTrades: Option<crate::value::List> = self.safe_list_k_o(&currentEvent, "trades");
+            if (currentTrades.is_none()) {
                 continue;
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-            let mut tradesLength: i64 = currentTrades.len() as i64;
+            let mut tradesLength: i64 = currentTrades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_233: bool = true;
                 while { if !__for_first_233 { j += 1; } __for_first_233 = false; j < tradesLength } {
-                let mut item: crate::value::Dict = get_value(&currentTrades, &Value::Int((((tradesLength - j)) - 1))).into_dict();
+                let mut item: crate::value::Dict = currentTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(((tradesLength - j) - 1) as usize).cloned().unwrap_or(Value::Null).into_dict();
                 tradesArray.append(self.parse_trade(Value::Dict(item), None));
             }
             }
@@ -1305,7 +1305,7 @@ impl Coinbase {
                 let mut __for_first_235: bool = true;
                 while { if !__for_first_235 { j += 1; } __for_first_235 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut responseOrder: crate::value::Dict = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let mut parsed: crate::value::Dict = self.parse_ws_order(&responseOrder, None).into_dict();
+                let mut parsed: crate::value::Dict = self.parse_ws_order(&responseOrder, None);
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
                 let mut marketId: Option<String> = self.safe_string_k_opt(&responseOrder, "product_id", &[]);
                 if (marketId.is_some()) {
@@ -1332,7 +1332,7 @@ impl Coinbase {
         client.resolve(Value::from(&self.orders), "user");
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut order: Value = order.into();
         //
         //    {
@@ -1387,7 +1387,7 @@ impl Coinbase {
     m
 }), None);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_order_book_helper(&self, mut orderbook: Value, updates: impl Into<crate::Value>) {

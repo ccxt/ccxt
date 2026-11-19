@@ -336,7 +336,7 @@ impl crate::exchange::DerivedExchange for Upbit {
                 m
             }));
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -360,7 +360,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Arr(trades));
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -1591,7 +1591,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.call_method_lt("public_get_market_all", &[params]).await;
+        let mut response: crate::value::List = self.public_get_market_all(&[params]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -1649,7 +1649,7 @@ impl Upbit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_get_accounts", &[params]).await;
+        let mut response: crate::value::List = self.private_get_accounts(&[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -1699,7 +1699,7 @@ impl Upbit {
             request.insert("count".into(), limit);
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_orderbook", &[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_orderbook(&[__ws_arg_2]).await;
         //
         //     [ {          market:   "BTC-ETH",
         //               "timestamp":    1542899030043,
@@ -1854,7 +1854,7 @@ impl Upbit {
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
-            tickers = self.call_method_lt("public_get_ticker_all", &[__ws_arg_3]).await;
+            tickers = self.public_get_ticker_all(&[__ws_arg_3]).await;
         }  else {
             let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
             let mut promises: Vec<Value> = Vec::new();
@@ -1868,7 +1868,7 @@ impl Upbit {
                         m.insert("markets".to_string(), self.safe_string(&queries, Value::Int(i), &[Value::Str("".into())]));
                     m
                 }), &[&params]);
-                promises.push(self.public_get_ticker(&[__ws_arg_4]).await);
+                promises.push(self.call_method(Value::Str("public_get_ticker".into()), &[__ws_arg_4]).await);
             }
             }
             let mut responses: Value = promise_all(&Value::from(promises)).await;
@@ -1970,7 +1970,7 @@ impl Upbit {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("public_get_trades_ticks", &[__ws_arg_5]).await;
+        let mut response: crate::value::List = self.public_get_trades_ticks(&[__ws_arg_5]).await;
         return self.parse_trades(&response, Some(&market), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -2600,7 +2600,7 @@ impl Upbit {
             request.insert("limit".into(), limit.clone()); // default is 100
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_deposits", &[__ws_arg_13]).await;
+        let mut response: crate::value::List = self.private_get_deposits(&[__ws_arg_13]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2684,7 +2684,7 @@ impl Upbit {
             request.insert("limit".into(), limit.clone()); // default is 100
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_withdraws", &[__ws_arg_15]).await;
+        let mut response: crate::value::List = self.private_get_withdraws(&[__ws_arg_15]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2798,7 +2798,7 @@ impl Upbit {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_orders_open", &[__ws_arg_17]).await;
+        let mut response: crate::value::List = self.private_get_orders_open(&[__ws_arg_17]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2853,7 +2853,7 @@ impl Upbit {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_orders_closed", &[__ws_arg_18]).await;
+        let mut response: crate::value::List = self.private_get_orders_closed(&[__ws_arg_18]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2908,7 +2908,7 @@ impl Upbit {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.call_method_lt("private_get_orders_closed", &[__ws_arg_19]).await;
+        let mut response: crate::value::List = self.private_get_orders_closed(&[__ws_arg_19]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2976,7 +2976,7 @@ impl Upbit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.call_method_lt("private_get_deposits_coin_addresses", &[params]).await;
+        let mut response: crate::value::List = self.private_get_deposits_coin_addresses(&[params]).await;
         return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))

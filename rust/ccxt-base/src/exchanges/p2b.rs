@@ -227,7 +227,7 @@ impl crate::exchange::DerivedExchange for P2b {
         let mut timestamp: Option<i64> = self.safe_integer_product2(&order, Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(&order, Value::Str("id".into()), Value::Str("orderId".into()), &[]));
@@ -256,7 +256,7 @@ impl crate::exchange::DerivedExchange for P2b {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }

@@ -421,14 +421,14 @@ impl crate::exchange::DerivedExchange for Okx {
         //
         let mut scode: Option<String> = self.safe_string_k_opt(&order, "sCode", &[]);
         if (scode.is_some()) && (scode.as_deref() != Some("0")) {
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "ordId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clOrdId", &[]));
         m.insert("status".to_string(), Value::Str("rejected".into()));
         m.insert("info".to_string(), order.clone());
     m
-}), None);
+}), None));
         }
         let mut id: Option<String> = self.safe_string2_opt(&order, Value::Str("algoId".into()), Value::Str("ordId".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&order, "cTime", &[]).as_i64();
@@ -512,7 +512,7 @@ impl crate::exchange::DerivedExchange for Okx {
         if (reduceOnlyRaw.is_some()) {
             reduceOnly = reduceOnlyRaw.as_deref() == Some("true");
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -540,7 +540,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("trades".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1868,7 +1868,7 @@ impl crate::exchange::DerivedExchange for Okx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_1030: bool = true;
-            while { if !__for_first_1030 { i += 1; } __for_first_1030 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1030 { i += 1; } __for_first_1030 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&tier, "instId", &[]);
             tiers.push(Value::Map({
@@ -12095,7 +12095,7 @@ impl Okx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_1031: bool = true;
-            while { if !__for_first_1031 { i += 1; } __for_first_1031 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1031 { i += 1; } __for_first_1031 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut feeInfo: Value = get_value(&response, &Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&feeInfo, "ccy", &[]);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);

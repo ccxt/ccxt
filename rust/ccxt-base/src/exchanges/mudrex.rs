@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         let mut ts: Option<i64> = self.parse8601(self.safe_string_k(&order, "created_at", &[]));
         let mut status: Option<String> = self.parse_order_status((self.safe_string_lower_k(&order, "status", &[])).as_str());
         let mut sym: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), oid.map(Value::from).unwrap_or(Value::Null));
@@ -218,7 +218,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(&order, "updated_at", &[]))));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduce_only", &[]));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -1070,7 +1070,7 @@ impl Mudrex {
         let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::from(vec![])]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (data.is_some()) {
-            rows = self.to_array_t(data.clone().map_or(Value::Null, Value::Arr));
+            rows = self.safe_list_k_t(&response, "data");
         }  else {
             rows = self.safe_list_k_t(&data__map, "items");
         }

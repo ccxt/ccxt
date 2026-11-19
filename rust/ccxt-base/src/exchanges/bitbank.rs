@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&order, "status", &[])).as_str());
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(&order, "type", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -175,7 +175,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
         m.insert("fee".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }

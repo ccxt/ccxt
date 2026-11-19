@@ -349,7 +349,7 @@ impl crate::exchange::DerivedExchange for Lbank {
             amountString = self.safe_string2_opt(&order, Value::Str("origQty".into()), Value::Str("amount".into()), &[]);
         }
         let mut filledString: Option<String> = self.safe_string2_opt(&order, Value::Str("executedQty".into()), Value::Str("deal_amount".into()), &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -373,7 +373,7 @@ impl crate::exchange::DerivedExchange for Lbank {
         m.insert("info".to_string(), order);
         m.insert("average".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -3014,12 +3014,12 @@ impl Lbank {
         //      }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&result, "order_id", &[]));
         m.insert("info".to_string(), Value::from(&result));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }

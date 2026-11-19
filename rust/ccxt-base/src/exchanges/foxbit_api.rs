@@ -33,8 +33,8 @@ impl Foxbit {
     }
 
     /// Auto-generated wrapper for the `v3PublicGetMarketsMarketCandlesticks` implicit endpoint.
-    pub async fn v3_public_get_markets_market_candlesticks(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("v3_public_get_markets_market_candlesticks".into()), optional_args).await
+    pub async fn v3_public_get_markets_market_candlesticks(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("v3_public_get_markets_market_candlesticks".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `v3PublicGetMarketsMarketTradesHistory` implicit endpoint.

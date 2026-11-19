@@ -237,7 +237,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         let mut amount: Option<String> = self.safe_string_k_opt(&order, "original_amount", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(&order, "unfilled_amount", &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "client_id", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id);
@@ -261,7 +261,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         m.insert("average".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1907,12 +1907,12 @@ impl Bitso {
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[__ws_arg_8]).await;
         let mut payload: crate::value::Dict = self.safe_dict_k_t(&response, "payload");
         let mut id: Option<String> = self.safe_string_k_opt(&payload, "oid", &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
-}), Some(&market));
+}), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -1957,12 +1957,12 @@ impl Bitso {
         //
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         let mut orderId: Option<String> = self.safe_string_opt(&payload, Value::Int(0), &[]);
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
     m
-}), None);
+}), None));
         Value::Null
         }).await?))
     }

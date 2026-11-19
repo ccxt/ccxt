@@ -410,7 +410,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
         Box::pin(async move {
             match method {
                 "approve" => self.approve(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
-                "authenticate" => self.authenticate(&args[..]).await,
+                "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -980,9 +980,9 @@ impl Predictfun {
 }));
         let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(&self.options, "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
-            self.require_event_query(&[params.clone()]);
+            self.require_event_query(&[&params]);
         }
-        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        let mut queries: crate::value::List = self.parse_search_queries(&[&params]).into_list();
         let mut queriesLength: i64 = queries.len() as i64;
         let mut paramsValue: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -1687,13 +1687,13 @@ impl Predictfun {
             return Value::Null;
         }
         let mut digits: String = "0123456789".to_string();
-        let mut chars: Value = self.string_to_chars_array(Value::from(text));
+        let mut chars: Vec<Value> = self.string_to_chars_array(Value::from(text)).as_array().cloned().unwrap_or_default();
         let mut stripped: String = "".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1468: bool = true;
             while { if !__for_first_1468 { i += 1; } __for_first_1468 = false; i < (chars.len() as i64) } {
-            let mut ch: Option<String> = chars.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut keep: bool = true;
             if (ch.as_deref() == Some("$")) {
                 keep = false;
@@ -1701,9 +1701,8 @@ impl Predictfun {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                let mut prevIsDigit: bool = (i > 0) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &(Value::Int((i - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
-                let mut nextIsDigit: bool = ((Value::Int((i + 1))).as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.as_array().and_then(|__arr| match &(Value::Int((i + 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize),
-                    _ => None }).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
+                let mut prevIsDigit: bool = (i > 0) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.get((i - 1) as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
+                let mut nextIsDigit: bool = ((Value::Int((i + 1))).as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64)) && (((if let (Some(__h), Some(__n)) = (Some(digits.as_str()), (chars.get((i + 1) as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if keep {
@@ -2623,7 +2622,7 @@ impl Predictfun {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {string} the JWT
  */
-    pub async fn authenticate(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4373,11 +4372,11 @@ impl Predictfun {
  * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
  * @returns {int} the next request id
  */
-    pub fn request_id(&self) -> i64 {
+    pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
         let mut previous: i64 = self.safe_integer_k(&self.options, "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut next: i64 = (previous + 1);
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(next)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(next)); }
         self.unlock_id(&[]);
         return next;
 }

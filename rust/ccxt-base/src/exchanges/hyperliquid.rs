@@ -259,12 +259,12 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
         if (error.is_some()) {
             let mut finalOrder: Value = order.clone(); // java req
-            return self.safe_order(Value::Map({
+            return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), finalOrder);
         m.insert("status".to_string(), Value::Str("rejected".into()));
     m
-}), None);
+}), None));
         }
         let mut entry: crate::value::Dict = self.safe_dict_n(&order, Value::from(vec![Value::Str("order".into()), Value::Str("resting".into()), Value::Str("filled".into())]), &[order.clone()]).into_dict();
         let mut filled: crate::value::Dict = self.safe_dict_k_t(&order, "filled");
@@ -308,7 +308,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
                 takeProfitPrice = triggerPx;
             }
         }
-        return self.safe_order(Value::Map({
+        return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderOmitted.clone());
         m.insert("id".to_string(), self.safe_string_k(&entry, "oid", &[]));
@@ -336,7 +336,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
     Value::Null
 }
@@ -2014,18 +2014,19 @@ impl Hyperliquid {
                     let mut collateralTokenCode: Option<String> = self.safe_string_opt(&cachedCurrencies, collateralToken.clone().map(Value::from).unwrap_or(Value::Null), &[]);
                     std::sync::Arc::make_mut(&mut data).insert("collateralTokenName".into(), collateralTokenCode.clone().map(Value::from).unwrap_or(Value::Null));
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
-                    let mut safeCode: Option<String> = self.safe_currency_code(name.clone().map(Value::from).unwrap_or(Value::Null), None);
+                    let mut safeCode: Option<String> = self.safe_currency_code(Value::from(name.as_deref()), None);
                     let mut hip3Code: Option<String> = (if (safeCode.is_none()) { name.clone() } else { (if let Some(__s) = safeCode.as_deref() { Some(__s.replace(":", "-")) } else { None }) });
-                    { let __bf03d0 = &mut self.options;
-                        let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("hip3TokensByName".to_string()).or_insert(Value::Null);
-                        if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(name.as_deref().unwrap_or("null").to_string(), Value::Map({
+                    let mut hip3TokensByName: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "hip3TokensByName", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                    hip3TokensByName.insert(name.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("quote".to_string(), collateralTokenCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), hip3Code.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-                        }
-                    }
+                    { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("hip3TokensByName".into(), Value::Map(hip3TokensByName)); }
                 }
                 result.push(Value::Dict(data));
             }
@@ -4221,12 +4222,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_817: bool = true;
             while { if !__for_first_817 { i += 1; } __for_first_817 = false; i < (statuses.len() as i64) } {
             let mut status: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
-            orders.push(self.safe_order(Value::Map({
+            orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), status.clone());
                     m.insert("status".to_string(), status);
                 m
-            }), None));
+            }), None)));
         }
         }
         return Value::from(orders);
@@ -4489,11 +4490,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: crate::value::Dict = self.call_method_t("private_post_exchange", &[Value::Map(request)]).await;
-        return Value::from(vec![self.safe_order(Value::Map({
+        return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
     m
-}), None)]);
+}), None))]);
         Value::Null
         }).await?))
     }

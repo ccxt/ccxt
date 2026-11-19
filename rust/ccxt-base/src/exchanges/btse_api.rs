@@ -13,13 +13,13 @@ use crate::exchange::ExchangeRuntime;
 
 impl Btse {
     /// Auto-generated wrapper for the `publicGetSpotApiV33MarketSummary` implicit endpoint.
-    pub async fn public_get_spot_api_v33_market_summary(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_spot_api_v33_market_summary".into()), optional_args).await
+    pub async fn public_get_spot_api_v33_market_summary(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_spot_api_v33_market_summary".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetSpotApiV33Ohlcv` implicit endpoint.
-    pub async fn public_get_spot_api_v33_ohlcv(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_spot_api_v33_ohlcv".into()), optional_args).await
+    pub async fn public_get_spot_api_v33_ohlcv(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_spot_api_v33_ohlcv".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetSpotApiV33Price` implicit endpoint.
@@ -38,8 +38,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetSpotApiV33Trades` implicit endpoint.
-    pub async fn public_get_spot_api_v33_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_spot_api_v33_trades".into()), optional_args).await
+    pub async fn public_get_spot_api_v33_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_spot_api_v33_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetSpotApiV33Time` implicit endpoint.
@@ -48,13 +48,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetFuturesApiV23MarketSummary` implicit endpoint.
-    pub async fn public_get_futures_api_v23_market_summary(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_futures_api_v23_market_summary".into()), optional_args).await
+    pub async fn public_get_futures_api_v23_market_summary(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_futures_api_v23_market_summary".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetFuturesApiV23Ohlcv` implicit endpoint.
-    pub async fn public_get_futures_api_v23_ohlcv(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_futures_api_v23_ohlcv".into()), optional_args).await
+    pub async fn public_get_futures_api_v23_ohlcv(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_futures_api_v23_ohlcv".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetFuturesApiV23Price` implicit endpoint.
@@ -73,8 +73,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetFuturesApiV23Trades` implicit endpoint.
-    pub async fn public_get_futures_api_v23_trades(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_futures_api_v23_trades".into()), optional_args).await
+    pub async fn public_get_futures_api_v23_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_futures_api_v23_trades".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetFuturesApiV23FundingHistory` implicit endpoint.
@@ -183,13 +183,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV33UserTradeHistory` implicit endpoint.
-    pub async fn private_get_spot_api_v33_user_trade_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_spot_api_v33_user_trade_history".into()), optional_args).await
+    pub async fn private_get_spot_api_v33_user_trade_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_spot_api_v33_user_trade_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV33UserFees` implicit endpoint.
-    pub async fn private_get_spot_api_v33_user_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_spot_api_v33_user_fees".into()), optional_args).await
+    pub async fn private_get_spot_api_v33_user_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_spot_api_v33_user_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV33InvestProducts` implicit endpoint.
@@ -218,13 +218,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23UserTradeHistory` implicit endpoint.
-    pub async fn private_get_futures_api_v23_user_trade_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v23_user_trade_history".into()), optional_args).await
+    pub async fn private_get_futures_api_v23_user_trade_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v23_user_trade_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23UserPositions` implicit endpoint.
-    pub async fn private_get_futures_api_v23_user_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v23_user_positions".into()), optional_args).await
+    pub async fn private_get_futures_api_v23_user_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v23_user_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23RiskLimit` implicit endpoint.
@@ -238,13 +238,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23UserFees` implicit endpoint.
-    pub async fn private_get_futures_api_v23_user_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v23_user_fees".into()), optional_args).await
+    pub async fn private_get_futures_api_v23_user_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v23_user_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23PositionMode` implicit endpoint.
-    pub async fn private_get_futures_api_v23_position_mode(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v23_position_mode".into()), optional_args).await
+    pub async fn private_get_futures_api_v23_position_mode(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v23_position_mode".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23UserMarginSetting` implicit endpoint.
@@ -253,8 +253,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23UserWallet` implicit endpoint.
-    pub async fn private_get_futures_api_v23_user_wallet(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v23_user_wallet".into()), optional_args).await
+    pub async fn private_get_futures_api_v23_user_wallet(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v23_user_wallet".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV23UserWalletHistory` implicit endpoint.
@@ -278,13 +278,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV32UserWallet` implicit endpoint.
-    pub async fn private_get_spot_api_v32_user_wallet(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_spot_api_v32_user_wallet".into()), optional_args).await
+    pub async fn private_get_spot_api_v32_user_wallet(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_spot_api_v32_user_wallet".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV32UserWalletHistory` implicit endpoint.
-    pub async fn private_get_spot_api_v32_user_wallet_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_spot_api_v32_user_wallet_history".into()), optional_args).await
+    pub async fn private_get_spot_api_v32_user_wallet_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_spot_api_v32_user_wallet_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV33UserWalletAddress` implicit endpoint.
@@ -303,8 +303,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV4TradeOrders` implicit endpoint.
-    pub async fn private_get_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_spot_api_v4_trade_orders".into()), optional_args).await
+    pub async fn private_get_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_spot_api_v4_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV4TradeOrder` implicit endpoint.
@@ -318,13 +318,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetSpotApiV4TradeFees` implicit endpoint.
-    pub async fn private_get_spot_api_v4_trade_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_spot_api_v4_trade_fees".into()), optional_args).await
+    pub async fn private_get_spot_api_v4_trade_fees(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_spot_api_v4_trade_fees".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradeOrders` implicit endpoint.
-    pub async fn private_get_futures_api_v3_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v3_trade_orders".into()), optional_args).await
+    pub async fn private_get_futures_api_v3_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v3_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradeRiskLimit` implicit endpoint.
@@ -333,23 +333,23 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradePositionMode` implicit endpoint.
-    pub async fn private_get_futures_api_v3_trade_position_mode(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v3_trade_position_mode".into()), optional_args).await
+    pub async fn private_get_futures_api_v3_trade_position_mode(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v3_trade_position_mode".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradeLeverage` implicit endpoint.
-    pub async fn private_get_futures_api_v3_trade_leverage(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v3_trade_leverage".into()), optional_args).await
+    pub async fn private_get_futures_api_v3_trade_leverage(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v3_trade_leverage".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradeTradeHistory` implicit endpoint.
-    pub async fn private_get_futures_api_v3_trade_trade_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v3_trade_trade_history".into()), optional_args).await
+    pub async fn private_get_futures_api_v3_trade_trade_history(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v3_trade_trade_history".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradePositions` implicit endpoint.
-    pub async fn private_get_futures_api_v3_trade_positions(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_futures_api_v3_trade_positions".into()), optional_args).await
+    pub async fn private_get_futures_api_v3_trade_positions(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_futures_api_v3_trade_positions".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetFuturesApiV3TradeMarginSetting` implicit endpoint.
@@ -508,8 +508,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostSpotApiV4TradeOrders` implicit endpoint.
-    pub async fn private_post_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_spot_api_v4_trade_orders".into()), optional_args).await
+    pub async fn private_post_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_spot_api_v4_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostSpotApiV4TradeOrdersCancelAllAfter` implicit endpoint.
@@ -518,8 +518,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostSpotApiV4TradeOrdersAlgo` implicit endpoint.
-    pub async fn private_post_spot_api_v4_trade_orders_algo(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_spot_api_v4_trade_orders_algo".into()), optional_args).await
+    pub async fn private_post_spot_api_v4_trade_orders_algo(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_post_spot_api_v4_trade_orders_algo".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeOrders` implicit endpoint.
@@ -603,13 +603,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePutSpotApiV4TradeOrders` implicit endpoint.
-    pub async fn private_put_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_put_spot_api_v4_trade_orders".into()), optional_args).await
+    pub async fn private_put_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_put_spot_api_v4_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privatePutFuturesApiV3TradeOrders` implicit endpoint.
-    pub async fn private_put_futures_api_v3_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_put_futures_api_v3_trade_orders".into()), optional_args).await
+    pub async fn private_put_futures_api_v3_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_put_futures_api_v3_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteSpotApiV33Order` implicit endpoint.
@@ -628,18 +628,18 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateDeleteSpotApiV4TradeOrders` implicit endpoint.
-    pub async fn private_delete_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_spot_api_v4_trade_orders".into()), optional_args).await
+    pub async fn private_delete_spot_api_v4_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_spot_api_v4_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteSpotApiV4TradeOrdersAll` implicit endpoint.
-    pub async fn private_delete_spot_api_v4_trade_orders_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_spot_api_v4_trade_orders_all".into()), optional_args).await
+    pub async fn private_delete_spot_api_v4_trade_orders_all(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_spot_api_v4_trade_orders_all".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteFuturesApiV3TradeOrders` implicit endpoint.
-    pub async fn private_delete_futures_api_v3_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_futures_api_v3_trade_orders".into()), optional_args).await
+    pub async fn private_delete_futures_api_v3_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_delete_futures_api_v3_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateDeleteFuturesApiV3TradePositions` implicit endpoint.

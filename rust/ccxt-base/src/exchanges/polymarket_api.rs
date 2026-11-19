@@ -28,23 +28,23 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoAssets` implicit endpoint.
-    pub async fn public_get_info_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_assets".into()), optional_args).await
+    pub async fn public_get_info_assets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_info_assets".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoInstruments` implicit endpoint.
-    pub async fn public_get_info_instruments(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_instruments".into()), optional_args).await
+    pub async fn public_get_info_instruments(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_info_instruments".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoTickers` implicit endpoint.
-    pub async fn public_get_info_tickers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_tickers".into()), optional_args).await
+    pub async fn public_get_info_tickers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_info_tickers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoStatistics` implicit endpoint.
-    pub async fn public_get_info_statistics(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_statistics".into()), optional_args).await
+    pub async fn public_get_info_statistics(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_info_statistics".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoKlines` implicit endpoint.
@@ -58,8 +58,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoBbo` implicit endpoint.
-    pub async fn public_get_info_bbo(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_bbo".into()), optional_args).await
+    pub async fn public_get_info_bbo(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_info_bbo".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoBook` implicit endpoint.
@@ -98,8 +98,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoLimitTiers` implicit endpoint.
-    pub async fn public_get_info_limit_tiers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_limit_tiers".into()), optional_args).await
+    pub async fn public_get_info_limit_tiers(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_info_limit_tiers".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoInvite` implicit endpoint.
@@ -113,18 +113,18 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountOrders` implicit endpoint.
-    pub async fn private_get_account_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_orders".into()), optional_args).await
+    pub async fn private_get_account_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_account_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountOpenOrders` implicit endpoint.
-    pub async fn private_get_account_open_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_open_orders".into()), optional_args).await
+    pub async fn private_get_account_open_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_account_open_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountBalances` implicit endpoint.
-    pub async fn private_get_account_balances(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_balances".into()), optional_args).await
+    pub async fn private_get_account_balances(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_account_balances".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountPortfolio` implicit endpoint.
@@ -163,8 +163,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountConfig` implicit endpoint.
-    pub async fn private_get_account_config(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_config".into()), optional_args).await
+    pub async fn private_get_account_config(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_account_config".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountLimits` implicit endpoint.
@@ -178,8 +178,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `tradePostTradeOrders` implicit endpoint.
-    pub async fn trade_post_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trade_post_trade_orders".into()), optional_args).await
+    pub async fn trade_post_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trade_post_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `tradePostAccountProxy` implicit endpoint.
@@ -193,13 +193,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeOrders` implicit endpoint.
-    pub async fn trade_patch_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trade_patch_trade_orders".into()), optional_args).await
+    pub async fn trade_patch_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trade_patch_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeOrdersCoid` implicit endpoint.
-    pub async fn trade_patch_trade_orders_coid(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trade_patch_trade_orders_coid".into()), optional_args).await
+    pub async fn trade_patch_trade_orders_coid(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trade_patch_trade_orders_coid".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeLeverage` implicit endpoint.
@@ -218,13 +218,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `tradeDeleteTradeOrders` implicit endpoint.
-    pub async fn trade_delete_trade_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trade_delete_trade_orders".into()), optional_args).await
+    pub async fn trade_delete_trade_orders(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trade_delete_trade_orders".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `tradeDeleteTradeOrdersCoid` implicit endpoint.
-    pub async fn trade_delete_trade_orders_coid(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("trade_delete_trade_orders_coid".into()), optional_args).await
+    pub async fn trade_delete_trade_orders_coid(&mut self, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(a) = self.call_method(Value::Str("trade_delete_trade_orders_coid".into()), optional_args).await { a } else { Default::default() }
     }
 
     /// Auto-generated wrapper for the `tradeDeleteTradeOrdersAll` implicit endpoint.
