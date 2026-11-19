@@ -2587,15 +2587,15 @@ class polymarket extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(string $hash, mixed $privateKey): string {
+    public function sign_hash(string $hash, ?string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $sVal = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $sVal = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($sVal, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey): string {
+    public function sign_message(mixed $message, ?string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 

@@ -6558,7 +6558,7 @@ class bingx extends Exchange {
             $requestUntil['limit'] = min($limit, 100); // api maximum 100
         }
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $paramsUntil);
-        $liquidations = null;
+        $key = 'data';
         if ($subType === 'inverse') {
             $response = $this->cswapV1PrivateGetTradeForceOrders($this->extend($requestUntil, $paramsSubType));
             //
@@ -6588,9 +6588,8 @@ class bingx extends Exchange {
             //         ]
             //     }
             //
-            $liquidations = $this->safe_list($response, 'data', array());
         } else {
-            $response = $this->swapV2PrivateGetTradeForceOrders($this->extend($requestUntil, $paramsSubType));
+            $swapResponse = $this->swapV2PrivateGetTradeForceOrders($this->extend($requestUntil, $paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6620,9 +6619,10 @@ class bingx extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_dict($response, 'data', array());
-            $liquidations = $this->safe_list($data, 'orders', array());
+            $response = $this->safe_dict($swapResponse, 'data', array());
+            $key = 'orders';
         }
+        $liquidations = $this->safe_list($response, $key, array());
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 

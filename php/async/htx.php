@@ -9847,8 +9847,7 @@ class htx extends Exchange {
             $settlement = $this->safe_dict($settlements, $i);
             $list = $this->safe_list($settlement, 'list');
             if ($this->safe_bool($market, 'linear', false)) {
-                $parsedSettlement = $this->parse_settlement($settlement, $market);
-                $result[] = $parsedSettlement;
+                $result[] = $this->parse_settlement($settlement, $market);
             } elseif ($list !== null) {
                 $timestamp = $this->safe_integer($settlement, 'settlement_time');
                 $timestampDetails = array(

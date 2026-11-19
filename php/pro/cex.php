@@ -1116,7 +1116,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function pair_to_symbol(mixed $pair): string {
+    public function pair_to_symbol(?string $pair): string {
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);

@@ -1547,8 +1547,8 @@ class paradex extends Exchange {
 
     public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }

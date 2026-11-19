@@ -466,10 +466,8 @@ class luno extends \ccxt\async\luno {
             // frames still arriving until the client resubscribes
             return;
         }
-        $handlers = array( array($this, 'handle_order_book'), array($this, 'handle_trades'));
-        for ($j = 0; $j < count($handlers); $j++) {
-            $handler = $handlers[$j];
-            $handler($client, $message, $subscriptions[0]);
-        }
+        $subscription = $this->safe_dict($subscriptions, 0, array());
+        $this->handle_order_book($client, $message, $subscription);
+        $this->handle_trades($client, $message, $subscription);
     }
 }

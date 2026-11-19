@@ -237,8 +237,8 @@ class bybit extends \ccxt\async\bybit {
                 $url = $accessibilityUrls['option'];
             }
         }
-        $url = $this->implode_hostname($url);
-        return $url;
+        $urlResolved = $this->implode_hostname($url);
+        return $urlResolved;
     }
 
     public function clean_params(array $params): array {

@@ -1321,10 +1321,16 @@ class bullish extends Exchange {
         while ($errors <= $maxRetries) {
             try {
                 if ($method === 'fetchOHLCV') {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
+                    }
                     return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $paramsOmitted);
                 } elseif ($method === 'fetchFundingRateHistory') {
                     return $this->fetch_funding_rate_history($symbol, $since, $limit, $paramsOmitted);
                 } else {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
+                    }
                     return $this->fetch_trades($symbol, $since, $limit, $paramsOmitted);
                 }
             } catch (Exception $e) {

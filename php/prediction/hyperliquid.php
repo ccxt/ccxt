@@ -257,12 +257,12 @@ class hyperliquid extends Exchange {
         return $base . ':' . $label;
     }
 
-    public function build_outcome_parent_symbol(array $desc, float $outcomeId, string $name = '', array $question = array()): string {
+    public function build_outcome_parent_symbol(array $desc, string $outcomeId, string $name = '', array $question = array()): string {
         /**
          * @ignore
          * builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the $name field
          * @param {array} $desc parsed outcome description
-         * @param {int} $outcomeId integer outcome id
+         * @param {string} $outcomeId outcome id
          * @param {string} [$name] outcome $name
          * @param {array} [$question] linked $question object from outcomeMeta
          * @return {string} the parent market outcome
@@ -354,16 +354,16 @@ class hyperliquid extends Exchange {
                     }
                 }
                 if (($outcomeSlug !== null) && ($outcomeSlug !== '')) {
-                    return $questionSlug . '_' . $outcomeSlug . '_' . (string) $outcomeId;
+                    return $questionSlug . '_' . $outcomeSlug . '_' . $outcomeId;
                 }
-                return $questionSlug . '_' . (string) $outcomeId;
+                return $questionSlug . '_' . $outcomeId;
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (($name !== null) && ($name !== '')) {
-            return $this->shorten_slug($name) . '_' . (string) $outcomeId;
+            return $this->shorten_slug($name) . '_' . $outcomeId;
         }
-        return 'OUTCOME_' . (string) $outcomeId;
+        return 'OUTCOME_' . $outcomeId;
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
@@ -440,7 +440,7 @@ class hyperliquid extends Exchange {
             $outcomeInfo = $this->safe_dict($outcomesList, $i, array());
             $outcomeId = $this->safe_integer($outcomeInfo, 'outcome', $i);
             $linkedQuestion = $this->safe_dict($outcomesToQuestions, (string) $outcomeId, array());
-            $market = $this->parse_outcome_market($outcomeInfo, $outcomeId, $linkedQuestion);
+            $market = $this->parse_outcome_market($outcomeInfo, (string) $outcomeId, $outcomeId, $linkedQuestion);
             $markets[] = $market;
             // Build outcomes dictionary from market outcomes
             $marketOutcomes = $this->safe_list($market, 'outcomes', array());
@@ -459,11 +459,12 @@ class hyperliquid extends Exchange {
         return $markets;
     }
 
-    public function parse_outcome_market(array $outcomeInfo, float $outcomeId, array $question = array()): array {
+    public function parse_outcome_market(array $outcomeInfo, string $outcomeKey, float $outcomeId, array $question = array()): array {
         /**
          * @ignore
          * parses a single binary outcome market into a CCXT market structure with outcomesarray()
          * @param {array} $outcomeInfo raw entry from outcomeMeta $outcomes array
+         * @param {string} $outcomeKey outcome id as a string
          * @param {int} $outcomeId integer outcome id
          * @param {array} [$question] linked $question object from outcomeMeta questions array
          * @return {array} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
@@ -472,7 +473,7 @@ class hyperliquid extends Exchange {
         $name = $this->safe_string($outcomeInfo, 'name', '');
         $sideSpecs = $this->safe_list($outcomeInfo, 'sideSpecs', array());
         $desc = $this->parse_outcome_description($description);
-        $parentSymbol = $this->build_outcome_parent_symbol($desc, $outcomeId, $name, $question);
+        $parentSymbol = $this->build_outcome_parent_symbol($desc, $outcomeKey, $name, $question);
         $yesEncoding = $this->outcome_encoding($outcomeId, 0);
         $noEncoding = $this->outcome_encoding($outcomeId, 1);
         $yesOutcomeSymbol = $parentSymbol . ':YES';
@@ -549,12 +550,12 @@ class hyperliquid extends Exchange {
             ),
         );
         $marketRow = $this->safe_market_structure(array(
-            'id' => (string) $outcomeId,
+            'id' => $outcomeKey,
             'market' => $parentSymbol,
             'base' => explode('/', $parentSymbol)[0],
             'quote' => $quoteCurrency,
             'settle' => null,
-            'baseId' => (string) $outcomeId,
+            'baseId' => $outcomeKey,
             'quoteId' => $quoteCurrency,
             'settleId' => null,
             'type' => 'prediction',
