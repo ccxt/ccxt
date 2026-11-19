@@ -1623,7 +1623,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:htx': { 'unWatchTrades': [ 0 ] },
     'pro:hyperliquid': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:kraken': { 'orderRequestWs': [ 1, 2 ], 'watchPrivate': [ 0, 1 ] },
-    'pro:krakenfutures': { 'parseWsTicker': [ 1 ], 'subscribePublic': [ 1 ] },
+    'pro:krakenfutures': { 'parseWsTicker': [ 1 ] },
     'pro:kucoin': { 'parseWsOrderStatus': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ], 'watchMultiHelper': [ 1 ] },
     'pro:lbank': { 'parseWsOrderStatus': [ 0 ] },
     'pro:lighter': { 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
@@ -1657,6 +1657,12 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
 // passes (exact Int64?/double?/null, no conversion), keyed by method -> position across the whole tree
 // (overrides are invariant); body uses must be identities and positions needing a shadow are excluded.
 const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 'status', 'outcomeSide', 'marketCount', 'id', 'marketId', 'scale' ];
+
+// Venue-helper `object` parameters typed `IList<object>`: the ts annotation is an array, the venue
+// class declares the method once and no file calls it by that venue's binding.
+const VENUE_LIST_ARGS: Record<string, Record<string, number[]>> = {
+    'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
+};
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'amountToPredictionPrecision': { 1: 'double?' },
@@ -3867,6 +3873,11 @@ class NewTranspiler {
             i = bodyEnd;
         }
         return lines.join ('\n');
+    }
+
+    typeVenueListArgs (content: string, venueKey: string): string {
+        const table = VENUE_LIST_ARGS[venueKey];
+        return (table === undefined) ? content : this.typeVenueArgs (content, table, (positions: number[]) => positions.map ((pos) => [ pos, 'IList<object>' ]), false);
     }
 
     typeVenueNumericArgs (content: string): string {
@@ -6451,7 +6462,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.typeVenueListArgs (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)), venueKey))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
@@ -9551,8 +9562,9 @@ export function csharpWsAndIndexGetValue (content: string): string {
             if (!/^\([\w ()+-]+\)$/.test (text) || !/[+-]/.test (text) || /\b\d{10,}\b/.test (text)) return undefined;
             const names = text.match (/[A-Za-z_]\w*/g) ?? [];
             const kinds = names.map ((x) => bindingType (x));
-            if ((names.length === 0) || !kinds.every ((t) => (t === 'int') || (t === 'Int64'))) return undefined;
-            return kinds.includes ('Int64') ? 'Int64' : 'int';
+            // an `Int64?` operand makes the sum null exactly when GetValue's key is null
+            if ((names.length === 0) || !kinds.every ((t) => (t === 'int') || (t === 'Int64') || (t === 'Int64?'))) return undefined;
+            return kinds.includes ('Int64?') ? 'Int64?' : (kinds.includes ('Int64') ? 'Int64' : 'int');
         };
         const wsMap = CSHARP_WS_CLIENT_MAP_RE.exec (r);
         if (wsMap !== null) {
@@ -9606,6 +9618,7 @@ function wsAndIndexGetValueSelfTest (): string[] {
         [ 'subscriptions object key', '        object a = getValue(client.subscriptions, mh);', '(client.subscriptions != null && mh != null && client.subscriptions.ContainsKey((string)mh) ? client.subscriptions[(string)mh] : null)' ],
         [ 'Int64? index', '        Int64? r = this.parseToInt("1");\n        object a = getValue(xs, r);', '(xs != null && r != null && r < xs.Count ? xs[(int)r] : null)' ],
         [ 'mixed int/Int64 expression', '        int n = (xs?.Count ?? 0);\n        for (Int64 i = 0; i < n; i++)\n        {\n            object a = getValue(xs, ((n - i) - 1));\n        }', '(xs != null && ((n - i) - 1) < xs.Count ? xs[(int)((n - i) - 1)] : null)' ],
+        [ 'Int64? expression index', '        Int64? r = this.parseToInt("1");\n        object a = getValue(xs, (r - 1));', '(xs != null && (r - 1) != null && (r - 1) < xs.Count ? xs[(int)(r - 1)] : null)' ],
         [ 'array cache int index', '        ccxt.pro.ArrayCache stored = this.orders;\n        for (int i = 0; i < (stored?.Count ?? 0); i++)\n        {\n            object a = getValue(stored, i);\n        }', '(stored != null && i < stored.Count ? stored[i] : null)' ],
         [ 'guarded keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(d, (ks != null && i < ks.Count ? ks[i] : null));\n        }', '(d != null && (ks != null && i < ks.Count ? ks[i] : null) != null && d.TryGetValue((string)(ks != null && i < ks.Count ? ks[i] : null), out var dValue8_23) ? dValue8_23 : null)' ],
         [ 'keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(d, ks[i]);\n        }', '(d != null && ks[i] != null && d.ContainsKey((string)ks[i]) ? d[(string)ks[i]] : null)' ],
