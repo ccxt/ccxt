@@ -240,6 +240,8 @@ export class BaseExchange {
     options: Dict;
 
     isSandboxModeEnabled: boolean = false;
+    sandbox: boolean = false; // read-only mirror of isSandboxModeEnabled, use setSandboxMode() to change it
+    testnet: boolean = false; // alias of sandbox
 
     api!: Dictionary<Dict>;
     certified: boolean = false;

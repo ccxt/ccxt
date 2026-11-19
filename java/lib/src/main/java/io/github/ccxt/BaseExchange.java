@@ -427,6 +427,8 @@ public class BaseExchange {
         @Override public java.util.Collection<V> values () { return (java.util.Collection<V>) this.ownedApply (OP_VALUES, null, null, null); }
     }
     public boolean isSandboxModeEnabled = false;
+    public boolean sandbox = false; // read-only mirror of isSandboxModeEnabled, use setSandboxMode() to change it
+    public boolean testnet = false; // alias of sandbox
 
     public volatile Map<String, Object> markets = null;
     public volatile Map<String, Object> currencies = new HashMap<String, Object>();

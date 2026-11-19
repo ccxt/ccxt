@@ -194,6 +194,8 @@ type BaseExchange struct {
 	FetchResponseByUrl any
 
 	IsSandboxModeEnabled  bool
+	Sandbox               bool // read-only mirror of IsSandboxModeEnabled, use SetSandboxMode() to change it
+	Testnet               bool // alias of Sandbox
 	FetchHistoryCacheSize int
 	FetchHistoryCache     *ConcurrentListForRequests
 

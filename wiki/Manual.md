@@ -344,7 +344,7 @@ console.log(exchange.features);
 // outputs like:
 {
   spot: {
-    sandbox: true, // whether testnet is supported
+    sandbox: true,                 // if sandbox (testnet) engine is supported by exchange
     createOrder: {
       triggerPrice: true,          // if trigger order is supported
       triggerPriceType: undefined, // if trigger price type is supported (last, mark, index)
@@ -556,10 +556,9 @@ var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 
 ### Testnets And Sandbox Environments
 
-Some exchanges also offer separate APIs for testing purposes that allows developers to trade virtual money for free and test out their ideas. Those APIs are called _"testnets", "sandboxes" or "staging environments"_ (with virtual testing assets) as opposed to _"mainnets" and "production environments"_ (with real assets). Most often a sandboxed API is a clone of a production API, so, it's literally the same API, except for the URL to the exchange server.
+Some exchanges also offer separate APIs for testing purposes that allows developers to trade virtual money for free and test out their ideas. Such API can be called _"testnet", "sandbox", "demo trading" or "staging environment"_ (with virtual testing assets) as opposed to "_production environment_" (aka "_mainnet_") with real assets. Most often a sandboxed API is a clone of a production API, so, it's literally the same API, except for the URL to the exchange server.
 
-CCXT unifies that aspect and allows the user to switch to the exchange's sandbox (if supported by the underlying exchange).
-To switch to the sandbox one has to call the `exchange.setSandboxMode (true)` or `exchange.set_sandbox_mode(true)` **immediately after creating the exchange before any other call**!
+CCXT unifies that aspect and allows the user to switch to the exchange's sandbox (if supported by the underlying exchange) by calling `exchange.setSandboxMode (true)`|`exchange.set_sandbox_mode(true)` **immediately after creating the exchange before any other call**!
 
 <!-- tabs:start -->
 
@@ -4956,7 +4955,7 @@ When you get errors like `"Invalid API-key, IP, or permissions for action."` or 
 1) You don't have typos, empty spaces, or quotes in your keys
 2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelist (if you use proxy, consider that too). On a host with both IPv4 and IPv6, ccxt may connect over IPv6 even if you only whitelisted your IPv4 address, see [Forcing IPv4](#forcing-ipv4)
 3) You have selected the correct options in permissions list for that api-key
-4) You are not accidentally mixing "testnet" api-keys or "testnet" mode in your script
+4) You are not accidentally mixing "sandbox" (testnet) api-keys or "sandbox" mode in your script
 5) You have checked already [reported issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+%22Invalid+Api-Key+ID%22) about this error
 
 
