@@ -9330,15 +9330,17 @@ function goOrderBookSetterCheck (ok: SelfTestOk): void {
 function goNativeMapWrite (lines: string[], masked: string[], start: number, end: number, k: number, maskedFunc: string,
     declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined, notRebound: (name: string) => boolean) {
     const m = masked[k];
-    const head = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), /.exec (m);
+    const head = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+|this\.Balance), /.exec (m);
     if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) {
         return;
     }
     const name = head[2];
-    // a typed-nil map makes the helper a no-op: pointer-value stores may guard the receiver instead
-    let nilReceiverGuard = false;
-    if (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
-        && !goUntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt)) {
+    // a typed-nil map makes the helper a no-op: pointer-value stores may guard the receiver instead;
+    // the `map[string]any` field this.Balance (exchange.go) is always guarded, its writers may store nil
+    const fieldReceiver = name === 'this.Balance';
+    let nilReceiverGuard = fieldReceiver;
+    if (!fieldReceiver && (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
+        && !goUntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt))) {
         if (typeAt (name, k) !== 'map[string]any') {
             return;
         }
@@ -9437,7 +9439,13 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
         return;
     }
+    if (nilReceiverGuard && !(fieldReceiver && (keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k))) {
+        return;
+    }
     if (nilReceiverGuard) {
+        const suffixField = lines[k].substring (lines[k].length - (tail.substring (close).split ('\n')[0].length));
+        lines[k] = head[1] + 'if ' + name + ' != nil {\n' + head[1] + '\t' + name + '[' + keyOut + '] = ' + valueOut + suffixField + '\n' + head[1] + '}';
+        masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
         return;
     }
     if ((valueOut !== undefined) && (keyOut === undefined) && nilKeyGuardable && (valueOut.indexOf ('\n') < 0)) {
@@ -20727,6 +20735,11 @@ function goTupleSlotDerefsCheck (ok: SelfTestOk): void {
     ok (n ('\tAddElementToObject(fee, "c", this.SafeString(p, "c"))\n').includes ('\tif fee != nil {\n\t\tif ptrValue := this.SafeString(p, "c"); ptrValue != nil {\n\t\t\tfee["c"] = *ptrValue\n\t\t} else {\n\t\t\tfee["c"] = nil\n\t\t}\n\t}'), 'maybe-nil map receiver is guarded: ' + n ('\tAddElementToObject(fee, "c", this.SafeString(p, "c"))\n'));
     ok (w ('\tAddElementToObject(request, "d", this.Iso8601(p))\n').includes ('if ptrValue := this.Iso8601(p); ptrValue != nil {'), 'Iso8601 value');
     ok (n ('\tAddElementToObject(fee, "c", "lit")\n').includes ('AddElementToObject(fee'), 'maybe-nil receiver with a non-pointer value keeps the helper');
+    const b = (body: string) => formatGoSource ('selftest.go', 'func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
+    ok (b ('\tvar ts *int64 = this.SafeInteger(p, "t")\n\tccxt.AddElementToObject(this.Balance, "timestamp", ts)\n').includes ('\tif this.Balance != nil {\n\t\tif ts != nil {\n\t\t\tthis.Balance["timestamp"] = *ts\n\t\t} else {\n\t\t\tthis.Balance["timestamp"] = nil\n\t\t}\n\t}'), 'this.Balance pointer store is receiver-guarded');
+    ok (b ('\tvar k string = "a"\n\tccxt.AddElementToObject(this.Balance, k, map[string]any{})\n').includes ('\tif this.Balance != nil {\n\t\tthis.Balance[k] = map[string]any{}\n\t}'), 'this.Balance plain store is receiver-guarded');
+    ok (b ('\tccxt.AddElementToObject(this.Balance, p, 1)\n').includes ('AddElementToObject(this.Balance, p, 1)'), 'this.Balance with an any key keeps the helper');
+    ok (b ('\tccxt.AddElementToObject(this.Options, "a", 1)\n').includes ('AddElementToObject(this.Options'), 'other fields keep the helper');
     ok (w ('\tAddElementToObject(request, "c", this.CostToPrecision("s", p))\n').includes ('AddElementToObject('), 'any-returning call keeps helper');
     ok (formatGoSource ('selftest.go', 'func (this *X) PriceToPrecision(a any, b any) any {\n\treturn nil\n}\n' + 'func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n\tAddElementToObject(request, "p", this.PriceToPrecision("s", p))\n\treturn request\n}\n').includes ('AddElementToObject('), 'same-file any override keeps helper');
     ok (f (d + '\tx := GetValue(h, 0)\n\tt = x\n', 'func (this *X) HandleParamString(a any, b any) []any {\n\treturn nil\n}\n').includes ('GetValue(h, 0)'), 'producer overridden in the file keeps helper');
