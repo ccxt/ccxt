@@ -110,7 +110,7 @@ impl crate::exchange::DerivedExchange for Lbank {
         m.insert("percentage".to_string(), self.safe_string_k(&data, "change", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string2(&data, Value::Str("vol".into()), Value::Str("volume".into()), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(data, "turnover", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(&data, "turnover", &[]));
         m.insert("info".to_string(), ticker);
     m
 }), Some(&marketResolved));
@@ -2992,7 +2992,7 @@ impl Lbank {
         }
         let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "createOrder");
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("spotPrivatePostSupplementCreateOrder".into())]).as_str().unwrap_or("spotPrivatePostSupplementCreateOrder").to_string();
-        let mut method: Option<String> = self.safe_string_k_opt(paramsRequest.clone(), "method", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k_opt(&paramsRequest, "method", &[Value::from(defaultMethod)]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(paramsRequest, Value::Str("method".into()), &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostCreateOrder")) {

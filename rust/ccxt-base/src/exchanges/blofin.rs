@@ -3366,7 +3366,7 @@ impl Blofin {
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[&params]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(extendedParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }

@@ -1667,7 +1667,7 @@ impl Alpaca {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut assets: crate::value::List = self.trader_private_get_v2_assets(&[__ws_arg_0]).await.into_list();
+        let mut assets: crate::value::List = self.call_method_lt("trader_private_get_v2_assets", &[__ws_arg_0]).await;
         return self.parse_markets(&assets);
         Value::Null
         }).await?))
@@ -1917,7 +1917,7 @@ impl Alpaca {
             if (since != Value::Null) {
                 request.insert("start".into(), self.iso8601(since.clone()));
             }
-            let mut until: Option<i64> = self.safe_integer_k(query.clone(), "until", &[]).as_i64();
+            let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 query = self.omit(query, Value::Str("until".into()), &[]);
                 request.insert("end".into(), self.iso8601(until));
@@ -2558,7 +2558,7 @@ impl Alpaca {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.trader_private_get_v2_orders(&[__ws_arg_14]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("trader_private_get_v2_orders", &[__ws_arg_14]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2801,7 +2801,7 @@ impl Alpaca {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.trader_private_get_v2_account_activities_activity_type(&[__ws_arg_18]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("trader_private_get_v2_account_activities_activity_type", &[__ws_arg_18]).await;
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2928,7 +2928,7 @@ impl Alpaca {
                 m
             });
             let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
-            let mut activities: Option<crate::value::List> = self.trader_private_get_v2_account_activities(&[__ws_arg_21]).await.into_opt_list();
+            let mut activities: Option<crate::value::List> = self.call_method_lo("trader_private_get_v2_account_activities", &[__ws_arg_21]).await;
             //
             //     [
             //         {
@@ -2964,7 +2964,7 @@ impl Alpaca {
             }
             return self.parse_transactions(Value::from(filtered), currency.as_ref(), &[Value::from(since), Value::from(limit), params.clone()]);
         }
-        let mut response: Option<crate::value::List> = self.trader_private_get_v2_wallets_transfers(&[params.clone()]).await.into_opt_list();
+        let mut response: Option<crate::value::List> = self.call_method_lo("trader_private_get_v2_wallets_transfers", &[params.clone()]).await;
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -3147,7 +3147,7 @@ impl Alpaca {
         // the two calls stay sequential deliberately — the static request harness records one request per case,
         // and concurrent calls make the recorded url nondeterministic per language
         let mut account: crate::value::Dict = self.call_method_t("trader_private_get_v2_account", &[params]).await;
-        let mut positions: crate::value::List = self.trader_private_get_v2_positions(&[]).await.into_list();
+        let mut positions: crate::value::List = self.call_method_lt("trader_private_get_v2_positions", &[]).await;
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",

@@ -1714,7 +1714,7 @@ impl Foxbit {
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v3_public_get_markets_market_candlesticks", &[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[interval.map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))

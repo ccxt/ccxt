@@ -380,7 +380,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved));
         let mut networkId: Option<String> = self.safe_string_k_opt(&depositAddress, "chain", &[]);
         let mut networks: crate::value::Dict = self.safe_dict_k_t(&currencyResolved, "networks");
-        let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into())).into_dict();
+        let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into()));
         let mut networkEntry: crate::value::Dict = self.safe_dict_t(&networksById, networkId.map(Value::from).unwrap_or(Value::Null));
         let mut network: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);

@@ -1747,7 +1747,7 @@ impl Luno {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
         let mut rawTickers: crate::value::List = self.safe_list_k_t(&response, "tickers");
-        let mut tickers: crate::value::Dict = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into())).into_dict();
+        let mut tickers: crate::value::Dict = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into()));
         let mut ids: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2217,7 +2217,7 @@ impl Luno {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchLedger() requires a currency code argument if no account id specified in params")));
             }
             currency = Some(self.currency(code.clone()));
-            let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into())).into_dict();
+            let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into()));
             let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
             if (account.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLedger() could not find account id for ").into()), code)));

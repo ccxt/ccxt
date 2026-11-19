@@ -2298,7 +2298,7 @@ impl Backpack {
         let mut selection: crate::value::List = self.handle_stock_params("fetchCurrencies", params, None).into_list();
         let mut stock: bool = self.safe_bool_opt(&selection, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut query: crate::value::Dict = self.safe_dict_t(&selection, Value::Int(1));
-        let mut response: crate::value::List = self.public_get_api_v1_assets(&[Value::Dict(query)]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_assets", &[Value::Dict(query)]).await;
         //
         //     [
         //         {
@@ -2405,12 +2405,12 @@ impl Backpack {
         if (query.contains_key("marketType")) {
             marketQuery.insert("marketType".into(), marketTypes.clone());
         }
-        let mut response: crate::value::List = self.public_get_api_v1_markets(&[Value::Map(marketQuery)]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_markets", &[Value::Map(marketQuery)]).await;
         let mut securities: crate::value::List = std::sync::Arc::new(Vec::new());
         if includeRfq {
             securities = self.fetch_securities(&[]).await.into_list();
         }
-        let mut securityById: crate::value::Dict = self.index_by(Value::Arr(securities.clone()), Value::Str("asset".into())).into_dict();
+        let mut securityById: crate::value::Dict = self.index_by(Value::Arr(securities.clone()), Value::Str("asset".into()));
         let mut markets: Vec<Value> = Vec::new();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2522,7 +2522,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_api_v1_securities(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_securities", &[params]).await;
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("securities".into(), Value::from(&response)); }
         return Value::Arr(response);
 
@@ -2722,7 +2722,7 @@ impl Backpack {
         m.insert("fromAmount".to_string(), (if (fromIsBase) { Value::from(baseAmount) } else { Value::from(quoteAmount) }));
         m.insert("toCurrency".to_string(), toCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAmount".to_string(), (if (fromIsBase) { Value::from(quoteAmount) } else { Value::from(baseAmount) }));
-        m.insert("price".to_string(), self.safe_number_k(quote, "price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&quote, "price", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 });
@@ -3032,7 +3032,7 @@ impl Backpack {
         let mut request: crate::value::Dict = self.stock_data_request("fetchTickers", requestParams, None).into_dict();
         let mut response: Value = self.public_get_api_v1_tickers(&[Value::Dict(request)]).await;
         let mut tickers: Value = self.parse_tickers(response.clone(), &[]);
-        let mut responseById: Value = self.index_by(response, Value::Str("symbol".into()));
+        let mut responseById: Value = Value::Dict(self.index_by(response, Value::Str("symbol".into())));
         let mut externalResponse: Value = Value::from(vec![]);
         let mut externalResponseById: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3046,7 +3046,7 @@ impl Backpack {
                 m
             })]);
             externalResponse = self.public_get_api_v1_tickers(&[self.stock_data_request("fetchTickers", &externalParams, None)]).await;
-            externalResponseById = self.index_by(externalResponse, Value::Str("symbol".into()));
+            externalResponseById = Value::Dict(self.index_by(externalResponse, Value::Str("symbol".into())));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3069,7 +3069,7 @@ impl Backpack {
                 let mut underlyingId: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base_id.as_deref().unwrap_or("")), Value::Str("_".into())).into()), Value::from((market).quote_id.as_deref().unwrap_or("")));
                 let mut useExternal: bool = (source.as_deref() == Some("External")) || needsExternalRfqTickers;
                 let mut tickerSource: Value = (if (useExternal) { externalResponseById.clone() } else { responseById.clone() });
-                let mut underlyingTicker: Option<crate::value::Dict> = self.safe_dict_o(tickerSource, Value::from(underlyingId));
+                let mut underlyingTicker: Option<crate::value::Dict> = self.safe_dict_o(&tickerSource, Value::from(underlyingId));
                 if (underlyingTicker.is_some()) {
                     result.insert(marketSymbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &underlyingTicker, Some(&market)));
                 }
@@ -3224,7 +3224,6 @@ impl Backpack {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut maxLimit: i64 = 2000;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
@@ -3242,11 +3241,11 @@ impl Backpack {
             request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert milliseconds to seconds
         }
         let mut defaultLimit: i64 = 100;
-        let mut limitResolved: Option<i64> = limit.as_i64();
-        if (limitResolved.is_some()) {
-            limitResolved = (if let Some(__m0) = limitResolved { Some(i64::min(__m0, maxLimit)) } else { None });
+        let mut windowLimit: Option<i64> = (if (limit == Value::Null) { Some(defaultLimit) } else { (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, 2000)) } else { None }) });
+        let mut limitResolved: Option<i64> = None;
+        if (limit != Value::Null) {
+            limitResolved = windowLimit;
         }
-        let mut windowLimit: i64 = limitResolved.unwrap_or(defaultLimit);
         let mut now: i64 = self.milliseconds();
         let mut startTime: Option<i64> = since.as_i64();
         let mut untilValue: Option<i64> = until;
@@ -3254,12 +3253,12 @@ impl Backpack {
             if (untilValue.is_none()) {
                 untilValue = Some(now);
             }
-            startTime = (if let Some(__l) = untilValue { Some(__l - ((windowLimit * duration))) } else { None });
+            startTime = (if let (Some(__l), Some(__r)) = (untilValue, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None });
         }
         request.insert("startTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = startTime { Some((__l as f64) / 1000.0) } else { None })))));
         // set until value
         if (untilValue.is_none()) {
-            let mut windowEnd: Option<i64> = (if let Some(__m0) = startTime { Some((__m0 + ((windowLimit * duration)))) } else { None });
+            let mut windowEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (startTime, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
             untilValue = (if let Some(__m1) = windowEnd { Some(i64::min(now, __m1)) } else { None });
         }
         request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = untilValue { Some((__l as f64) / 1000.0) } else { None })))));
@@ -3269,7 +3268,7 @@ impl Backpack {
             request.insert("priceType".into(), Value::from(self.capitalize(price.map(Value::from).unwrap_or(Value::Null))));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_klines", &[__ws_arg_6]).await;
         let mut ohlcvs: crate::value::List = self.to_array_t(&response);
         return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
@@ -3310,7 +3309,7 @@ impl Backpack {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_api_v1_mark_prices(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_mark_prices", &[__ws_arg_7]).await;
         let mut data: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market));
         Value::Null
@@ -3351,7 +3350,7 @@ impl Backpack {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_api_v1_open_interest(&[__ws_arg_8]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_open_interest", &[__ws_arg_8]).await;
         let mut interest: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, Some(&market));
         Value::Null
@@ -3399,7 +3398,7 @@ impl Backpack {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_api_v1_funding_rates(&[__ws_arg_9]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_funding_rates", &[__ws_arg_9]).await;
         //
         //     [
         //         {
@@ -3483,10 +3482,10 @@ impl Backpack {
         let mut offset: Option<i64> = self.safe_integer_k(&query, "offset", &[]).as_i64();
         if (offset.is_some()) {
             let __ws_arg_10 = self.extend(&request, &[&query]);
-            response = self.public_get_api_v1_trades_history(&[__ws_arg_10]).await.into_opt_list();
+            response = self.call_method_lo("public_get_api_v1_trades_history", &[__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
-            response = self.public_get_api_v1_trades(&[__ws_arg_11]).await.into_opt_list();
+            response = self.call_method_lo("public_get_api_v1_trades", &[__ws_arg_11]).await;
         }
         let mut responseList: crate::value::List = self.to_array_t(&response);
         return self.parse_trades(&responseList, Some(&market), &[since, limit]);
@@ -3561,7 +3560,7 @@ impl Backpack {
             }
             let mut rfqParams: crate::value::Dict = self.omit_t(&accountParams, &["assetClass", "marketType", "from", "to"], &[]);
             let __ws_arg_12 = self.extend(Value::Map(rfqRequest), &[&rfqParams]);
-            let mut rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq_fill(&[__ws_arg_12]).await.into_list();
+            let mut rfqResponse: crate::value::List = self.call_method_lt("private_get_wapi_v1_history_rfq_fill", &[__ws_arg_12]).await;
             let mut rfqTrades: Value = self.parse_trades(&rfqResponse, market.as_ref(), &[since.clone()]);
             if aggregate {
                 let __ws_arg_13 = self.omit(&accountParams, &["rfqId", "quoteId", "deferredSettlement"], &[]);
@@ -3610,7 +3609,7 @@ impl Backpack {
             request.insert("fillType".into(), Value::Str("User".into())); // default
         }
         let __ws_arg_14 = self.extend(paramsOmitted, &[Value::Map(request)]);
-        let mut response: crate::value::List = self.private_get_wapi_v1_history_fills(&[__ws_arg_14]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_wapi_v1_history_fills", &[__ws_arg_14]).await;
         let mut responseList: crate::value::List = self.to_array_t(&response);
         return self.parse_trades(&responseList, market.as_ref(), &[since, limit]);
         Value::Null
@@ -3678,7 +3677,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_api_v1_time(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v1_time", &[params]).await;
         return self.safe_integer(&response, Value::Int(0), &[Value::Int(self.milliseconds())]);
         Value::Null
         }).await?))
@@ -3715,7 +3714,7 @@ impl Backpack {
             if (securities == Value::Null) {
                 securities = self.fetch_securities(&[]).await;
             }
-            let mut securityIds: crate::value::Dict = self.index_by(securities, Value::Str("asset".into())).into_dict();
+            let mut securityIds: crate::value::Dict = self.index_by(securities, Value::Str("asset".into()));
             let mut balances: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3788,7 +3787,7 @@ impl Backpack {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_wapi_v1_capital_deposits(&[__ws_arg_15]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_wapi_v1_capital_deposits", &[__ws_arg_15]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3843,7 +3842,7 @@ impl Backpack {
             request.insert("to".into(), Value::from(until));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_wapi_v1_capital_withdrawals(&[__ws_arg_16]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_wapi_v1_capital_withdrawals", &[__ws_arg_16]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -4258,7 +4257,7 @@ impl Backpack {
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
-        let mut response: crate::value::List = self.private_post_api_v1_orders(&[Value::from(ordersRequests)]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_api_v1_orders", &[Value::from(ordersRequests)]).await;
         return self.parse_orders(&response, None, &[]);
         Value::Null
         }).await?))
@@ -4441,11 +4440,11 @@ impl Backpack {
         if !rfq {
             let mut venueParams: crate::value::Dict = self.omit_t(&accountParams, &["rfqId", "deferredSettlement"], &[]);
             let __ws_arg_22 = self.extend(&request, &[&venueParams]);
-            response = self.private_get_api_v1_orders(&[__ws_arg_22]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_orders", &[__ws_arg_22]).await;
         }
         if rfq || (stock && (market.is_none())) {
             let __ws_arg_23 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
-            let mut rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[__ws_arg_23]).await.into_list();
+            let mut rfqResponse: crate::value::List = self.call_method_lt("private_get_api_v1_rfqs", &[__ws_arg_23]).await;
             response = self.array_concat_t(Value::Arr(response), &rfqResponse);
         }
         let mut orders: Value = self.parse_orders(&response, market.as_ref(), &[since.clone()]);
@@ -4497,7 +4496,7 @@ impl Backpack {
                     m.insert("rfqId".to_string(), id.clone());
                 m
             })]);
-            let mut rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[__ws_arg_24]).await.into_list();
+            let mut rfqResponse: crate::value::List = self.call_method_lt("private_get_api_v1_rfqs", &[__ws_arg_24]).await;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_259: bool = true;
@@ -4572,10 +4571,10 @@ impl Backpack {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if rfq {
             let __ws_arg_26 = self.extend(&query, &[Value::Map(request.clone())]);
-            response = self.private_get_wapi_v1_history_rfq(&[__ws_arg_26]).await.into_list();
+            response = self.call_method_lt("private_get_wapi_v1_history_rfq", &[__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(&query, &[Value::Map(request)]);
-            response = self.private_get_wapi_v1_history_orders(&[__ws_arg_27]).await.into_list();
+            response = self.call_method_lt("private_get_wapi_v1_history_orders", &[__ws_arg_27]).await;
         }
         {
                         let mut i: i64 = 0;
@@ -4703,7 +4702,7 @@ impl Backpack {
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::List = self.private_delete_api_v1_orders(&[__ws_arg_31]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_delete_api_v1_orders", &[__ws_arg_31]).await;
         return self.parse_orders(&response, Some(&market), &[]);
         Value::Null
         }).await?))
@@ -4766,11 +4765,11 @@ impl Backpack {
         if !rfq {
             let mut venueParams: crate::value::Dict = self.omit_t(&accountParams, &["rfqId", "status", "side", "deferredSettlement"], &[]);
             let __ws_arg_32 = self.extend(&request, &[&venueParams]);
-            response = self.private_get_wapi_v1_history_orders(&[__ws_arg_32]).await.into_list();
+            response = self.call_method_lt("private_get_wapi_v1_history_orders", &[__ws_arg_32]).await;
         }
         if rfq || (stock && (market.is_none())) {
             let __ws_arg_33 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
-            let mut rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq(&[__ws_arg_33]).await.into_list();
+            let mut rfqResponse: crate::value::List = self.call_method_lt("private_get_wapi_v1_history_rfq", &[__ws_arg_33]).await;
             response = self.array_concat_t(Value::Arr(response), &rfqResponse);
         }
         let mut orders: Value = self.parse_orders(&response, market.as_ref(), &[since.clone()]);
@@ -4831,7 +4830,7 @@ impl Backpack {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_get_api_v1_position(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_api_v1_position", &[params]).await;
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return self.parse_positions(&response, &[]);
         }
@@ -4883,7 +4882,7 @@ impl Backpack {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_wapi_v1_history_funding(&[__ws_arg_34]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_wapi_v1_history_funding", &[__ws_arg_34]).await;
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))

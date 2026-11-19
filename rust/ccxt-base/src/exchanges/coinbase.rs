@@ -288,10 +288,10 @@ impl crate::exchange::DerivedExchange for Coinbase {
         }
         let mut v3FeeCost: Option<String> = self.safe_string_k_opt(&trade, "commission", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(&amountObject, "amount", &[v3Amount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut costString: Value = self.safe_string_k(&subtotalObject, "amount", &[v3Cost.map(Value::from).unwrap_or(Value::Null)]);
+        let mut costString: Option<String> = self.safe_string_k_opt(&subtotalObject, "amount", &[v3Cost.map(Value::from).unwrap_or(Value::Null)]);
         let mut priceString: Option<String> = None;
         let mut cost: Option<String> = None;
-        if (costString != Value::Null) && (amountString.is_some()) {
+        if (costString.is_some()) && (amountString.is_some()) {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString).as_str().map(str::to_owned);
         }  else {
             priceString = v3Price;
@@ -305,7 +305,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
                 cost = baseCost;
             }
         }  else {
-            cost = costString.into_opt_string();
+            cost = costString;
         }
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(&feeObject, "currency", &[]);
         let mut feeCost: Option<f64> = self.safe_number_k(&feeObject, "amount", &[self.parse_number(v3FeeCost.map(Value::from).unwrap_or(Value::Null), &[])]).as_f64();
@@ -3170,7 +3170,7 @@ impl Coinbase {
         let mut currencies: crate::value::Dict = self.safe_dict_k_t(&response, "currencies");
         let mut exchangeRates: crate::value::Dict = self.safe_dict_k_t(&response, "exchangeRates");
         let mut data: crate::value::List = self.safe_list_k_t(&currencies, "data");
-        let mut dataById: crate::value::Dict = self.index_by(Value::Arr(data.clone()), Value::Str("id".into())).into_dict();
+        let mut dataById: crate::value::Dict = self.index_by(Value::Arr(data.clone()), Value::Str("id".into()));
         let mut rates: indexmap::IndexMap<String, Value> = self.safe_dict(self.safe_dict_k(&exchangeRates, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3385,7 +3385,7 @@ if _try_result.is_err() {
         let mut spot: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(0));
         let mut fees: crate::value::Dict = self.safe_dict_t(&promises, Value::Int(1));
         let mut expiringFutures: crate::value::Dict = self.safe_dict_t(&contractPromises, Value::Int(0));
-        let mut perpetualFutures: crate::value::Dict = self.safe_dict_t(contractPromises, Value::Int(1));
+        let mut perpetualFutures: crate::value::Dict = self.safe_dict_t(&contractPromises, Value::Int(1));
         //
         //     {
         //         "total_volume": 0,
@@ -3952,10 +3952,20 @@ if _try_result.is_err() {
             let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut name: Option<String> = self.safe_string_k_opt(&currency, "name", &[]);
             if (code.is_some()) {
-                { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networks".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), name.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)); } }
+                let mut networksDict1: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networks", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                networksDict1.insert(code.as_deref().unwrap_or("null").to_string(), name.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networks".into(), Value::Map(networksDict1)); }
             }
             if (code.is_some()) {
-                { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networksById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), name.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)); } }
+                let mut networksByIdDict2: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networksById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                networksByIdDict2.insert(code.as_deref().unwrap_or("null").to_string(), name.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networksById".into(), Value::Map(networksByIdDict2)); }
             }
             let mut type_var: String = "fiat".to_string();
             if (assetId.is_some()) {
@@ -6307,7 +6317,7 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut addressStructures: Value = self.parse_deposit_addresses(&data, &[Value::Null, Value::Bool(false)]);
-        return self.index_by(addressStructures, Value::Str("network".into()));
+        return Value::Dict(self.index_by(addressStructures, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -6584,7 +6594,7 @@ if _try_result.is_err() {
             let mut __for_first_550: bool = true;
             while { if !__for_first_550 { i += 1; } __for_first_550 = false; i < (ids.len() as i64) } {
             let __ws_arg_59 = self.parse_deposit_method_id(ids.get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut id: crate::value::Dict = self.extend_t(__ws_arg_59, &[params.clone()]);
+            let mut id: crate::value::Dict = self.extend_t(__ws_arg_59, &[&params]);
             result.push(Value::Dict(id));
         }
         }

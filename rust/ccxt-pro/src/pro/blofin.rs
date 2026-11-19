@@ -830,7 +830,7 @@ impl Blofin {
         let mut result: Value = self.watch_multiple_wrapper(true, "candle", "watchOHLCVForSymbols", &[symbolsAndTimeframes, params]).await;
         let mut symbol: String = self.safe_string(&result, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timeframe: String = self.safe_string(&result, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut candles: Value = self.safe_value(result, Value::Int(2), &[]);
+        let mut candles: Value = self.safe_value(&result, Value::Int(2), &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(Some(symbol.as_str()), limit.as_i64());

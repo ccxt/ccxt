@@ -1546,7 +1546,7 @@ impl Bigone {
         //     ],
         // }
         //
-        let mut currenciesData: crate::value::List = self.safe_list_k_t(data, "data");
+        let mut currenciesData: crate::value::List = self.safe_list_k_t(&data, "data");
         return self.parse_currencies(&currenciesData);
         Value::Null
         }).await?))
@@ -1932,7 +1932,7 @@ impl Bigone {
             //
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
-            let mut instruments: crate::value::List = self.contract_public_get_instruments(&[Value::Dict(paramsMarketType)]).await.into_list();
+            let mut instruments: crate::value::List = self.call_method_lt("contract_public_get_instruments", &[Value::Dict(paramsMarketType)]).await;
             data = self.to_array(&instruments);
         }
         let mut tickers: Value = self.parse_tickers(data, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
@@ -2916,7 +2916,7 @@ impl Bigone {
         if dataLength < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchDepositAddress() returned empty address response")));
         }
-        let mut chainsIndexedById: crate::value::Dict = self.index_by(Value::Arr(data), Value::Str("chain".into())).into_dict();
+        let mut chainsIndexedById: crate::value::Dict = self.index_by(Value::Arr(data), Value::Str("chain".into()));
         let mut selectedNetworkId: Option<String> = self.select_network_key_from_networks(code.clone(), networkCode.map(Value::from).unwrap_or(Value::Null), Value::from(&chainsIndexedById), &[Value::Bool(false)]).as_str().map(str::to_owned);
         let mut addressObject: crate::value::Dict = self.safe_dict_t(&chainsIndexedById, Value::from(selectedNetworkId.as_deref()));
         let mut address: Option<String> = self.safe_string_k_opt(&addressObject, "value", &[]);

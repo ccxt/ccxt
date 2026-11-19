@@ -2209,7 +2209,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         while { if !__for_first_97 { i += 1; } __for_first_97 = false; (i as f64) < Value::Int(CacheSlot::size(&stored)).as_f64().unwrap_or(f64::NAN) } {
                         let mut previousOrder: Value = get_value(&Value::from(&stored), &Value::Int(i));
                         if ((orderId.as_deref() == self.safe_string_k(&previousOrder, "id", &[]).as_str())) && (self.safe_string_k(&previousOrder, "symbol", &[]).as_str() == self.safe_string_k(&parsedOrder, "symbol", &[]).as_str()) {
-                            let mut previousTimestamp: Option<i64> = self.safe_integer_k(previousOrder, "lastUpdateTimestamp", &[]).as_i64();
+                            let mut previousTimestamp: Option<i64> = self.safe_integer_k(&previousOrder, "lastUpdateTimestamp", &[]).as_i64();
                             if (previousTimestamp.is_some()) && ((updateTimestamp.is_some() && previousTimestamp.is_some() && updateTimestamp < previousTimestamp)) {
                                 return;
                             }
@@ -2485,7 +2485,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
         let mut isUnSubMessage: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if isUnSubMessage {

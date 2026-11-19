@@ -2353,7 +2353,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     }
                 }
                 }
-                let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
+                let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]));
                 if (cacheLength == snapshotDelay) {
                     self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.clone(), Value::from(limit), Value::Map({
@@ -2497,7 +2497,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }  else if (changes != Value::Null) {
             let mut bids: crate::value::List = self.safe_list_k_t(&changes, "bids");
-            let mut asks: crate::value::List = self.safe_list_k_t(changes, "asks");
+            let mut asks: crate::value::List = self.safe_list_k_t(&changes, "asks");
             self.handle_bid_asks(storedBids.clone(), &bids);
             self.handle_bid_asks(storedAsks.clone(), &asks);
         }  else {

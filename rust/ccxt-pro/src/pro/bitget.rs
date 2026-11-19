@@ -1406,7 +1406,7 @@ impl Bitget {
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         // tokenized stock snapshots arrive as a plain dict instead of a list
-        let mut rawOrderBook: Value = self.safe_dict(data, Value::Int(0), &[(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null })]);
+        let mut rawOrderBook: Value = self.safe_dict(&data, Value::Int(0), &[(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null })]);
         if (rawOrderBook == Value::Null) {
             return;
         }
@@ -3254,11 +3254,11 @@ impl Bitget {
                     let mut borrow: Option<String> = self.safe_string_k_opt(&entry, "borrow", &[]);
                     let mut debts: Option<String> = self.safe_string_k_opt(&entry, "debts", &[]);
                     if (borrow.is_some()) || (debts.is_some()) {
-                        add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow, &debts));
+                        if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("debt".to_string(), crate::precise::Precise::stringAdd(&borrow, &debts)); }
                     }
-                    add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(&entry, "available", &[]));
-                    add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(&entry, "locked", &[]));
-                    add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(&entry, "balance", &[]));
+                    if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("free".to_string(), self.safe_string_k(&entry, "available", &[])); }
+                    if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("used".to_string(), self.safe_string_k(&entry, "locked", &[])); }
+                    if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("total".to_string(), self.safe_string_k(&entry, "balance", &[])); }
                     if (code.is_some()) {
                         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account.clone()); }
                     }
@@ -3274,15 +3274,15 @@ impl Bitget {
                 let mut borrow: Option<String> = self.safe_string_k_opt(&rawBalance, "borrow", &[]);
                 if (borrow.is_some()) {
                     let mut interest: Option<String> = self.safe_string_k_opt(&rawBalance, "interest", &[]);
-                    add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow, &interest));
+                    if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("debt".to_string(), crate::precise::Precise::stringAdd(&borrow, &interest)); }
                 }
                 let mut freeQuery: String = "available".to_string();
                 if (rawBalance.contains_key("maxTransferOut")) {
                     freeQuery = "maxTransferOut".to_string();
                 }
-                add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string(&rawBalance, Value::from(freeQuery), &[]));
-                add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(&rawBalance, "equity", &[]));
-                add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(&rawBalance, "frozen", &[]));
+                if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("free".to_string(), self.safe_string(&rawBalance, Value::from(freeQuery), &[])); }
+                if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("total".to_string(), self.safe_string_k(&rawBalance, "equity", &[])); }
+                if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("used".to_string(), self.safe_string_k(&rawBalance, "frozen", &[])); }
                 if (code.is_some()) {
                     if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
                 }

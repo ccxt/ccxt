@@ -1865,7 +1865,7 @@ impl Hollaex {
         request.insert("to".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.public_get_chart(&[__ws_arg_4]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_chart", &[__ws_arg_4]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -2300,7 +2300,7 @@ impl Hollaex {
         market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_delete_order_all(&[__ws_arg_12]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_delete_order_all", &[__ws_arg_12]).await;
         return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null
         }).await?))

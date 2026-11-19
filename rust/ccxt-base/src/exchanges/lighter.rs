@@ -1586,7 +1586,7 @@ impl Lighter {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(__ws_arg_2, &[Value::Map(auths)]); { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("auths".into(), __be_tmp); } }
+        { let __be_tmp = self.extend(__ws_arg_2, &[Value::Map(auths)]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("auths".into(), __be_tmp); } }
 }
 
     pub fn init_auth_object(&self, strAccountIndex: &str, strApiKeyIndex: &str) {
@@ -1673,7 +1673,7 @@ impl Lighter {
         }
         // apiKeyIndex = this.randNumber (2);
         let mut defaultApiKeyIndex: i64 = 254;
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
         return Value::from(vec![Value::from(defaultApiKeyIndex), Value::Dict(paramsApiKeyIndex)]);
 
     Value::Null
@@ -1794,7 +1794,7 @@ impl Lighter {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("createAuth".into()), Value::Str("apiKeyIndex".into()), Value::Str("api_key_index".into()), &[]); Value::from(vec![__t.0, Value::Dict(__t.1)]) };
-            apiKeyIndex = self.safe_string_opt(res, Value::Int(0), &[]);
+            apiKeyIndex = self.safe_string_opt(&res, Value::Int(0), &[]);
         }
         let mut accountIndex: Option<String> = self.safe_string2_opt(params, Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]);
         if (accountIndex.is_none()) {
@@ -1802,7 +1802,7 @@ impl Lighter {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("createAuth".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]); Value::from(vec![__t.0, Value::Dict(__t.1)]) };
-            accountIndex = self.safe_string_opt(res, Value::Int(0), &[]);
+            accountIndex = self.safe_string_opt(&res, Value::Int(0), &[]);
         }
         let mut auths: crate::value::Dict = self.safe_dict_k_t(&self.options, "auths");
         let mut accountAuths: crate::value::Dict = self.safe_dict_t(&auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null));

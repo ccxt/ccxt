@@ -261,7 +261,7 @@ impl crate::exchange::DerivedExchange for Binance {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "sapi")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
@@ -1035,7 +1035,7 @@ impl Binance {
             });
             request.insert("topK".into(), Value::from(limitResolved));
             let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: crate::value::List = self.sapi_private_get_market_search(&[__ws_arg_3]).await.into_list();
+            let mut response: crate::value::List = self.call_method_lt("sapi_private_get_market_search", &[__ws_arg_3]).await;
             //
             //     [
             //         {
@@ -2071,7 +2071,7 @@ impl Binance {
         let mut positions: crate::value::List = self.safe_list_k_t(&response, "positions");
         let mut parsedPositions: crate::value::List = self.parse_prediction_positions(Value::Arr(positions), &[]).into_list();
         let mut filteredPositions: Value = self.filter_by_outcome_since_limit(Value::Arr(parsedPositions), &[outcome, Value::Null, Value::Null]);
-        return self.safe_dict(filteredPositions, Value::Int(0), &[]);
+        return self.safe_dict(&filteredPositions, Value::Int(0), &[]);
         Value::Null
         }).await?))
     }

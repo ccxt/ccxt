@@ -2632,7 +2632,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_api_v3_coins(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v3_coins", &[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -2860,7 +2860,7 @@ impl Weex {
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")));
         }
-        let mut response: crate::value::List = self.public_get_api_v3_market_ticker_price(&[Value::Dict(paramsMarketType)]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v3_market_ticker_price", &[Value::Dict(paramsMarketType)]).await;
         return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2952,7 +2952,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into())]); // reject non-contract symbols instead of silently filtering the result to an empty dict
-        let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_get_capi_v3_market_premium_index", &[params]).await;
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3107,7 +3107,7 @@ impl Weex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_api_v3_market_klines(&[__ws_arg_5]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_v3_market_klines", &[__ws_arg_5]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -3224,20 +3224,20 @@ impl Weex {
             request.insert("startTime".into(), Value::from(startTime));
             request.insert("endTime".into(), Value::from(endTime));
             let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
-            response = self.contract_get_capi_v3_market_history_klines(&[__ws_arg_6]).await.into_opt_list();
+            response = self.call_method_lo("contract_get_capi_v3_market_history_klines", &[__ws_arg_6]).await;
         }  else {
             if (limitResolved.is_some()) {
                 request.insert("limit".into(), Value::from(limitResolved));
             }
             if (priceType.as_deref() == Some("MARK")) {
                 let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
-                response = self.contract_get_capi_v3_market_mark_price_klines(&[__ws_arg_7]).await.into_opt_list();
+                response = self.call_method_lo("contract_get_capi_v3_market_mark_price_klines", &[__ws_arg_7]).await;
             }  else if (priceType.as_deref() == Some("INDEX")) {
                 let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
-                response = self.contract_get_capi_v3_market_index_price_klines(&[__ws_arg_8]).await.into_opt_list();
+                response = self.call_method_lo("contract_get_capi_v3_market_index_price_klines", &[__ws_arg_8]).await;
             }  else {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.contract_get_capi_v3_market_klines(&[__ws_arg_9]).await.into_opt_list();
+                response = self.call_method_lo("contract_get_capi_v3_market_klines", &[__ws_arg_9]).await;
             }
         }
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
@@ -3286,10 +3286,10 @@ impl Weex {
         let mut response: Option<crate::value::List> = None;
         if (market).spot {
             let __ws_arg_10 = self.extend(&request, &[&params]);
-            response = self.public_get_api_v3_market_trades(&[__ws_arg_10]).await.into_opt_list();
+            response = self.call_method_lo("public_get_api_v3_market_trades", &[__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-            response = self.contract_get_capi_v3_market_trades(&[__ws_arg_11]).await.into_opt_list();
+            response = self.call_method_lo("contract_get_capi_v3_market_trades", &[__ws_arg_11]).await;
         }
         //
         //     [
@@ -3389,7 +3389,7 @@ impl Weex {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_get_capi_v3_market_premium_index", &[__ws_arg_13]).await;
         return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3443,7 +3443,7 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_get_capi_v3_market_funding_rate", &[__ws_arg_14]).await;
         return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -3622,7 +3622,7 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_api_v3_account_transfer_records", &[__ws_arg_15]).await;
         return self.parse_transfers(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -4144,13 +4144,13 @@ impl Weex {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument for spot markets")));
             }
             let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_delete_api_v3_open_orders(&[__ws_arg_19]).await.into_opt_list();
+            response = self.call_method_lo("private_delete_api_v3_open_orders", &[__ws_arg_19]).await;
         }  else if trigger {
             let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_algo_open_orders(&[__ws_arg_20]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_delete_capi_v3_algo_open_orders", &[__ws_arg_20]).await;
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.contract_private_delete_capi_v3_all_open_orders(&[__ws_arg_21]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_delete_capi_v3_all_open_orders", &[__ws_arg_21]).await;
         }
         let mut extendedParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4403,7 +4403,7 @@ impl Weex {
             //     ]
             //
             let __ws_arg_26 = self.extend(&request, &[&paramsPaginate]);
-            response = self.private_get_api_v3_open_orders(&[__ws_arg_26]).await.into_opt_list();
+            response = self.call_method_lo("private_get_api_v3_open_orders", &[__ws_arg_26]).await;
         }  else {
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
@@ -4449,7 +4449,7 @@ impl Weex {
                 //     ]
                 //
                 let __ws_arg_27 = self.extend(&requestUntil, &[&paramsOmitted]);
-                response = self.contract_private_get_capi_v3_open_algo_orders(&[__ws_arg_27]).await.into_opt_list();
+                response = self.call_method_lo("contract_private_get_capi_v3_open_algo_orders", &[__ws_arg_27]).await;
             }  else {
                 //
                 //     [
@@ -4476,7 +4476,7 @@ impl Weex {
                 //     ]
                 //
                 let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
-                response = self.contract_private_get_capi_v3_open_orders(&[__ws_arg_28]).await.into_opt_list();
+                response = self.call_method_lo("contract_private_get_capi_v3_open_orders", &[__ws_arg_28]).await;
             }
         }
         let mut extendedParams: indexmap::IndexMap<String, Value> = ({
@@ -4651,7 +4651,7 @@ impl Weex {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_api_v3_all_orders", &[__ws_arg_29]).await;
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -4725,10 +4725,10 @@ impl Weex {
         let mut response: Option<crate::value::List> = None;
         if sandboxMode {
             let __ws_arg_30 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_get_capi_v3_sim_order_history", &[__ws_arg_30]).await;
         }  else {
             let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_private_get_capi_v3_order_history(&[__ws_arg_31]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_get_capi_v3_order_history", &[__ws_arg_31]).await;
         }
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -4904,7 +4904,7 @@ impl Weex {
             //     ]
             //
             let __ws_arg_33 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v3_my_trades(&[__ws_arg_33]).await.into_opt_list();
+            response = self.call_method_lo("private_get_api_v3_my_trades", &[__ws_arg_33]).await;
         }  else {
             //
             //     [
@@ -4927,7 +4927,7 @@ impl Weex {
             //     ]
             //
             let __ws_arg_34 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_34]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_get_capi_v3_user_trades", &[__ws_arg_34]).await;
         }
         let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response.is_some()) {
@@ -5031,7 +5031,7 @@ impl Weex {
             let mut requestUntil: crate::value::Dict = __until0;
             let mut paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
-            let mut billsResponse: crate::value::List = self.private_post_api_v3_account_bills(&[__ws_arg_37]).await.into_list();
+            let mut billsResponse: crate::value::List = self.call_method_lt("private_post_api_v3_account_bills", &[__ws_arg_37]).await;
             items = self.to_array(&billsResponse);
         }
         return self.parse_ledger(items, currency.as_ref(), &[since, limit]);
@@ -5180,9 +5180,9 @@ impl Weex {
         let mut sandboxMode: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut response: Option<crate::value::List> = None;
         if sandboxMode {
-            response = self.contract_private_get_capi_v3_sim_position_all_position(&[params.clone()]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_get_capi_v3_sim_position_all_position", &[params.clone()]).await;
         }  else {
-            response = self.contract_private_get_capi_v3_account_position_all_position(&[params]).await.into_opt_list();
+            response = self.call_method_lo("contract_private_get_capi_v3_account_position_all_position", &[params]).await;
         }
         return self.parse_positions(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -5250,7 +5250,7 @@ impl Weex {
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_position_single_position(&[__ws_arg_39]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_position_single_position", &[__ws_arg_39]).await;
         return self.parse_positions(&response, &[Value::from(vec![Value::from((market).symbol.clone())])]);
         Value::Null
         }).await?))
@@ -5278,7 +5278,7 @@ impl Weex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.contract_private_post_capi_v3_close_positions(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_post_capi_v3_close_positions", &[params]).await;
         return self.parse_positions(&response, &[]);
         Value::Null
         }).await?))
@@ -5316,7 +5316,7 @@ impl Weex {
             m
         });
         let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.contract_private_post_capi_v3_close_positions(&[__ws_arg_40]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_post_capi_v3_close_positions", &[__ws_arg_40]).await;
         let mut order: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
         Value::Null
@@ -5417,7 +5417,7 @@ impl Weex {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_42]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[__ws_arg_42]).await;
         //
         //     [
         //         {
@@ -5460,7 +5460,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[params]).await;
         return self.parse_margin_modes(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
@@ -5562,7 +5562,7 @@ impl Weex {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_44]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[__ws_arg_44]).await;
         let mut marginMode: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &marginMode, Some(&market));
         Value::Null
@@ -5593,7 +5593,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[params]).await;
         return self.parse_leverages(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
@@ -5696,7 +5696,7 @@ impl Weex {
             m
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_46]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("contract_private_get_capi_v3_account_symbol_config", &[__ws_arg_46]).await;
         let mut entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut separatedType: Option<String> = self.safe_string_k_opt(&entry, "separatedType", &[]);
         return Value::Map({

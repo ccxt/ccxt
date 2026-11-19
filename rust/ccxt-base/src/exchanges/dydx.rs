@@ -1895,7 +1895,7 @@ impl Dydx {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsSubAccountNumber]);
-        let mut response: crate::value::List = self.indexer_get_orders(&[__ws_arg_5]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("indexer_get_orders", &[__ws_arg_5]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2166,7 +2166,7 @@ impl Dydx {
             credentials = self.retrieve_dydx_credentials(privateKeyOption.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut signature: Value = self.sign_onboarding_action();
-            credentials = self.retrieve_dydx_credentials(self.hash_message(Value::from(self.base16_to_binary(Value::Str(format!("{}{}", self.safe_string_k(&signature, "r", &[Value::Str("".into())]), self.safe_string_k(signature, "s", &[Value::Str("".into())])).into()), &[]))).map(Value::from).unwrap_or(Value::Null));
+            credentials = self.retrieve_dydx_credentials(self.hash_message(Value::from(self.base16_to_binary(Value::Str(format!("{}{}", self.safe_string_k(&signature, "r", &[Value::Str("".into())]), self.safe_string_k(&signature, "s", &[Value::Str("".into())])).into()), &[]))).map(Value::from).unwrap_or(Value::Null));
         }
         credentials = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2174,7 +2174,7 @@ impl Dydx {
                 m.insert("publicKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[])));
             m
         });
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
         return credentials;
 
     Value::Null
@@ -2531,7 +2531,7 @@ impl Dydx {
         // }
         //
         let mut result: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[]).as_map().cloned().unwrap_or_default();
-        let mut requestValue: crate::value::Dict = self.safe_dict_k_t(orderRequest, "value");
+        let mut requestValue: crate::value::Dict = self.safe_dict_k_t(&orderRequest, "value");
         let mut requestOrder: crate::value::Dict = self.safe_dict_k_t(&requestValue, "order");
         let mut requestOrderId: crate::value::Dict = self.safe_dict_k_t(&requestOrder, "orderId");
         return self.safe_order(Value::Map({
@@ -3602,7 +3602,12 @@ impl Dydx {
         // rewrite testnet parameters
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("chainName".into(), Value::Str("dydx-testnet-4".into())); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("chainId".into(), Value::Int(11155111)); }
-        { let __rda = &mut self.options; if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("feeDenom".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("CHAINTOKEN_DENOM".to_string(), Value::Str("adv4tnt".into())); } }
+        let mut feeDenomDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "feeDenom", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        feeDenomDict.insert("CHAINTOKEN_DENOM".into(), Value::Str("adv4tnt".into()));
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("feeDenom".into(), Value::Map(feeDenomDict)); }
         Value::Null
         })).expect("a sync body never awaits")?))
     }

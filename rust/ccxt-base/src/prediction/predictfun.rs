@@ -312,7 +312,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " sign() requires the \"apiKey\" credential for all endpoints")));
         }
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "predictfun")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
@@ -2237,7 +2237,7 @@ impl Predictfun {
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         let mut bestBid: crate::value::Dict = self.safe_dict_k_t(&rawOutcome, "bestBid");
-        let mut bestAsk: crate::value::Dict = self.safe_dict_k_t(rawOutcome, "bestAsk");
+        let mut bestAsk: crate::value::Dict = self.safe_dict_k_t(&rawOutcome, "bestAsk");
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
@@ -4355,7 +4355,7 @@ impl Predictfun {
  * @returns {string} the url to connect to
  */
     pub fn socket_url(&self) -> Option<String> {
-        let mut urls: crate::value::Dict = self.urls.key_dict("api");
+        let mut urls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut base: Option<String> = self.safe_string_k_opt(&urls, "ws", &[]);
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " does not have a sandbox websocket endpoint")));
@@ -4377,7 +4377,7 @@ impl Predictfun {
         self.lock_id(&[]);
         let mut previous: i64 = self.safe_integer_k(&self.options, "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut next: i64 = (previous + 1);
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(next)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(next)); }
         self.unlock_id(&[]);
         return next;
 }
@@ -4957,7 +4957,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // it carries only the request id, so the subscription that request registered is found
             // by it - see handleSubscriptionStatus in pro/binance.ts
             let mut id: Option<String> = (match __pro_message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-            let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+            let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
             let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
             let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !success {

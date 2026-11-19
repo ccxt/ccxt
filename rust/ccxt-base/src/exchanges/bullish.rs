@@ -2074,7 +2074,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_v1_assets(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_assets", &[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -2102,7 +2102,7 @@ impl Bullish {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut response: crate::value::List = self.public_get_v1_markets(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_markets", &[params]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -2228,7 +2228,7 @@ impl Bullish {
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsSinceAndUntil]);
-        let mut response: crate::value::List = self.public_get_v1_history_markets_symbol_trades(&[__ws_arg_1]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_history_markets_symbol_trades", &[__ws_arg_1]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2278,7 +2278,7 @@ impl Bullish {
         let mut response: Option<crate::value::List> = None;
         if (clientOrderId.is_some()) {
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await.into_opt_list();
+            response = self.call_method_lo("private_get_v1_trades_client_order_id_client_order_id", &[__ws_arg_2]).await;
         }  else {
             let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
             let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
@@ -2312,7 +2312,7 @@ impl Bullish {
             //     ]
             //
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsSinceAndUntil]);
-            response = self.private_get_v1_history_trades(&[__ws_arg_3]).await.into_opt_list();
+            response = self.call_method_lo("private_get_v1_history_trades", &[__ws_arg_3]).await;
         }
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -2513,7 +2513,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTime));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.public_get_v1_markets_symbol_candle(&[__ws_arg_6]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_markets_symbol_candle", &[__ws_arg_6]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -2572,7 +2572,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[Value::from(&paramsPaginate), Value::Str("updatedAtDatetime[gte]".into()), Value::Str("updatedAtDatetime[lte]".into())]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsSinceAndUntil]);
-        let mut response: crate::value::List = self.public_get_v1_history_markets_symbol_funding_rate(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_history_markets_symbol_funding_rate", &[__ws_arg_7]).await;
         //
         //     [
         //         {
@@ -2696,10 +2696,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //     ]
             //
             let __ws_arg_8 = self.extend(&request, &[&paramsMethod]);
-            response = self.private_get_v2_orders(&[__ws_arg_8]).await.into_list();
+            response = self.call_method_lt("private_get_v2_orders", &[__ws_arg_8]).await;
         }  else if (methodResolved.as_deref() == Some("privateGetV2HistoryOrders")) {
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsMethod]);
-            response = self.private_get_v2_history_orders(&[__ws_arg_9]).await.into_list();
+            response = self.call_method_lt("private_get_v2_history_orders", &[__ws_arg_9]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\"")));
         }
@@ -3428,7 +3428,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsTradingAccountId: crate::value::Dict = tradingAccountIdOptionparamsTradingAccountIdVariable.1;
         let mut tradingAccountId: Option<String> = tradingAccountIdOption;
         if (tradingAccountId.is_none()) {
-            let mut response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[Value::Dict(paramsTradingAccountId)]).await.into_list();
+            let mut response: crate::value::List = self.call_method_lt("private_get_v1_accounts_trading_accounts", &[Value::Dict(paramsTradingAccountId)]).await;
             let mut accounts: crate::value::List = self.to_array_t(&response);
             {
                                 let mut i: i64 = 0;
@@ -3471,7 +3471,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
-        let mut response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[params.clone()]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_accounts_trading_accounts", &[params.clone()]).await;
         return self.parse_accounts(&response, &[params]);
         Value::Null
         }).await?))
@@ -3507,7 +3507,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::List = self.private_get_v1_wallets_deposit_instructions_crypto_symbol(&[__ws_arg_21]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_wallets_deposit_instructions_crypto_symbol", &[__ws_arg_21]).await;
         //
         //     [
         //         {
@@ -3682,7 +3682,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_v1_derivatives_positions(&[__ws_arg_24]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_derivatives_positions", &[__ws_arg_24]).await;
         return self.filter_by_array_positions(self.parse_positions(&response, &[symbols.clone()]), Value::Str("symbol".into()), &[symbols]);
         Value::Null
         }).await?))
@@ -3762,7 +3762,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsSinceAndUntil]);
-        let mut response: crate::value::List = self.private_get_v1_history_transfer(&[__ws_arg_26]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_history_transfer", &[__ws_arg_26]).await;
         return self.parse_transfers(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3884,7 +3884,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTimestamp));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_v1_history_borrow_interest(&[__ws_arg_28]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_history_borrow_interest", &[__ws_arg_28]).await;
         return self.parse_borrow_rate_history(&response, Value::from(code), Value::from(since), Value::from(limit));
 
     Value::Null

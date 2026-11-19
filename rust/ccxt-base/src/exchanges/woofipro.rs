@@ -2419,7 +2419,7 @@ impl Woofipro {
         let mut tokenRows: crate::value::List = self.safe_list_k_t(&tokenData, "rows");
         let mut chainData: crate::value::Dict = self.safe_dict_k_t(&chainResponse, "data");
         let mut chainRows: crate::value::List = self.safe_list_k_t(&chainData, "rows");
-        let mut indexedChains: crate::value::Dict = self.index_by(Value::Arr(chainRows), Value::Str("chain_id".into())).into_dict();
+        let mut indexedChains: crate::value::Dict = self.index_by(Value::Arr(chainRows), Value::Str("chain_id".into()));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1179: bool = true;
@@ -2919,7 +2919,7 @@ impl Woofipro {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, None));
         }
         }
-        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into())));
         Value::Null
         }).await?))
     }

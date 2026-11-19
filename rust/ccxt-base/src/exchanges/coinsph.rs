@@ -1647,7 +1647,7 @@ impl Coinsph {
     m
 });
         }
-        let mut response: crate::value::List = self.private_get_openapi_wallet_v1_config_getall(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_wallet_v1_config_getall", &[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -1851,7 +1851,7 @@ impl Coinsph {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut limits: crate::value::Dict = self.index_by(self.safe_list_k(&market, "filters", &[Value::from(vec![])]), Value::Str("filterType".into())).into_dict();
+            let mut limits: crate::value::Dict = self.index_by(self.safe_list_k(&market, "filters", &[Value::from(vec![])]), Value::Str("filterType".into()));
             let mut amountLimits: crate::value::Dict = self.safe_dict_k_t(&limits, "LOT_SIZE");
             let mut priceLimits: crate::value::Dict = self.safe_dict_k_t(&limits, "PRICE_FILTER");
             let mut costLimits: crate::value::Dict = self.safe_dict_k_t(&limits, "NOTIONAL");
@@ -2157,7 +2157,7 @@ impl Coinsph {
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.public_get_openapi_quote_v1_klines(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_openapi_quote_v1_klines", &[__ws_arg_7]).await;
         //
         //     [
         //         [
@@ -2224,7 +2224,7 @@ impl Coinsph {
             }
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_openapi_quote_v1_trades(&[__ws_arg_8]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_openapi_quote_v1_trades", &[__ws_arg_8]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2274,7 +2274,7 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_openapi_v1_my_trades(&[__ws_arg_9]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_v1_my_trades", &[__ws_arg_9]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2545,7 +2545,7 @@ impl Coinsph {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_openapi_v1_open_orders(&[__ws_arg_14]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_v1_open_orders", &[__ws_arg_14]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2595,7 +2595,7 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_openapi_v1_history_orders(&[__ws_arg_15]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_v1_history_orders", &[__ws_arg_15]).await;
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2680,7 +2680,7 @@ impl Coinsph {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_delete_openapi_v1_open_orders(&[__ws_arg_17]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_delete_openapi_v1_open_orders", &[__ws_arg_17]).await;
         return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null
         }).await?))
@@ -2804,7 +2804,7 @@ impl Coinsph {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_openapi_v1_asset_trade_fee(&[__ws_arg_18]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_v1_asset_trade_fee", &[__ws_arg_18]).await;
         //
         //     [
         //       {
@@ -2841,7 +2841,7 @@ impl Coinsph {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_get_openapi_v1_asset_trade_fee(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_v1_asset_trade_fee", &[params]).await;
         //
         //     [
         //         {
@@ -3008,7 +3008,7 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_openapi_wallet_v1_deposit_history(&[__ws_arg_20]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_wallet_v1_deposit_history", &[__ws_arg_20]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3058,7 +3058,7 @@ impl Coinsph {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_openapi_wallet_v1_withdraw_history(&[__ws_arg_21]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_openapi_wallet_v1_withdraw_history", &[__ws_arg_21]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

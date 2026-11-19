@@ -2355,7 +2355,7 @@ impl Whitebit {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut markets: crate::value::List = self.v4_public_get_markets(&[]).await.into_list();
+        let mut markets: crate::value::List = self.call_method_lt("v4_public_get_markets", &[]).await;
         return self.parse_markets(&markets);
         Value::Null
         }).await?))
@@ -3204,7 +3204,7 @@ impl Whitebit {
         if checkActive {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let __ws_arg_1 = self.extend(&request, &[&paramsOmitted]);
-                let mut response: crate::value::List = self.v4_private_post_orders(&[__ws_arg_1]).await.into_list();
+                let mut response: crate::value::List = self.call_method_lt("v4_private_post_orders", &[__ws_arg_1]).await;
                 // Search for order in active orders response (array format)
                 let mut orders: crate::value::List = self.to_array_t(&response);
                 {
@@ -3502,7 +3502,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.v4_public_get_trades_market(&[__ws_arg_4]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_public_get_trades_market", &[__ws_arg_4]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -3710,7 +3710,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.v4_public_get_ping(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_public_get_ping", &[params]).await;
         //
         //      [
         //          "pong"
@@ -4148,7 +4148,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         request.insert("type".into(), Value::Arr(requestType));
         let __ws_arg_18 = self.extend(Value::Map(request), &[&requestParams]);
-        let mut response: crate::value::List = self.v4_private_post_order_cancel_all(&[__ws_arg_18]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_private_post_order_cancel_all", &[__ws_arg_18]).await;
         return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null
         }).await?))
@@ -4328,7 +4328,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.v4_private_post_orders(&[__ws_arg_20]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_private_post_orders", &[__ws_arg_20]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
@@ -5264,7 +5264,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.v4_private_post_collateral_account_positions_open(&[__ws_arg_34]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_private_post_collateral_account_positions_open", &[__ws_arg_34]).await;
         //
         //     [
         //         {
@@ -5828,7 +5828,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_40 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.v4_private_post_collateral_account_positions_history(&[__ws_arg_40]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_private_post_collateral_account_positions_history", &[__ws_arg_40]).await;
         //
         //     [
         //         {
@@ -5882,7 +5882,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.v4_private_post_collateral_account_positions_open(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_private_post_collateral_account_positions_open", &[params]).await;
         return self.parse_positions(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -5918,7 +5918,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.v4_private_post_collateral_account_positions_open(&[__ws_arg_41]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_private_post_collateral_account_positions_open", &[__ws_arg_41]).await;
         //
         //     [
         //         {
@@ -6008,7 +6008,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             std::sync::Arc::make_mut(&mut requestUntil).insert("limit".into(), limit.clone());
         }
         let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.v4_public_get_funding_history_market(&[__ws_arg_42]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("v4_public_get_funding_history_market", &[__ws_arg_42]).await;
         return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))

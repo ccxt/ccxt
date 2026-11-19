@@ -161,7 +161,7 @@ impl crate::exchange::DerivedExchange for Opinion {
         m.insert("outcome".to_string(), self.safe_string_k(&marketAny, "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string2(&marketAny, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(&marketAny, "label", &[]));
-        m.insert("market".to_string(), self.safe_string2(marketAny, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
+        m.insert("market".to_string(), self.safe_string2(&marketAny, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("type".to_string(), tradingMethodEnum.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), sideEnum.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_number_k(&order, "price", &[]));
@@ -207,7 +207,7 @@ impl crate::exchange::DerivedExchange for Opinion {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "opinion")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
@@ -1328,7 +1328,7 @@ impl Opinion {
         m.insert("outcome".to_string(), self.safe_string_k(&marketAny, "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string2(&marketAny, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(&marketAny, "label", &[]));
-        m.insert("market".to_string(), self.safe_string2(marketAny, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
+        m.insert("market".to_string(), self.safe_string2(&marketAny, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), Value::Null);
@@ -2183,7 +2183,7 @@ impl Opinion {
             let mut marketId: Option<i64> = self.safe_integer_k(&trade, "marketId", &[]).as_i64();
             if (tokenId.is_none()) && (marketId.is_some()) {
                 let mut tradeMarket: Value = self.load_trade_market(Value::from(marketId)).await;
-                let mut info: crate::value::Dict = self.safe_dict_k_t(tradeMarket, "info");
+                let mut info: crate::value::Dict = self.safe_dict_k_t(&tradeMarket, "info");
                 let mut isYes: bool = self.safe_string_lower_k(&trade, "outcomeSideEnum", &[]).as_str() == Some("yes");
                 if let Some(__d) = &mut trade { std::sync::Arc::make_mut(__d).insert("tokenId".into(), (if isYes { self.safe_string_k(&info, "yesTokenId", &[]) } else { self.safe_string_k(&info, "noTokenId", &[]) })); }
             }
@@ -2861,7 +2861,7 @@ if _try_result.is_err() {
     m
 })]).as_map().cloned().unwrap_or_default();
         cachedTickers.insert(sym.as_deref().unwrap_or("null").to_string(), ticker.clone());
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
         client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker::", sym.as_deref().unwrap_or("null")).into())));
 }
 

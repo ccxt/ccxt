@@ -1157,7 +1157,7 @@ impl Blockchaincom {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut tickers: crate::value::List = self.public_get_tickers(&[params]).await.into_list();
+        let mut tickers: crate::value::List = self.call_method_lt("public_get_tickers", &[params]).await;
         return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
         }).await?))
@@ -1509,7 +1509,7 @@ impl Blockchaincom {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_6]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_orders", &[__ws_arg_6]).await;
         return self.parse_orders(&response, market.as_ref(), &[Value::from(since), Value::from(limit)]);
 
     Value::Null
@@ -1556,7 +1556,7 @@ impl Blockchaincom {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let mut trades: crate::value::List = self.private_get_fills(&[__ws_arg_7]).await.into_list();
+        let mut trades: crate::value::List = self.call_method_lt("private_get_fills", &[__ws_arg_7]).await;
         return self.parse_trades(&trades, market.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
@@ -1712,7 +1712,7 @@ impl Blockchaincom {
             currency = Some(self.currency(code));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_withdrawals(&[__ws_arg_10]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_withdrawals", &[__ws_arg_10]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -1787,7 +1787,7 @@ impl Blockchaincom {
             currency = Some(self.currency(code));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_deposits(&[__ws_arg_12]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_deposits", &[__ws_arg_12]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

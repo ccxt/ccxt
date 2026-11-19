@@ -1474,7 +1474,7 @@ impl Bitvavo {
                 }  else if (subscription != Value::Null) {
                     // multi-symbol watches share one subscription object without a
                     // per-market method - initialize the order book directly
-                    let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
+                    let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                     { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -2223,7 +2223,7 @@ impl Apex {
         }
         }
         let mut tokenId: String = self.safe_string_k(&currency, "tokenId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut decimalsNum: Option<f64> = self.safe_number_k(currency, "decimals", &[Value::Int(0)]).as_f64();
+        let mut decimalsNum: Option<f64> = self.safe_number_k(&currency, "decimals", &[Value::Int(0)]).as_f64();
         let mut decimalsNumber: f64 = decimalsNum.unwrap_or(0.0);
         let mut mathPowResult: f64 = f64::powf(10.0, decimalsNumber);
         let mut amountNum: Option<f64> = self.parse_number(amount.clone(), &[]).as_f64();

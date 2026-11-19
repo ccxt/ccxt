@@ -3042,7 +3042,7 @@ impl Derive {
                 continue;
             }
             let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_trade(self, &rawTrade, market).into_dict();
-            let mut trade: crate::value::Dict = self.extend_t(parsed, &[params.clone()]);
+            let mut trade: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
@@ -3445,7 +3445,7 @@ impl Derive {
         if (maxFeeString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a max_fee argument in params")));
         }
-        let mut paramsMaxFee: crate::value::Dict = self.safe_dict_t(maxFeeOptionAndParams, Value::Int(1));
+        let mut paramsMaxFee: crate::value::Dict = self.safe_dict_t(&maxFeeOptionAndParams, Value::Int(1));
         let mut amountString: Option<String> = self.number_to_string(amount);
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5750,7 +5750,7 @@ impl Derive {
             let mut subaccountIdInt: Option<i64> = self.parse_to_int(derivesubAccountId);
             if !(self.options.contains_key("subaccount_id")) {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-                { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), Value::from(subaccountIdInt)); }
+                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), Value::from(subaccountIdInt)); }
             }
             return Value::from(vec![Value::from(subaccountIdInt), self.extend(&paramsSubaccountId, &[])]);
         }
@@ -5769,7 +5769,7 @@ impl Derive {
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.0.as_str().map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.1;
         if (deriveWalletAddress.is_some()) && (deriveWalletAddress.as_deref() != Some("")) {
-            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
             return Value::from(vec![deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.extend(&paramsDeriveWalletAddress, &[])]);
         }
         let mut optionsWallet: Option<String> = self.safe_string_k_opt(&self.options, "deriveWalletAddress", &[]);

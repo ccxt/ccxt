@@ -3418,7 +3418,7 @@ impl Xt {
         let mut chainsData: crate::value::List = self.safe_list_k_t(&chainsResponse, "result");
         let mut currenciesResult: crate::value::Dict = self.safe_dict_k_t(&currenciesResponse, "result");
         let mut currenciesData: crate::value::List = self.safe_list_k_t(&currenciesResult, "currencies");
-        let mut chainsDataIndexed: crate::value::Dict = self.index_by(Value::Arr(chainsData), Value::Str("currency".into())).into_dict();
+        let mut chainsDataIndexed: crate::value::Dict = self.index_by(Value::Arr(chainsData), Value::Str("currency".into()));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

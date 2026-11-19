@@ -300,7 +300,7 @@ impl Hyperliquid {
         let mut request: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &request, (&requestId).as_deref(), Value::Null).await;
-        let mut responseOjb: crate::value::Dict = self.safe_dict_k_t(response, "response");
+        let mut responseOjb: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&responseOjb, "data");
         let mut statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
         return self.parse_orders(&statuses, None, &[]);
@@ -413,7 +413,7 @@ impl Hyperliquid {
         let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &request, (&requestId).as_deref(), Value::Null).await;
         // response is the same as in this.editOrder
-        let mut responseObject: crate::value::Dict = self.safe_dict_k_t(response, "response");
+        let mut responseObject: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let mut dataObject: crate::value::Dict = self.safe_dict_k_t(&responseObject, "data");
         let mut statuses: crate::value::List = self.safe_list_k_t(&dataObject, "statuses");
         let mut first: crate::value::Dict = self.safe_dict_t(&statuses, Value::Int(0));
@@ -457,7 +457,7 @@ impl Hyperliquid {
         let mut wsRequest: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
-        let mut responseObj: crate::value::Dict = self.safe_dict_k_t(response, "response");
+        let mut responseObj: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&responseObj, "data");
         let mut statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
         let mut orders: Vec<Value> = Vec::new();
@@ -1890,7 +1890,7 @@ impl Hyperliquid {
             let mut clearinghouseState: Value = self.safe_dict_k(&data, "clearinghouseState", &[]);
             std::sync::Arc::make_mut(&mut rawBalances).push(clearinghouseState.clone());
             info = clearinghouseState.clone();
-            timestamp = self.safe_integer_k(clearinghouseState, "time", &[]).as_i64();
+            timestamp = self.safe_integer_k(&clearinghouseState, "time", &[]).as_i64();
             self.handle_positions(client, message);
         }
         {

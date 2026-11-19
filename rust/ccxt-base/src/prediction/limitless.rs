@@ -439,7 +439,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("outcome".to_string(), tradeOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), self.safe_string_k(trade, "asset", &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcome, "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(outcome, "market", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcome, "market", &[]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), Value::from(side));
@@ -594,7 +594,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         }  else if (timeInForce.as_deref() == Some("FAK")) {
             type_var = Some("market".to_string());
         }
-        let mut rawStatus: Option<String> = self.safe_string_k_opt(rawOrder, "status", &[]);
+        let mut rawStatus: Option<String> = self.safe_string_k_opt(&rawOrder, "status", &[]);
         let mut execution: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "execution");
         let mut fee: Option<crate::value::Dict> = None;
         let mut filled: Option<String> = None;
@@ -711,7 +711,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
@@ -1430,7 +1430,7 @@ impl Limitless {
                     if (matches!(&response, Value::Arr(_))) {
                         responseRows = response.clone();
                     }
-                    let mut page_markets: crate::value::List = self.safe_list_k_or(response, "data", responseRows);
+                    let mut page_markets: crate::value::List = self.safe_list_k_or(&response, "data", responseRows);
                     let mut pageMarketsLength: i64 = page_markets.len() as i64;
                     if (pageMarketsLength == 0) {
                         break;
@@ -2123,9 +2123,9 @@ impl Limitless {
             let mut yesBestBid: Value = (if (rawBidsLength > 0) { rawBids.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut yesBestAsk: Value = (if (rawAsksLength > 0) { rawAsks.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut yesBidPrice: Option<String> = self.safe_string_k_opt(&yesBestBid, "price", &[]);
-            let mut yesBidSize: Option<String> = self.safe_string_k_opt(yesBestBid, "size", &[]);
+            let mut yesBidSize: Option<String> = self.safe_string_k_opt(&yesBestBid, "size", &[]);
             let mut yesAskPrice: Option<String> = self.safe_string_k_opt(&yesBestAsk, "price", &[]);
-            let mut yesAskSize: Option<String> = self.safe_string_k_opt(yesBestAsk, "size", &[]);
+            let mut yesAskSize: Option<String> = self.safe_string_k_opt(&yesBestAsk, "size", &[]);
             let mut yesLast: Option<String> = self.safe_string_k_opt(&book, "lastTradePrice", &[]);
             let mut yesMid: Option<String> = self.safe_string_k_opt(&book, "midpoint", &[]);
             if isYes {
@@ -2162,7 +2162,7 @@ impl Limitless {
             }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
-        let mut rawVolume: Option<String> = self.safe_string_k_opt(raw, "volume", &[]);
+        let mut rawVolume: Option<String> = self.safe_string_k_opt(&raw, "volume", &[]);
         let mut volumeStr: Option<String> = None;
         if (rawVolume.is_some()) {
             volumeStr = crate::precise::Precise::stringDiv(&rawVolume, &Value::Str("1000000".into())).as_str().map(str::to_owned);
@@ -2738,7 +2738,7 @@ impl Limitless {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("limitless_private_get_markets_slug_user_orders", &[__ws_arg_22]).await;
         return self.parse_prediction_orders(self.to_array(&response), &[Value::Null, since, limit]);
         Value::Null
         }).await?))
@@ -3151,7 +3151,7 @@ impl Limitless {
         let mut accounts: Value = self.load_accounts(&[]).await;
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome.clone());
-        let mut account: crate::value::Dict = self.safe_dict_t(accounts, Value::Int(0));
+        let mut account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(0));
         let mut accountInfo: crate::value::Dict = self.safe_dict_k_t(&account, "info");
         // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
         // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
@@ -4295,7 +4295,7 @@ if _try_result.is_err() {
 }));
         let __tags_empty = Vec::new();
         let tags = tags.as_array().unwrap_or(&__tags_empty);
-        let mut categoriesResponse: Option<crate::value::List> = self.limitless_public_get_categories(&[]).await.into_opt_list();
+        let mut categoriesResponse: Option<crate::value::List> = self.call_method_lo("limitless_public_get_categories", &[]).await;
         let mut categories: crate::value::List = std::sync::Arc::new(Vec::new());
         if (categoriesResponse.is_some()) {
             categories = categoriesResponse.unwrap_or_default();

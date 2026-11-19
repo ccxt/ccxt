@@ -467,7 +467,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut quoteInUsd: bool = self.safe_bool_opt(currenciesValuedInUsd, quote.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).unwrap_or(false);
+        let mut quoteInUsd: bool = self.safe_bool_opt(&currenciesValuedInUsd, quote.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).unwrap_or(false);
         if quoteInUsd {
             let mut settings: crate::value::Dict = self.safe_dict_k_t(&market, "settings");
             minCost = self.safe_number_k(&settings, "limit_usd", &[]).as_f64();
@@ -1735,7 +1735,7 @@ impl Bitteam {
         //         },
         //     }
         //
-        statusesResponse = self.index_by(statusesResponse, Value::Str("unified_cryptoasset_id".into()));
+        statusesResponse = Value::Dict(self.index_by(statusesResponse, Value::Str("unified_cryptoasset_id".into())));
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("_temp_currencies_statuses".into(), statusesResponse); }
         let mut result: crate::value::Dict = self.parse_currencies(&currencies).into_dict();
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_statuses"); }
@@ -2447,7 +2447,7 @@ impl Bitteam {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Option<crate::value::List> = self.public_get_trade_api_cmc_summary(&[]).await.into_opt_list();
+        let mut response: Option<crate::value::List> = self.call_method_lo("public_get_trade_api_cmc_summary", &[]).await;
         //
         //     [
         //         {
@@ -2754,7 +2754,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[__ws_arg_11]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_trade_api_cmc_trades_pair", &[__ws_arg_11]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

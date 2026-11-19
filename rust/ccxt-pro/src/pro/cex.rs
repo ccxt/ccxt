@@ -354,7 +354,12 @@ impl Cex {
         if (currentSymbol.is_some()) && (currentSymbol.as_deref() != Some(symbol.as_str().unwrap_or_default().to_string().as_str())) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")));
         }
-        { let __rda = &mut self.options; if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("watchTrades".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("symbol".to_string(), symbol.clone()); } }
+        let mut watchTradesDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "watchTrades", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        watchTradesDict.insert("symbol".into(), symbol.clone());
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("watchTrades".into(), Value::Map(watchTradesDict)); }
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -577,7 +582,7 @@ impl Cex {
                 m.insert("rooms".to_string(), Value::from(vec![Value::Str("tickers".into())]));
             m
         });
-        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(message), &[params.clone()]);
+        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(message), &[&params]);
         let mut ticker: Value = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (symbolsNormalized != Value::Null) && !self.in_array(&tickerSymbol, symbolsNormalized.clone()) {
@@ -1448,7 +1453,7 @@ impl Cex {
         let mut pair: Value = pair.into();
         let mut parts: Value = split(&pair, &Value::Str(":".into()));
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
-        let mut quoteId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
+        let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -1796,7 +1801,7 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.as_deref()), Value::from((market).quote_id.as_deref())]));
             m
-        }), &[params.clone()]);
+        }), &[&params]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("open-orders".into()));
@@ -2019,7 +2024,7 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("cancel-orders".to_string(), ids);
             m
-        }), &[params.clone()]);
+        }), &[&params]);
         let mut url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2039,7 +2044,7 @@ impl Cex {
         //        "placed-cancelled": []
         //    }
         //
-        let mut canceledOrders: Option<crate::value::List> = self.safe_list_k_o(response, "cancel-orders");
+        let mut canceledOrders: Option<crate::value::List> = self.safe_list_k_o(&response, "cancel-orders");
         return self.parse_orders(&canceledOrders, None, &[Value::Null, Value::Null, params]);
         Value::Null
         }).await?))

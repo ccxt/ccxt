@@ -315,7 +315,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         let mut status: Option<String> = self.safe_string_k_opt(&market, "status", &[]);
         let mut active: bool = status.as_deref() == Some("TRADING");
         let mut filters: crate::value::List = self.safe_list_k_t(&market, "filters");
-        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
+        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into()));
         let mut priceFilter: crate::value::Dict = self.safe_dict_k_t(&filtersByType, "PRICE_FILTER");
         let mut lotSizeFilter: crate::value::Dict = self.safe_dict_k_t(&filtersByType, "LOT_SIZE");
         let mut minNotionalFilter: crate::value::Dict = self.safe_dict_k_t(&filtersByType, "MIN_NOTIONAL");
@@ -2449,7 +2449,7 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.common_get_quote_v1_trades(&[__ws_arg_1]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("common_get_quote_v1_trades", &[__ws_arg_1]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2524,9 +2524,9 @@ impl Toobit {
             }
         }  else if (since != Value::Null) && (limit != Value::Null) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-            request.insert("endTime".into(), crate::runtime::Math::min(&(match (&(Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = limit.as_i64() { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None }))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x),
-                Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(self.milliseconds())));
+            let mut durationMs: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request.insert("endTime".into(), Value::from((if let Some(__m0) = ((if let (Some(__l), Some(__r)) = (since.as_i64(), ((if let Some(__r) = ((if let Some(__r) = limit.as_i64() { Some(durationMs * __r) } else { None })) { Some(1 - __r) } else { None }))) { Some(__l - __r) } else { None })) { Some(i64::min(__m0, (self.milliseconds()))) } else { None })));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -2547,7 +2547,7 @@ impl Toobit {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.into_list();
         }  else {
-            candles = self.safe_list_k_t(response, "data");
+            candles = self.safe_list_k_t(&response, "data");
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -2601,10 +2601,10 @@ impl Toobit {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("spot")) {
             let __ws_arg_5 = self.extend(&request, &[&paramsMarketType]);
-            response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await.into_list();
+            response = self.call_method_lt("common_get_quote_v1_ticker24hr", &[__ws_arg_5]).await;
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.common_get_quote_v1_contract_ticker24hr(&[__ws_arg_6]).await.into_list();
+            response = self.call_method_lt("common_get_quote_v1_contract_ticker24hr", &[__ws_arg_6]).await;
         }
         //
         //    [
@@ -2677,7 +2677,7 @@ impl Toobit {
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.common_get_quote_v1_ticker_price(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("common_get_quote_v1_ticker_price", &[__ws_arg_7]).await;
         return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2721,7 +2721,7 @@ impl Toobit {
             }
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.common_get_quote_v1_ticker_book_ticker(&[__ws_arg_8]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("common_get_quote_v1_ticker_book_ticker", &[__ws_arg_8]).await;
         return self.parse_bids_asks_custom(&response, symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2741,7 +2741,7 @@ impl Toobit {
             let mut __for_first_1136: bool = true;
             while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (tickers.len() as i64) } {
             let mut parsedTicker: crate::value::Dict = self.parse_bid_ask_custom(tickers.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
-            let mut ticker: crate::value::Dict = self.extend_t(parsedTicker, &[params.clone()]);
+            let mut ticker: crate::value::Dict = self.extend_t(parsedTicker, &[&params]);
             results.push(Value::Dict(ticker));
         }
         }
@@ -2809,7 +2809,7 @@ impl Toobit {
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.common_get_api_v1_futures_funding_rate(&[__ws_arg_9]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("common_get_api_v1_futures_funding_rate", &[__ws_arg_9]).await;
         return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -2864,7 +2864,7 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let mut response: crate::value::List = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("common_get_api_v1_futures_history_funding_rate", &[__ws_arg_10]).await;
         return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
@@ -3438,10 +3438,10 @@ impl Toobit {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_21 = self.extend(&request, &[&paramsMarketType]);
-            response = self.private_get_api_v1_spot_open_orders(&[__ws_arg_21]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_spot_open_orders", &[__ws_arg_21]).await;
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_open_orders(&[__ws_arg_22]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_futures_open_orders", &[__ws_arg_22]).await;
         }
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -3496,7 +3496,7 @@ impl Toobit {
         let mut marketType: Option<String> = self.handle_market_type_and_params(Value::Str("fetchOrders".into()), market.as_ref(), &[Value::from(&paramsUntil)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
-            response = self.private_get_api_v1_spot_trade_orders(&[Value::Dict(requestUntil)]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_spot_trade_orders", &[Value::Dict(requestUntil)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrders() is not supported for ").into()), marketType.as_deref().unwrap_or("null")).into()), " markets")));
         }
@@ -3629,9 +3629,9 @@ impl Toobit {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_23 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_account_trades", &[__ws_arg_23]).await;
         }  else {
-            response = self.private_get_api_v1_futures_user_trades(&[Value::Dict(requestUntil)]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_futures_user_trades", &[Value::Dict(requestUntil)]).await;
         }
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
@@ -3740,10 +3740,10 @@ impl Toobit {
         let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_25 = self.extend(&requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await.into_opt_list();
+            response = self.call_method_lo("private_get_api_v1_account_balance_flow", &[__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_balance_flow(&[__ws_arg_26]).await.into_opt_list();
+            response = self.call_method_lo("private_get_api_v1_futures_balance_flow", &[__ws_arg_26]).await;
         }
         return self.parse_ledger(&response, currency.as_ref(), &[since, limit]);
         Value::Null
@@ -3930,10 +3930,10 @@ impl Toobit {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var == Some("deposits")) {
             let __ws_arg_28 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_deposit_orders(&[__ws_arg_28]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_account_deposit_orders", &[__ws_arg_28]).await;
         }  else if (type_var == Some("withdrawals")) {
             let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_withdraw_orders(&[__ws_arg_29]).await.into_list();
+            response = self.call_method_lt("private_get_api_v1_account_withdraw_orders", &[__ws_arg_29]).await;
         }
         let mut transactType: String = (if (type_var == Some("deposits")) { "deposit".to_string() } else { "withdrawal".to_string() });
         let mut results: Vec<Value> = Vec::new();
@@ -4223,7 +4223,7 @@ impl Toobit {
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_api_v1_futures_account_leverage(&[__ws_arg_36]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_api_v1_futures_account_leverage", &[__ws_arg_36]).await;
         //
         // [
         //     {
@@ -4280,7 +4280,7 @@ impl Toobit {
             }
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_api_v1_futures_positions(&[__ws_arg_37]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_api_v1_futures_positions", &[__ws_arg_37]).await;
         return self.parse_positions(&response, &[symbols]);
         Value::Null
         }).await?))

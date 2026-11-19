@@ -1738,7 +1738,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut action: Option<String> = self.safe_string_k_opt(&data, "A", &[]); // 1 = subscribe, 0 = unsubscribe
         if (action.as_deref() == Some("0")) {
-            let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+            let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
             let mut subId: Option<i64> = self.safe_integer_k(&data, "L", &[]).as_i64();
             let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, subId); // original watch subscription
             let mut subHash: String = self.safe_string_k(&subscription, "subHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1784,7 +1784,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut requestId: Option<i64> = self.safe_integer_k(&data, "L", &[]).as_i64();
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, requestId);
         let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "subHash", &[]);
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message));

@@ -879,7 +879,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
     {
         Box::pin(async move {
             match method {
-                "add_pagination_cursor_to_result" => self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "add_pagination_cursor_to_result" => Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "approve_builder_code" => self.approve_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "batch_orders_request" => self.batch_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "bind_agent_wallet" => self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
@@ -2211,7 +2211,7 @@ if _try_result.is_err() {
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
             settings = self.fetch_account_settings(&[__ws_arg_1]).await;
         }
-        let mut setting: Option<crate::value::Dict> = self.safe_dict_o(settings, symbol.clone());
+        let mut setting: Option<crate::value::Dict> = self.safe_dict_o(&settings, symbol.clone());
         if (setting.is_none()) {
             return self.parse_leverage_from_market(Some(&market));
         }  else {
@@ -2389,7 +2389,7 @@ if _try_result.is_err() {
         //       "updated_at": 1758086074002
         //    },
         // }
-        let mut setting: Option<crate::value::Dict> = self.safe_dict_o(settings, symbol.clone());
+        let mut setting: Option<crate::value::Dict> = self.safe_dict_o(&settings, symbol.clone());
         if (setting.is_none()) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2810,7 +2810,7 @@ if _try_result.is_err() {
         //   "has_more": true   // not included to info!
         // }
         //
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response);
         return self.parse_trades(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3665,7 +3665,7 @@ if _try_result.is_err() {
         //   "has_more": true
         // }
         //
-        let mut data: Vec<Value> = self.add_pagination_cursor_to_result(&response).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = std::sync::Arc::unwrap_or_clone(self.add_pagination_cursor_to_result(&response));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4020,13 +4020,13 @@ if _try_result.is_err() {
         //   "has_more": true
         // }
         //
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response);
         return self.parse_orders(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn add_pagination_cursor_to_result(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn add_pagination_cursor_to_result(&self, response: impl Into<crate::Value>) -> crate::value::List {
         let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
@@ -4042,9 +4042,9 @@ if _try_result.is_err() {
                 std::sync::Arc::make_mut(&mut data)[0] = Value::from(first.map_or(Value::Null, Value::Dict));
             }
         }
-        return Value::Arr(data);
+        return data;
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -4720,7 +4720,7 @@ if _try_result.is_err() {
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response);
         return self.parse_ledger(&data, None, &[since, limit]);
         Value::Null
         }).await?))
@@ -4914,7 +4914,7 @@ if _try_result.is_err() {
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response);
         return self.parse_incomes(&data, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))

@@ -2779,7 +2779,7 @@ impl Bitso {
         //         ]
         //     }
         //
-        let mut payload: crate::value::List = self.safe_list_k_t(response, "payload");
+        let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         let mut first: Option<crate::value::Dict> = self.safe_dict_o(&payload, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, Some(&currency));
         Value::Null

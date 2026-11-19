@@ -794,7 +794,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), Value::Bool(type_var.as_deref() == Some("post")));
         m.insert("reduceOnly".to_string(), self.safe_bool2(&details, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
-        m.insert("side".to_string(), self.safe_string_lower2(details, Value::Str("side".into()), Value::Str("direction".into()), &[]));
+        m.insert("side".to_string(), self.safe_string_lower2(&details, Value::Str("side".into()), Value::Str("direction".into()), &[]));
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
@@ -3251,7 +3251,7 @@ impl Krakenfutures {
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[&params]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if !(extendedParams.contains_key("order_tag")) {
                 // order tag is mandatory so we will generate one if not provided
                 std::sync::Arc::make_mut(&mut extendedParams).insert("order_tag".into(), Value::from(self.number_to_string(Value::Int((i + 1))))); // sequential counter
@@ -4452,7 +4452,7 @@ impl Krakenfutures {
             fundingRates.push(Value::Dict(parsed));
         }
         }
-        return self.index_by(Value::from(fundingRates), Value::Str("symbol".into()));
+        return Value::Dict(self.index_by(Value::from(fundingRates), Value::Str("symbol".into())));
         Value::Null
         }).await?))
     }

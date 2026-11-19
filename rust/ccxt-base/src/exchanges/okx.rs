@@ -620,13 +620,13 @@ impl crate::exchange::DerivedExchange for Okx {
         if (underlying.is_some()) && !spot {
             let mut parts: Value = Value::Array(if let Some(__s) = underlying.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            quoteId = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            quoteId = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
         if ((baseId == "") || (quoteId == "")) && spot {
             let mut instId: String = self.safe_string_k(&market, "instId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut parts: Value = Value::Array(instId.split("-").map(Value::from).collect());
             baseId = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            quoteId = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            quoteId = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
         let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.clone()), None);
         let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), None);
@@ -1061,7 +1061,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let mut code: Option<String> = crate::value::KeyRead::key_read(&&currencyResolved, "code").as_str().map(str::to_owned);
         let mut chain: Option<String> = self.safe_string_k_opt(&depositAddress, "chain", &[]);
         let mut networks: crate::value::Dict = self.safe_dict_k_t(&currencyResolved, "networks");
-        let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into())).into_dict();
+        let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into()));
         let mut networkData: Option<crate::value::Dict> = (if (chain.is_none()) { Value::Null } else { self.safe_dict(&networksById, chain.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
@@ -7650,7 +7650,7 @@ impl Okx {
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[&params]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), Some(type_var.as_str()), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(extendedParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
@@ -7929,7 +7929,7 @@ impl Okx {
             let mut side: String = self.safe_string_k(&rawOrder, "side", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
-            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[params.clone()]); // the request body is a list, so common params are merged into each order
+            let mut extendedParams: crate::value::Dict = self.extend_t(orderParams, &[&params]); // the request body is a list, so common params are merged into each order
             let mut orderRequest: crate::value::Dict = self.edit_order_request(id.as_deref(), symbol.as_deref(), type_var.as_str(), side.as_str(), &[Value::from(amount), Value::from(price), Value::Dict(extendedParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
@@ -9426,7 +9426,7 @@ impl Okx {
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut filtered: Value = self.filter_by(Value::Arr(data), Value::Str("selected".into()), Value::Bool(true), &[]);
         let mut parsed: Value = self.parse_deposit_addresses(filtered, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]);
-        return self.index_by(parsed, Value::Str("network".into()));
+        return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -9475,7 +9475,7 @@ impl Okx {
         // if the network is not specified, return the first address
         let mut keys: crate::value::List = crate::value::List::new(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut first: String = self.safe_string(&keys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        return self.safe_dict(response, Value::from(first), &[]);
+        return self.safe_dict(&response, Value::from(first), &[]);
         Value::Null
         }).await?))
     }
@@ -10842,7 +10842,7 @@ impl Okx {
                 let mut accountIds: crate::value::List = self.get_list_from_object_values(accounts.clone(), Value::Str("id".into())).into_list();
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ").into()), Value::Str(accountIds.iter().map(crate::runtime::stringify_param).collect::<Vec<String>>().join(", ").into()))));
             }  else {
-                let mut accountsById: crate::value::Dict = self.index_by(accounts.clone(), Value::Str("id".into())).into_dict();
+                let mut accountsById: crate::value::Dict = self.index_by(accounts.clone(), Value::Str("id".into()));
                 selectedAccount = self.safe_dict(&accountsById, accountId.map(Value::from).unwrap_or(Value::Null), &[]);
             }
         }  else {
@@ -12126,7 +12126,7 @@ impl Okx {
                 }
                 let mut chainSplit: crate::value::List = crate::value::List::new(if let Some(__s) = chain.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let mut networkId: Option<String> = self.safe_string_opt(&chainSplit, Value::Int(1), &[]);
-                let mut withdrawFee: Option<f64> = self.safe_number_k(feeInfo, "fee", &[]).as_f64();
+                let mut withdrawFee: Option<f64> = self.safe_number_k(&feeInfo, "fee", &[]).as_f64();
                 let mut withdrawResult: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("fee".to_string(), Value::from(withdrawFee));

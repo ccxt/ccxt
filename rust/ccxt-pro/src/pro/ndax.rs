@@ -520,7 +520,7 @@ impl Ndax {
                             low = previousLow;
                         }
                     }
-                    stored.append(Value::from(vec![Value::from(candleTimestamp), self.safe_float(&previous, Value::Int(1), &[]), Value::from(high), Value::from(low), self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
+                    stored.append(Value::from(vec![Value::from(candleTimestamp), self.safe_float(&previous, Value::Int(1), &[]), Value::from(high), Value::from(low), self.safe_float(&ohlcv, Value::Int(4), &[]), self.sum(&[self.safe_float(&ohlcv, Value::Int(5), &[]), self.safe_float(&previous, Value::Int(5), &[])])]));
                     if (marketId.is_some()) {
                         marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
@@ -785,7 +785,7 @@ impl Ndax {
         //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut id: Option<i64> = (match __pro_message.get("i") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id);
         if (subscription.is_some()) {

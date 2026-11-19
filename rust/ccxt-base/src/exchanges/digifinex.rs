@@ -4412,7 +4412,7 @@ impl Digifinex {
         //     }
         //
         let mut data: Value = self.safe_value_k(&response, "data", &[]);
-        let mut order: Value = (if (!isMargin && (marketType.as_deref() == Some("swap"))) { data.clone() } else { self.safe_value(data, Value::Int(0), &[]) });
+        let mut order: Value = (if (!isMargin && (marketType.as_deref() == Some("swap"))) { data.clone() } else { self.safe_value(&data, Value::Int(0), &[]) });
         if (order == Value::Null) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() order ").into()), idValue.as_deref().unwrap_or("null")).into()), " not found")));
         }
@@ -4726,7 +4726,7 @@ impl Digifinex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let mut addresses: crate::value::Dict = self.index_by(self.parse_deposit_addresses(&data, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]), Value::Str("currency".into())).into_dict();
+        let mut addresses: crate::value::Dict = self.index_by(self.parse_deposit_addresses(&data, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]), Value::Str("currency".into()));
         let mut address: Option<crate::value::Dict> = self.safe_dict_o(&addresses, code.clone());
         if (address.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() did not return an address for ").into()), code).into()), " - create the deposit address in the user settings on the exchange website first.")));

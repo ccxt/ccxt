@@ -1284,7 +1284,7 @@ impl Bitfinex {
             let mut currencyId: Option<String> = self.safe_string_opt(&rawBalance, Value::Int(1), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut balance: Value = self.parse_ws_balance(rawBalance.clone());
-            let mut balanceType: Option<String> = self.safe_string_opt(rawBalance, Value::Int(0), &[]);
+            let mut balanceType: Option<String> = self.safe_string_opt(&rawBalance, Value::Int(0), &[]);
             let mut oldBalance: indexmap::IndexMap<String, Value> = self.safe_dict(&self.balance, Value::from(balanceType.as_deref()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

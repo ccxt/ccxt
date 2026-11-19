@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
         if (accessLevel.as_deref() == Some("private")) && (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(path)).into()), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")));
         }
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
@@ -3198,16 +3198,16 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(__ws_arg_19, &[Value::Map(entry)]); { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(group)), __be_tmp); } }
+        { let __be_tmp = self.extend(__ws_arg_19, &[Value::Map(entry)]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(group)), __be_tmp); } }
 }
 
     pub fn request_id(&self, url: Option<&str>) -> i64 {
         let existing: bool = self.safe_value_k(&self.options, "requestId", &[]) != Value::Null;
         if (!existing) {
-            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
+            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
         }
         let mut options: Value = self.options.get("requestId").cloned().unwrap_or(Value::Null);
-        let mut previousValue: i64 = self.safe_integer(options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut previousValue: i64 = self.safe_integer(&options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         if (url.is_some()) {
             { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }

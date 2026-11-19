@@ -1264,7 +1264,7 @@ impl Krakenfutures {
     m
 })]));
                         client.resolve(orders.clone(), messageHash.as_str());
-                        client.resolve(orders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(currentOrder, "symbol", &[Value::Str("".into())])).into())));
+                        client.resolve(orders.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(&currentOrder, "symbol", &[Value::Str("".into())])).into())));
                         break;
                     }
                 }
@@ -1494,7 +1494,7 @@ impl Krakenfutures {
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), self.safe_string_k(&unparsedOrder, "filled", &[]));
-        m.insert("remaining".to_string(), self.safe_string_k(unparsedOrder, "qty", &[]));
+        m.insert("remaining".to_string(), self.safe_string_k(&unparsedOrder, "qty", &[]));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

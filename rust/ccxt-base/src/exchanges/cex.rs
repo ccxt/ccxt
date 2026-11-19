@@ -1260,7 +1260,7 @@ impl Cex {
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         let mut dataCurrencies: crate::value::List = self.safe_list_k_t(responses.get(0).cloned().unwrap_or(Value::Null), "data");
         let mut dataNetworks: crate::value::Dict = self.safe_dict_k_t(responses.get(1).cloned().unwrap_or(Value::Null), "data");
-        let mut currenciesIndexed: crate::value::Dict = self.index_by(Value::Arr(dataCurrencies), Value::Str("currency".into())).into_dict();
+        let mut currenciesIndexed: crate::value::Dict = self.index_by(Value::Arr(dataCurrencies), Value::Str("currency".into()));
         let mut data: crate::value::Dict = self.deep_extend_t(currenciesIndexed, &[&dataNetworks]);
         return self.parse_currencies(self.to_array(&data));
         Value::Null

@@ -466,7 +466,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut filters: crate::value::List = self.safe_list_k_t(&market, "filters");
-        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
+        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into()));
         let mut status: Option<String> = self.safe_string_k_opt(&market, "spotTradingEnable", &[]);
         let mut active: bool = status.as_deref() == Some("1");
         let mut permissions: crate::value::List = self.safe_list_k_t(&market, "permissions");
@@ -776,7 +776,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
                 m
-            }), &[params.clone()]);
+            }), &[&params]);
             if (defaultRecvWindow.is_some()) {
                 std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(defaultRecvWindow));
             }
@@ -873,7 +873,7 @@ if _try_result.is_err() {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
         }
         // checks against error codes
-        let mut error: Option<String> = self.safe_string_k_opt(responseParsed, "code", &[]);
+        let mut error: Option<String> = self.safe_string_k_opt(&responseParsed, "code", &[]);
         if (error.is_some()) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
@@ -2129,10 +2129,10 @@ impl Tokocrypto {
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request.insert("endTime".into(), self.sum(&[since.clone(), Value::Int(3600000)]));
             let __ws_arg_3 = self.extend(&request, &[&params]);
-            response = self.binance_get_agg_trades(&[__ws_arg_3]).await.into_opt_list();
+            response = self.call_method_lo("binance_get_agg_trades", &[__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.binance_get_trades(&[__ws_arg_4]).await.into_opt_list();
+            response = self.call_method_lo("binance_get_trades", &[__ws_arg_4]).await;
         }
         //
         // Caveats:
@@ -2311,7 +2311,7 @@ impl Tokocrypto {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.binance_get_ticker_book_ticker(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("binance_get_ticker_book_ticker", &[params]).await;
         return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
@@ -2428,7 +2428,7 @@ impl Tokocrypto {
             if (dataList.is_some()) {
                 data = dataList.unwrap_or_default();
             }  else {
-                let mut dataDict: crate::value::Dict = self.safe_dict_k_t(response, "data");
+                let mut dataDict: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                 data = self.safe_list_k_t(&dataDict, "list");
             }
         }
@@ -2696,7 +2696,7 @@ impl Tokocrypto {
                 let mut quoteAmount: Value = Value::Null;
                 let mut createMarketBuyOrderRequiresPrice: bool = true;
                 { let __destr_tmp = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.0 == Some(true); paramsRequest = Value::Dict(__destr_tmp.1); }
-                let mut cost: Option<f64> = self.safe_number2(paramsRequest.clone(), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
+                let mut cost: Option<f64> = self.safe_number2(&paramsRequest, Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
                 paramsRequest = self.omit(paramsRequest, &["cost", "quoteOrderQty"], &[]);
                 if (cost.is_some()) {
                     quoteAmount = Value::from(cost);

@@ -1029,13 +1029,13 @@ impl crate::exchange::DerivedExchange for Htx {
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
         if !(self.options.contains_key("networkNamesByChainIds")) {
-            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map({
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
         if !(self.options.contains_key("networkChainIdsByNames")) {
-            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map({
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -1068,14 +1068,19 @@ impl crate::exchange::DerivedExchange for Htx {
             while { if !__for_first_777 { j += 1; } __for_first_777 = false; j < (chains.len() as i64) } {
             let mut chainEntry: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut uniqueChainId: Option<String> = self.safe_string_k_opt(&chainEntry, "chain", &[]); // i.e. usdterc20, trc20usdt ...
-            let mut title: Value = self.safe_string2(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            if (code.is_some()) && (title != Value::Null) {
-                if let Value::Dict(__r05d) = get_value_mut(std::sync::Arc::make_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }).entry("networkChainIdsByNames".to_string()).or_insert(Value::Null), &Value::from(code.as_deref())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&title), uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null)); }
+            let mut title: Option<String> = self.safe_string2_opt(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            if (code.is_some()) && (title.is_some()) {
+                if let Value::Dict(__r05d) = get_value_mut(std::sync::Arc::make_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }).entry("networkChainIdsByNames".to_string()).or_insert(Value::Null), &Value::from(code.as_deref())) { std::sync::Arc::make_mut(__r05d).insert(title.as_deref().unwrap_or("null").to_string(), Value::from(uniqueChainId.as_deref())); }
             }
             if (uniqueChainId.is_some()) {
-                { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networkNamesByChainIds".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title); } }
+                let mut networkNamesByChainIdsDict3: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkNamesByChainIds", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                networkNamesByChainIdsDict3.insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title.map(Value::from).unwrap_or(Value::Null));
+                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map(networkNamesByChainIdsDict3)); }
             }
-            let mut networkCode: Option<String> = self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(uniqueChainId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1801,9 +1806,9 @@ impl crate::exchange::DerivedExchange for Htx {
             let mut hostname: Value = Value::Null;
             let mut hostnames: Value = self.safe_value(self.urls.get("hostnames").cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]);
             if !matches!(&hostnames, Value::Str(_)) {
-                hostnames = self.safe_value(hostnames, levelOneNestedPath.map(Value::from).unwrap_or(Value::Null), &[]);
+                hostnames = self.safe_value(&hostnames, levelOneNestedPath.map(Value::from).unwrap_or(Value::Null), &[]);
                 if (!matches!(&hostnames, Value::Str(_))) && (levelTwoNestedPath.is_some()) {
-                    hostnames = self.safe_value(hostnames, levelTwoNestedPath.map(Value::from).unwrap_or(Value::Null), &[]);
+                    hostnames = self.safe_value(&hostnames, levelTwoNestedPath.map(Value::from).unwrap_or(Value::Null), &[]);
                 }
             }
             hostname = hostnames;
@@ -5856,7 +5861,7 @@ impl Htx {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k_opt(&market, "symbol", &[]);
-                    quoteId = self.safe_string_lower_opt(parts, Value::Int(1), &[]);
+                    quoteId = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
                     if (inverse == Some(true)) {
                         settleId = baseId.clone();
                     }  else {
@@ -5874,7 +5879,7 @@ impl Htx {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " method() missing pair")));
                         }
                         let mut parts: Value = Value::Array(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                        quoteId = self.safe_string_lower_opt(parts, Value::Int(1), &[]);
+                        quoteId = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
                         settleId = quoteId.clone();
                     }
                 }
@@ -6058,7 +6063,7 @@ impl Htx {
         // - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
         // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if !(self.options.contains_key("futureMarketIdsForSymbols")) {
-            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("futureMarketIdsForSymbols".into(), Value::Map({
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("futureMarketIdsForSymbols".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -6093,7 +6098,7 @@ impl Htx {
             let mut marketBase: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketQuote: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketLinear: bool = self.safe_bool_k_opt(&market, "linear", &[Value::Bool(false)]).unwrap_or(false);
-            let mut marketSymbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+            let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // see comment on formats a bit above
             let mut constructedId: Option<String> = None;
             if marketLinear {
@@ -6102,13 +6107,23 @@ impl Htx {
                 constructedId = Some(format!("{}{}", Value::Str(format!("{}{}", marketBase, "_").into()), contractSuffix));
             }
             if (constructedId.as_deref() == Some(symbolOrMarketId.as_str().unwrap_or_default().to_string().as_str())) {
-                { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("futureMarketIdsForSymbols".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbolOrMarketId), marketSymbol.clone()); } }
-                return marketSymbol;
+                let mut futureMarketIdsForSymbolsDict1: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "futureMarketIdsForSymbols", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                futureMarketIdsForSymbolsDict1.insert(crate::runtime::stringify_param(&symbolOrMarketId), Value::from(marketSymbol.clone()));
+                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("futureMarketIdsForSymbols".into(), Value::Map(futureMarketIdsForSymbolsDict1)); }
+                return Value::from(marketSymbol);
             }
         }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("futureMarketIdsForSymbols".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbolOrMarketId), symbolOrMarketId.clone()); } }
+        let mut futureMarketIdsForSymbolsDict2: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "futureMarketIdsForSymbols", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        futureMarketIdsForSymbolsDict2.insert(crate::runtime::stringify_param(&symbolOrMarketId), symbolOrMarketId.clone());
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("futureMarketIdsForSymbols".into(), Value::Map(futureMarketIdsForSymbolsDict2)); }
         return symbolOrMarketId;
 
     Value::Null
@@ -7180,7 +7195,7 @@ impl Htx {
             }
         }
         }
-        let mut defaultAccount: crate::value::Dict = self.safe_dict_t(accounts, Value::Int(0));
+        let mut defaultAccount: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(0));
         return self.safe_string_k(&defaultAccount, "id", &[]);
 
     Value::Null
@@ -9086,16 +9101,16 @@ impl Htx {
             }
             request.insert("direction".into(), Value::from(side));
         }
-        let mut triggerPrice: Option<f64> = self.safe_number_n(query.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trigger_price".into())]), &[]).as_f64();
-        let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(query.clone(), Value::Str("stopLossPrice".into()), Value::Str("sl_trigger_price".into()), &[]).as_f64();
-        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(query.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tp_trigger_price".into()), &[]).as_f64();
-        let mut trailingPercent: Option<String> = self.safe_string2_opt(query.clone(), Value::Str("trailingPercent".into()), Value::Str("callback_rate".into()), &[]);
-        let mut trailingTriggerPrice: Value = self.safe_number_k(query.clone(), "trailingTriggerPrice", &[price.clone()]);
+        let mut triggerPrice: Option<f64> = self.safe_number_n(&query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("trigger_price".into())]), &[]).as_f64();
+        let mut stopLossTriggerPrice: Option<f64> = self.safe_number2(&query, Value::Str("stopLossPrice".into()), Value::Str("sl_trigger_price".into()), &[]).as_f64();
+        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number2(&query, Value::Str("takeProfitPrice".into()), Value::Str("tp_trigger_price".into()), &[]).as_f64();
+        let mut trailingPercent: Option<String> = self.safe_string2_opt(&query, Value::Str("trailingPercent".into()), Value::Str("callback_rate".into()), &[]);
+        let mut trailingTriggerPrice: Value = self.safe_number_k(&query, "trailingTriggerPrice", &[price.clone()]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrigger: bool = triggerPrice.is_some();
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut clientOrderId: Option<i64> = self.safe_integer_n(query.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]).as_i64();
+        let mut clientOrderId: Option<i64> = self.safe_integer_n(&query, Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]).as_i64();
         if isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (clientOrderId.is_some()) {
                 request.insert("algo_client_order_id".into(), Value::from(clientOrderId));
@@ -9110,7 +9125,7 @@ impl Htx {
                     request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
                 }
             }  else {
-                let mut triggerType: String = self.safe_string2(query.clone(), Value::Str("triggerType".into()), Value::Str("trigger_type".into()), &[Value::Str("le".into())]).as_str().unwrap_or("le").to_string();
+                let mut triggerType: String = self.safe_string2(&query, Value::Str("triggerType".into()), Value::Str("trigger_type".into()), &[Value::Str("le".into())]).as_str().unwrap_or("le").to_string();
                 request.insert("trigger_type".into(), Value::from(triggerType));
                 if (price != Value::Null) {
                     request.insert("order_price".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
@@ -9141,7 +9156,7 @@ impl Htx {
         }  else if isTrailingPercentOrder {
             let mut trailingPercentString: Option<String> = crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into())).as_str().map(str::to_owned);
             request.insert("callback_rate".into(), self.parse_to_numeric(trailingPercentString.map(Value::from).unwrap_or(Value::Null)));
-            request.insert("order_price_type".into(), self.safe_string_k(query.clone(), "order_price_type", &[Value::Str("formula_price".into())]));
+            request.insert("order_price_type".into(), self.safe_string_k(&query, "order_price_type", &[Value::Str("formula_price".into())]));
             request.insert("active_price".into(), trailingTriggerPrice);
             if isLinear {
                 request.insert("type".into(), Value::Str("trailing_stop".into()));
@@ -9169,7 +9184,7 @@ impl Htx {
                 if !isTrailingPercentOrder {
                     request.insert("order_price_type".into(), orderType.map(Value::from).unwrap_or(Value::Null));
                 }
-                request.insert("lever_rate".into(), self.safe_integer_n(query.clone(), Value::from(vec![Value::Str("leverRate".into()), Value::Str("lever_rate".into()), Value::Str("leverage".into())]), &[Value::Int(1)]));
+                request.insert("lever_rate".into(), self.safe_integer_n(&query, Value::from(vec![Value::Str("leverRate".into()), Value::Str("lever_rate".into()), Value::Str("leverage".into())]), &[Value::Int(1)]));
             }
         }
         let mut broker: crate::value::Dict = self.safe_dict_k_t(&self.options, "broker");
@@ -9415,7 +9430,7 @@ impl Htx {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            result = self.safe_dict_k_or_o(data, "tp_order", Value::Map({
+            result = self.safe_dict_k_or_o(&data, "tp_order", Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -10338,7 +10353,7 @@ impl Htx {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut parsed: Value = self.parse_deposit_addresses(&data, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]);
-        return self.index_by(parsed, Value::Str("network".into()));
+        return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -11104,7 +11119,7 @@ impl Htx {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), entry.clone());
                         m.insert("symbol".to_string(), symbolInner);
-                        m.insert("fundingRate".to_string(), self.safe_number_k(entry, "funding_rate", &[]));
+                        m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "funding_rate", &[]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                     m
@@ -11113,7 +11128,7 @@ impl Htx {
             }
         }  else {
             let mut cursor: Value = self.safe_value_k(&data, "current_page", &[]);
-            let mut result: crate::value::List = self.safe_list_k_t(data, "data");
+            let mut result: crate::value::List = self.safe_list_k_t(&data, "data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_791: bool = true;
@@ -11699,10 +11714,10 @@ impl Htx {
         if (marginModeOption.is_none()) || (marginModeOption.as_deref() == Some("cross")) {
             account = data.clone();
         }  else {
-            account = self.safe_dict(data, Value::Int(0), &[]);
+            account = self.safe_dict(&data, Value::Int(0), &[]);
         }
         let mut omitted: crate::value::Dict = self.omit_t(account.clone(), &["positions"], &[]);
-        let mut positions: crate::value::List = self.safe_list_k_t(account, "positions");
+        let mut positions: crate::value::List = self.safe_list_k_t(&account, "positions");
         let mut position: Value = Value::Null;
         if (market).future && ((market).inverse == Some(true)) {
             let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);

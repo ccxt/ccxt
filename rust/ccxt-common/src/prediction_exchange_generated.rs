@@ -379,7 +379,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 if matches!(&tag, Value::Str(_)) {
                     tagLabel = tag.clone();
                 }  else {
-                    tagLabel = self.safe_string2(tag, Value::Str("slug".into()), Value::Str("title".into()), &[]);
+                    tagLabel = self.safe_string2(&tag, Value::Str("slug".into()), Value::Str("title".into()), &[]);
                 }
                 if (tagLabel != Value::Null) {
                     let mut tagKey: Option<String> = self.normalize_tag_key(tagLabel).as_str().map(str::to_owned);
@@ -790,8 +790,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut copy: crate::value::Dict = self.extend_t(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[row.clone()]);
-            std::sync::Arc::make_mut(&mut copy).insert("symbol".into(), self.safe_string2(row, Value::Str("market".into()), Value::Str("symbol".into()), &[]));
+            }), &[&row]);
+            std::sync::Arc::make_mut(&mut copy).insert("symbol".into(), self.safe_string2(&row, Value::Str("market".into()), Value::Str("symbol".into()), &[]));
             aliased.push(Value::Dict(copy));
         }
         }
@@ -2350,7 +2350,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_214: bool = true;
             while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
-            let mut trade: crate::value::Dict = self.extend_t(parsed, &[params.clone()]);
+            let mut trade: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
         }
         }
@@ -2389,7 +2389,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_215: bool = true;
             while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
-            let mut order: crate::value::Dict = self.extend_t(parsed, &[params.clone()]);
+            let mut order: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
         }
         }
@@ -2425,7 +2425,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
-            let mut position: crate::value::Dict = self.extend_t(parsed, &[params.clone()]);
+            let mut position: crate::value::Dict = self.extend_t(parsed, &[&params]);
             results.push(Value::Dict(position));
         }
         }
@@ -2625,7 +2625,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (rpcError != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " rpc ").into()), method).into()), " error: ").into()), json_stringify(&rpcError))));
         }
-        return self.safe_value_k(response, "result", &[]);
+        return self.safe_value_k(&response, "result", &[]);
 
     Value::Null
 } }

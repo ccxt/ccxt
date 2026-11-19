@@ -1462,7 +1462,7 @@ impl Revolutx {
                 m
             });
         }
-        let mut data: crate::value::List = self.safe_list_k_t(payload, "data");
+        let mut data: crate::value::List = self.safe_list_k_t(&payload, "data");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1694,7 +1694,7 @@ impl Revolutx {
         let mut orderData: crate::value::Dict = (if (data.is_some()) { self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) } else { self.safe_dict_k(response, "data", &[Value::Map({
+})]) } else { self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) }).into_dict();

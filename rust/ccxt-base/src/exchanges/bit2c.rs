@@ -282,7 +282,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
             remaining = self.safe_string_k_opt(&orderUnified, "amount", &[]);
         }  else {
             amount = self.safe_string_k_opt(&orderUnified, "initialAmount", &[]);
-            remaining = self.safe_string_k_opt(orderUnified, "amount", &[]);
+            remaining = self.safe_string_k_opt(&orderUnified, "amount", &[]);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1462,7 +1462,7 @@ impl Bit2c {
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_order_order_history(&[__ws_arg_10]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_order_order_history", &[__ws_arg_10]).await;
         //
         //     [
         //         {

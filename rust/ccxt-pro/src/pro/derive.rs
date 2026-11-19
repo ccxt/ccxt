@@ -324,7 +324,7 @@ impl Derive {
         if !(self.orderbooks.has(&symbol)) {
             let mut defaultLimit: i64 = self.safe_integer_k(&self.options, "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut subscription: Value = (if (topic.is_none()) { Value::Null } else { __ch.get_subscription((&topic).as_deref()) });
-            let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
+            let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

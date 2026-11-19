@@ -490,7 +490,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut parsed: Value = json_parse(&context.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut orderId: Option<String> = self.safe_string_k_opt(&parsed, "orderId", &[]);
-                let mut tradeId: Option<String> = self.safe_string_k_opt(parsed, "tradeId", &[]);
+                let mut tradeId: Option<String> = self.safe_string_k_opt(&parsed, "tradeId", &[]);
                 // transactions only have an orderId but for trades we wish to use tradeId
                 if (tradeId.is_some()) {
                     referenceId = tradeId;
@@ -1484,7 +1484,7 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("KC-API-PARTNER-VERIFY".into(), Value::Str("true".into())); }
             }
             if isBroker {
-                let mut brokerName: Option<String> = self.safe_string_k_opt(partner, "name", &[]);
+                let mut brokerName: Option<String> = self.safe_string_k_opt(&partner, "name", &[]);
                 if (brokerName.is_some()) {
                     if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("KC-BROKER-NAME".into(), brokerName.map(Value::from).unwrap_or(Value::Null)); }
                 }
@@ -4931,13 +4931,13 @@ impl Kucoin {
     m
 }) }).into_dict();
         let mut crossItems: crate::value::List = self.safe_list_k_t(&crossData, "items");
-        let mut crossById: crate::value::Dict = self.index_by(Value::Arr(crossItems), Value::Str("symbol".into())).into_dict();
+        let mut crossById: crate::value::Dict = self.index_by(Value::Arr(crossItems), Value::Str("symbol".into()));
         let mut isolatedData: crate::value::Dict = (if (requestMarginables) { crate::value::KeyRead::read(&&responses, &Value::from(isolatedIndex)) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
         let mut isolatedItems: crate::value::List = self.safe_list_k_t(&isolatedData, "data");
-        let mut isolatedById: crate::value::Dict = self.index_by(Value::Arr(isolatedItems), Value::Str("symbol".into())).into_dict();
+        let mut isolatedById: crate::value::Dict = self.index_by(Value::Arr(isolatedItems), Value::Str("symbol".into()));
         let mut tickersResponse: crate::value::Dict = (if fetchTickersFees { self.safe_dict(&responses, tickersIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4949,7 +4949,7 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ticker".into()));
-        let mut tickersById: crate::value::Dict = self.index_by(Value::Arr(tickerItems), Value::Str("symbol".into())).into_dict();
+        let mut tickersById: crate::value::Dict = self.index_by(Value::Arr(tickerItems), Value::Str("symbol".into()));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -7121,7 +7121,7 @@ impl Kucoin {
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "code"));
     m
 })]);
-        return self.index_by(parsed, Value::Str("network".into()));
+        return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -9833,7 +9833,7 @@ impl Kucoin {
             m
         })]);
         if (matches!(&responseData, Value::Arr(_))) {
-            responseData = self.safe_dict(responseData, Value::Int(0), &[Value::Map({
+            responseData = self.safe_dict(&responseData, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -10762,7 +10762,7 @@ impl Kucoin {
         if parseResponseData {
             trades = data.clone();
         }  else {
-            trades = self.safe_list_k(data, "items", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
         }
         // v1 may put a bare list or dict under data; normalize once for parseTrades
         let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());

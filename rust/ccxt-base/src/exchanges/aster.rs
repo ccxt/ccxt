@@ -383,7 +383,7 @@ impl crate::exchange::DerivedExchange for Aster {
         }
         // filters
         let mut filters: crate::value::List = self.safe_list_k_t(&market, "filters");
-        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
+        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into()));
         let mut filterNotional: crate::value::Dict = self.safe_dict2_t(&filtersByType, Value::Str("MIN_NOTIONAL".into()), Value::Str("NOTIONAL".into()));
         let mut filterPrice: crate::value::Dict = self.safe_dict_k_t(&filtersByType, "PRICE_FILTER");
         let mut filterLotSize: Option<crate::value::Dict> = self.safe_dict_k_o(&filtersByType, "LOT_SIZE");
@@ -2997,19 +2997,19 @@ impl Aster {
         if isMark {
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.as_deref().unwrap_or("")));
             let __ws_arg_0 = self.extend(&requestUntil, &[&paramsOmitted]);
-            response = self.fapi_public_get_v3_mark_price_klines(&[__ws_arg_0]).await.into_opt_list();
+            response = self.call_method_lo("fapi_public_get_v3_mark_price_klines", &[__ws_arg_0]).await;
         }  else if isIndex {
             std::sync::Arc::make_mut(&mut requestUntil).insert("pair".into(), Value::from((market).id.as_deref().unwrap_or("")));
             let __ws_arg_1 = self.extend(&requestUntil, &[&paramsOmitted]);
-            response = self.fapi_public_get_v3_index_price_klines(&[__ws_arg_1]).await.into_opt_list();
+            response = self.call_method_lo("fapi_public_get_v3_index_price_klines", &[__ws_arg_1]).await;
         }  else {
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbol".into(), Value::from((market).id.as_deref().unwrap_or("")));
             if ((market).linear == Some(true)) {
                 let __ws_arg_2 = self.extend(&requestUntil, &[&paramsOmitted]);
-                response = self.fapi_public_get_v3_klines(&[__ws_arg_2]).await.into_opt_list();
+                response = self.call_method_lo("fapi_public_get_v3_klines", &[__ws_arg_2]).await;
             }  else {
                 let __ws_arg_3 = self.extend(requestUntil, &[&paramsOmitted]);
-                response = self.sapi_public_get_v3_klines(&[__ws_arg_3]).await.into_opt_list();
+                response = self.call_method_lo("sapi_public_get_v3_klines", &[__ws_arg_3]).await;
             }
         }
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
@@ -3070,18 +3070,18 @@ impl Aster {
         if sinceDefined {
             if (market).swap {
                 let __ws_arg_4 = self.extend(&request, &[&params]);
-                response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await.into_opt_list();
+                response = self.call_method_lo("fapi_public_get_v3_agg_trades", &[__ws_arg_4]).await;
             }  else {
                 let __ws_arg_5 = self.extend(&request, &[&params]);
-                response = self.sapi_public_get_v3_agg_trades(&[__ws_arg_5]).await.into_opt_list();
+                response = self.call_method_lo("sapi_public_get_v3_agg_trades", &[__ws_arg_5]).await;
             }
         }  else {
             if (market).swap {
                 let __ws_arg_6 = self.extend(&request, &[&params]);
-                response = self.fapi_public_get_v3_trades(&[__ws_arg_6]).await.into_opt_list();
+                response = self.call_method_lo("fapi_public_get_v3_trades", &[__ws_arg_6]).await;
             }  else {
                 let __ws_arg_7 = self.extend(request, &[params]);
-                response = self.sapi_public_get_v3_trades(&[__ws_arg_7]).await.into_opt_list();
+                response = self.call_method_lo("sapi_public_get_v3_trades", &[__ws_arg_7]).await;
             }
         }
         return self.parse_trades(&response, Some(&market), &[since, limit]);
@@ -3140,10 +3140,10 @@ impl Aster {
         let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_8 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.fapi_private_get_v3_user_trades(&[__ws_arg_8]).await.into_opt_list();
+            response = self.call_method_lo("fapi_private_get_v3_user_trades", &[__ws_arg_8]).await;
         }  else {
             let __ws_arg_9 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.sapi_private_get_v3_user_trades(&[__ws_arg_9]).await.into_opt_list();
+            response = self.call_method_lo("sapi_private_get_v3_user_trades", &[__ws_arg_9]).await;
         }
         return self.parse_trades(&response, market.as_ref(), &[since, limit, Value::Dict(paramsUntil)]);
         Value::Null
@@ -3338,9 +3338,9 @@ impl Aster {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.fapi_public_get_v3_ticker_price(&[Value::from(&paramsMarketType)]).await.into_opt_list();
+            response = self.call_method_lo("fapi_public_get_v3_ticker_price", &[Value::from(&paramsMarketType)]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.sapi_public_get_v3_ticker_price(&[Value::from(&paramsMarketType)]).await.into_opt_list();
+            response = self.call_method_lo("sapi_public_get_v3_ticker_price", &[Value::from(&paramsMarketType)]).await;
         }
         //
         // both SPOT & SWAP has same format
@@ -3371,7 +3371,7 @@ impl Aster {
         }
         }
         let mut symbolsNormalized2: Option<crate::value::List> = self.market_symbols(&[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
-        return self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2, &[Value::Bool(false)]), Value::Str("symbol".into()));
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), &symbolsNormalized2, &[Value::Bool(false)]), Value::Str("symbol".into())));
         Value::Null
         }).await?))
     }
@@ -3409,9 +3409,9 @@ impl Aster {
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("swap")) {
-            response = self.fapi_public_get_v3_ticker_book_ticker(&[Value::from(&paramsMarketType)]).await.into_opt_list();
+            response = self.call_method_lo("fapi_public_get_v3_ticker_book_ticker", &[Value::from(&paramsMarketType)]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            response = self.sapi_public_get_v3_ticker_book_ticker(&[Value::Dict(paramsMarketType)]).await.into_opt_list();
+            response = self.call_method_lo("sapi_public_get_v3_ticker_book_ticker", &[Value::Dict(paramsMarketType)]).await;
         }
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -3513,7 +3513,7 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.fapi_public_get_v3_funding_info(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_public_get_v3_funding_info", &[params]).await;
         return self.parse_funding_rates(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3566,7 +3566,7 @@ impl Aster {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.fapi_public_get_v3_funding_rate(&[__ws_arg_17]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_public_get_v3_funding_rate", &[__ws_arg_17]).await;
         return self.parse_funding_rate_histories(&response, &[crate::Value::from(market.as_ref())]);
         Value::Null
         }).await?))
@@ -3601,7 +3601,7 @@ impl Aster {
         let mut response: Option<crate::value::Dict> = None;
         let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("swap")) {
-            data = self.fapi_private_get_v3_balance(&[Value::from(&paramsMarketType)]).await.into_list();
+            data = self.call_method_lt("fapi_private_get_v3_balance", &[Value::from(&paramsMarketType)]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
             response = self.call_method_o("sapi_private_get_v3_account", &[Value::Dict(paramsMarketType)]).await;
             data = self.safe_list_k_t(&response, "balances");
@@ -3992,10 +3992,10 @@ impl Aster {
         let mut response: Option<crate::value::List> = None;
         if (market).swap {
             let __ws_arg_26 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.fapi_private_get_v3_all_orders(&[__ws_arg_26]).await.into_opt_list();
+            response = self.call_method_lo("fapi_private_get_v3_all_orders", &[__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.sapi_private_get_v3_all_orders(&[__ws_arg_27]).await.into_opt_list();
+            response = self.call_method_lo("sapi_private_get_v3_all_orders", &[__ws_arg_27]).await;
         }
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
@@ -4057,10 +4057,10 @@ impl Aster {
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(marketType.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             let __ws_arg_28 = self.extend(&request, &[&paramsSubType]);
-            response = self.fapi_private_get_v3_open_orders(&[__ws_arg_28]).await.into_opt_list();
+            response = self.call_method_lo("fapi_private_get_v3_open_orders", &[__ws_arg_28]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.sapi_private_get_v3_open_orders(&[__ws_arg_29]).await.into_opt_list();
+            response = self.call_method_lo("sapi_private_get_v3_open_orders", &[__ws_arg_29]).await;
         }
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -4173,7 +4173,7 @@ impl Aster {
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.fapi_private_post_v3_batch_orders(&[__ws_arg_30]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_post_v3_batch_orders", &[__ws_arg_30]).await;
         return self.parse_orders(&response, None, &[]);
         Value::Null
         }).await?))
@@ -4219,13 +4219,13 @@ impl Aster {
             request.insert("newClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let mut stopLossPrice: Value = self.safe_string_k(&params, "stopLossPrice", &[triggerPrice.map(Value::from).unwrap_or(Value::Null)]);
+        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[triggerPrice.map(Value::from).unwrap_or(Value::Null)]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
         let mut trailingDelta: Option<String> = self.safe_string_k_opt(&params, "trailingDelta", &[]);
         let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), Value::Str("trailingDelta".into())]), &[]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
-        let mut isStopLoss: bool = (stopLossPrice != Value::Null) || (trailingDelta.is_some());
+        let mut isStopLoss: bool = (stopLossPrice.is_some()) || (trailingDelta.is_some());
         let mut isTakeProfit: bool = takeProfitPrice.is_some();
         let mut uppercaseType: Option<String> = initialUppercaseType;
         let mut stopPrice: Option<String> = None;
@@ -4238,7 +4238,7 @@ impl Aster {
                 }
             }
         }  else if isStopLoss {
-            stopPrice = stopLossPrice.into_opt_string();
+            stopPrice = stopLossPrice;
             if isMarketOrder {
                 uppercaseType = Some("STOP_MARKET".to_string());
             }  else if isLimitOrder {
@@ -4530,10 +4530,10 @@ impl Aster {
         let mut response: Option<crate::value::List> = None;
         if (market).swap {
             let __ws_arg_35 = self.extend(&request, &[&params]);
-            response = self.fapi_private_delete_v3_batch_orders(&[__ws_arg_35]).await.into_opt_list();
+            response = self.call_method_lo("fapi_private_delete_v3_batch_orders", &[__ws_arg_35]).await;
         }  else {
             let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_private_delete_v3_all_open_orders(&[__ws_arg_36]).await.into_opt_list();
+            response = self.call_method_lo("sapi_private_delete_v3_all_open_orders", &[__ws_arg_36]).await;
         }
         return self.parse_orders(&response, Some(&market), &[]);
         Value::Null
@@ -4604,7 +4604,7 @@ impl Aster {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut response: crate::value::List = self.fapi_private_get_v3_position_risk(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_position_risk", &[params]).await;
         return self.parse_leverages(self.to_array(&response), &[symbols, Value::Str("symbol".into())]);
         Value::Null
         }).await?))
@@ -4632,7 +4632,7 @@ impl Aster {
     m
 }));
         self.load_markets_and_sign_in().await;
-        let mut response: crate::value::List = self.fapi_private_get_v3_position_risk(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_position_risk", &[params]).await;
         return self.parse_margin_modes(self.to_array(&response), &[symbols, Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null
         }).await?))
@@ -4691,7 +4691,7 @@ impl Aster {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_position_margin_history", &[__ws_arg_38]).await;
         //
         //     [
         //         {
@@ -4842,7 +4842,7 @@ impl Aster {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_41 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.fapi_private_get_v3_income(&[__ws_arg_41]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_income", &[__ws_arg_41]).await;
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))
@@ -4910,7 +4910,7 @@ impl Aster {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.fapi_private_get_v3_income(&[__ws_arg_42]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_income", &[__ws_arg_42]).await;
         return self.parse_ledger(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -5129,7 +5129,7 @@ impl Aster {
             m
         });
         let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.fapi_private_get_v3_position_risk(&[__ws_arg_43]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_position_risk", &[__ws_arg_43]).await;
         //
         //     [
         //         {
@@ -5499,7 +5499,7 @@ impl Aster {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "leverageBrackets");
         if (leverageBrackets.is_none()) || reload {
-            let mut response: crate::value::List = self.fapi_private_get_v3_leverage_bracket(&[params]).await.into_list();
+            let mut response: crate::value::List = self.call_method_lt("fapi_private_get_v3_leverage_bracket", &[params]).await;
             //
             //    [
             //        {
@@ -5544,7 +5544,12 @@ impl Aster {
                     std::sync::Arc::make_mut(&mut result).push(Value::from(vec![floorValue.map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null)]));
                 }
                 }
-                { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("leverageBrackets".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Arr(result)); } }
+                let mut leverageBracketsDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "leverageBrackets", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                leverageBracketsDict.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Arr(result));
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("leverageBrackets".into(), Value::Map(leverageBracketsDict)); }
             }
             }
         }
@@ -5885,7 +5890,7 @@ impl Aster {
         if approvedBuilderFee {
             return Value::Bool(true);
         }
-        let mut result: crate::value::List = self.fapi_private_get_v3_builder(&[]).await.into_list();
+        let mut result: crate::value::List = self.call_method_lt("fapi_private_get_v3_builder", &[]).await;
         //
         //    [
         //        {

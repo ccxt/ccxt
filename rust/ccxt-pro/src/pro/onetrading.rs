@@ -554,7 +554,7 @@ impl Onetrading {
 })]));
             m
         });
-        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params.clone()]);
+        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[&params]);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -762,7 +762,7 @@ impl Onetrading {
 })]));
             m
         });
-        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params.clone()]);
+        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[&params]);
         let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {

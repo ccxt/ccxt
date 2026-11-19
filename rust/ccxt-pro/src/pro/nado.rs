@@ -1990,7 +1990,7 @@ impl Nado {
                     let mut subscription: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("streamType".to_string(), Value::from(streamType));
-                            m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
+                            m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
                         m
                     });
                     client.add_subscription(&Value::Str(format!("{}{}", Value::Str("subscription:".into()), self.safe_string_k(&request, "id", &[Value::Str("".into())])).into()), Value::Map({

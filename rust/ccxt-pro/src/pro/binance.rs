@@ -1793,7 +1793,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //     }
         //
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut subscription: Value = self.safe_dict(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3926,7 +3926,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             signature = Some(self.hmac(self.encode(query), self.encode(&self.secret), Value::Str("sha256".into()), &[]));
         }
-        add_element_to_object(&mut extendedParams, &Value::Str("signature".into()), signature.map(Value::from).unwrap_or(Value::Null));
+        if let Value::Dict(__rda) = &mut extendedParams { std::sync::Arc::make_mut(__rda).insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null)); }
         return extendedParams;
 
     Value::Null

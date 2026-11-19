@@ -316,7 +316,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(orderOmitted, "statusTimestamp", &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&orderOmitted, "statusTimestamp", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type((self.safe_string_lower_k(&entry, "orderType", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
@@ -703,12 +703,17 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut id: Option<String> = self.safe_string_k_opt(&rawCurrency, "index", &[]);
         let mut name: Option<String> = self.safe_string_k_opt(&rawCurrency, "name", &[]);
         let mut code: Option<String> = self.safe_currency_code(Value::from(name.as_deref()), None);
-        { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cachedCurrenciesById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(id.as_deref().unwrap_or("null").to_string(), Value::from(name.as_deref())); } }
+        let mut cachedCurrenciesByIdDict1: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "cachedCurrenciesById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        cachedCurrenciesByIdDict1.insert(id.as_deref().unwrap_or("null").to_string(), Value::from(name.as_deref()));
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("cachedCurrenciesById".into(), Value::Map(cachedCurrenciesByIdDict1)); }
         let mut result: Value = self.safe_currency_structure(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("name".to_string(), Value::from(name.as_deref()));
-                m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("code".to_string(), Value::from(code.as_deref()));
                 m.insert("precision".to_string(), self.parse_precision(&[self.safe_string_k(&rawCurrency, "weiDecimals", &[])]));
                 m.insert("info".to_string(), rawCurrency.clone());
                 m.insert("active".to_string(), Value::Null);
@@ -749,9 +754,14 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
                     nameWithoutU = format!("{}{}", nameWithoutU, parts.get(j as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
-                let mut baseCode: Value = self.safe_currency_code(Value::from(nameWithoutU), None).map(Value::from).unwrap_or(Value::Null);
+                let mut baseCode: Option<String> = self.safe_currency_code(Value::from(nameWithoutU), None);
                 if (code.is_some()) {
-                    { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("spotCurrencyMapping".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), baseCode); } }
+                    let mut spotCurrencyMappingDict2: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "spotCurrencyMapping", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+                    spotCurrencyMappingDict2.insert(code.as_deref().unwrap_or("null").to_string(), baseCode.map(Value::from).unwrap_or(Value::Null));
+                    { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("spotCurrencyMapping".into(), Value::Map(spotCurrencyMappingDict2)); }
                 }
             }
         }
@@ -1163,6 +1173,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_public_address" => self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "initialize_client" => self.initialize_client().await,
                 "is_unified_enabled" => self.is_unified_enabled(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
                 "market" => crate::types::IntoRaw::into_raw(self.market(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
@@ -2080,7 +2091,7 @@ impl Hyperliquid {
         //
         let mut meta: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut universe: crate::value::List = self.safe_list_k_t(&meta, "universe");
-        let mut assetCtxs: crate::value::List = self.safe_list_t(response, Value::Int(1));
+        let mut assetCtxs: crate::value::List = self.safe_list_t(&response, Value::Int(1));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2222,7 +2233,7 @@ impl Hyperliquid {
         // ]
         //
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
-        let mut second: crate::value::List = self.safe_list_t(response, Value::Int(1));
+        let mut second: crate::value::List = self.safe_list_t(&response, Value::Int(1));
         let mut meta: crate::value::List = self.safe_list_k_t(&first, "universe");
         let mut tokens: crate::value::List = self.safe_list_k_t(&first, "tokens");
         // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
@@ -2499,7 +2510,7 @@ impl Hyperliquid {
                 m.insert("USDC".to_string(), Value::Map(usdcBalance));
             m
         });
-        let mut timestamp: Option<i64> = self.safe_integer_k(response, "time", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(timestamp));
         return self.safe_balance(Value::Map(result));
@@ -2752,7 +2763,7 @@ impl Hyperliquid {
         //
         let mut meta: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut universe: crate::value::List = self.safe_list_k_t(&meta, "universe");
-        let mut assetCtxs: crate::value::List = self.safe_list_t(response, Value::Int(1));
+        let mut assetCtxs: crate::value::List = self.safe_list_t(&response, Value::Int(1));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2840,27 +2851,7 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_15]).await.into_opt_list();
-        //
-        //     [
-        //         {
-        //             "T": 1704287699999,
-        //             "c": "2226.4",
-        //             "h": "2247.9",
-        //             "i": "15m",
-        //             "l": "2224.6",
-        //             "n": 46,
-        //             "o": "2247.9",
-        //             "s": "ETH",
-        //             "t": 1704286800000,
-        //             "v": "591.6427"
-        //         }
-        //     ]
-        //
-        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            candles = response.unwrap_or_default();
-        }
+        let mut candles: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[__ws_arg_15]).await));
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(originalSince), limit, Value::Bool(useTail)]);
         Value::Null
         }).await?))
@@ -2922,31 +2913,7 @@ impl Hyperliquid {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_16]).await.into_opt_list();
-        //
-        //     [
-        //         {
-        //             "closedPnl": "0.19343",
-        //             "coin": "ETH",
-        //             "crossed": true,
-        //             "dir": "Close Long",
-        //             "fee": "0.050062",
-        //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
-        //             "liquidationMarkPx": null,
-        //             "oid": 3929354691,
-        //             "px": "2381.1",
-        //             "side": "A",
-        //             "startPosition": "0.0841",
-        //             "sz": "0.0841",
-        //             "tid": 128423918764978,
-        //             "time": 1704262888911
-        //         }
-        //     ]
-        //
-        let mut fills: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            fills = response.unwrap_or_default();
-        }
+        let mut fills: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[__ws_arg_16]).await));
         return self.parse_trades(&fills, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -4316,7 +4283,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut expiresAfter: Option<i64> = self.safe_integer_k(params2.clone(), "expiresAfter", &[]).as_i64();
+        let mut expiresAfter: Option<i64> = self.safe_integer_k(&params2, "expiresAfter", &[]).as_i64();
         if (expiresAfter.is_some()) {
             request.insert("expiresAfter".into(), Value::from(expiresAfter));
             params2 = self.omit(params2, Value::Str("expiresAfter".into()), &[]);
@@ -4957,7 +4924,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_22]).await.into_opt_list();
+        let mut fundings: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_22]).await);
         //
         //     [
         //         {
@@ -4969,10 +4936,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut fundings: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            fundings = response.unwrap_or_default();
-        }
         {
                         let mut i: i64 = 0;
             let mut __for_first_824: bool = true;
@@ -5058,7 +5021,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsMethod]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_23]).await.into_opt_list();
+        let mut rawOrders: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_23]).await);
         //
         //     [
         //         {
@@ -5073,10 +5036,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     ]
         //
         let mut orderWithStatus: Vec<Value> = Vec::new();
-        let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            rawOrders = response.unwrap_or_default();
-        }
         {
                         let mut i: i64 = 0;
             let mut __for_first_825: bool = true;
@@ -5246,7 +5205,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_24]).await.into_opt_list();
+        let mut historicalOrders: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_24]).await);
         //
         //     [
         //         {
@@ -5271,15 +5230,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            historicalOrders = response.unwrap_or_default();
-        }
         {
                         let mut i: i64 = 0;
             let mut __for_first_826: bool = true;
             while { if !__for_first_826 { i += 1; } __for_first_826 = false; i < (historicalOrders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = historicalOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawOrder: crate::value::Dict = crate::value::KeyRead::read(&&historicalOrders, &Value::Int(i)).into_dict();
             let mut entry: crate::value::Dict = self.safe_dict_k_or(&rawOrder, "order", Value::from(&rawOrder));
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
@@ -5476,32 +5431,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_26]).await.into_opt_list();
-        //
-        //     [
-        //         {
-        //             "closedPnl": "0.19343",
-        //             "coin": "ETH",
-        //             "crossed": true,
-        //             "dir": "Close Long",
-        //             "fee": "0.050062",
-        //             "feeToken": "USDC",
-        //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
-        //             "liquidationMarkPx": null,
-        //             "oid": 3929354691,
-        //             "px": "2381.1",
-        //             "side": "A",
-        //             "startPosition": "0.0841",
-        //             "sz": "0.0841",
-        //             "tid": 128423918764978,
-        //             "time": 1704262888911
-        //         }
-        //     ]
-        //
-        let mut myFills: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            myFills = response.unwrap_or_default();
-        }
+        let mut myFills: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[__ws_arg_26]).await));
         return self.parse_trades(&myFills, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -5561,7 +5491,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_27 = self.extend(&request, &[&paramsOmitted]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_27]).await.into_opt_list();
+        let mut response: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_27]).await);
         //
         //     [
         //         {
@@ -5589,20 +5519,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     ]
         //
         let mut fills: Vec<Value> = Vec::new();
-        if (response.is_some()) {
-            let mut user: Option<String> = self.safe_string_lower_k_opt(&request, "user", &[]);
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_827: bool = true;
-                while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut fill: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
-                let mut liquidation: crate::value::Dict = self.safe_dict_k_t(&fill, "liquidation");
-                // liquidator fills carry the liquidated counterparty here
-                if ((user.as_deref() == self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str())) {
-                    fills.push(Value::Dict(fill));
-                }
+        let mut user: Option<String> = self.safe_string_lower_k_opt(&request, "user", &[]);
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_827: bool = true;
+            while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (response.len() as i64) } {
+            let mut fill: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
+            let mut liquidation: crate::value::Dict = self.safe_dict_k_t(&fill, "liquidation");
+            // liquidator fills carry the liquidated counterparty here
+            if ((user.as_deref() == self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str())) {
+                fills.push(Value::Dict(fill));
             }
-            }
+        }
         }
         return self.parse_liquidations(Value::from(fills), market.as_ref(), &[since, limit]);
         Value::Null
@@ -6129,7 +6057,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // keeps every balance in the spot clearinghouse so spot is the default on both sides
             let mut defaultDex: String = (if ((transferType.as_deref() == Some("swap")) || (transferType.as_deref() == Some("perp"))) { "".to_string() } else { "spot".to_string() });
             let mut sourceDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "sourceDex", &[Value::from(defaultDex.clone())]);
-            let mut destinationDex: Option<String> = self.safe_string_k_opt(paramsSendAsset, "destinationDex", &[Value::from(defaultDex)]);
+            let mut destinationDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "destinationDex", &[Value::from(defaultDex)]);
             let mut sendAssetPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
@@ -6567,7 +6495,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[&params2]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_33]).await.into_opt_list();
+        let mut depositLedger: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_33]).await);
         //
         // [
         //     {
@@ -6581,11 +6509,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // ]
         //
-        let mut depositLedger: Value = Value::from(vec![]);
-        if (response.is_some()) {
-            depositLedger = response.map_or(Value::Null, Value::Arr);
-        }
-        let mut records: crate::value::List = self.extract_type_from_delta(&[depositLedger]).into_list();
+        let mut records: crate::value::List = self.extract_type_from_delta(&[Value::Arr(depositLedger)]).into_list();
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
@@ -6663,7 +6587,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&params2]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_34]).await.into_opt_list();
+        let mut withdrawalLedger: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_34]).await);
         //
         // [
         //     {
@@ -6677,11 +6601,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // ]
         //
-        let mut withdrawalLedger: Value = Value::from(vec![]);
-        if (response.is_some()) {
-            withdrawalLedger = response.map_or(Value::Null, Value::Arr);
-        }
-        let mut records: crate::value::List = self.extract_type_from_delta(&[withdrawalLedger]).into_list();
+        let mut records: crate::value::List = self.extract_type_from_delta(&[Value::Arr(withdrawalLedger)]).into_list();
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
@@ -7038,5 +6958,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return Value::from(vec![Value::Map(order), Value::Map(globalParams)]);
 
     Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @description narrows an info endpoint response for a request type that answers with a JSON array
+ * @param {object|object[]|string} response the info endpoint response
+ * @returns {object[]} the response array, or an empty array for any other response
+ */
+    pub fn info_list(response: Value) -> crate::value::List {
+        if let Value::Arr(list) = response {
+            return list;
+        }
+        std::sync::Arc::new(Vec::new())
 }
 }

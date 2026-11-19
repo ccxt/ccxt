@@ -1195,7 +1195,7 @@ impl Hitbtc {
             let mut __for_first_374: bool = true;
             while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (tradesArray.len() as i64) } {
             let __ws_arg_2 = self.parse_ws_trade(tradesArray.get(i as usize).cloned().unwrap_or(Value::Null), market);
-            let mut trade: crate::value::Dict = self.extend_t(__ws_arg_2, &[params.clone()]);
+            let mut trade: crate::value::Dict = self.extend_t(__ws_arg_2, &[&params]);
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
@@ -2140,7 +2140,7 @@ impl Hitbtc {
             }
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
-                let mut first: crate::value::Dict = self.safe_dict_t(result.clone(), Value::Int(0));
+                let mut first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
                 let mut arrayLength: i64 = result.len() as i64;
                 if (arrayLength == 0) || (first.contains_key("client_order_id")) {
                     self.handle_order_request(&client, message);

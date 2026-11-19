@@ -1305,8 +1305,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (matches!(&bidask, Value::Arr(_))) {
                 bookside.store_array(bidask);
             }  else {
-                let mut price: Option<f64> = self.safe_float2(bidask.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]).as_f64();
-                let mut amount: Option<f64> = self.safe_float2(bidask, Value::Str("v".into()), Value::Str("quantity".into()), &[]).as_f64();
+                let mut price: Option<f64> = self.safe_float2(&bidask, Value::Str("p".into()), Value::Str("price".into()), &[]).as_f64();
+                let mut amount: Option<f64> = self.safe_float2(&bidask, Value::Str("v".into()), Value::Str("quantity".into()), &[]).as_f64();
                 bookside.store(price, amount);
             }
         }
@@ -2098,7 +2098,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string2(&data, Value::Str("balanceAmount".into()), Value::Str("availableBalance".into()), &[]));
-        account.insert("used".into(), self.safe_string2(data, Value::Str("frozenBalance".into()), Value::Str("frozenAmount".into()), &[]));
+        account.insert("used".into(), self.safe_string2(&data, Value::Str("frozenBalance".into()), Value::Str("frozenAmount".into()), &[]));
         if (code.is_some()) {
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
         }

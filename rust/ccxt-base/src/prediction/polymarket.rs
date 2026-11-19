@@ -267,7 +267,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "gamma")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         // an empty params container must not become a body: in PHP an empty array is
@@ -1718,7 +1718,7 @@ impl Polymarket {
                 let mut singleTagParams: crate::value::Dict = self.extend_t(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                }), &[params.clone()]);
+                }), &[&params]);
                 std::sync::Arc::make_mut(&mut singleTagParams).insert("tags".into(), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
                 let mut tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[Value::Dict(singleTagParams)])).await.into_list();
                 {
@@ -1757,7 +1757,7 @@ impl Polymarket {
             m
         }).into_dict();
         firstPageRequest = self.extend_t(firstPageRequest, &[&baseRequest]);
-        let mut firstPageResponse: Option<crate::value::List> = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await.into_opt_list();
+        let mut firstPageResponse: Option<crate::value::List> = self.call_method_lo("gamma_public_get_events", &[Value::Dict(firstPageRequest)]).await;
         let mut firstPageIsArray: bool = firstPageResponse.is_some();
         let mut firstPage: crate::value::List = (if (firstPageIsArray) { firstPageResponse.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         let mut firstPageLength: i64 = firstPage.len() as i64;
@@ -2040,11 +2040,11 @@ impl Polymarket {
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
         if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
-            let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[Value::Map({
+            let mut response: Option<crate::value::List> = self.call_method_lo("gamma_public_get_markets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
     m
-})]).await.into_opt_list();
+})]).await;
             let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             if rawMarketsLength > 0 {
@@ -2127,12 +2127,12 @@ impl Polymarket {
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
-                let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[Value::Map({
+                let mut response: Option<crate::value::List> = self.call_method_lo("gamma_public_get_markets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("clob_token_ids".to_string(), Value::from(chunk));
         m.insert("limit".to_string(), Value::from(chunkSize));
     m
-})]).await.into_opt_list();
+})]).await;
                 let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
                 let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2440,9 +2440,9 @@ impl Polymarket {
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_number_k(&bestBid, "price", &[]));
-        m.insert("bidVolume".to_string(), self.safe_number_k(bestBid, "size", &[]));
+        m.insert("bidVolume".to_string(), self.safe_number_k(&bestBid, "size", &[]));
         m.insert("ask".to_string(), self.safe_number_k(&bestAsk, "price", &[]));
-        m.insert("askVolume".to_string(), self.safe_number_k(bestAsk, "size", &[]));
+        m.insert("askVolume".to_string(), self.safe_number_k(&bestAsk, "size", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), Value::from(last));
@@ -2756,7 +2756,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.data_public_get_oi(&[__ws_arg_4]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("data_public_get_oi", &[__ws_arg_4]).await;
         //
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         //
@@ -3421,7 +3421,7 @@ impl Polymarket {
                 while { if !__for_first_1445 { i += 1; } __for_first_1445 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut rawItem: Value = response.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut enriched: crate::value::Dict = self.extend_t(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[rawItem.clone()]);
+                let mut enriched: crate::value::Dict = self.extend_t(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[&rawItem]);
                 let mut parsedItem: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomes.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref()).into_dict();
                 std::sync::Arc::make_mut(&mut parsedItem).insert("info".into(), rawItem); // keep info the raw exchange response
                 result.push(Value::Dict(parsedItem));
@@ -4096,7 +4096,7 @@ impl Polymarket {
             }  else {
                 lookup.insert("slug".into(), requestedSlug.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut response: Option<crate::value::List> = self.gamma_public_get_events(&[Value::Map(lookup)]).await.into_opt_list();
+            let mut response: Option<crate::value::List> = self.call_method_lo("gamma_public_get_events", &[Value::Map(lookup)]).await;
             let mut responseIsArray: bool = response.is_some();
             rawEvents = (if (responseIsArray) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
@@ -4126,7 +4126,7 @@ impl Polymarket {
             if (ccxtMarketsLength == 0) {
                 // search results may omit the nested markets, fall back to the detail endpoint
                 let mut eventId: Option<String> = self.safe_string_k_opt(&rawEvent, "id", &[]);
-                let mut rawEventSlug: Option<String> = self.safe_string_k_opt(rawEvent, "slug", &[]);
+                let mut rawEventSlug: Option<String> = self.safe_string_k_opt(&rawEvent, "slug", &[]);
                 let mut detailedEvent: Option<crate::value::Dict> = None;
                 if (eventId.is_some()) {
                     detailedEvent = self.call_method_o("gamma_public_get_events_id", &[Value::Map({
@@ -4586,9 +4586,9 @@ if _try_result.is_err() {
         });
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("l2ApiKey".into(), creds.get("apiKey").cloned().unwrap_or(Value::Null)); }
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("l2Secret".into(), creds.get("secret").cloned().unwrap_or(Value::Null)); }
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("l2Passphrase".into(), creds.get("passphrase").cloned().unwrap_or(Value::Null)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("l2ApiKey".into(), creds.get("apiKey").cloned().unwrap_or(Value::Null)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("l2Secret".into(), creds.get("secret").cloned().unwrap_or(Value::Null)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("l2Passphrase".into(), creds.get("passphrase").cloned().unwrap_or(Value::Null)); }
         return Value::Map(creds);
 
     Value::Null

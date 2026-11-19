@@ -939,7 +939,7 @@ impl Bit2me {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("id".to_string(), self.safe_string_k(&entry, "id", &[]));
-                    m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(entry, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(&entry, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
                 m
             }), None));
         }
@@ -952,7 +952,7 @@ impl Bit2me {
             orders.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("id".to_string(), self.safe_string_k(entry, "id", &[]));
+                    m.insert("id".to_string(), self.safe_string_k(&entry, "id", &[]));
                     m.insert("status".to_string(), Value::Null);
                 m
             }), None));

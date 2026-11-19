@@ -869,7 +869,7 @@ impl Mercado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_coins(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_coins", &[params]).await;
         //
         //     [
         //         "BCH",
@@ -1091,13 +1091,13 @@ impl Mercado {
         let mut response: Option<crate::value::List> = None;
         if (since != Value::Null) && (to.is_some()) {
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await.into_opt_list();
+            response = self.call_method_lo("public_get_coin_trades_from_to", &[__ws_arg_2]).await;
         }  else if (since != Value::Null) {
             let __ws_arg_3 = self.extend(&request, &[&params]);
-            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await.into_opt_list();
+            response = self.call_method_lo("public_get_coin_trades_from", &[__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_coin_trades(&[__ws_arg_4]).await.into_opt_list();
+            response = self.call_method_lo("public_get_coin_trades", &[__ws_arg_4]).await;
         }
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null

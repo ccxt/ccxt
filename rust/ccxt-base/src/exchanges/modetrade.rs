@@ -537,7 +537,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let mut fundingTimeString: Option<String> = self.safe_string_k_opt(&fundingRate, "last_funding_rate_timestamp", &[]);
         let mut nextFundingTimeString: Option<String> = self.safe_string_k_opt(&fundingRate, "next_funding_time", &[]);
         let mut millisecondsInterval: Option<String> = crate::precise::Precise::stringSub(&nextFundingTimeString, &fundingTimeString).as_str().map(str::to_owned);
-        let mut fundingSymbol: Option<String> = self.safe_string_k_opt(marketValue, "symbol", &[]);
+        let mut fundingSymbol: Option<String> = self.safe_string_k_opt(&marketValue, "symbol", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fundingRate.clone());
@@ -2896,7 +2896,7 @@ impl Modetrade {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, None));
         }
         }
-        return self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into()));
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(result), Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into())));
         Value::Null
         }).await?))
     }

@@ -586,7 +586,7 @@ impl Luno {
             let mut entryId: Option<String> = self.safe_string_opt(&order, Value::Int(2), &[]);
             if ((entryId.as_deref() == Some(orderId))) {
                 let mut price: Option<f64> = self.safe_number(&order, Value::Int(0), &[]).as_f64();
-                let mut currentAmount: Option<String> = self.safe_string_opt(order, Value::Int(1), &[]);
+                let mut currentAmount: Option<String> = self.safe_string_opt(&order, Value::Int(1), &[]);
                 let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &Value::from(tradedAmount)).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringLe(&remainingAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order

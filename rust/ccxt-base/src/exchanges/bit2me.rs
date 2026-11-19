@@ -1210,7 +1210,7 @@ impl Bit2me {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_v2_trading_market_config(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v2_trading_market_config", &[params]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -1287,7 +1287,7 @@ impl Bit2me {
         //
         let mut assets: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(0));
         let mut settings: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
-        let mut settingsById: crate::value::Dict = self.index_by(Value::Arr(settings), Value::Str("symbol".into())).into_dict();
+        let mut settingsById: crate::value::Dict = self.index_by(Value::Arr(settings), Value::Str("symbol".into()));
         let mut ids: Vec<Value> = Value::Array(assets.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1340,7 +1340,7 @@ impl Bit2me {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.public_get_v2_trading_tickers(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v2_trading_tickers", &[params]).await;
         return self.parse_tickers(&response, &[marketSymbols.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -1374,7 +1374,7 @@ impl Bit2me {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_v2_trading_tickers(&[__ws_arg_2]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v2_trading_tickers", &[__ws_arg_2]).await;
         //
         //     [
         //         {
@@ -1562,7 +1562,7 @@ impl Bit2me {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.public_get_v1_trading_candle(&[__ws_arg_5]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_trading_candle", &[__ws_arg_5]).await;
         return self.parse_ohlc_vs(&response, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1589,7 +1589,7 @@ impl Bit2me {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut response: crate::value::List = self.private_get_v1_trading_wallet_balance(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_trading_wallet_balance", &[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -1929,7 +1929,7 @@ impl Bit2me {
                 m
             });
             let __ws_arg_7 = self.extend(Value::Map(requestByClientId), &[&query]);
-            let mut orders: crate::value::List = self.private_get_v1_trading_order(&[__ws_arg_7]).await.into_list();
+            let mut orders: crate::value::List = self.call_method_lt("private_get_v1_trading_order", &[__ws_arg_7]).await;
             let mut numOrders: i64 = orders.len() as i64;
             if (numOrders == 0) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find an order with clientOrderId ").into()), clientOrderId.as_deref().unwrap_or("null"))));
@@ -2002,7 +2002,7 @@ impl Bit2me {
             request.insert("endTime".into(), self.iso8601(end));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::List = self.private_get_v1_trading_order(&[__ws_arg_9]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_trading_order", &[__ws_arg_9]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2296,7 +2296,7 @@ impl Bit2me {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_v1_trading_order_id_trades(&[__ws_arg_15]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_trading_order_id_trades", &[__ws_arg_15]).await;
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2420,7 +2420,7 @@ impl Bit2me {
             request.insert("to".into(), self.iso8601(until));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::List = self.private_get_v1_trading_movement(&[__ws_arg_18]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_v1_trading_movement", &[__ws_arg_18]).await;
         return self.parse_transfers(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

@@ -1026,7 +1026,7 @@ impl Btcbox {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_orders(&[__ws_arg_2]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_orders", &[__ws_arg_2]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1170,7 +1170,7 @@ impl Btcbox {
                 m.insert("id".to_string(), id);
                 m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
-        }), &[params.clone()]);
+        }), &[&params]);
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_trade_view", &[__ws_arg_5]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
@@ -1196,7 +1196,7 @@ impl Btcbox {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_post_trade_list(&[__ws_arg_6]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_trade_list", &[__ws_arg_6]).await;
         //
         // [
         //      {

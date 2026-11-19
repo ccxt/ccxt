@@ -329,12 +329,12 @@ impl crate::exchange::DerivedExchange for Bitget {
         let mut posMode: Option<String> = self.safe_string_k_opt(&trade, "posMode", &[]);
         let mut category: Option<String> = self.safe_string_k_opt(&trade, "category", &[]);
         let mut isFeeStructure: bool = (posMode.is_some()) || (category.is_some());
-        let mut feeStructure: Value = (if isFeeStructure { self.safe_value(&feeDetail, Value::Int(0), &[]) } else { feeDetail });
+        let mut feeStructure: Value = (if isFeeStructure { self.safe_value(&feeDetail, Value::Int(0), &[]) } else { feeDetail.clone() });
         if (feeStructure != Value::Null) {
             let mut feeCoin: Option<String> = self.safe_string_k_opt(&feeStructure, "feeCoin", &[]);
             let mut currencyCode: Option<String> = self.safe_currency_code(feeCoin.map(Value::from).unwrap_or(Value::Null), None);
             let mut feeCostString: Option<String> = self.safe_string2_opt(&feeStructure, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]);
-            let mut deductionString: Option<String> = self.safe_string_k_opt(feeStructure, "deduction", &[]);
+            let mut deductionString: Option<String> = self.safe_string_k_opt(&feeStructure, "deduction", &[]);
             let mut deduction: bool = deductionString.as_deref() == Some("yes");
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -644,7 +644,7 @@ impl crate::exchange::DerivedExchange for Bitget {
                 }
                 let mut totalFee: Option<String> = self.safe_string_k_opt(&feeObject, "totalFee", &[]);
                 let mut feeCost: Option<String> = crate::precise::Precise::stringNeg(&totalFee).as_str().map(str::to_owned);
-                let mut feeCoinCode: Option<String> = self.safe_string_k_opt(feeObject, "feeCoinCode", &[]);
+                let mut feeCoinCode: Option<String> = self.safe_string_k_opt(&feeObject, "feeCoinCode", &[]);
                 fee = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -8081,7 +8081,7 @@ if _try_result.is_err() {
         if fetchMargins {
             let mut instrumentsResponse: crate::value::Dict = self.safe_dict_t(&results, spotInstrumentsIndex);
             let mut instruments: crate::value::List = self.safe_list_k_t(&instrumentsResponse, "data");
-            spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into())).into_dict();
+            spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into()));
         }
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::from(vec![])); }
@@ -10410,7 +10410,7 @@ if _try_result.is_err() {
             request.insert("interval".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }  else {
             marketType = (if (market).spot { Some("spot".to_string()) } else { Some("swap".to_string()) });
-            timeframes = self.safe_dict_o(timeframesOption, marketType.map(Value::from).unwrap_or(Value::Null));
+            timeframes = self.safe_dict_o(&timeframesOption, marketType.map(Value::from).unwrap_or(Value::Null));
             request.insert("granularity".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }
         let mut msInDay: i64 = 86400000;
@@ -10571,7 +10571,7 @@ if _try_result.is_err() {
         if (matches!(&response, Value::Arr(_))) {
             candles = response.into_list();
         }  else {
-            candles = self.safe_list_k_t(response, "data");
+            candles = self.safe_list_k_t(&response, "data");
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
@@ -13459,7 +13459,7 @@ if _try_result.is_err() {
         if matches!(&response, Value::Str(_)) {
             response = json_parse(&response);
         }
-        let mut orders: crate::value::List = self.safe_list_k_t(response, "data");
+        let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&orders, market.as_ref(), &[Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
@@ -14701,7 +14701,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m

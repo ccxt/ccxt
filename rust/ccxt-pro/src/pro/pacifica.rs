@@ -1217,7 +1217,7 @@ impl Pacifica {
             parsedTickers.push(Value::Dict(ticker));
         }
         }
-        let mut tickers: crate::value::Dict = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into())).into_dict();
+        let mut tickers: crate::value::Dict = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into()));
         client.resolve(Value::Dict(tickers), "tickers");
         return Value::Bool(true);
 

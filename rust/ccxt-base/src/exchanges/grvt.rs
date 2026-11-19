@@ -4768,7 +4768,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 
     pub fn request_id(&self) -> i64 {
         let mut requestId: i64 = ((self.safe_integer_k(&self.options, "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
         return requestId;
 }
 

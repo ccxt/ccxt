@@ -2699,7 +2699,7 @@ impl Nado {
         //
         let mut matches: crate::value::List = self.safe_list_k_t(&response, "matches");
         let mut txs: crate::value::List = self.safe_list_k_t(&response, "txs");
-        let mut txsBySubmission: crate::value::Dict = self.index_by(Value::Arr(txs), Value::Str("submission_idx".into())).into_dict();
+        let mut txsBySubmission: crate::value::Dict = self.index_by(Value::Arr(txs), Value::Str("submission_idx".into()));
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3155,9 +3155,9 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsRequest: crate::value::List = self.gateway_public_get_symbols(&[params.clone()]).await.into_list();
-        let mut pairsRequest: crate::value::List = self.gateway_v2_public_get_pairs(&[params.clone()]).await.into_list();
-        let mut assetsRequest: crate::value::List = self.gateway_v2_public_get_assets(&[params]).await.into_list();
+        let mut symbolsRequest: crate::value::List = self.call_method_lt("gateway_public_get_symbols", &[params.clone()]).await;
+        let mut pairsRequest: crate::value::List = self.call_method_lt("gateway_v2_public_get_pairs", &[params.clone()]).await;
+        let mut assetsRequest: crate::value::List = self.call_method_lt("gateway_v2_public_get_assets", &[params]).await;
         let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(symbolsRequest), Value::Arr(pairsRequest), Value::Arr(assetsRequest)])).await.into_list();
         let mut symbols: crate::value::List = self.safe_list_t(&responses, Value::Int(0));
         let mut pairs: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
@@ -3362,7 +3362,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.gateway_v2_public_get_assets(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("gateway_v2_public_get_assets", &[params]).await;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3380,7 +3380,7 @@ impl Nado {
             }
             let mut previous: Option<crate::value::Dict> = self.safe_dict_o(&result, Value::from(code.as_deref()));
             let mut canDeposit: bool = self.safe_bool_k_opt(&currency, "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
-            let mut canWithdraw: bool = self.safe_bool_k_opt(currency, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
+            let mut canWithdraw: bool = self.safe_bool_k_opt(&currency, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
             if (previous.is_none()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::from(&parsed));
             }  else {
@@ -3895,7 +3895,7 @@ impl Nado {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.archive_v2_public_get_trades(&[__ws_arg_18]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("archive_v2_public_get_trades", &[__ws_arg_18]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

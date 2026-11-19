@@ -1009,7 +1009,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if (ticker.is_none()) {
                 continue;
             }
-            add_element_to_object(&mut ticker, &Value::Str("ts".into()), Value::from(timestamp));
+            if let Some(__rdm) = &mut ticker { std::sync::Arc::make_mut(__rdm).insert("ts".to_string(), Value::from(timestamp)); }
             let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsedTicker, "symbol", &[]);
             if (symbol.is_some()) {
@@ -1449,7 +1449,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[message]);
+        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[&message]);
         return self.watch(url.as_str(), messageHash, &request, messageHash, Value::Map(subscribe)).await;
 
     Value::Null
@@ -1470,7 +1470,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[message]);
+        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[&message]);
         return self.watch_multiple(url.as_str(), messageHashes.clone(), &request, messageHashes.clone(), Value::Map(subscribe)).await;
 
     Value::Null
@@ -2365,7 +2365,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut subscription: Value = self.safe_dict(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

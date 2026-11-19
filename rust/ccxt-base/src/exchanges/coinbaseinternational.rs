@@ -4673,13 +4673,13 @@ impl Coinbaseinternational {
         }
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if deribit {
-            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
         }  else {
-            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
+            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
         }
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
-        { let __d = &mut self.has.clone(); std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
-        { let __d = &mut self.has.clone(); std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.has) }; std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.has) }; std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
         return self.omit_t(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);
 
     Default::default()

@@ -1938,7 +1938,7 @@ impl Gemini {
         //    }
         //
         { let __be_tmp = self.safe_list_k(&data, "tradingPairs", &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("tradingPairs".into(), __be_tmp); } }
-        let mut currenciesArray: crate::value::List = self.safe_list_k_t(data, "currencies");
+        let mut currenciesArray: crate::value::List = self.safe_list_k_t(&data, "currencies");
         return self.parse_currencies(&currenciesArray);
 
     Value::Null
@@ -1988,7 +1988,7 @@ impl Gemini {
         if numTables < 2 {
             panic!("{}", crate::exchange_errors::not_supported(error.clone()));
         }
-        let mut table: String = self.safe_string(tables, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut table: String = self.safe_string(&tables, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut rows: Vec<Value> = Value::Array(table.split("\n<tr>\n").map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // eslint-disable-line quotes
         let mut numRows: i64 = rows.len() as i64;
         if numRows < 2 {
@@ -2166,7 +2166,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marketIdsRaw: Option<crate::value::List> = self.public_get_v1_symbols(&[params.clone()]).await.into_opt_list();
+        let mut marketIdsRaw: Option<crate::value::List> = self.call_method_lo("public_get_v1_symbols", &[params.clone()]).await;
         //
         //     [
         //         "btcusd",
@@ -2222,7 +2222,7 @@ impl Gemini {
             // use trading-pairs info, if it was fetched
             let mut tradingPairs: Option<crate::value::List> = self.safe_list_k_o(&self.options, "tradingPairs");
             if (tradingPairs.is_some()) {
-                let mut indexedTradingPairs: crate::value::Dict = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0)).into_dict();
+                let mut indexedTradingPairs: crate::value::Dict = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_719: bool = true;
@@ -2425,7 +2425,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.public_get_v1_pricefeed(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_pricefeed", &[params]).await;
         //
         //     [
         //         {
@@ -2488,7 +2488,7 @@ impl Gemini {
             request.insert("timestamp".into(), since.clone());
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_v1_trades_symbol(&[__ws_arg_5]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_v1_trades_symbol", &[__ws_arg_5]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2625,7 +2625,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_post_v1_balances(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_v1_balances", &[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -2696,7 +2696,7 @@ impl Gemini {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_post_v1_orders(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_v1_orders", &[params]).await;
         //
         //      [
         //          {
@@ -2906,7 +2906,7 @@ impl Gemini {
             request.insert("timestamp".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_post_v1_mytrades(&[__ws_arg_9]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_v1_mytrades", &[__ws_arg_9]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -3025,7 +3025,7 @@ impl Gemini {
             request.insert("timestamp".into(), since);
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_post_v1_transfers(&[__ws_arg_11]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_v1_transfers", &[__ws_arg_11]).await;
         return self.parse_transactions(&response, None, &[]);
         Value::Null
         }).await?))
@@ -3113,14 +3113,14 @@ impl Gemini {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::List = self.private_post_v1_addresses_network(&[__ws_arg_12]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_v1_addresses_network", &[__ws_arg_12]).await;
         let mut results: Value = self.parse_deposit_addresses(&response, &[Value::from(vec![Value::from(codeValue.as_deref())]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), Value::from(codeValue.as_deref()));
     m
 })]);
-        return self.index_by(results, Value::Str("network".into()));
+        return Value::Dict(self.index_by(results, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -3211,7 +3211,7 @@ impl Gemini {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Option<crate::value::List> = self.public_get_v2_candles_symbol_timeframe(&[__ws_arg_14]).await.into_opt_list();
+        let mut response: Option<crate::value::List> = self.call_method_lo("public_get_v2_candles_symbol_timeframe", &[__ws_arg_14]).await;
         //
         //     [
         //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],

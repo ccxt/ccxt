@@ -384,7 +384,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
             let mut publicQuery: crate::value::Dict = self.extend_t(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()]);
+            }), &[&params]);
             if ((Value::Array(publicQuery.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&publicQuery, &[])));
             }

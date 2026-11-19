@@ -976,7 +976,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_api_pairs(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_pairs", &[params]).await;
         //
         //     [
         //         {
@@ -1312,7 +1312,7 @@ impl Indodax {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_api_trades_pair(&[__ws_arg_2]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_api_trades_pair", &[__ws_arg_2]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1372,7 +1372,7 @@ impl Indodax {
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_tradingview_history_v2", &[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))

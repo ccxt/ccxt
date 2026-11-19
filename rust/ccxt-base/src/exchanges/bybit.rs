@@ -2255,7 +2255,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                 let mut query: crate::value::Dict = self.extend_t(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                }), &[params.clone()]);
+                }), &[&params]);
                 let mut queryEncoded: String = self.rawencode(&query, &[]);
                 let mut auth_base: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), self.safe_string_k(&self.options, "recvWindow", &[Value::Str("".into())]));
                 let mut authFull: Value = Value::Null;
@@ -2389,7 +2389,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
     {
         Box::pin(async move {
             match method {
-                "add_pagination_cursor_to_result" => self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "add_pagination_cursor_to_result" => Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "borrow_cross_margin" => crate::types::IntoRaw::into_raw(self.borrow_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -5877,7 +5877,7 @@ impl Bybit {
 }
 
 
-    pub fn add_pagination_cursor_to_result(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn add_pagination_cursor_to_result(&self, response: impl Into<crate::Value>) -> crate::value::List {
         let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
@@ -5890,9 +5890,9 @@ impl Bybit {
             if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("nextPageCursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
             std::sync::Arc::make_mut(&mut data)[0] = Value::from(first.map_or(Value::Null, Value::Dict));
         }
-        return Value::Arr(data);
+        return data;
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -6573,7 +6573,7 @@ impl Bybit {
         //         "time": 1672712495660
         //     }
         //
-        let mut preLaunchData: crate::value::Dict = self.safe_dict_k_t(preLaunchMarkets, "result");
+        let mut preLaunchData: crate::value::Dict = self.safe_dict_k_t(&preLaunchMarkets, "result");
         let mut preLaunchMarketsList: crate::value::List = self.safe_list_k_t(&preLaunchData, "list");
         markets = self.array_concat_t(Value::Arr(markets), &preLaunchMarketsList);
         let mut result: Vec<Value> = Vec::new();
@@ -8240,7 +8240,7 @@ impl Bybit {
             if hasStopLoss {
                 let mut slTriggerPrice: Value = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[stopLoss.clone()]);
                 request.insert("stopLoss".into(), self.get_price(Some(symbolValue.as_str()), slTriggerPrice.as_str()));
-                let mut slLimitPrice: Option<String> = self.safe_string_k_opt(stopLoss, "price", &[]);
+                let mut slLimitPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
                 if (slLimitPrice.is_some()) {
                     request.insert("tpslMode".into(), Value::Str("Partial".into()));
                     request.insert("slOrderType".into(), Value::Str("Limit".into()));
@@ -8259,7 +8259,7 @@ impl Bybit {
             if hasTakeProfit {
                 let mut tpTriggerPrice: Value = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[takeProfit.clone()]);
                 request.insert("takeProfit".into(), self.get_price(Some(symbolValue.as_str()), tpTriggerPrice.as_str()));
-                let mut tpLimitPrice: Option<String> = self.safe_string_k_opt(takeProfit, "price", &[]);
+                let mut tpLimitPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
                 if (tpLimitPrice.is_some()) {
                     request.insert("tpslMode".into(), Value::Str("Partial".into()));
                     request.insert("tpOrderType".into(), Value::Str("Limit".into()));
@@ -9361,7 +9361,7 @@ impl Bybit {
         //         "time": 1672221263862
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_orders(&data, market.as_ref(), &[Value::from(since), Value::from(limit)]);
 
     Value::Null
@@ -9610,7 +9610,7 @@ impl Bybit {
         //         "time": 1758187806376
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_orders(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -9843,7 +9843,7 @@ impl Bybit {
         //         "time": 1758187806376
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_orders(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -9994,7 +9994,7 @@ impl Bybit {
         //         "time": 1672283754510
         //     }
         //
-        let mut trades: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut trades: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -10066,7 +10066,7 @@ impl Bybit {
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyFromResponse, "code"));
     m
 })]);
-        return self.index_by(parsed, Value::Str("network".into()));
+        return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -10189,7 +10189,7 @@ impl Bybit {
         //         "time": 1672191992512
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_transactions(&data, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -10291,7 +10291,7 @@ impl Bybit {
         //         "time": 1672194949928
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_transactions(&data, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -10499,7 +10499,7 @@ impl Bybit {
         //         "time": 1672132481405
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_ledger(&data, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -10822,7 +10822,7 @@ impl Bybit {
         //         "time": 1657713693182
         //     }
         //
-        let mut positions: Value = self.add_pagination_cursor_to_result(&response);
+        let mut positions: Value = Value::Arr(self.add_pagination_cursor_to_result(&response));
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -10831,7 +10831,7 @@ impl Bybit {
             let mut rawPosition: Value = get_value(&positions, &Value::Int(i));
             if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
                 // futures only
-                rawPosition = self.safe_dict_k(rawPosition, "data", &[]);
+                rawPosition = self.safe_dict_k(&rawPosition, "data", &[]);
             }
             results.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, rawPosition, None));
         }
@@ -11187,7 +11187,7 @@ impl Bybit {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         let mut id: Option<String> = self.safe_string_k_opt(&result, "symbol", &[]);
         let mut safeMarketObj: crate::types::Market = self.safe_market(id.map(Value::from).unwrap_or(Value::Null), Some(&market), &[Value::Null, Value::Str("contract".into())]);
         return self.parse_open_interests_history(&data, Some(&safeMarketObj), &[since, limit]);
@@ -11270,7 +11270,7 @@ impl Bybit {
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut id: Option<String> = self.safe_string_k_opt(&result, "symbol", &[]);
         let mut safeMarketObj: crate::types::Market = self.safe_market(id.map(Value::from).unwrap_or(Value::Null), Some(&market), &[Value::Null, Value::Str("contract".into())]);
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response);
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, crate::value::KeyRead::read(&&data, &Value::Int(0)), Some(&safeMarketObj));
         Value::Null
         }).await?))
@@ -11693,7 +11693,7 @@ impl Bybit {
         //         "time": 1670988271677
         //     }
         //
-        let mut data: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut data: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_transfers(&data, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -12743,7 +12743,7 @@ impl Bybit {
         //         "time": 1672283754510
         //     }
         //
-        let mut liquidations: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut liquidations: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_liquidations(&liquidations, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -12778,7 +12778,7 @@ impl Bybit {
         });
         let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsSubType]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_v5_market_risk_limit", &[__ws_arg_75]).await;
-        let mut result: Value = self.add_pagination_cursor_to_result(&response);
+        let mut result: Value = Value::Arr(self.add_pagination_cursor_to_result(&response));
         let mut first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
         let mut total: i64 = result.len() as i64;
         let mut lastIndex: i64 = (total - 1);
@@ -12957,7 +12957,7 @@ impl Bybit {
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_77 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_v5_execution_list", &[__ws_arg_77]).await;
-        let mut fundings: Option<crate::value::List> = self.add_pagination_cursor_to_result(&response).into_opt_list();
+        let mut fundings: Option<crate::value::List> = Some(self.add_pagination_cursor_to_result(&response));
         return self.parse_incomes(&fundings, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))

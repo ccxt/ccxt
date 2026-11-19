@@ -1662,7 +1662,7 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_currencies(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_currencies", &[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -1687,7 +1687,7 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_products(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_products", &[params]).await;
         //
         //     [
         //         {
@@ -1852,7 +1852,7 @@ impl Coinbaseexchange {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_get_accounts(&[params.clone()]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_accounts", &[params.clone()]).await;
         //
         //     [
         //         {
@@ -1930,7 +1930,7 @@ impl Coinbaseexchange {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_get_accounts(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_accounts", &[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -2168,7 +2168,7 @@ impl Coinbaseexchange {
         }
         let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, &["until"], &[]) } else { paramsPaginate });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_fills(&[__ws_arg_9]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_fills", &[__ws_arg_9]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2211,7 +2211,7 @@ impl Coinbaseexchange {
             request.insert("limit".into(), limit.clone()); // default 100
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_products_id_trades(&[__ws_arg_10]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_products_id_trades", &[__ws_arg_10]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2350,7 +2350,7 @@ impl Coinbaseexchange {
             }
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.public_get_products_id_candles(&[__ws_arg_11]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_products_id_candles", &[__ws_arg_11]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
@@ -2478,7 +2478,7 @@ impl Coinbaseexchange {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_fills(&[__ws_arg_14]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_fills", &[__ws_arg_14]).await;
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2576,7 +2576,7 @@ impl Coinbaseexchange {
         }
         let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, &["until"], &[]) } else { paramsPaginate });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_16]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_orders", &[__ws_arg_16]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2790,7 +2790,7 @@ impl Coinbaseexchange {
             request.insert("product_id".into(), crate::value::KeyRead::key_read(&&market, "symbol")); // the request will be more performant if you include it
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_delete_orders(&[__ws_arg_21]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_delete_orders", &[__ws_arg_21]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(response));
@@ -2921,7 +2921,7 @@ impl Coinbaseexchange {
         }
         self.load_accounts(&[]).await;
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into())).into_dict();
+        let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into()));
         let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
         if (account.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLedger() could not find account id for ").into()), code)));
@@ -2943,7 +2943,7 @@ impl Coinbaseexchange {
         }
         let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&params, &["until"], &[]) } else { params }).into_dict();
         let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let mut response: crate::value::List = self.private_get_accounts_id_ledger(&[__ws_arg_25]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_accounts_id_ledger", &[__ws_arg_25]).await;
         let mut entries: Value = self.to_array(&response);
         {
                         let mut i: i64 = 0;
@@ -2992,7 +2992,7 @@ impl Coinbaseexchange {
         if (id.is_none()) {
             if (code != Value::Null) {
                 currency = Some(self.currency(code.clone()));
-                let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into())).into_dict();
+                let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into()));
                 let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
                 if (account.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositsWithdrawals() could not find account id for ").into()), code)));
@@ -3013,7 +3013,7 @@ impl Coinbaseexchange {
         let mut response: Value = Value::Null;
         if (id.is_none()) {
             let __ws_arg_26 = self.extend(&request, &[&params]);
-            let mut transfers: crate::value::List = self.private_get_transfers(&[__ws_arg_26]).await.into_list();
+            let mut transfers: crate::value::List = self.call_method_lt("private_get_transfers", &[__ws_arg_26]).await;
             //
             //    [
             //        {
@@ -3055,7 +3055,7 @@ impl Coinbaseexchange {
             }
         }  else {
             let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-            let mut accountTransfers: crate::value::List = self.private_get_accounts_id_transfers(&[__ws_arg_27]).await.into_list();
+            let mut accountTransfers: crate::value::List = self.call_method_lt("private_get_accounts_id_transfers", &[__ws_arg_27]).await;
             //
             //    [
             //        {
@@ -3215,7 +3215,7 @@ impl Coinbaseexchange {
         if (accounts == Value::Null) {
             accounts = self.private_get_coinbase_accounts(&[]).await;
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("coinbaseAccounts".into(), accounts.clone()); }; // cache it
-            { let __be_tmp = self.index_by(accounts, Value::Str("currency".into())); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".into(), __be_tmp); } }
+            { let __be_tmp = Value::Dict(self.index_by(accounts, Value::Str("currency".into()))); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".into(), __be_tmp); } }
         }
         let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
         let mut accountsByCurrencyId: crate::value::Dict = self.safe_dict_k_t(&self.options, "coinbaseAccountsByCurrencyId");

@@ -772,7 +772,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
             let mut requestParams: crate::value::Dict = self.extend_t(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()]);
+            }), &[&params]);
             let mut paramsKeys: Vec<Value> = Value::Array(requestParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let mut strSortKey: String = self.params_to_string(&requestParams, Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(path), nonce.as_deref().unwrap_or("null")).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.as_deref().unwrap_or("null"));
@@ -4044,7 +4044,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         let mut keys: crate::value::List = crate::value::List::new(depositAddresses.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        return self.safe_dict(depositAddresses, self.safe_string(&keys, Value::Int(0), &[]), &[]);
+        return self.safe_dict(&depositAddresses, self.safe_string(&keys, Value::Int(0), &[]), &[]);
         Value::Null
         }).await?))
     }

@@ -392,7 +392,7 @@ impl crate::exchange::DerivedExchange for Extended {
         m.insert("contract".to_string(), Value::Bool(!isSpot));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-        m.insert("taker".to_string(), self.safe_number_k(takerFees, "taker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&takerFees, "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&self.fees, "maker", &[]));
         m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
@@ -3854,7 +3854,7 @@ impl Extended {
         let mut msgHash: Option<String> = self.get_extended_order_msg_hash(Value::Map(settlement.clone()));
         let mut sig: Value = json_parse(&self.extended_starknet_sign(msgHash.map(Value::from).unwrap_or(Value::Null), self.privateKey.clone()));
         let mut r: Option<String> = self.get_extended_signature_hex((self.safe_string(&sig, Value::Int(0), &[Value::Str("0".into())])).as_str().unwrap_or_default());
-        let mut s: Option<String> = self.get_extended_signature_hex((self.safe_string(sig, Value::Int(1), &[Value::Str("0".into())])).as_str().unwrap_or_default());
+        let mut s: Option<String> = self.get_extended_signature_hex((self.safe_string(&sig, Value::Int(1), &[Value::Str("0".into())])).as_str().unwrap_or_default());
         settlement.insert("r".into(), r.map(Value::from).unwrap_or(Value::Null));
         settlement.insert("s".into(), s.map(Value::from).unwrap_or(Value::Null));
         return Value::Map(settlement);
@@ -3907,7 +3907,7 @@ impl Extended {
         settlement.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("r".to_string(), self.get_extended_signature_hex((self.safe_string(&sig, Value::Int(0), &[Value::Str("0".into())])).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("s".to_string(), self.get_extended_signature_hex((self.safe_string(sig, Value::Int(1), &[Value::Str("0".into())])).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("s".to_string(), self.get_extended_signature_hex((self.safe_string(&sig, Value::Int(1), &[Value::Str("0".into())])).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
         return Value::Map(settlement);
@@ -3957,7 +3957,7 @@ impl Extended {
         settlement.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("r".to_string(), self.get_extended_signature_hex((self.safe_string(&sig, Value::Int(0), &[Value::Str("0".into())])).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("s".to_string(), self.get_extended_signature_hex((self.safe_string(sig, Value::Int(1), &[Value::Str("0".into())])).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("s".to_string(), self.get_extended_signature_hex((self.safe_string(&sig, Value::Int(1), &[Value::Str("0".into())])).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
         return Value::Map(settlement);

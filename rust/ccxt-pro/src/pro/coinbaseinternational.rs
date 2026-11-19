@@ -1639,7 +1639,7 @@ impl Coinbaseinternational {
         let mut resolved: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(false), Value::Dict(paramsResolved)]).await;
         let mut symbol: Option<String> = self.safe_string_opt(&resolved, Value::Int(0), &[]);
         let mut timeframe: Option<String> = self.safe_string_opt(&resolved, Value::Int(1), &[]);
-        let mut ohlcv: Value = self.safe_value(resolved, Value::Int(2), &[]);
+        let mut ohlcv: Value = self.safe_value(&resolved, Value::Int(2), &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_deref(), limit.as_i64());
@@ -2577,7 +2577,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[__ws_arg_6, Value::Bool(true)]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&result, "order");
-        std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])]));
+        std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(&result, "trades", &[Value::from(vec![])]));
         return self.parse_order(Value::Dict(order), Some(&market));
         Value::Null
         }).await?))
@@ -2639,7 +2639,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&result, "order");
-        std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])]));
+        std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(&result, "trades", &[Value::from(vec![])]));
         return self.parse_order(Value::Dict(order), Some(&market));
         Value::Null
         }).await?))
@@ -2967,7 +2967,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/get_user_trades_by_instrument".into()), &[__ws_arg_12, Value::Bool(true)]).await;
-        let mut trades: crate::value::List = self.safe_list_k_t(result, "trades");
+        let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
         return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

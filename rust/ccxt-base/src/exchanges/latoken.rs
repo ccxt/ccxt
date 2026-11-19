@@ -1389,7 +1389,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_pair(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_pair", &[params]).await;
         //
         //     [
         //         {
@@ -1414,7 +1414,7 @@ impl Latoken {
             self.load_time_difference(&[]).await;
         }
         let mut currencies: crate::value::Dict = self.safe_dict_k_t(&self.options, "cachedCurrencies");
-        let mut currenciesById: crate::value::Dict = self.index_by(Value::Dict(currencies), Value::Str("id".into())).into_dict();
+        let mut currenciesById: crate::value::Dict = self.index_by(Value::Dict(currencies), Value::Str("id".into()));
         let mut result: Vec<Value> = Vec::new();
         let mut rawMarkets: crate::value::List = self.to_array_t(&response);
         {
@@ -1531,7 +1531,7 @@ impl Latoken {
 }));
         // sequential on purpose - with Promise.all the static request harness records
         // whichever call finished last, which differs between the sync and async ports
-        let mut response: crate::value::List = self.public_get_currency(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_currency", &[params]).await;
         //
         //     [
         //         {
@@ -1585,7 +1585,7 @@ impl Latoken {
         //
         // no params on this one - they belong to the currency request, not to the bindings
         let mut bindingsResponse: Value = self.public_get_transaction_bindings(&[]).await;
-        let mut bindingsById: crate::value::Dict = self.index_by(bindingsResponse, Value::Str("id".into())).into_dict();
+        let mut bindingsById: crate::value::Dict = self.index_by(bindingsResponse, Value::Str("id".into()));
         let mut rawCurrencies: crate::value::List = self.to_array_t(&response);
         let mut merged: Vec<Value> = Vec::new();
         {
@@ -1859,7 +1859,7 @@ impl Latoken {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.public_get_ticker(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_ticker", &[params]).await;
         return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
@@ -1904,7 +1904,7 @@ impl Latoken {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); // default 100, limit 100
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_trade_history_currency_quote(&[__ws_arg_2]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_trade_history_currency_quote", &[__ws_arg_2]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -2050,10 +2050,10 @@ impl Latoken {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             let __ws_arg_5 = self.extend(&request, &[&params]);
-            response = self.private_get_auth_trade_pair_currency_quote(&[__ws_arg_5]).await.into_list();
+            response = self.call_method_lt("private_get_auth_trade_pair_currency_quote", &[__ws_arg_5]).await;
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_auth_trade(&[__ws_arg_6]).await.into_list();
+            response = self.call_method_lt("private_get_auth_trade", &[__ws_arg_6]).await;
         }
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -2138,10 +2138,10 @@ impl Latoken {
         });
         if (isTrigger == Some(true)) {
             let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_auth_stop_order_pair_currency_quote_active(&[__ws_arg_7]).await.into_opt_list();
+            response = self.call_method_lo("private_get_auth_stop_order_pair_currency_quote_active", &[__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_auth_order_pair_currency_quote_active(&[__ws_arg_8]).await.into_opt_list();
+            response = self.call_method_lo("private_get_auth_order_pair_currency_quote_active", &[__ws_arg_8]).await;
         }
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
@@ -2196,18 +2196,18 @@ impl Latoken {
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_auth_stop_order_pair_currency_quote(&[__ws_arg_9]).await.into_opt_list();
+                response = self.call_method_lo("private_get_auth_stop_order_pair_currency_quote", &[__ws_arg_9]).await;
             }  else {
                 let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_auth_order_pair_currency_quote(&[__ws_arg_10]).await.into_opt_list();
+                response = self.call_method_lo("private_get_auth_order_pair_currency_quote", &[__ws_arg_10]).await;
             }
         }  else {
             if (isTrigger == Some(true)) {
                 let __ws_arg_11 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_auth_stop_order(&[__ws_arg_11]).await.into_opt_list();
+                response = self.call_method_lo("private_get_auth_stop_order", &[__ws_arg_11]).await;
             }  else {
                 let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_auth_order(&[__ws_arg_12]).await.into_opt_list();
+                response = self.call_method_lo("private_get_auth_order", &[__ws_arg_12]).await;
             }
         }
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);

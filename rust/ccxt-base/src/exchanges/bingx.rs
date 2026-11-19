@@ -686,7 +686,7 @@ impl crate::exchange::DerivedExchange for Bingx {
             if matches!(&stopLoss, Value::Str(_)) {
                 stopLoss = self.parse_json_value(stopLoss);
             }
-            stopLossPrice = self.omit_zero(self.safe_string_k(stopLoss, "stopPrice", &[]));
+            stopLossPrice = self.omit_zero(self.safe_string_k(&stopLoss, "stopPrice", &[]));
         }
         let mut takeProfit: Value = self.safe_value_k(&orderData, "takeProfit", &[]);
         let mut takeProfitPrice: Option<String> = None;
@@ -698,7 +698,7 @@ impl crate::exchange::DerivedExchange for Bingx {
             if matches!(&takeProfit, Value::Str(_)) {
                 takeProfit = self.parse_json_value(takeProfit);
             }
-            takeProfitPrice = self.omit_zero(self.safe_string_k(takeProfit, "stopPrice", &[]));
+            takeProfitPrice = self.omit_zero(self.safe_string_k(&takeProfit, "stopPrice", &[]));
         }
         let mut rawType: Value = self.safe_string_lower2(&orderData, Value::Str("type".into()), Value::Str("o".into()), &[]);
         let mut stopPrice: Option<String> = self.omit_zero(self.safe_string2(&orderData, Value::Str("StopPrice".into()), Value::Str("stopPrice".into()), &[]));
@@ -746,7 +746,7 @@ impl crate::exchange::DerivedExchange for Bingx {
     m
 }));
         m.insert("trades".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool2(orderData, Value::Str("reduceOnly".into()), Value::Str("ro".into()), &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool2(&orderData, Value::Str("reduceOnly".into()), Value::Str("ro".into()), &[]));
     m
 }), Some(&marketResolved));
 
@@ -7565,7 +7565,7 @@ impl Bingx {
         //
         let mut data: crate::value::List = self.safe_list_k_t(self.safe_dict_k(&response, "data", &[]), "data");
         let mut parsed: Value = self.parse_deposit_addresses(&data, &[Value::from(vec![crate::value::KeyRead::key_read(&&currency, "code")]), Value::Bool(false)]);
-        return self.index_by(parsed, Value::Str("network".into()));
+        return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -7659,7 +7659,7 @@ impl Bingx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_53 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.spot_v3_private_get_capital_deposit_hisrec(&[__ws_arg_53]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_v3_private_get_capital_deposit_hisrec", &[__ws_arg_53]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -7712,7 +7712,7 @@ impl Bingx {
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_54 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::List = self.spot_v3_private_get_capital_withdraw_history(&[__ws_arg_54]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_v3_private_get_capital_withdraw_history", &[__ws_arg_54]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

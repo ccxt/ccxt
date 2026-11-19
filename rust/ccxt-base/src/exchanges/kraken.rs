@@ -540,7 +540,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::from(average));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool2(orderOmitted, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool2(&orderOmitted, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::from(trades));
     m
@@ -810,7 +810,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrencyOmitted, "decimals", &[])]), &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&rawCurrencyOmitted, "decimals", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1105,7 +1105,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
     {
         Box::pin(async move {
             match method {
-                "add_pagination_cursor_to_result" => self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "add_pagination_cursor_to_result" => Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -2267,7 +2267,7 @@ impl Kraken {
             }));
         }
         }
-        { let __be_tmp = self.index_by(Value::from(result.clone()), Value::Str("altname".into())); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("marketsByAltname".into(), __be_tmp); } }
+        { let __be_tmp = Value::Dict(self.index_by(Value::from(result.clone()), Value::Str("altname".into()))); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("marketsByAltname".into(), __be_tmp); } }
         return Value::from(result);
         Value::Null
         }).await?))
@@ -3330,7 +3330,12 @@ impl Kraken {
                 m.insert("quoteId".to_string(), quoteId);
             m
         });
-        { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("delistedMarketsById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&id), market.clone()); } }
+        let mut delistedMarketsByIdDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "delistedMarketsById", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
+        delistedMarketsByIdDict.insert(crate::runtime::stringify_param(&id), market.clone());
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("delistedMarketsById".into(), Value::Map(delistedMarketsByIdDict)); }
         return market;
 
     Value::Null
@@ -3731,7 +3736,7 @@ impl Kraken {
                 if matches!(&orderTrade, Value::Str(_)) {
                     tradeIds.push(orderTrade.clone());
                 }  else {
-                    tradeIds.push(self.safe_string_k(orderTrade, "id", &[]));
+                    tradeIds.push(self.safe_string_k(&orderTrade, "id", &[]));
                 }
             }
             }
@@ -4603,7 +4608,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawWithdrawals: Value = Value::Null;
         let mut result: Value = self.safe_value_k(&response, "result", &[]);
         if !(matches!(&result, Value::Arr(_))) {
-            rawWithdrawals = self.add_pagination_cursor_to_result(result.clone());
+            rawWithdrawals = Value::Arr(self.add_pagination_cursor_to_result(result.clone()));
         }  else {
             rawWithdrawals = result;
         }
@@ -4612,7 +4617,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn add_pagination_cursor_to_result(&self, result: impl Into<crate::Value>) -> Value {
+    pub fn add_pagination_cursor_to_result(&self, result: impl Into<crate::Value>) -> crate::value::List {
         let mut result: Value = result.into();
         let __result_empty = indexmap::IndexMap::new();
         let result = result.as_map().unwrap_or(&__result_empty);
@@ -4624,9 +4629,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             add_element_to_object(&mut last, &Value::Str("next_cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
             std::sync::Arc::make_mut(&mut data)[(dataLength - 1) as usize] = Value::from(last);
         }
-        return Value::Arr(data);
+        return data;
 
-    Value::Null
+    Default::default()
 }
 
 /*

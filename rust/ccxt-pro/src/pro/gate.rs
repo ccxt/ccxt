@@ -1208,7 +1208,7 @@ impl Gate {
                 bookSide.store_array(self.parse_order_book_bid_ask(bidAsk.clone(), &[]));
             }  else {
                 let mut price: Option<f64> = self.safe_number_k(&bidAsk, "p", &[]).as_f64();
-                let mut amount: Option<f64> = self.safe_number_k(bidAsk, "s", &[]).as_f64();
+                let mut amount: Option<f64> = self.safe_number_k(&bidAsk, "s", &[]).as_f64();
                 bookSide.store(price, amount);
             }
         }
@@ -2892,7 +2892,7 @@ impl Gate {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), json_stringify(&errs));
-                let mut errorMessage: Option<String> = self.safe_string_k_opt(error, "message", &[self.safe_string_k(&errs, "message", &[])]);
+                let mut errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[self.safe_string_k(&errs, "message", &[])]);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), json_stringify(&message));
                 panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
              #[allow(unreachable_code)] { Value::Null }}));

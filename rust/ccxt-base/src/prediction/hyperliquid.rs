@@ -387,6 +387,8 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_public_address" => self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "info_dict" => Value::Dict(Self::info_dict(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "initialize_client" => self.initialize_client().await,
                 "nonce" => self.nonce(),
                 "outcome_asset_id" => self.outcome_asset_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1335,18 +1337,11 @@ impl Hyperliquid {
                 m.insert("type".to_string(), Value::Str("allMids".into()));
             m
         }), &[params]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_2]).await;
+        let mut allMids: crate::value::Dict = Self::info_dict(self.public_post_info(&[__ws_arg_2]).await);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        let mut allMids: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        if (!matches!(&response, Value::Str(_))) && !(matches!(&response, Value::Arr(_))) {
-            allMids = response;
-        }
-        let mut mids: crate::value::Dict = self.safe_dict_k_or(allMids.clone(), "mids", allMids);
+        let mut mids: crate::value::Dict = self.safe_dict_k_or(&allMids, "mids", Value::from(&allMids));
         let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1614,27 +1609,7 @@ impl Hyperliquid {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_4]).await.into_opt_list();
-        //
-        //     [
-        //         {
-        //             "T": 1704287699999,   // close time
-        //             "c": "0.45",
-        //             "h": "0.47",
-        //             "i": "1m",
-        //             "l": "0.43",
-        //             "n": 46,              // number of trades
-        //             "o": "0.44",
-        //             "s": "#10",
-        //             "t": 1704286800000,   // open time
-        //             "v": "1234.5"
-        //         }
-        //     ]
-        //
-        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            candles = response.unwrap_or_default();
-        }
+        let mut candles: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[__ws_arg_4]).await));
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1694,7 +1669,7 @@ impl Hyperliquid {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: crate::value::List = self.safe_list_k_t(response, "balances");
+        let mut balances: crate::value::List = self.safe_list_k_t(&response, "balances");
         {
                         let mut i: i64 = 0;
             let mut __for_first_1243: bool = true;
@@ -2354,17 +2329,13 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_8]).await.into_opt_list();
+        let mut rawOrders: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_8]).await);
         let mut ordersWithStatus: Vec<Value> = Vec::new();
-        let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            rawOrders = response.unwrap_or_default();
-        }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1253: bool = true;
             while { if !__for_first_1253 { i += 1; } __for_first_1253 = false; i < (rawOrders.len() as i64) } {
-            let mut order: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut order: crate::value::Dict = crate::value::KeyRead::read(&&rawOrders, &Value::Int(i)).into_dict();
             ordersWithStatus.push(self.extend(order, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ccxtStatus".to_string(), Value::Str("open".into()));
@@ -2419,26 +2390,22 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_9]).await.into_opt_list();
+        let mut historicalOrders: crate::value::List = Self::info_list(self.public_post_info(&[__ws_arg_9]).await);
         // Deduplicate by oid keeping most recent statusTimestamp
         let mut deduped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            historicalOrders = response.unwrap_or_default();
-        }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1254: bool = true;
             while { if !__for_first_1254 { i += 1; } __for_first_1254 = false; i < (historicalOrders.len() as i64) } {
-            let mut raw: Value = historicalOrders.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut raw: Value = crate::value::KeyRead::read(&&historicalOrders, &Value::Int(i));
             let mut entry: Value = self.safe_dict_k(&raw, "order", &[]);
             if (entry == Value::Null) {
                 entry = raw.clone();
             }
-            let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
+            let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
                 if !(matches!(oid.as_deref(), Some(__k) if deduped.contains_key(__k))) {
                     deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone());
@@ -2508,16 +2475,9 @@ impl Hyperliquid {
             request.insert("oid".into(), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) }));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsValue]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
-        let mut orderStatus: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        if (!matches!(&response, Value::Str(_))) && !(matches!(&response, Value::Arr(_))) {
-            orderStatus = response;
-        }
-        let mut orderWrapper: Value = self.safe_dict_k(orderStatus.clone(), "order", &[orderStatus]);
-        let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, orderWrapper, None).into_dict();
+        let mut orderStatus: crate::value::Dict = Self::info_dict(self.public_post_info(&[__ws_arg_10]).await);
+        let mut orderWrapper: crate::value::Dict = self.safe_dict_k_or(&orderStatus, "order", Value::from(&orderStatus));
+        let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &orderWrapper, None).into_dict();
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
@@ -3234,5 +3194,33 @@ if _try_result.is_err() {
         return (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });
 
     Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @description narrows an info endpoint response for a request type that answers with a JSON array
+ * @param {object|object[]|string} response the info endpoint response
+ * @returns {object[]} the response array, or an empty array for any other response
+ */
+    pub fn info_list(response: Value) -> crate::value::List {
+        if let Value::Arr(list) = response {
+            return list;
+        }
+        std::sync::Arc::new(Vec::new())
+}
+
+/*
+ * @ignore
+ * @method
+ * @description narrows an info endpoint response for a request type that answers with a JSON object
+ * @param {object|object[]|string} response the info endpoint response
+ * @returns {object} the response object, or an empty object for any other response
+ */
+    pub fn info_dict(response: Value) -> crate::value::Dict {
+        if let Value::Dict(dict) = response {
+            return dict;
+        }
+        crate::value::Dict::default()
 }
 }

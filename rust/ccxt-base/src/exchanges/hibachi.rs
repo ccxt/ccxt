@@ -2366,7 +2366,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_trade_orders(&[__ws_arg_13]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_trade_orders", &[__ws_arg_13]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

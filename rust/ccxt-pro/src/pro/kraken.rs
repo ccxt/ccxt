@@ -1785,7 +1785,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             crate::exchange_stubs::ws_await_flight(&future).await;
             subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(authenticated), &[]);
         }
-        return self.safe_string_k(subscription, "token", &[]);
+        return self.safe_string_k(&subscription, "token", &[]);
 
     Value::Null
 }
@@ -2097,7 +2097,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (length == limit) && (previousOrder.is_none()) {
                     let mut first: Value = get_value(&Value::from(&stored), &Value::Int(0));
                     let mut symbolsByOrderId: crate::value::Dict = self.safe_dict_k_t(&self.options, "symbolsByOrderId");
-                    let mut firstId: Option<String> = self.safe_string_k_opt(first, "id", &[]);
+                    let mut firstId: Option<String> = self.safe_string_k_opt(&first, "id", &[]);
                     if (firstId.is_some()) && (matches!(firstId.as_deref(), Some(__k) if symbolsByOrderId.contains_key(__k))) {
                         if let Some(__k) = firstId.as_deref() { std::sync::Arc::make_mut(&mut symbolsByOrderId).shift_remove(__k); }
                     }

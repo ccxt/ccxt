@@ -935,7 +935,7 @@ impl Zaif {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut markets: crate::value::List = self.public_get_currency_pairs_all(&[params]).await.into_list();
+        let mut markets: crate::value::List = self.call_method_lt("public_get_currency_pairs_all", &[params]).await;
         return self.parse_markets(&markets);
         Value::Null
         }).await?))
@@ -1080,7 +1080,7 @@ impl Zaif {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_trades_pair(&[__ws_arg_2]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_trades_pair", &[__ws_arg_2]).await;
         //
         //      [
         //          {

@@ -2714,7 +2714,7 @@ impl Phemex {
         let mut parts: Value = Value::Array(if let Some(__s) = value { __s.split(",").map(Value::from).collect() } else { Vec::new() });
         let mut valueOption: String = parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default();
         parts = Value::Array(valueOption.split(" ").map(Value::from).collect());
-        return self.safe_number(parts, Value::Int(0), &[]);
+        return self.safe_number(&parts, Value::Int(0), &[]);
 
     Value::Null
 }
@@ -3220,9 +3220,9 @@ impl Phemex {
         let mut riskLimitsV2: crate::value::List = self.safe_list_k_t(&v2ProductsData, "riskLimitsV2");
         riskLimits = self.array_concat(riskLimits, &riskLimitsV2);
         let mut currencies: crate::value::List = self.safe_list_k_t(&v2ProductsData, "currencies");
-        let mut riskLimitsById: crate::value::Dict = self.index_by(riskLimits, Value::Str("symbol".into())).into_dict();
-        let mut v1ProductsById: crate::value::Dict = self.index_by(Value::Arr(v1ProductsData), Value::Str("symbol".into())).into_dict();
-        let mut currenciesByCode: crate::value::Dict = self.index_by(Value::Arr(currencies), Value::Str("currency".into())).into_dict();
+        let mut riskLimitsById: crate::value::Dict = self.index_by(riskLimits, Value::Str("symbol".into()));
+        let mut v1ProductsById: crate::value::Dict = self.index_by(Value::Arr(v1ProductsData), Value::Str("symbol".into()));
+        let mut currenciesByCode: crate::value::Dict = self.index_by(Value::Arr(currencies), Value::Str("currency".into()));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3238,7 +3238,7 @@ impl Phemex {
                 market = self.extend(&market, &[&v1ProductsValues]);
                 market = self.parse_swap_market(market);
             }  else {
-                let mut baseCurrency: Option<String> = self.safe_string_k_opt(market.clone(), "baseCurrency", &[]);
+                let mut baseCurrency: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
                 let mut currencyValues: crate::value::Dict = self.safe_dict_t(&currenciesByCode, baseCurrency.map(Value::from).unwrap_or(Value::Null));
                 let mut valueScale: String = self.safe_string_k(&currencyValues, "valueScale", &[Value::Str("8".into())]).as_str().unwrap_or("8").to_string();
                 market = self.extend(market, &[Value::Map({
@@ -4640,11 +4640,11 @@ impl Phemex {
                 request.insert("baseQtyEv".into(), self.to_ev(amountString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }
         }  else if (market).swap {
-            let mut hedged: bool = self.safe_bool_k_opt(orderParams.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
+            let mut hedged: bool = self.safe_bool_k_opt(&orderParams, "hedged", &[Value::Bool(false)]).unwrap_or(false);
             orderParams = self.omit(orderParams, Value::Str("hedged".into()), &[]);
-            let mut posSide: Option<String> = self.safe_string_lower_k_opt(orderParams.clone(), "posSide", &[]);
+            let mut posSide: Option<String> = self.safe_string_lower_k_opt(&orderParams, "posSide", &[]);
             // a hedged reduceOnly order without posSide closes the opposite side
-            let mut flipSide: bool = (posSide.is_none()) && hedged && self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
+            let mut flipSide: bool = (posSide.is_none()) && hedged && self.safe_bool_k(&orderParams, "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
             let mut oppositeSide: String = (if (side.as_str() == Some("buy")) { "sell".to_string() } else { "buy".to_string() });
             let mut sideResolved: String = side.as_str().unwrap_or_default().to_string();
             if flipSide {
@@ -4668,7 +4668,7 @@ impl Phemex {
                 request.insert("orderQty".into(), Value::from(self.parse_to_int(Value::from(self.amount_to_precision(symbol.clone(), amount)))));
             }
             if (triggerPrice.is_some()) {
-                let mut triggerType: String = self.safe_string_k(orderParams.clone(), "triggerType", &[Value::Str("ByMarkPrice".into())]).as_str().unwrap_or("ByMarkPrice").to_string();
+                let mut triggerType: String = self.safe_string_k(&orderParams, "triggerType", &[Value::Str("ByMarkPrice".into())]).as_str().unwrap_or("ByMarkPrice").to_string();
                 request.insert("triggerType".into(), Value::from(triggerType));
                 // set direction & exchange specific order type
                 let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_param_string(orderParams.clone(), Value::Str("triggerDirection".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -4742,7 +4742,7 @@ impl Phemex {
                 request.insert("priceEp".into(), self.to_ep(priceString.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
         }
-        let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(orderParams.clone(), "takeProfitPrice", &[]);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&orderParams, "takeProfitPrice", &[]);
         if (takeProfitPrice.is_some()) {
             if isStableSettled {
                 request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null))));
@@ -4751,7 +4751,7 @@ impl Phemex {
             }
             orderParams = self.omit(orderParams, Value::Str("takeProfitPrice".into()), &[]);
         }
-        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(orderParams.clone(), "stopLossPrice", &[]);
+        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&orderParams, "stopLossPrice", &[]);
         if (stopLossPrice.is_some()) {
             if isStableSettled {
                 request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol, stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null))));
@@ -5145,7 +5145,7 @@ impl Phemex {
     m
 })]);
         }  else if (market).spot {
-            let mut rows: crate::value::List = self.safe_list_k_t(data, "rows");
+            let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
             let mut numRows: i64 = rows.len() as i64;
             if numRows < 1 {
                 if (clientOrderId.is_some()) {

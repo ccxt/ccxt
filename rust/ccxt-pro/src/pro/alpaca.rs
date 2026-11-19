@@ -888,7 +888,7 @@ impl Alpaca {
             return;
         }
         myTrades.append(trade.clone());
-        let mut tradeSymbol: String = self.safe_string_k(trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut tradeSymbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "myTrades:", tradeSymbol);
         client.resolve(Value::from(&myTrades), messageHash.as_str());
         messageHash = "myTrades".to_string();

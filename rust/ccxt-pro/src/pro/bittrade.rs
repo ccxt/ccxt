@@ -821,7 +821,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (id.is_none()) {
             return message;
         }
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null));
         if (subscription.is_some()) {
             let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
@@ -928,7 +928,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (id.is_none()) {
                 return Value::Bool(false);
             }
-            let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
+            let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
             let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null));
             if (subscription.is_some()) {
                 let mut errorCode: Option<String> = (match __pro_message.get("err-code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

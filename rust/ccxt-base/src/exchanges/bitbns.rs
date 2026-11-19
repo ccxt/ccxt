@@ -1030,7 +1030,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.www_get_order_fetch_markets(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("www_get_order_fetch_markets", &[params]).await;
         //
         //     [
         //         {
@@ -1696,7 +1696,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("www_get_exchange_data_tradedetails", &[__ws_arg_7]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

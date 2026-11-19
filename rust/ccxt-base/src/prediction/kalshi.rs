@@ -625,7 +625,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: String = self.implode_params(Value::from(path), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), implodedPath);
@@ -2504,7 +2504,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_1281 { i += 1; } __for_first_1281 = false; i < (trades.len() as i64) } {
             let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             if (wantedOutcome.is_none()) || ((wantedOutcome.as_deref() == self.safe_string_k(&trade, "outcome", &[]).as_str())) {
-                result.push(trade);
+                result.push(trade.clone());
             }
         }
         }

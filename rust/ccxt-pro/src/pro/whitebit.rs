@@ -1542,9 +1542,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (values.len() as i64) } {
             let mut subscription: Value = values.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-                let mut subId: Option<i64> = self.safe_integer_k(subscription.clone(), "id", &[]).as_i64();
+                let mut subId: Option<i64> = self.safe_integer_k(&subscription, "id", &[]).as_i64();
                 if (subId.is_some()) && ((Value::from(subId).as_f64() == id.as_f64())) {
-                    let mut method: Option<String> = self.safe_value_k(subscription, "method", &[]).as_str().map(str::to_owned);
+                    let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
                     if (method.is_some()) {
                         self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                         return;

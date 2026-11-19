@@ -1316,7 +1316,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_currencies(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_currencies", &[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -1341,7 +1341,7 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_instruments(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_instruments", &[params]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -1393,7 +1393,7 @@ impl Onetrading {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.public_get_fees(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_fees", &[params]).await;
         //
         // [
         //     {
@@ -1653,7 +1653,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::List = self.public_get_market_ticker(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_market_ticker", &[params]).await;
         //
         //     [
         //         {
@@ -2085,7 +2085,7 @@ impl Onetrading {
             request.insert("instrument_code".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_delete_account_orders(&[__ws_arg_6]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_delete_account_orders", &[__ws_arg_6]).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(response));
@@ -2126,7 +2126,7 @@ impl Onetrading {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_delete_account_orders(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_delete_account_orders", &[__ws_arg_7]).await;
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"

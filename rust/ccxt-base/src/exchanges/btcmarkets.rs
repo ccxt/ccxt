@@ -1114,13 +1114,13 @@ impl Btcmarkets {
         let mut response: Option<crate::value::List> = None;
         if (method == "privateGetTransfers") {
             let __ws_arg_0 = self.extend(&request, &[&params]);
-            response = self.private_get_transfers(&[__ws_arg_0]).await.into_opt_list();
+            response = self.call_method_lo("private_get_transfers", &[__ws_arg_0]).await;
         }  else if (method == "privateGetDeposits") {
             let __ws_arg_1 = self.extend(&request, &[&params]);
-            response = self.private_get_deposits(&[__ws_arg_1]).await.into_opt_list();
+            response = self.call_method_lo("private_get_deposits", &[__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_withdrawals(&[__ws_arg_2]).await.into_opt_list();
+            response = self.call_method_lo("private_get_withdrawals", &[__ws_arg_2]).await;
         }
         return self.parse_transactions(&response, currency.as_ref(), &[Value::from(since), Value::from(limit)]);
 
@@ -1256,7 +1256,7 @@ impl Btcmarkets {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.public_get_markets(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_markets", &[params]).await;
         return self.parse_markets(&response);
         Value::Null
         }).await?))
@@ -1335,7 +1335,7 @@ impl Btcmarkets {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_get_accounts_me_balances(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_accounts_me_balances", &[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -1385,7 +1385,7 @@ impl Btcmarkets {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(200))); // default is 10, max 200
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_markets_market_id_candles(&[__ws_arg_3]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_markets_market_id_candles", &[__ws_arg_3]).await;
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1541,7 +1541,7 @@ impl Btcmarkets {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_markets_market_id_trades(&[__ws_arg_7]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("public_get_markets_market_id_trades", &[__ws_arg_7]).await;
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1889,7 +1889,7 @@ impl Btcmarkets {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_12]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_orders", &[__ws_arg_12]).await;
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -2003,7 +2003,7 @@ impl Btcmarkets {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_get_trades(&[__ws_arg_14]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_get_trades", &[__ws_arg_14]).await;
         return self.parse_trades(&response, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

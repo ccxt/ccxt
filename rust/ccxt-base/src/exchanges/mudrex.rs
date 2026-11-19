@@ -1129,7 +1129,7 @@ impl Mudrex {
                     m.insert("limit".to_string(), Value::from(pageLimit));
                     m.insert("offset".to_string(), Value::from(offset));
                 m
-            }), &[params.clone()]);
+            }), &[&params]);
             let mut response: crate::value::Dict = self.call_method_t("private_get_futures", &[Value::Dict(q)]).await;
             let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
             let mut items: crate::value::List = std::sync::Arc::new(Vec::new());

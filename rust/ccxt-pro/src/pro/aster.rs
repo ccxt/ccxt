@@ -1940,7 +1940,7 @@ impl Aster {
                 }  else {
                     response = self.parent.fapi_private_post_v3_listen_key(&[params.clone()]).await;
                 }
-                let mut listenKey: Option<String> = self.safe_string_k_opt(response, "listenKey", &[]);
+                let mut listenKey: Option<String> = self.safe_string_k_opt(&response, "listenKey", &[]);
                 if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " authenticate() received an empty listenKey")));
                 }

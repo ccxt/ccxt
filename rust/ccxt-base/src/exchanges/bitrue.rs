@@ -388,7 +388,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             symbol.push_str(&format!("{}{}", ":", settle.as_deref().unwrap_or("null")));
         }
         let mut filters: crate::value::List = self.safe_list_k_t(&market, "filters");
-        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
+        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into()));
         let mut status: Option<String> = self.safe_string_k_opt(&market, "status", &[]);
         // spot markets say TRADING, futures contracts 1 (0 when offline)
         let mut active: bool = ((status.as_deref() == Some("TRADING")) || (status.as_deref() == Some("1")));
@@ -790,12 +790,12 @@ impl crate::exchange::DerivedExchange for Bitrue {
             if (addressTo.is_some()) {
                 let mut parts: Value = Value::Array(if let Some(__s) = addressTo.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressTo = self.safe_string_opt(&parts, Value::Int(0), &[]);
-                tagTo = self.safe_string_opt(parts, Value::Int(1), &[]);
+                tagTo = self.safe_string_opt(&parts, Value::Int(1), &[]);
             }
             if (addressFrom.is_some()) {
                 let mut parts: Value = Value::Array(if let Some(__s) = addressFrom.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressFrom = self.safe_string_opt(&parts, Value::Int(0), &[]);
-                tagFrom = self.safe_string_opt(parts, Value::Int(1), &[]);
+                tagFrom = self.safe_string_opt(&parts, Value::Int(1), &[]);
             }
         }
         let mut txid: Option<String> = self.safe_string_k_opt(&transaction, "txid", &[]);
@@ -814,7 +814,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         if (currencyId.is_some()) {
             let mut parts: Value = Value::Array(if let Some(__s) = currencyId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             currencyId = self.safe_string_opt(&parts, Value::Int(0), &[]);
-            let mut networkId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
+            let mut networkId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             if (networkId.is_some()) {
                 network = self.network_id_to_code(&[networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]);
             }
@@ -2607,7 +2607,7 @@ impl Bitrue {
         //
         let mut timestamp: Option<i64> = self.safe_integer2(&response, Value::Str("time".into()), Value::Str("lastUpdateId".into()), &[]).as_i64();
         let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(response, "lastUpdateId", &[]));
+        orderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))
@@ -2667,7 +2667,7 @@ impl Bitrue {
             }).into_dict();
             let __ws_arg_5 = self.extend(request, &[params]);
             response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_5]).await;
-            data = self.safe_dict(response, Value::Int(0), &[Value::Map({
+            data = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2751,7 +2751,7 @@ impl Bitrue {
             let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_public_get_market_kline(&[__ws_arg_8]).await;
-            data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOHLCV only support spot & swap markets")));
         }
@@ -3008,7 +3008,7 @@ impl Bitrue {
                 request.insert("limit".into(), limit.clone()); // default 100, max 1000
             }
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-            response = self.spot_v1_public_get_trades(&[__ws_arg_14]).await.into_list();
+            response = self.call_method_lt("spot_v1_public_get_trades", &[__ws_arg_14]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades only support spot markets")));
         }
@@ -3335,7 +3335,7 @@ impl Bitrue {
             request.insert("limit".into(), limit.clone()); // default 100, max 1000
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.spot_v1_private_get_all_orders(&[__ws_arg_21]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_v1_private_get_all_orders", &[__ws_arg_21]).await;
         return self.parse_orders(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))

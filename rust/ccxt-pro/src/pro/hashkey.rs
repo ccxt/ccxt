@@ -504,7 +504,7 @@ impl Hashkey {
                                 let mut i: i64 = 0;
                 let mut __for_first_364: bool = true;
                 while { if !__for_first_364 { i += 1; } __for_first_364 = false; i < (data.len() as i64) } {
-                let mut trade: Option<crate::value::Dict> = self.safe_dict_o(data.clone(), Value::Int(i));
+                let mut trade: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
                 let mut parsed: crate::value::Dict = self.parse_ws_trade(&trade, Some(&market)).into_dict();
                 stored.append(Value::Dict(parsed));
             }

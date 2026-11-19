@@ -793,8 +793,8 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "_coin_id", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut tokensByNetworkId: crate::value::Dict = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_tokens_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into())).into_dict();
-        let mut chainsByNetworkId: crate::value::Dict = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_networks_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into())).into_dict();
+        let mut tokensByNetworkId: crate::value::Dict = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_tokens_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into()));
+        let mut chainsByNetworkId: crate::value::Dict = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_networks_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into()));
         let mut keys: Vec<Value> = Value::Array(chainsByNetworkId.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -921,7 +921,7 @@ impl crate::exchange::DerivedExchange for Woo {
         //
         let mut networkizedCode: String = self.safe_string_k(&transaction, "token", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode.as_str(), &[crate::Value::from(currency)]);
-        let mut code: Option<String> = self.safe_string_k_opt(currencyDefined, "code", &[]);
+        let mut code: Option<String> = self.safe_string_k_opt(&currencyDefined, "code", &[]);
         let mut movementDirection: Option<String> = self.safe_string_lower_n_opt(&transaction, Value::from(vec![Value::Str("token_side".into()), Value::Str("tokenSide".into()), Value::Str("type".into())]), &[]);
         if (movementDirection.as_deref() == Some("withdraw")) {
             movementDirection = Some("withdrawal".to_string());

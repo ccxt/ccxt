@@ -1048,9 +1048,9 @@ impl Independentreserve {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut baseCurrenciesPromise: crate::value::List = self.public_get_get_valid_primary_currency_codes(&[params.clone()]).await.into_list();
+        let mut baseCurrenciesPromise: crate::value::List = self.call_method_lt("public_get_get_valid_primary_currency_codes", &[params.clone()]).await;
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        let mut quoteCurrenciesPromise: crate::value::List = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await.into_list();
+        let mut quoteCurrenciesPromise: crate::value::List = self.call_method_lt("public_get_get_valid_secondary_currency_codes", &[params.clone()]).await;
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: crate::value::Dict = self.call_method_t("public_get_get_order_minimum_volumes", &[params]).await;
         let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(baseCurrenciesPromise), Value::Arr(quoteCurrenciesPromise), Value::Dict(limitsPromise)])).await.into_list();
@@ -1208,7 +1208,7 @@ impl Independentreserve {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_post_get_accounts(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_get_accounts", &[params]).await;
         return self.parse_balance_list(&response);
         Value::Null
         }).await?))
@@ -1564,7 +1564,7 @@ impl Independentreserve {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_post_get_brokerage_fees(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("private_post_get_brokerage_fees", &[params]).await;
         //
         //     [
         //         {

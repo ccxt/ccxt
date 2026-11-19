@@ -3607,7 +3607,7 @@ impl Mexc {
     m
 });
         }
-        let mut response: crate::value::List = self.spot_private_get_capital_config_getall(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_get_capital_config_getall", &[params]).await;
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -4115,13 +4115,13 @@ impl Mexc {
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params.clone(), &["method"], &[]);
             if (method.as_deref() == Some("spotPublicGetAggTrades")) {
                 let __ws_arg_2 = self.extend(&request, &[&paramsOmitted]);
-                trades = self.spot_public_get_agg_trades(&[__ws_arg_2]).await.into_list();
+                trades = self.call_method_lt("spot_public_get_agg_trades", &[__ws_arg_2]).await;
             }  else if (method.as_deref() == Some("spotPublicGetHistoricalTrades")) {
                 let __ws_arg_3 = self.extend(&request, &[&paramsOmitted]);
-                trades = self.spot_public_get_historical_trades(&[__ws_arg_3]).await.into_list();
+                trades = self.call_method_lt("spot_public_get_historical_trades", &[__ws_arg_3]).await;
             }  else if (method.as_deref() == Some("spotPublicGetTrades")) {
                 let __ws_arg_4 = self.extend(&request, &[&paramsOmitted]);
-                trades = self.spot_public_get_trades(&[__ws_arg_4]).await.into_list();
+                trades = self.call_method_lt("spot_public_get_trades", &[__ws_arg_4]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades() not support this method")));
             }
@@ -4237,7 +4237,7 @@ impl Mexc {
                 request.insert("endTime".into(), Value::from((if let Some(__l) = until { Some(__l + 1) } else { None }))); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
             let __ws_arg_6 = self.extend(&request, &[&paramsUntil]);
-            let mut response: crate::value::List = self.spot_public_get_klines(&[__ws_arg_6]).await.into_list();
+            let mut response: crate::value::List = self.call_method_lt("spot_public_get_klines", &[__ws_arg_6]).await;
             //
             //     [
             //       [
@@ -5028,7 +5028,7 @@ impl Mexc {
                 m.insert("batchOrders".to_string(), json_stringify(&Value::from(ordersRequests)));
             m
         });
-        let mut response: crate::value::List = self.spot_private_post_batch_orders(&[Value::Map(request)]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_post_batch_orders", &[Value::Map(request)]).await;
         return self.parse_orders(&response, None, &[]);
         Value::Null
         }).await?))
@@ -5205,10 +5205,10 @@ impl Mexc {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrders() does not support marginMode ").into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), " for spot-margin trading")));
                 }
                 let __ws_arg_21 = self.extend(&request, &[&queryInner]);
-                spotResponse = self.spot_private_get_margin_all_orders(&[__ws_arg_21]).await.into_opt_list();
+                spotResponse = self.call_method_lo("spot_private_get_margin_all_orders", &[__ws_arg_21]).await;
             }  else {
                 let __ws_arg_22 = self.extend(&request, &[&queryInner]);
-                spotResponse = self.spot_private_get_all_orders(&[__ws_arg_22]).await.into_opt_list();
+                spotResponse = self.call_method_lo("spot_private_get_all_orders", &[__ws_arg_22]).await;
             }
             return self.parse_orders(&spotResponse, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
@@ -5442,10 +5442,10 @@ impl Mexc {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOpenOrders() does not support marginMode ").into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), " for spot-margin trading")));
                 }
                 let __ws_arg_26 = self.extend(&request, &[&query]);
-                response = self.spot_private_get_margin_open_orders(&[__ws_arg_26]).await.into_opt_list();
+                response = self.call_method_lo("spot_private_get_margin_open_orders", &[__ws_arg_26]).await;
             }  else {
                 let __ws_arg_27 = self.extend(&request, &[&query]);
-                response = self.spot_private_get_open_orders(&[__ws_arg_27]).await.into_opt_list();
+                response = self.call_method_lo("spot_private_get_open_orders", &[__ws_arg_27]).await;
             }
             return self.parse_orders(&response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
@@ -5786,7 +5786,7 @@ impl Mexc {
             }
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             let __ws_arg_33 = self.extend(&request, &[&paramsMarketType]);
-            let mut response: crate::value::List = self.spot_private_delete_open_orders(&[__ws_arg_33]).await.into_list();
+            let mut response: crate::value::List = self.call_method_lt("spot_private_delete_open_orders", &[__ws_arg_33]).await;
             return self.parse_orders(&response, market.as_ref(), &[]);
         }  else {
             if (symbol != Value::Null) {
@@ -6301,7 +6301,7 @@ impl Mexc {
             }
             let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsMarketType, Value::Str("until".into()), &[]) } else { paramsMarketType.clone() });
             let __ws_arg_40 = self.extend(&request, &[&paramsUntil]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_40]).await.into_list();
+            trades = self.call_method_lt("spot_private_get_my_trades", &[__ws_arg_40]).await;
         }  else {
             if (since != Value::Null) {
                 request.insert("start_time".into(), since.clone());
@@ -6394,7 +6394,7 @@ impl Mexc {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             request.insert("orderId".into(), id.clone());
             let __ws_arg_42 = self.extend(&request, &[&query]);
-            trades = self.spot_private_get_my_trades(&[__ws_arg_42]).await.into_list();
+            trades = self.call_method_lt("spot_private_get_my_trades", &[__ws_arg_42]).await;
         }  else {
             request.insert("order_id".into(), id);
             let __ws_arg_43 = self.extend(Value::Map(request), &[&query]);
@@ -6966,7 +6966,7 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
         let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.spot_private_get_capital_deposit_address(&[__ws_arg_49]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_get_capital_deposit_address", &[__ws_arg_49]).await;
         //
         //    [
         //        {
@@ -6980,7 +6980,7 @@ impl Mexc {
         //    ]
         //
         let mut addressStructures: Value = self.parse_deposit_addresses(&response, &[Value::Null, Value::Bool(false)]);
-        return self.index_by(addressStructures, Value::Str("network".into()));
+        return Value::Dict(self.index_by(addressStructures, Value::Str("network".into())));
         Value::Null
         }).await?))
     }
@@ -7149,7 +7149,7 @@ impl Mexc {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (rawNetwork.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_get_capital_deposit_hisrec", &[__ws_arg_51]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -7201,7 +7201,7 @@ impl Mexc {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_52 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.spot_private_get_capital_withdraw_history(&[__ws_arg_52]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_get_capital_withdraw_history", &[__ws_arg_52]).await;
         return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -7818,7 +7818,7 @@ impl Mexc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.spot_private_get_capital_config_getall(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_get_capital_config_getall", &[params]).await;
         return self.parse_transaction_fees(&response, &[codes]);
 
     Value::Null
@@ -7932,7 +7932,7 @@ impl Mexc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.spot_private_get_capital_config_getall(&[params]).await.into_list();
+        let mut response: crate::value::List = self.call_method_lt("spot_private_get_capital_config_getall", &[params]).await;
         return self.parse_deposit_withdraw_fees(&response, &[codes, Value::Str("coin".into())]);
         Value::Null
         }).await?))

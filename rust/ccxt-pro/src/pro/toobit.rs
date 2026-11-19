@@ -605,7 +605,7 @@ impl Toobit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut timeframes: crate::value::Dict = self.safe_dict_t(self.options.get("ws").cloned().unwrap_or(Value::Null), Value::Str("timeframes".into()));
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut selectedTimeframe: Value = Value::Null;
+        let mut selectedTimeframe: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_672: bool = true;
@@ -615,8 +615,8 @@ impl Toobit {
             let mut market: crate::types::Market = (match self.market(symbolStr.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
             let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
-            let mut rawTimeframe: Value = self.safe_string(&timeframes, Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
-            if (selectedTimeframe != Value::Null) && (selectedTimeframe.as_str() != rawTimeframe.as_str()) {
+            let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]);
+            if (selectedTimeframe.is_some()) && (selectedTimeframe != rawTimeframe) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCVForSymbols() only supports a single timeframe for all symbols")));
             }  else {
                 selectedTimeframe = rawTimeframe;
@@ -628,7 +628,7 @@ impl Toobit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
-                m.insert("topic".to_string(), Value::Str(format!("{}{}", "kline_", selectedTimeframe).into()));
+                m.insert("topic".to_string(), Value::Str(format!("{}{}", "kline_", selectedTimeframe.as_deref().unwrap_or("null")).into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
@@ -1301,7 +1301,7 @@ impl Toobit {
         }
         self.authenticate(&[]).await;
         let mut market: Value = self.market_or_null(&[symbol.clone()]);
-        let mut symbolValue: Option<String> = self.safe_string_k_opt(market, "symbol", &[symbol]);
+        let mut symbolValue: Option<String> = self.safe_string_k_opt(&market, "symbol", &[symbol]);
         let mut messageHash: String = "orders".to_string();
         if (symbolValue.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", ":").into()), symbolValue.as_deref().unwrap_or("null"));
@@ -1446,7 +1446,7 @@ impl Toobit {
         }
         self.authenticate(&[]).await;
         let mut market: Value = self.market_or_null(&[symbol.clone()]);
-        let mut symbolValue: Option<String> = self.safe_string_k_opt(market, "symbol", &[symbol]);
+        let mut symbolValue: Option<String> = self.safe_string_k_opt(&market, "symbol", &[symbol]);
         let mut messageHash: String = "myTrades".to_string();
         if (symbolValue.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", ":").into()), symbolValue.as_deref().unwrap_or("null"));

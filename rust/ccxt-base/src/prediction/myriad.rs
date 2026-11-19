@@ -230,7 +230,7 @@ impl crate::exchange::DerivedExchange for Myriad {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
+        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "myriad")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
@@ -1468,7 +1468,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (rpcError != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " rpc ").into()), method).into()), " error: ").into()), json_stringify(&rpcError))));
         }
-        return self.safe_value_k(response, "result", &[]);
+        return self.safe_value_k(&response, "result", &[]);
 
     Value::Null
 }
@@ -3913,7 +3913,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             }
         }  else {
-            let mut chartsDict: crate::value::Dict = self.safe_dict_k_t(selectedOutcome, "price_charts");
+            let mut chartsDict: crate::value::Dict = self.safe_dict_k_t(&selectedOutcome, "price_charts");
             chart = self.safe_dict(&chartsDict, Value::from(bucketKey.clone()), &[]);
         }
         let mut pointsList: Value = self.safe_list_k(chart.clone(), "prices", &[self.safe_list(chart.clone(), Value::Str("data".into()), &[chart])]);
@@ -4014,7 +4014,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_1369 { i += 1; } __for_first_1369 = false; i < (marketKeys.len() as i64) } {
             let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut grouped: Value = outcomesByMarket.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut firstOutcome: crate::value::Dict = self.safe_dict_t(grouped, Value::Int(0));
+            let mut firstOutcome: crate::value::Dict = self.safe_dict_t(&grouped, Value::Int(0));
             let mut info: crate::value::Dict = self.safe_dict_k_t(&firstOutcome, "info");
             let __ws_arg_28 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4253,7 +4253,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut marketHandle: Option<String> = self.safe_string_k_opt(m.clone(), "market", &[]);
+                let mut marketHandle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
                 if (marketHandle.is_some()) {
                     if (matches!(marketHandle.as_deref(), Some(__k) if seenMarketHandles.contains_key(__k))) {
                         continue;
@@ -4375,10 +4375,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn request_id(&self, url: Option<&str>) -> i64 {
         let existing: bool = self.safe_value_k(&self.options, "requestId", &[]) != Value::Null;
         if (!existing) {
-            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
+            { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
         }
         let mut options: Value = self.options.get("requestId").cloned().unwrap_or(Value::Null);
-        let mut previousValue: i64 = self.safe_integer(options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut previousValue: i64 = self.safe_integer(&options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
         if (url.is_some()) {
             { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("requestId".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }
@@ -5066,7 +5066,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker::", sym).into())));
         }
         }
-        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers.clone())); }
+        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers.clone())); }
         client.resolve(Value::Map(cachedTickers), "tickers");
 }
 

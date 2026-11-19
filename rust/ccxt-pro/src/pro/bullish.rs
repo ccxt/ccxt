@@ -277,7 +277,12 @@ impl Bullish {
                 m.insert("JWT_COOKIE".to_string(), token.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        { let __rda = &mut self.options; if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("cookies".to_string(), Value::Map(cookies)); } }
+        let mut wsDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "ws", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        wsDict.insert("cookies".into(), Value::Map(cookies));
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsDict)); }
         let mut id: String = format!("{}", self.request_id());
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
