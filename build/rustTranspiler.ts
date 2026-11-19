@@ -5739,9 +5739,9 @@ function splitLongRustLines(content: string, max = 400): string {
 // Base handleOption*AndParams(2) answer a native `(slot 0, Dict)` tuple: each printed `Vec<Value>` head and its slot reads
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
 // Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
-const RUST_TUPLE_FN_NAME = String.raw`(?:(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only)`;
+const RUST_TUPLE_FN_NAME = String.raw`(?:(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params)`;
 const rustTupleFam = (name: string): string => (/bool/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
-const RUST_OPTION_TUPLE_FNS = new RegExp(String.raw`\b(?:self|exchange)\.(${RUST_TUPLE_FN_NAME})\(`, 'g');
+const RUST_OPTION_TUPLE_FNS = new RegExp(String.raw`\b(?:self|exchange)(?:\.parent)?\.(${RUST_TUPLE_FN_NAME})\(`, 'g');
 const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v: string) => string] } = {
     '': ['Value', undefined, (v) => v], 'string_': ['Value', undefined, (v) => v],
     'bool_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`], 'integer_': ['Option<i64>', 'as_i64', (v) => `Value::from(${v})`],
@@ -5804,15 +5804,17 @@ function typeOptionTupleLocals(src: string): string {
     return out;
 }
 function typeHandleOptionTuples(content: string): string {
-    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_)/.test(content)) return content;
+    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_|network_code_|product_type_|uta_|trigger_direction_|max_entries_per_request_)/.test(content)) return content;
     const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
     let out = '';
     let last = 0;
     RUST_OPTION_TUPLE_FNS.lastIndex = 0;
     for (let m: RegExpExecArray | null; (m = RUST_OPTION_TUPLE_FNS.exec(content)) !== null;) {
         const fam = rustTupleFam(m[1]);
-        const end = rustCloseParen(content, m.index + m[0].length);
-        if (end < 0) break;
+        const close = rustCloseParen(content, m.index + m[0].length);
+        if (close < 0) break;
+        // an async handler's `.await` belongs to the call
+        const end = content.startsWith('.await', close) ? close + 6 : close;
         const call = content.slice(m.index, end);
         const lineStart = content.lastIndexOf('\n', m.index) + 1;
         const pre = content.slice(lineStart, m.index);
@@ -5824,7 +5826,7 @@ function typeHandleOptionTuples(content: string): string {
             const block = pre.trimStart().startsWith('{ ');
             let stop = block ? content.indexOf('; }', from) + 2 : content.indexOf('\n', content.indexOf('\n', content.indexOf('\n', from) + 1) + 1);
             // a following call's own head starts its own window
-            const nextCall = content.slice(from, stop).search(new RegExp(String.raw`\b(?:self|exchange)\.${RUST_TUPLE_FN_NAME}\(`));
+            const nextCall = content.slice(from, stop).search(new RegExp(String.raw`\b(?:self|exchange)(?:\.parent)?\.${RUST_TUPLE_FN_NAME}\(`));
             if (!block && nextCall >= 0) stop = content.lastIndexOf('\n', from + nextCall);
             const fnEnd = content.slice(from).search(/\n {4}(?:pub )?(?:async )?fn |\n\}\n/);
             const n = head[1];
@@ -5876,7 +5878,7 @@ function typeHandleOptionTuples(content: string): string {
     // the base bodies: the return type, each `return [ v, p ]`, and the unreachable `Value::Null` tail
     // handleMarketTypeAndParams overrides (okx, deepcoin) only return the base's tuple through `super_`
     out = out.replace(/(\n {4}pub fn handle_market_type_and_params\([^\n]*\) -> )Value( \{\n(?:(?!\n {4}(?:pub )?fn )[\s\S])*?return self\.super_handle_market_type_and_params\([^\n]*\);)\n\n {4}Value::Null\n\}/g, '$1(Value, crate::value::Dict)$2\n}');
-    return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
+    return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
         (_m, sig, name, open, body) => { const fam = rustTupleFam(name); return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
             (_r, v, d, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
 }
