@@ -4971,9 +4971,9 @@ export default class binance extends Exchange {
                 const request: Dict = {
                     'symbols': this.json (this.marketIds (symbolsNormalized)),
                 };
-                response = await this.publicGetTicker (this.extend (request, paramsMarketType));
+                const rollingResponse = await this.publicGetTicker (this.extend (request, paramsMarketType));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling (response, symbolsNormalized);
+                return this.parseTickersForRolling (rollingResponse, symbolsNormalized);
             } else {
                 const request: Dict = {};
                 if (symbolsNormalized !== undefined) {
@@ -4989,7 +4989,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbolsNormalized);
     }
 
-    parseTickersForRolling (response: any, symbols: Strings): Tickers {
+    parseTickersForRolling (response: List, symbols: Strings): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (this.safeDict (response, i), 'symbol');
