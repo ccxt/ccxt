@@ -17443,6 +17443,9 @@ function csharpArgumentType (csharp, argument, expected) {
         const declaration = csharpIdentifierDeclaration (csharp, argument);
         if (declaration !== undefined) {
             if (declaration.kind === ts.SyntaxKind.Parameter) {
+                if ((expected === 'IList<object>') && coreListParameterIsUnwritten (csharp, declaration)) {
+                    return 'IList<object>'; // a CORE_LIST_ARGS position: its signature already prints the list
+                }
                 const own = csharpParameterDecision (csharp, declaration, expected);
                 return (own === undefined) ? 'object' : own;
             }
@@ -17512,7 +17515,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
                 return false; // every generated class extends the base: any call site can bind it
             }
             const imports = corpus.imports.get (rel);
-            if (imports !== undefined && imports.has (moduleBase)) {
+            if (imports !== undefined && imports.has (moduleBase) && !(calledParameterCollectionTarget (target) && foreignCallsPassSafeLists (rel, name))) {
                 return false; // a file that can bind this declaration calls the name too
             }
         }
@@ -17660,7 +17663,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
     }
     // the pro-tier `handleX (client, message)` family is typed by its own rule (signature + message reads)
     const ownerFile = owner.getSourceFile ().fileName.replace (/\\/g, '/');
-    if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name)) {
+    if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name) && !proHandlerListParameterIsCalledOnly (owner, mapped)) {
         return undefined;
     }
     // only a real ts/src file carries the corpus proof this rule needs: an in-memory program
@@ -17696,6 +17699,55 @@ function csharpParameterDecision (csharp, parameter, expected) {
     } finally {
         csharpParameterDecisionsInProgress.delete (parameter);
     }
+}
+
+// a pro handler's array parameter goes through the call-site proof only when its file names the
+// method solely as a direct `this.name (` call (no method-group table entry, no quoted name)
+function proHandlerListParameterIsCalledOnly (owner, mapped) {
+    if (mapped.type !== 'IList<object>') {
+        return false;
+    }
+    const name = owner.name.text;
+    const text = owner.getSourceFile ().text ?? '';
+    return !new RegExp ('\\.' + name + '\\b(?!\\s*\\()|[\'"]' + name + '[\'"]').test (text);
+}
+
+function coreListParameterIsUnwritten (csharp, parameter) {
+    const owner = parameter.parent;
+    const position = owner?.parameters?.indexOf (parameter) ?? -1;
+    return (owner?.kind === ts.SyntaxKind.MethodDeclaration) && (owner.name !== undefined) && (position >= 0)
+        && (CORE_LIST_ARGS[owner.name.text]?.[position] === 'IList<object>') && !csharpParameterIsWritten (csharp, owner, parameter);
+}
+
+// every `.name (` call in another corpus file is `this.name (x)` with x declared in that file
+// only as `const x = this.safeList (...)` (printed List<object>), never assigned again
+function foreignCallsPassSafeLists (rel, name) {
+    let text;
+    try {
+        text = fs.readFileSync (path.join (process.cwd (), rel), 'utf8');
+    } catch (e) {
+        return false;
+    }
+    const calls = [ ...text.matchAll (new RegExp ('\\.' + name + '\\s*\\(([^()]*)\\)', 'g')) ];
+    if (calls.length !== (text.match (new RegExp ('\\.' + name + '\\b', 'g')) ?? []).length) {
+        return false;
+    }
+    return calls.every ((call) => {
+        const argument = call[1].trim ();
+        if (!/^[A-Za-z_$][\w$]*$/.test (argument) || !new RegExp ('this\\.' + name + '\\s*\\($').test (text.slice (0, call.index + call[0].indexOf ('(') + 1))) {
+            return false;
+        }
+        const start = text.lastIndexOf ('\n    ', call.index);
+        const head = text.slice (0, call.index).search (/\n {4}(?:async\s+)?[A-Za-z_$][\w$]*\s*\([^\n]*\{\n(?![^]*\n {4}(?:async\s+)?[A-Za-z_$][\w$]*\s*\([^\n]*\{\n)/);
+        const end = text.indexOf ('\n    }\n', call.index);
+        if (start < 0 || head < 0 || end < 0) {
+            return false;
+        }
+        const body = text.slice (head, end).replace (/\/\/[^\n]*/g, '');
+        const writes = body.match (new RegExp ('(?<![\\w$.])' + argument + '\\s*(?::[^=;]*)?=(?![=>])[^;]*', 'g')) ?? [];
+        return writes.length > 0 && writes.every ((write) => new RegExp ('^' + argument + '\\s*=\\s*this\\.safeList\\s*\\(').test (write))
+            && new RegExp ('const\\s+' + argument + '\\s*=').test (body);
+    });
 }
 
 function coreArgParamPosition (name, position) {
