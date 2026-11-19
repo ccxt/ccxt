@@ -7433,7 +7433,17 @@ export function nativeJavaMapLocalOps (content: string): string {
         const nonNull = (v: string): boolean => {
             v = memberStripParens (v);
             return /^(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?[LD]?|true|false)$/.test (v)
-                || /^new [\w.]+(?:<[\w.<>, ?]*>)?\(/.test (v);
+                || /^new [\w.]+(?:<[\w.<>, ?]*>)?\(/.test (v)
+                // primitive long arithmetic over a `for (var i` counter, or a Long whose only write is Generic.sum (never null)
+                || ((c) => c !== null && declaredType (c[1]) === 'var' && new RegExp (`\\bfor \\(var ${c[1]} = \\d+;`).test (member))
+                    (/^\(\(long\) ([A-Za-z_]\w*)\) [-+] \d+L$/.exec (v))
+                || (/^[A-Za-z_]\w*$/.test (v) && declaredType (v) === 'Long' && soleSumWrite (v));
+        };
+        // `Long x = (Long) this.sum(a, b);` with no other write: the base sum boxes a long/double, never null
+        const soleSumWrite = (n: string): boolean => {
+            const writes = [ ...member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(?:=(?!=)|\\+=|-=|\\+\\+|--)`, 'g')) ];
+            return writes.length === 1 && new RegExp (`\\bLong ${n} = \\(Long\\) this\\.sum\\([^;]*\\);`).test (member)
+                && !/public [\w.<>]+ sum\(/.test (content.replace (/^[\s\S]*?\bclass \w+ extends Exchange\b/, '')) ;
         };
         const stringKey = (k: string) => /^"(?:[^"\\]|\\.)*"$/.test (k);
         for (let i = from; i < to; i++) {
@@ -7457,8 +7467,10 @@ export function nativeJavaMapLocalOps (content: string): string {
                 }
             }
             let next = line;
-            next = next.replace (/^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, key, value, tail) => {
+            next = next.replace (/^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*|\(\(String\)[A-Za-z_]\w*\)), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, key, value, tail) => {
                 if (!isMap (recv)) return whole;
+                // `((String)k)` over a String-declared name is that String; it binds only with a never-null value
+                if (key.startsWith ('((String)')) return (declaredType (key.slice (9, -1)) === 'String' && nonNull (value)) ? `${ind}${recv}.put(${key}, ${value});${tail ?? ''}` : whole;
                 const args = memberCallArgs (`(${key}, ${value})`, 0);
                 if (args === undefined || args.length !== 2) return whole;
                 if (!(fresh (recv) || nonNull (value))) return whole;
@@ -7518,6 +7530,11 @@ function javaMapLocalOpsSelfTest (): string[] {
         [ 'field options', 'Object v', '        Helpers.addElementToObject(this.options, \"a\", \"x\");', undefined ],
         [ 'field extend of 3', 'Object p, Object q', '        Helpers.addElementToObject(this.balance, \"a\", this.extend(p, q, p));', undefined ],
         // negatives: nullable value on a possibly concurrent map, Object receiver, Object key read, shared map keys, mixed decls, 3-arg extend
+        [ 'String-cast key, counter sum', 'Map<String, Object> p, String k', '        for (var i = 0; i < 3; i++)\n        {\n            Helpers.addElementToObject(p, ((String)k), (((long) i) + 1L));\n        }', '            p.put(((String)k), (((long) i) + 1L));' ],
+        [ 'sum-only Long value', 'Map<String, Object> p, String k', '        Long n = (Long) this.sum(this.safeInteger(p, k, 0), 1);\n        Helpers.addElementToObject(p, k, n);', '        p.put(k, n);' ],
+        [ 'String-cast key, nullable value keeps helper', 'Map<String, Object> p, String k, Object v', '        Helpers.addElementToObject(p, ((String)k), v);', undefined ],
+        [ 'Object-cast-key keeps helper', 'Map<String, Object> p, Object k', '        for (var i = 0; i < 3; i++)\n        {\n            Helpers.addElementToObject(p, ((String)k), (((long) i) + 1L));\n        }', undefined ],
+        [ 'rewritten Long keeps helper', 'Map<String, Object> p, String k, Long m', '        Long n = (Long) this.sum(m, 1);\n        n = m;\n        Helpers.addElementToObject(p, k, n);', undefined ],
         [ 'nullable on param map', 'Map<String, Object> p, Object v', '        Helpers.addElementToObject(p, "a", v);', undefined ],
         [ 'nullable on safeDict map', 'Object o, Object v', '        Map<String, Object> r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
         [ 'Object receiver', 'Object p', '        Helpers.addElementToObject(p, "a", "x");\n        return Helpers.GetValue(p, "a");', undefined ],
