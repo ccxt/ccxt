@@ -1499,7 +1499,7 @@ const COLLECTION_RETURN_METHODS: string[] = [
     'filterBySymbolsSinceLimit', 'filterByOutcomeSinceLimit',
     'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCV', 'parseOHLCVs', 'parseTransactions',
     'parseLedger', 'parseLiquidations', 'marketIds', 'currencyIds', 'marketCodes',
-    'marketSymbols', 'marketsForSymbols', 'parseMarkets',
+    'marketSymbols', 'marketsForSymbols', 'parseMarkets', 'sortCursorPaginatedResult',
 ];
 
 // parseCurrencies returns its keyed `Dictionary<string, object> result` local: only the declaration changes
@@ -5288,7 +5288,52 @@ class NewTranspiler {
         // on a name this method declares only IList<object> the call is an identity of the same static type
         // a `return` widens too when the method itself is declared to return object / IList<object>
         const widensReturn = /^\s*(?:public|protected|private|internal)\b[^(]*?\b(?:object|IList<object>|Task<object>|Task<IList<object>>)\s+[A-Za-z_]\w*\s*\(/.test (region);
-        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !((lists.get (match[1]) === 'IList<object>') || (((lists.get (match[1]) === 'List<object>') || caches.has (match[1])) && (this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists) || (widensReturn && /\breturn\s+$/.test (region.substring (Math.max (0, at - 20), at))))))) ? undefined : match[1]);
+        const masked = this.maskCsharpLiterals (region);
+        region = this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => {
+            const type = lists.get (match[1]) ?? this.csharpScopedListDeclType (masked, at, match[1]);
+            return (((at > 0) && /[\w.]/.test (region[at - 1])) || !((type === 'IList<object>') || (((type === 'List<object>') || caches.has (match[1])) && (this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists) || (widensReturn && /\breturn\s+$/.test (region.substring (Math.max (0, at - 20), at))))))) ? undefined : match[1];
+        });
+        // base arraySlice(object, …) is declared IList<object> (its byte[] twin needs a byte[] argument,
+        // which a List<object>/IList<object> local is not), so toArray hands its result back unchanged
+        const sliceMasked = this.maskCsharpLiterals (region);
+        let out = '';
+        let cursor = 0;
+        const slices = /\bthis\.toArray\(this\.arraySlice\(([A-Za-z_]\w*),/g;
+        let match: RegExpExecArray | null;
+        while ((match = slices.exec (sliceMasked)) !== null) {
+            const at = match.index;
+            const close = csharpMatchingClose (sliceMasked, at + 'this.toArray('.length + 'this.arraySlice'.length);
+            const type = lists.get (match[1]) ?? this.csharpScopedListDeclType (sliceMasked, at, match[1]);
+            if (((at > 0) && /[\w.]/.test (sliceMasked[at - 1])) || (close < 0) || (sliceMasked[close + 1] !== ')') || ((type !== 'IList<object>') && (type !== 'List<object>'))) {
+                continue;
+            }
+            out += region.substring (cursor, at) + region.substring (at + 'this.toArray('.length, close + 1);
+            cursor = close + 2;
+        }
+        return (cursor === 0) ? region : out + region.substring (cursor);
+    }
+
+    // the C# type of the nearest declaration `<T> name =` before `at` whose block is still open at `at`;
+    // lets a name declared in two sibling blocks (one List<object>, one Dictionary) resolve per site
+    csharpScopedListDeclType (masked: string, at: number, name: string): string | undefined {
+        const re = new RegExp ('(?<![\\w.])((?:I?List|Dictionary|IDictionary)<[^\\n=;()]*?>|object|var)\\s+' + name + '\\s*=(?!=)', 'g');
+        let found: string | undefined = undefined;
+        let match: RegExpExecArray | null;
+        while (((match = re.exec (masked)) !== null) && (match.index < at)) {
+            let depth = 0;
+            let open = true;
+            for (let k = match.index; k < at; k++) {
+                depth += (masked[k] === '{') ? 1 : ((masked[k] === '}') ? -1 : 0);
+                if (depth < 0) {
+                    open = false;
+                    break;
+                }
+            }
+            if (open) {
+                found = match[1];
+            }
+        }
+        return found;
     }
 
     // a slot that takes List<object> exactly as it takes IList<object>: an IList<object> declaration or
@@ -5318,7 +5363,7 @@ class NewTranspiler {
     // null, so only the call p remains; skipped where `var` would pick up the narrower static type
     csharpListResultToArray (content: string): string {
         const masked = this.maskCsharpLiterals (content);
-        const re = /\bthis\.toArray\(this\.(toArray|sortBy|sortBy2|safeList|getListFromObjectValues|parseOrderBookBidAsk|arrayConcat)\(/g;
+        const re = /\bthis\.toArray\(this\.(toArray|sortBy|sortBy2|safeList|getListFromObjectValues|parseOrderBookBidAsk|arrayConcat|sortCursorPaginatedResult)\(/g;
         let out = '';
         let cursor = 0;
         let match: RegExpExecArray | null;
