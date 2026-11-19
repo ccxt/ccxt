@@ -493,105 +493,104 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         const markets: Dict[] = this.safeList (response, 'payload', []);
+        return this.parseMarkets (markets);
+    }
+
+    override parseMarket (market: Dict): Market {
         const currencies = this.safeDict (this.options, 'cachedCurrencies');
-        const result: Market[] = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'book');
-            const parts = (id as string).split ('_');
-            const baseId = this.safeString (parts, 0, '');
-            const quoteId = this.safeString (parts, 1, '');
-            const base = this.safeCurrencyCode (baseId.toUpperCase ());
-            const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const fees = this.safeDict (market, 'fees', {});
-            const flatRate = this.safeDict (fees, 'flat_rate', {});
-            const takerString = this.safeString (flatRate, 'taker');
-            const makerString = this.safeString (flatRate, 'maker');
-            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
-            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
-            const feeTiers: Dict[] = this.safeList (fees, 'structure', []);
-            const fee: Dict = {
-                'taker': taker,
-                'maker': maker,
-                'percentage': true,
-                'tierBased': true,
-            };
-            const takerFees: List = [];
-            const makerFees: List = [];
-            for (let j = 0; j < feeTiers.length; j++) {
-                const tier = this.safeDict (feeTiers, j);
-                const volume = this.safeNumber (tier, 'volume');
-                const takerFee = this.safeNumber (tier, 'taker');
-                const makerFee = this.safeNumber (tier, 'maker');
-                takerFees.push ([ volume, takerFee ]);
-                makerFees.push ([ volume, makerFee ]);
-                if (j === 0) {
-                    fee['taker'] = takerFee as number;
-                    fee['maker'] = makerFee as number;
-                }
-            }
-            const tiers: Dict = {
-                'taker': takerFees,
-                'maker': makerFees,
-            };
-            fee['tiers'] = tiers;
-            const baseCurrency = this.safeDict (currencies, base);
-            result.push (this.safeMarketStructure (this.extend ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': taker,
-                'maker': maker,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (baseCurrency, 'precision'),
-                    'price': this.safeNumber (market, 'tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minimum_amount'),
-                        'max': this.safeNumber (market, 'maximum_amount'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'minimum_price'),
-                        'max': this.safeNumber (market, 'maximum_price'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minimum_value'),
-                        'max': this.safeNumber (market, 'maximum_value'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            }, fee)));
+        const id = this.safeString (market, 'book');
+        const parts = (id as string).split ('_');
+        const baseId = this.safeString (parts, 0, '');
+        const quoteId = this.safeString (parts, 1, '');
+        const base = this.safeCurrencyCode (baseId.toUpperCase ());
+        const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const fees = this.safeDict (market, 'fees', {});
+        const flatRate = this.safeDict (fees, 'flat_rate', {});
+        const takerString = this.safeString (flatRate, 'taker');
+        const makerString = this.safeString (flatRate, 'maker');
+        const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+        const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+        const feeTiers: Dict[] = this.safeList (fees, 'structure', []);
+        const fee: Dict = {
+            'taker': taker,
+            'maker': maker,
+            'percentage': true,
+            'tierBased': true,
+        };
+        const takerFees: List = [];
+        const makerFees: List = [];
+        for (let j = 0; j < feeTiers.length; j++) {
+            const tier = this.safeDict (feeTiers, j);
+            const volume = this.safeNumber (tier, 'volume');
+            const takerFee = this.safeNumber (tier, 'taker');
+            const makerFee = this.safeNumber (tier, 'maker');
+            takerFees.push ([ volume, takerFee ]);
+            makerFees.push ([ volume, makerFee ]);
+            if (j === 0) {
+                fee['taker'] = takerFee as number;
+                fee['maker'] = makerFee as number;
+            }
+        }
+        const tiers: Dict = {
+            'taker': takerFees,
+            'maker': makerFees,
+        };
+        fee['tiers'] = tiers;
+        const baseCurrency = this.safeDict (currencies, base);
+        return this.safeMarketStructure (this.extend ({
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': taker,
+            'maker': maker,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (baseCurrency, 'precision'),
+                'price': this.safeNumber (market, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minimum_amount'),
+                    'max': this.safeNumber (market, 'maximum_amount'),
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'minimum_price'),
+                    'max': this.safeNumber (market, 'maximum_price'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'minimum_value'),
+                    'max': this.safeNumber (market, 'maximum_value'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        }, fee));
     }
 
     /**
