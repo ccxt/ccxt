@@ -1739,7 +1739,7 @@ const MATH_LOCAL_ENTRIES = {
 const LENGTH_LOCAL_ENTRY = {
     type: 'Integer',
     prefixes: [ 'Helpers.getArrayLength(', '((String)' ],
-    match: /^(\(\(List<\?>\)[^;]*\)|Helpers\.objectKeys\([^;]*\)|[\w.]+|\(\((?:java\.util\.)?Map<String, Object>\)[\w.]+\))\.size\(\)/,
+    match: /^(\(\(List<\?>\)[^;]*\)|Helpers\.objectKeys\([^;]*\)|[\w.]+|\(\((?:java\.util\.)?Map<String, Object>\)[\w.]+\))\.size\(\)|^\w+\.length\(\)$/,
 };
 
 // the printed initializer must be the shape the entry's type was derived from: a fixed
@@ -23365,16 +23365,28 @@ const R92J3_LONG_FIXED_PARAMS = {
     'padHex': [ 1 ],
 };
 
+// venue-scoped rows (`<file>#<method>`) for names other venues declare with other param types
+const R92J3_LONG_FIXED_VENUE_PARAMS = {
+    'weex.ts#modifyMarginHelper': [ 2 ],
+};
+
+function r92j3LongFixedSlots (node) {
+    const name = node.parent.name.text;
+    const file = node.getSourceFile ().fileName.replace (/\\/g, '/').replace (/^.*\/ts\/src\//, '');
+    return (Object.hasOwn (R92J3_LONG_FIXED_PARAMS, name) ? R92J3_LONG_FIXED_PARAMS[name] : undefined)
+        ?? R92J3_LONG_FIXED_VENUE_PARAMS[`${file}#${name}`] ?? [];
+}
+
 function r92j3LongFixedParamType (printer, node) {
     const method = node?.parent;
     if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
         || !ts.isIdentifier (method.name ?? {}) || node.initializer !== undefined
-        || !Object.hasOwn (R92J3_LONG_FIXED_PARAMS, method.name.text)) {
+        || !r92j3LongFixedSlots (node).length) {
         return undefined;
     }
     const index = method.parameters.indexOf (node);
     const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
-    if (!R92J3_LONG_FIXED_PARAMS[method.name.text].includes (index) || fileName.includes ('/ts/src/test/')
+    if (!r92j3LongFixedSlots (node).includes (index) || fileName.includes ('/ts/src/test/')
         || !printer.javaIsPrintedMethod (method)) {
         return undefined;
     }
