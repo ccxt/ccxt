@@ -13741,10 +13741,54 @@ function javaFreshMapMethods () {
     return javaFreshMapMethodIndex;
 }
 
+// the class index plus the abstract/prediction tier, so prediction venue chains close (element-write proofs only)
+let javaFreshMapPredictionIndex;
+
+function javaFreshMapPredictionClasses () {
+    const base = javaFreshMapMethods ();
+    if (javaFreshMapPredictionIndex?.base === base) {
+        return javaFreshMapPredictionIndex.classes;
+    }
+    const classes = new Map (base.classes);
+    const full = path.join (JAVA_FRESH_MAP_TS_ROOT, 'abstract', 'prediction');
+    for (const name of fs.existsSync (full) ? fs.readdirSync (full).filter ((f) => isTsIndexSource (f)) : []) {
+        const file = path.join (full, name);
+        const text = readTsIndexSource (file);
+        const sf = text === undefined ? undefined : ts.createSourceFile (file, text);
+        const imports = new Map ();
+        let entry;
+        for (const statement of sf?.statements ?? []) {
+            if (ts.isImportDeclaration (statement) && statement.importClause !== undefined && ts.isStringLiteral (statement.moduleSpecifier)) {
+                const bindings = statement.importClause.namedBindings;
+                const target = path.resolve (path.dirname (file), statement.moduleSpecifier.text.replace (/\.js$/, '.ts'));
+                [ statement.importClause.name, ...(bindings !== undefined && ts.isNamedImports (bindings) ? bindings.elements.map ((e) => e.name) : []) ]
+                    .filter ((n) => n !== undefined).forEach ((n) => imports.set (n.text, target));
+            }
+            if (ts.isClassDeclaration (statement)) {
+                entry ??= { methods: new Map (), parent: undefined };
+                const heritage = statement.heritageClauses?.[0]?.types?.[0]?.expression;
+                for (const member of statement.members) {
+                    if (member.name !== undefined && ts.isIdentifier (member.name)) {
+                        entry.methods.set (member.name.text, [ ...(entry.methods.get (member.name.text) ?? []), member ]);
+                    }
+                }
+                if (heritage !== undefined) {
+                    entry.parent = ts.isIdentifier (heritage) ? (imports.get (heritage.text) ?? null) : null;
+                }
+            }
+        }
+        if (entry !== undefined) {
+            classes.set (path.resolve (file), entry);
+        }
+    }
+    javaFreshMapPredictionIndex = { base, classes };
+    return classes;
+}
+
 // the declarations a `this.name(..)` call in `file` can dispatch to: the nearest one up the parent
 // chain plus every override in a class extending `file`; undefined when the chain is not closed
-function javaFreshMapDispatch (file, name) {
-    const { classes } = javaFreshMapMethods ();
+function javaFreshMapDispatch (file, name, withPredictionAbstract = false) {
+    const classes = withPredictionAbstract ? javaFreshMapPredictionClasses () : javaFreshMapMethods ().classes;
     const own = classes.get (path.resolve (file));
     if (own === undefined) {
         return undefined;
@@ -26838,7 +26882,7 @@ function j02Plain (ctx, node, depth) {
     if (!javaFreshMapMethods ().classes.has (path.resolve (file))) {
         javaFreshMapMethodIndex = undefined;
     }
-    const declarations = javaFreshMapDispatch (file, name);
+    const declarations = javaFreshMapDispatch (file, name, true);
     if (declarations === undefined || declarations.length === 0
         || declarations.some ((d) => (ts.getModifiers (d) ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword))) {
         return false;
@@ -26968,7 +27012,7 @@ function j02TupleCallSlotPlain (ctx, call, index, depth) {
         javaFreshMapMethodIndex = undefined;
     }
     const name = value.expression.name.text;
-    const declarations = javaFreshMapDispatch (file, name);
+    const declarations = javaFreshMapDispatch (file, name, true);
     if (declarations === undefined || declarations.length === 0 || javaFreshMapMethods ().handWritten.some ((t) => t === undefined || new RegExp (`\\s${name}\\s*\\(`).test (t))) {
         return false;
     }
