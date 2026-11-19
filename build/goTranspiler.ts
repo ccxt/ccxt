@@ -9583,7 +9583,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
         return;
     }
-    if (nilReceiverGuard && !(fieldReceiver && (keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k))) {
+    if (nilReceiverGuard && !(((keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k)) && (fieldReceiver || notRebound (name)))) {
         return;
     }
     if (nilReceiverGuard) {
@@ -21352,10 +21352,15 @@ function goTupleSlotDerefsCheck (ok: SelfTestOk): void {
 function goDerefPointerValue (lines: string[], value: string, valueMasked: string, valueType: string | undefined): string | undefined {
     const basePtrCalls = [ 'NumberToString', 'PriceToPrecision', 'AmountToPrecision', 'SafeString', 'SafeString2', 'SafeStringN',
         'SafeStringLower', 'SafeStringUpper', 'SafeCurrencyCode', 'SafeSymbol', 'SafeInteger', 'SafeInteger2', 'SafeNumber', 'SafeBool',
-        'SafeIntegerN', 'SafeNumber2', 'SafeNumberN', 'SafeBool2', 'Iso8601', 'Parse8601' ];
+        'SafeIntegerN', 'SafeNumber2', 'SafeNumberN', 'SafeBool2', 'Iso8601', 'Parse8601', 'ParseNumber' ];
     const wrap = (x: string) => 'func() any {\n\tif v := ' + x + '; v != nil {\n\t\treturn *v\n\t}\n\treturn nil\n}()';
     if (/^\w+$/.test (value)) {
         return (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (valueType ?? '') >= 0) ? wrap (value) : undefined;
+    }
+    // Precise.String* answers *string (exchange_precise.go)
+    const precise = /^(?:ccxt\.)?Precise\.String(?:Add|Sub|Mul|Div|Abs|Neg|Max|Min|Mod)\(/.exec (valueMasked);
+    if ((precise !== null) && (value.indexOf ('\n') < 0) && (goMapWriteGroupEnd (valueMasked, precise[0].length - 1) === valueMasked.length)) {
+        return wrap (value);
     }
     const call = /^this\.(\w+)\(/.exec (valueMasked);
     if ((call === null) || (value.indexOf ('\n') >= 0) || (goMapWriteGroupEnd (valueMasked, call[0].length - 1) !== valueMasked.length)) {
