@@ -4358,6 +4358,22 @@ function rustTypedListAndOmitBranches (content: string): string {
         `self${parent ?? ''}.omit_t(&${a ?? b}, if (${c}) { ${k} } else { Value::Null }, &[])`);
 }
 
+// `indexBy` always builds a map (exchange_stubs.rs `index_by -> Dict`): `.into_dict()` drops, any other use boxes it.
+function rustTypedIndexBy (content: string): string {
+    const head = /(?<![\w.])self(?:\.parent)?\.index_by\(/g;
+    const starts: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) starts.push (m.index);
+    for (const s of starts.reverse ()) {
+        const open = content.indexOf ('(', s + 'self'.length) + 1;
+        const close = balancedCloseIndex (content, open);
+        if (close >= content.length) continue;
+        if (content.startsWith ('.into_dict()', close + 1)) content = content.slice (0, close + 1) + content.slice (close + 1 + '.into_dict()'.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + content.slice (close + 1);
+    }
+    return content;
+}
+
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
 // returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
 function rustTypedRouteAndParams (content: string): string {
@@ -10800,6 +10816,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedMergeResults(rustContent);
                 rustContent = rustTypedImplicitApiResults(rustContent);
                 rustContent = rustTypedListAndOmitBranches(rustContent);
+                rustContent = rustTypedIndexBy(rustContent);
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
@@ -11651,6 +11668,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedMergeResults(finalFile);
         finalFile = rustTypedImplicitApiResults(finalFile);
         finalFile = rustTypedListAndOmitBranches(finalFile);
+        finalFile = rustTypedIndexBy(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
@@ -12035,7 +12053,9 @@ impl std::ops::DerefMut for ${coreName} {
                     content,
                 ].join('\n')
                     // Match Value::Map's IndexMap-backed inner type.
-                    .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
+                    .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap')
+                    // `index_by` returns `Dict` on the concrete exchange; a test's `Value` local boxes it.
+                    .replace(/(: Value = )(exchange\.index_by\([^;\n]*\));/g, '$1Value::Dict($2);');
 
                 overwriteFileAndFolder(outFile, file);
                 log.magenta('→', (outFile as any).yellow);

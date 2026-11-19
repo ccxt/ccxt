@@ -2203,7 +2203,7 @@ impl Exchange {
         }
     }
 
-    pub fn index_by(&self, arr: Value, key: Value) -> Value {
+    pub fn index_by(&self, arr: Value, key: Value) -> crate::value::Dict {
         let k = key_str(&key);
         let mut out: HashMap<String, Value> = HashMap::new();
         // TS `indexBy` accepts an array OR an object — for an object it
@@ -2214,18 +2214,18 @@ impl Exchange {
         let items: Vec<Value> = match arr {
             Value::Arr(items) => Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone()),
             Value::Dict(m) => m.values().cloned().collect(),
-            _ => return Value::Map(out),
+            _ => return Arc::new(out),
         };
         for item in items {
             if let Some(kv) = crate::value::safe_string(&item, &k, None) {
                 out.insert(kv, item);
             }
         }
-        Value::Map(out)
+        Arc::new(out)
     }
 
     pub fn index_by_safe(&self, arr: Value, key: Value) -> Value {
-        self.index_by(arr, key)
+        Value::Dict(self.index_by(arr, key))
     }
 
     pub fn group_by(&self, arr: Value, key: Value, _optional_args: &[Value]) -> Value {
