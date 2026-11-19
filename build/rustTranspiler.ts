@@ -4673,6 +4673,7 @@ function rustTypedIndexBy (content: string): string {
     return content;
 }
 
+<<<<<<< merged
 // `parseOrderBook` always builds a book map: the base returns `Dict`, an override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden). `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
 function rustTypedParseOrderBook (content: string): string {
@@ -4718,6 +4719,43 @@ function rustTypedParseOrderBook (content: string): string {
         else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + after;
     }
     return content;
+=======
+// `safeOrder` ends in `this.extend (orderDict, {..})`, a map on every input, so it returns `Dict` (`extend_t`). A venue
+// `parseWsOrder` whose every return is `this.safeOrder (..)` returns `Dict` too; `.into_dict()` drops, any other use boxes it.
+function rustTypedSafeOrder (content: string): string {
+    const tail = '\n    Value::Null\n}';
+    const typeBody = (at: number, ok: (body: string) => boolean, edit: (body: string) => string): boolean => {
+        const end = content.indexOf (tail, at);
+        if (end < 0 || !ok (content.slice (at, end))) return false;
+        content = content.slice (0, at) + edit (content.slice (at, end)).replace (') -> Value {', ') -> crate::value::Dict {') + '\n    Default::default()\n}' + content.slice (end + tail.length);
+        return true;
+    };
+    const baseRet = 'return self.extend(orderDict.clone(), &[';
+    const base = content.indexOf ('fn safe_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {');
+    if (base >= 0) typeBody (base, (b) => b.split (/\breturn\b/).length === 2 && b.includes (baseRet), (b) => b.replace (baseRet, 'return self.extend_t(orderDict.clone(), &['));
+    const wsSig = 'pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {';
+    const ws = content.indexOf (wsSig);
+    const typedWs = ws >= 0 && typeBody (ws, (b) => { const r = b.match (/\breturn\b[^\n]*/g) ?? []; return r.length > 0 && r.every ((x) => x.startsWith ('return self.safe_order(')); },
+        (b) => b.replace (/\breturn self\.safe_order\(/g, 'return self.\u0000safe_order('));
+    const box = (name: string, owned: boolean) => {
+        const head = new RegExp ('(?<![\\w.])self\\.' + name + '\\(', 'g');
+        const starts: number[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) starts.push (m.index);
+        for (const s of starts.reverse ()) {
+            const close = balancedCloseIndex (content, s + m0len (name));
+            if (close >= content.length) continue;
+            const rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else if (owned && rest.startsWith ('.as_map().cloned().unwrap_or_default()')) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice ('.as_map().cloned().unwrap_or_default()'.length);
+            else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+        }
+    };
+    const m0len = (name: string) => 'self.'.length + name.length + 1;
+    if (base >= 0 || /(?<![\w.])self\.safe_order\(/.test (content)) box ('safe_order', true);
+    if (typedWs) box ('parse_ws_order', true);
+    return content.replace (/self\.\u0000safe_order\(/g, 'self.safe_order(');
+>>>>>>> R07
 }
 
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
@@ -11194,6 +11232,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedImplicitApiResults(rustContent);
                 rustContent = rustTypedListAndOmitBranches(rustContent);
                 rustContent = rustTypedIndexBy(rustContent);
+                rustContent = rustTypedSafeOrder(rustContent);
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
@@ -12050,7 +12089,11 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedImplicitApiResults(finalFile);
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedIndexBy(finalFile);
+<<<<<<< merged
         finalFile = rustTypedParseOrderBook(finalFile);
+=======
+        finalFile = rustTypedSafeOrder(finalFile);
+>>>>>>> R07
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
