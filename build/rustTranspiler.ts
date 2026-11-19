@@ -7925,6 +7925,38 @@ function typedReturnOwner (content: string, at: number, typed: Set<string>): boo
 // unit slot 087
 //
 // unit slot 088
+// `hmac` / `hash` / `hash_binary` take the algorithm as `&str`: every call names it with a string literal.
+const RUST_ALGO_ARG_FNS: Array<[string, number]> = [['hmac', 2], ['hash', 1], ['hash_binary', 1]];
+function lendAlgoLiterals(content: string): string {
+    const masked = maskText(content);
+    const edits: Array<[number, number, string]> = [];
+    for (const [name, idx] of RUST_ALGO_ARG_FNS) {
+        const head = 'self.' + name + '(';
+        for (let at = masked.indexOf(head); at >= 0; at = masked.indexOf(head, at + 1)) {
+            if (at > 0 && /[\w.]/.test(masked[at - 1])) continue;
+            const open = at + head.length - 1;
+            const close = closeBracket(masked, open);
+            if (close < 0) continue;
+            let depth = 0, start = open + 1, n = 0;
+            for (let k = open + 1; k < close - 1 && n <= idx; k++) {
+                const c = masked[k];
+                if (c === '(' || c === '[' || c === '{') depth++;
+                else if (c === ')' || c === ']' || c === '}') depth--;
+                else if (c === ',' && depth === 0) {
+                    if (n === idx) break;
+                    n++; start = k + 1;
+                }
+            }
+            if (n !== idx) continue;
+            const m = /^(\s*)Value::Str\(("[a-z0-9]*")\.into\(\)\)(?=\s*(,|\)$))/.exec(content.slice(start, close));
+            if (m) edits.push([start, start + m[0].length, m[1] + m[2]]);
+        }
+    }
+    edits.sort((a, b) => b[0] - a[0]);
+    let out = content;
+    for (const [a, b, t] of edits) out = out.slice(0, a) + t + out.slice(b);
+    return out;
+}
 //
 // unit slot 089
 //
@@ -8193,6 +8225,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 087
     //
     // pass slot 088
+    lendAlgoLiterals,
     //
     // pass slot 089
     //

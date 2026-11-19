@@ -1212,17 +1212,16 @@ impl Exchange {
 
     // ── crypto ──────────────────────────────────────────────────────────────
 
-    pub fn hmac(&self, data: impl Into<Value>, secret: impl Into<Value>, hash: Value, optional_args: &[Value]) -> String {
+    pub fn hmac(&self, data: impl Into<Value>, secret: impl Into<Value>, hash: &str, optional_args: &[Value]) -> String {
         // `data`/`secret` may be a string OR the byte-array produced by
         // `encode()` (CCXT's `hmac` takes the encoded request/secret).
         let dbytes = value_to_bytes(&data.into());
         let sbytes = value_to_bytes(&secret.into());
-        let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        self.hmac_typed(&dbytes, &sbytes, &h, &digest).unwrap_or_default()
+        self.hmac_typed(&dbytes, &sbytes, hash, &digest).unwrap_or_default()
     }
 
     pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
@@ -1235,20 +1234,18 @@ impl Exchange {
     }
 
     /// `hash` with a `'hex'` / `'base64'` digest (the default is hex); the `'binary'` digest is `hash_binary`.
-    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> String {
+    pub fn hash(&self, data: impl Into<Value>, algo: &str, optional_args: &[Value]) -> String {
         let dbytes = value_to_bytes(&data.into());
-        let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        self.hash_typed(&dbytes, &a, &digest)
+        self.hash_typed(&dbytes, algo, &digest)
     }
 
     /// `hash(data, algo, 'binary')`: the raw digest bytes.
-    pub fn hash_binary(&self, data: impl Into<Value>, algo: Value) -> crate::value::Bytes {
-        let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
-        crate::value::Bytes::of(&hash_raw(&value_to_bytes(&data.into()), a))
+    pub fn hash_binary(&self, data: impl Into<Value>, algo: &str) -> crate::value::Bytes {
+        crate::value::Bytes::of(&hash_raw(&value_to_bytes(&data.into()), algo))
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
@@ -3206,7 +3203,7 @@ mod digest_dispatch_tests {
         let data = || Value::Str("what do ya want for nothing?".into());
         let key = || Value::Str("Jefe".into());
         let ex = Exchange::new(None);
-        let method = ex.hmac(data(), key(), Value::Str("sha384".into()), &[]);
+        let method = ex.hmac(data(), key(), "sha384", &[]);
         let free = crate::runtime::hmac(data(), key(), Value::Str("sha384".into()), Value::Str("hex".into()));
         let typed = ex.hmac_typed(b"what do ya want for nothing?", b"Jefe", "SHA384", "hex").unwrap();
         assert_eq!(method, SHA384_HMAC_JEFE); // `hmac` returns String on this branch
