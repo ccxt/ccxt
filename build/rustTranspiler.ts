@@ -6184,19 +6184,28 @@ function moveLocalsAtLastUse(content: string): string {
     return out + content.slice(last);
 }
 
+// helpers taking `impl ScalarArg`: [name, index of the lent argument, required argument count]
+const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
+    ['number_to_string', 0],
+    ['parse_number', 0],
+    ['safe_string_opt', 1, 3],
+];
 // Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
 // `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared
 // `Option<String|&str|f64|i64>` in this fn) print `f(&x)`; the helper reads `None` as the boxed `Value::Null`.
 function lendScalarArgs(content: string): string {
-    const site = /\b(number_to_string\(|parse_number\(|safe_string_opt\((?=[^;\n]*?, \w+\.clone\(\)))/g;
+    const alt = RUST_SCALAR_LENT_FNS.map(([n, i]) => n + String.raw`\(` + (i > 0 ? String.raw`(?=[^;\n]*?, \w+\.clone\(\))` : '')).join('|');
+    const site = new RegExp(String.raw`\b(${alt})`, 'g');
     const edits: [number, number, string][] = [];
     for (const m of content.matchAll(site)) {
         let at = (m.index as number) + m[0].length;
-        if (m[1].startsWith('safe_string_opt')) {
+        const row = RUST_SCALAR_LENT_FNS.find(r => m[1] === r[0] + '(') as [string, number, number?];
+        if (row[1] > 0) {
             const close = balancedCloseIndex(content, at);
             const a = splitRustArgs(content.slice(at, close));
-            if (a.length !== 3) continue;
-            at += a[0].length + 1 + (a[1].length - a[1].trimStart().length);
+            if (a.length <= row[1] || (row[2] !== undefined && a.length !== row[2])) continue;
+            for (let k = 0; k < row[1]; k++) at += a[k].length + 1;
+            at += a[row[1]].length - a[row[1]].trimStart().length;
         }
         const v = /^([A-Za-z_]\w*)\.clone\(\)((?:\.map\(Value::from\)\.unwrap_or\(Value::Null\))?)(?=[,)])/.exec(content.slice(at));
         if (v === null || v[1] === 'self') continue;
