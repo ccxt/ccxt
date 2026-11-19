@@ -4260,6 +4260,42 @@ function typedBalanceField(content: string): string {
         last = close + 1;
         head.lastIndex = last;
     }
+    return typedFieldSafeReads(out + content.slice(last));
+}
+
+// `safe_dict|safe_value(&self.balance|tickers, k, ..)` on the declared `Dict` fields read the map directly:
+// a key is stringified as `key_str` does (None -> "null"); a Null / empty-string member is missing,
+// and `safe_dict` also answers the default for a non-map member, as the readers do.
+function typedFieldSafeReads(content: string): string {
+    if (!/pub (balance|tickers): +crate::value::Dict/.test(content) && !/self\.(balance|tickers)\b/.test(content)) return content;
+    const key = (k: string): string | undefined => {
+        let m: RegExpExecArray | null;
+        if ((m = /^"[\w-]*"$/.exec(k))) return k;
+        if ((m = /^Value::from\((\w+)\.(?:as_str\(\)|clone\(\))\)$/.exec(k))) return m[1] + '.as_str()';
+        if ((m = /^(?:Value::from\((\w+)\.as_deref\(\)\)|(\w+)(?:\.clone\(\))?\.map\(Value::from\)\.unwrap_or\(Value::Null\))$/.exec(k))) return (m[1] ?? m[2]) + '.as_deref().unwrap_or("null")';
+        if ((m = /^(\w+)\.clone\(\)$/.exec(k))) return 'crate::runtime::stringify_param(&' + m[1] + ').as_str()';
+        return undefined;
+    };
+    const head = /self\.(safe_dict_k|safe_dict_t|safe_dict|safe_value)\(&self\.(balance|tickers), /g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        const close = balancedCloseIndex(content, m.index + m[0].length);
+        const args = mapParamSplitTopLevel(content.slice(m.index + m[0].length, close));
+        const kind = m[1], field = m[2];
+        const k = key(args[0].trim());
+        const def = kind === 'safe_dict_t' ? undefined : (args[1] ?? '').trim().replace(/^&\[([\s\S]*)\]$/, '$1').trim();
+        if (k === undefined || (kind === 'safe_dict_t' ? args.length !== 1 : args.length !== 2 || !/^&\[/.test(args[1].trim()))) continue;
+        const keep = kind === 'safe_value' ? '!matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty())' : 'matches!(__v, Value::Dict(_))';
+        const read = 'self.' + field + '.get(' + k + ').filter(|__v| ' + keep + ').cloned()';
+        let rep = kind === 'safe_dict_t' ? 'if let Some(Value::Dict(__m)) = ' + read + ' { __m } else { Default::default() }' : read + '.unwrap_or(' + (def === '' ? 'Value::Null' : def) + ')';
+        let end = close + 1;
+        const eq = / == Value::Null\)/y;
+        eq.lastIndex = end;
+        if (def === '' && eq.test(content)) { rep = read.replace(/\.cloned\(\)$/, '') + '.is_none()'; end += ' == Value::Null'.length; }
+        out += content.slice(last, m.index) + rep;
+        last = end;
+        head.lastIndex = end;
+    }
     return out + content.slice(last);
 }
 
