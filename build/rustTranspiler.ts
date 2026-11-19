@@ -8811,6 +8811,32 @@ function typedObjectValuesListBody(content: string): string {
 }
 //
 // unit slot 083
+/** `promise_all` answers a `List`: drop the re-wrap of its result, copy it into a `Vec` local, box it for a `Value` slot. */
+function typedPromiseAllResults(content: string): string {
+    if (!content.includes('promise_all(')) return content;
+    const call = /(?<![\w.:])promise_all\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = call.exec(content))) {
+        let i = m.index + m[0].length, depth = 1;
+        while (i < content.length && depth > 0) {
+            const ch = content[i];
+            if (ch === '"') { i++; while (i < content.length && content[i] !== '"') i += content[i] === '\\' ? 2 : 1; } else if (ch === '(') depth++; else if (ch === ')') depth--;
+            i++;
+        }
+        if (!content.startsWith('.await', i)) continue;
+        const end = i + '.await'.length, expr = content.slice(m.index, end), rest = content.slice(end);
+        const line = content.slice(content.lastIndexOf('\n', m.index) + 1, m.index);
+        let rep: string, skip = 0;
+        if (rest.startsWith('.into_list()')) { rep = expr; skip = '.into_list()'.length; }
+        else if (rest.startsWith('.as_array().cloned().unwrap_or_default()')) { rep = expr + '.to_vec()'; skip = '.as_array().cloned().unwrap_or_default()'.length; }
+        else if (/^\s*;/.test(rest) && /^\s*$/.test(line)) { rep = expr; }
+        else { rep = 'Value::Arr(' + expr + ')'; }
+        out += content.slice(last, m.index) + rep;
+        last = end + skip;
+        call.lastIndex = last;
+    }
+    return out + content.slice(last);
+}
 //
 // unit slot 084
 // `(match x.get(k) { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list()` reads
@@ -9473,6 +9499,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typedObjectValuesListBody,
     //
     // pass slot 083
+    typedPromiseAllResults,
     //
     // pass slot 084
     rustTypedListReads,

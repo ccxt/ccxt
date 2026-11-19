@@ -654,9 +654,9 @@ pub fn println_val(v: &Value) {
 }
 
 /// Async equivalent of Promise.all — awaits all futures and collects results.
-/// Currently a stub: takes a Value::Array and returns it unchanged.
-pub async fn promise_all(v: &Value) -> Value {
-    v.clone()
+/// Currently a stub: takes the already-awaited `Value::Arr` and answers its list (empty for a non-list).
+pub async fn promise_all(v: &Value) -> crate::value::List {
+    if let Value::Arr(a) = v { Arc::clone(a) } else { Arc::default() }
 }
 
 // ── variadic / array helpers ─────────────────────────────────────────────────
