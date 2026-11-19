@@ -1299,7 +1299,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: Str, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: string, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
@@ -1315,7 +1315,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: Str) {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string) {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
