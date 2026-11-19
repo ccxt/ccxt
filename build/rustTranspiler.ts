@@ -8056,6 +8056,27 @@ function lendCollectionRows(content: string): string {
 // unit slot 061
 //
 // unit slot 062
+// Credential fields are `Value` (PartialEq + Display): a null compare or a direct format! argument borrows them.
+const RUST_CRED_CLONE = /self\.(?:apiKey|secret|password|uid|privateKey|walletAddress|accountId)\.clone\(\)/g;
+function lendCredentialFieldReads(content: string): string {
+    return content.split('\n').map(line => {
+        if (line.trimStart().startsWith('//') || !line.includes('self.')) return line;
+        return line.replace(RUST_CRED_CLONE, (m, off: number) => {
+            const field = m.slice(0, -'.clone()'.length);
+            if (/^ *[=!]= Value::Null\b/.test(line.slice(off + m.length))) return field;
+            let depth = 0;
+            for (let i = off - 1; i >= 0; i--) {
+                const c = line[i];
+                if (c === ')' || c === ']' || c === '}') depth++;
+                else if (c === '(' || c === '[' || c === '{') {
+                    if (depth > 0) { depth--; continue; }
+                    return c === '(' && line.slice(0, i).endsWith('format!') && /^\s*[,)]/.test(line.slice(off + m.length)) && /,\s*$/.test(line.slice(0, off)) ? field : m;
+                }
+            }
+            return m;
+        });
+    }).join('\n');
+}
 //
 // unit slot 063
 //
@@ -8605,6 +8626,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 061
     //
     // pass slot 062
+    lendCredentialFieldReads,
     //
     // pass slot 063
     //
