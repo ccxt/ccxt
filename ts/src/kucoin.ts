@@ -9460,12 +9460,8 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        let assets: NullableList = undefined;
-        if (marginMode === 'isolated') {
-            assets = this.safeList (data, 'assets', []);
-        } else {
-            assets = this.safeList (data, 'accounts', []);
-        }
+        const assetsKey = (marginMode === 'isolated') ? 'assets' : 'accounts';
+        const assets = this.safeList (data, assetsKey, []);
         const interest = this.parseBorrowInterests (assets, market);
         const filteredByCurrency = this.filterByCurrencySinceLimit (interest, code, since, limit);
         return this.filterBySymbolSinceLimit (filteredByCurrency, symbol, since, limit);
