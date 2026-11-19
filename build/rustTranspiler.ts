@@ -4236,6 +4236,7 @@ function typedBaseDictFields(content: string): string {
     return content;
 }
 
+<<<<<<< merged
 // `balance` is a typed `Dict` (exchange.rs) and `safeBalance` takes any map operand and returns the `Dict` it fills:
 // a `Value` slot boxes the answer, a `Value` store into the field keeps its map (a non-map is the empty map).
 function typedBalanceField(content: string): string {
@@ -4265,6 +4266,30 @@ function typedBalanceField(content: string): string {
         head.lastIndex = last;
     }
     return out + content.slice(last);
+=======
+// In a `&mut self` method the store-back borrows the real field; kept when the rest of the statement reads `self`.
+function mutSelfFieldStoreBacks(content: string): string {
+    const lines = content.split('\n');
+    const cast = /unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.(\w+)\) \}/;
+    let mutRecv = false;
+    for (let i = 0; i < lines.length; i++) {
+        const head = /^ {4}(?:pub )?(?:async )?fn \w+(?:<[^>]*>)?\((&(?:'\w+ )?mut self|&self)?/.exec(lines[i]);
+        if (head) mutRecv = (head[1] ?? '').includes('mut self');
+        const m = cast.exec(lines[i]);
+        if (!mutRecv || !m) continue;
+        // the statement spans to the line whose indent returns to this one
+        const indent = lines[i].length - lines[i].trimStart().length;
+        let end = i;
+        if (/\{\s*$/.test(lines[i]) || /^\s*\{ let __bf03d0/.test(lines[i])) {
+            while (end + 1 < lines.length && !(lines[end + 1].length - lines[end + 1].trimStart().length <= indent && lines[end + 1].trim() !== '')) end++;
+            end++;
+        }
+        const rest = [lines[i].slice(m.index + m[0].length), ...lines.slice(i + 1, end + 1)].join('\n');
+        if (/\bself\b/.test(rest) || /\bself\b/.test(lines[i].slice(0, m.index).replace(/^\s*/, '').replace(/^(?:if let Value::Dict\(\w+\) = |\{ let \w+ = |get_value_mut\(|.*get_value_mut\()/, ''))) continue;
+        lines[i] = lines[i].slice(0, m.index) + '&mut self.' + m[1] + lines[i].slice(m.index + m[0].length);
+    }
+    return lines.join('\n');
+>>>>>>> X03
 }
 
 function plainDictChains(content: string): string {
@@ -4799,7 +4824,8 @@ function rustTypedSafeOrder (content: string): string {
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
 // returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
 function rustTypedRouteAndParams (content: string): string {
-    const sig = 'fn handle_route_and_params(&self, methodName: &str, optional_args: &[Value]) -> Value {';
+    const sigs = [ '&self', '&mut self' ].map ((r) => `fn handle_route_and_params(${r}, methodName: &str, optional_args: &[Value]) -> Value {`);
+    const sig = sigs.find ((s) => content.includes (s)) ?? sigs[0];
     const ret = 'return self.omit(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);\n\n    Value::Null\n}';
     const at = content.indexOf (sig);
     if (at >= 0) {
@@ -5652,6 +5678,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     }
 <<<<<<< merged
 <<<<<<< merged
+<<<<<<< merged
     content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
 =======
     content = splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
@@ -5659,6 +5686,9 @@ function overwriteFileAndFolder(filePath: string, content: string) {
 =======
     content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
 >>>>>>> R11
+=======
+    content = splitLongRustLines(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
+>>>>>>> X03
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -7217,6 +7247,26 @@ export class RustTranspilerBuilder {
             const seeded = directMutRe.test(body)
                 || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
             if (seeded) mutSet.add(f.name);
+        }
+        // A store-back into a typed base dict field (lost on a clone in a `&self` fn) seeds the fn when no
+        // `&self` trait virtual is among its transitive callers: that forwarder could only reach it by a cast.
+        const virtuals = new Set(Object.keys(this.traitMethodSignatures()).filter(n => !this.mutReceiverTraitMethods().has(n)));
+        const lostWriteRe = /&mut self\.(?:options|fees|userAgents|has|httpExceptions)\.clone\(\)/;
+        const callersOf = (name: string): Set<string> => {
+            const seen = new Set<string>([ name ]);
+            for (let grew = true; grew;) {
+                grew = false;
+                for (const f of fns) {
+                    if (seen.has(f.name) || mutSet.has(f.name)) continue;
+                    const body = content.slice(f.bodyStart, f.bodyEnd);
+                    if ([...seen].some(n => new RegExp(`\\bself\\.(?:parent\\.)?${n}\\s*\\(`).test(body))) { seen.add(f.name); grew = true; }
+                }
+            }
+            return seen;
+        };
+        for (const f of fns) {
+            if (mutSet.has(f.name) || !lostWriteRe.test(content.slice(f.bodyStart, f.bodyEnd))) continue;
+            if (![...callersOf(f.name)].some(n => virtuals.has(n))) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
         let changed = true;
@@ -12273,6 +12323,7 @@ impl std::ops::DerefMut for ${coreName} {
 
 <<<<<<< merged
 <<<<<<< merged
+<<<<<<< merged
         fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
 =======
         fs.writeFileSync(outFile, splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
@@ -12280,6 +12331,9 @@ impl std::ops::DerefMut for ${coreName} {
 =======
         fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
 >>>>>>> R11
+=======
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
+>>>>>>> X03
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
