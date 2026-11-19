@@ -1434,7 +1434,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
 	}
 	var symbolResolved any = this.Symbol(symbol)
 
-	r1 := <-this.WatchOHLCVForSymbolsAsync([]any{[]any{symbolResolved, timeframe}}, since, limit, paramsResolved)
+	r1 := <-this.WatchOHLCVForSymbolsAsync([][]any{[]any{symbolResolved, timeframe}}, since, limit, paramsResolved)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1467,12 +1467,12 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a dictionary of ccxt.OHLCV arrays indexed by symbol and timeframe
  */
-func (this *Coinbaseinternational) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
+func (this *Coinbaseinternational) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] {
 	ch := make(chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV], symbolsAndTimeframes [][]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1483,7 +1483,7 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("watchOHLCVForSymbols", params)
 	var symbolsAndTimeframesLength int = len(symbolsAndTimeframes)
-	if (symbolsAndTimeframesLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
+	if (symbolsAndTimeframesLength == 0) || !(len(symbolsAndTimeframes) > 0 && symbolsAndTimeframes[0] != nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]"))
 	}
 	if this.Markets == nil {
@@ -1546,7 +1546,7 @@ func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[boo
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("unWatchOHLCV", params)
 
-	r := <-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, paramsResolved)
+	r := <-this.UnWatchOHLCVForSymbolsAsync([][]any{[]any{symbol, timeframe}}, paramsResolved)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1565,12 +1565,12 @@ func (this *Coinbaseinternational) unWatchOHLCVBody(ch chan ccxt.AsyncResult[boo
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the exchange response
  */
-func (this *Coinbaseinternational) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Coinbaseinternational) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes []any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes [][]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

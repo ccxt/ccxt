@@ -1130,12 +1130,12 @@ func (this *BaseExchange) unWatchTradesForSymbolsBody(ch chan AsyncResult[bool],
 	_ = params
 	panic(NotSupported(this.Id + " unWatchTradesForSymbols() is not supported yet"))
 }
-func (this *BaseExchange) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan AsyncResult[map[string]map[string][]OHLCV] {
+func (this *BaseExchange) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan AsyncResult[map[string]map[string][]OHLCV] {
 	ch := make(chan AsyncResult[map[string]map[string][]OHLCV], 1)
 	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan AsyncResult[map[string]map[string][]OHLCV], symbolsAndTimeframes []any, optionalArgs ...any) any {
+func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan AsyncResult[map[string]map[string][]OHLCV], symbolsAndTimeframes [][]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1146,12 +1146,12 @@ func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan AsyncResult[map[strin
 	_ = params
 	panic(NotSupported(this.Id + " watchOHLCVForSymbols() is not supported yet"))
 }
-func (this *BaseExchange) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes []any, optionalArgs ...any) <-chan AsyncResult[bool] {
+func (this *BaseExchange) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan AsyncResult[bool] {
 	ch := make(chan AsyncResult[bool], 1)
 	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) unWatchOHLCVForSymbolsBody(ch chan AsyncResult[bool], symbolsAndTimeframes []any, optionalArgs ...any) any {
+func (this *BaseExchange) unWatchOHLCVForSymbolsBody(ch chan AsyncResult[bool], symbolsAndTimeframes [][]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

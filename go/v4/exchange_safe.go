@@ -14,6 +14,17 @@ func getValueFromList(list any, keys []any, defVal any) any {
 	// a maybe-undefined element travels as a pointer; unwrap it so callers keep
 	// seeing plain scalars (nil pointer -> untyped nil)
 	switch l := list.(type) {
+	case [][]any:
+		for _, key := range keys {
+			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+				if keyInt >= 0 && keyInt < len(l) {
+					if l[keyInt] == nil {
+						return nil
+					}
+					return l[keyInt]
+				}
+			}
+		}
 	case []any:
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
@@ -136,6 +147,8 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 	switch v := obj.(type) {
 	// handle slices
 	case []any:
+		return getValueFromList(v, keys, defVal)
+	case [][]any:
 		return getValueFromList(v, keys, defVal)
 	case ListCache:
 		return getValueFromList([]any(v), keys, defVal)
