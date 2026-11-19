@@ -695,14 +695,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        const response = await this.publicPostInfo(this.extend({ 'type': 'allMids' }, params));
+        const allMidsResponse = await this.publicPostInfo(this.extend({ 'type': 'allMids' }, params));
+        const allMids = this.infoDict(allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        let allMids = {};
-        if ((typeof response !== 'string') && !Array.isArray(response)) {
-            allMids = response;
-        }
         const mids = this.safeDict(allMids, 'mids', allMids);
         const tickers = {};
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
@@ -887,7 +884,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             },
         };
         const paramsOmitted = this.omit(params, 'until');
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -904,10 +902,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
@@ -1487,12 +1481,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOpenOrders', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         const ordersWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             ordersWithStatus.push(this.extend(order, { 'ccxtStatus': 'open' }));
@@ -1521,13 +1512,10 @@ class hyperliquid extends hyperliquid$1["default"] {
     async fetchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for (let i = 0; i < historicalOrders.length; i++) {
             const raw = historicalOrders[i];
             let entry = this.safeDict(raw, 'order');
@@ -1583,11 +1571,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             const isCloid = id.length >= 34;
             request['oid'] = isCloid ? id : this.parseToNumeric(id);
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsValue));
-        let orderStatus = {};
-        if ((typeof response !== 'string') && !Array.isArray(response)) {
-            orderStatus = response;
-        }
+        const orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
+        const orderStatus = this.infoDict(orderStatusResponse);
         const orderWrapper = this.safeDict(orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
@@ -2295,6 +2280,33 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
         }
         return this.safeValue(config, 'cost', 1);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    infoDict(response) {
+        if ((typeof response !== 'string') && !Array.isArray(response)) {
+            return response;
+        }
+        return {};
     }
 }
 

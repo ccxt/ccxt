@@ -101,7 +101,9 @@ class bullish extends bullish$1["default"] {
         const cookies = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const id = this.requestId().toString();
         const message = {
             'jsonrpc': '2.0',

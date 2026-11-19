@@ -2541,7 +2541,9 @@ class dydx extends dydx$1["default"] {
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';
         this.options['chainId'] = 11155111;
-        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        const feeDenomDict = this.safeDict(this.options, 'feeDenom', {});
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        this.options['feeDenom'] = feeDenomDict;
     }
 }
 

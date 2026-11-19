@@ -1961,12 +1961,16 @@ class htx extends htx$1["default"] {
                 constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
-                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol;
+                const futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol;
+                this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId;
+        const futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId;
+        this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2;
         return symbolOrMarketId;
     }
     parseTicker(ticker, market = undefined) {
@@ -3377,7 +3381,9 @@ class htx extends htx$1["default"] {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
             }
             if (uniqueChainId !== undefined) {
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+                const networkNamesByChainIdsDict3 = this.safeDict(this.options, 'networkNamesByChainIds', {});
+                networkNamesByChainIdsDict3[uniqueChainId] = title;
+                this.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3;
             }
             const networkCode = this.networkIdToCode(uniqueChainId, code);
             if (networkCode !== undefined) {

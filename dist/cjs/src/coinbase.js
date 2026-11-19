@@ -2050,10 +2050,14 @@ class coinbase extends coinbase$1["default"] {
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
             if (code !== undefined) {
-                this.options['networks'][code] = name.toLowerCase();
+                const networksDict1 = this.safeDict(this.options, 'networks', {});
+                networksDict1[code] = name.toLowerCase();
+                this.options['networks'] = networksDict1;
             }
             if (code !== undefined) {
-                this.options['networksById'][code] = name.toLowerCase();
+                const networksByIdDict2 = this.safeDict(this.options, 'networksById', {});
+                networksByIdDict2[code] = name.toLowerCase();
+                this.options['networksById'] = networksByIdDict2;
             }
             let type = 'fiat';
             if (assetId !== undefined) {

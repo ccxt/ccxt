@@ -1623,7 +1623,6 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const maxLimit = 2000;
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe(timeframe) * 1000;
@@ -1634,11 +1633,11 @@ export default class backpack extends Exchange {
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        let limitResolved = limit;
-        if (limitResolved !== undefined) {
-            limitResolved = Math.min(limitResolved, maxLimit);
+        const windowLimit = (limit === undefined) ? defaultLimit : Math.min(limit, 2000);
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = windowLimit;
         }
-        const windowLimit = (limitResolved === undefined) ? defaultLimit : limitResolved;
         const now = this.milliseconds();
         let startTime = since;
         let untilValue = until;

@@ -172434,7 +172434,9 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
                         maintenanceMarginPercentage
                     ]);
                 }
-                this.options['leverageBrackets'][symbol] = result;
+                const leverageBracketsDict = this.safeDict(this.options, 'leverageBrackets', {});
+                leverageBracketsDict[symbol] = result;
+                this.options['leverageBrackets'] = leverageBracketsDict;
             }
         }
         return this.options['leverageBrackets'];
@@ -174730,7 +174732,6 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const maxLimit = 2000;
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe(timeframe) * 1000;
@@ -174744,11 +174745,11 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        let limitResolved = limit;
-        if (limitResolved !== undefined) {
-            limitResolved = Math.min(limitResolved, maxLimit);
+        const windowLimit = limit === undefined ? defaultLimit : Math.min(limit, 2000);
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = windowLimit;
         }
-        const windowLimit = limitResolved === undefined ? defaultLimit : limitResolved;
         const now = this.milliseconds();
         let startTime = since;
         let untilValue = until;
@@ -182469,7 +182470,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const retryDelay = 0;
         const [retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay] = this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
-        for(let i = 0; i < retriesMaxRetriesOnFailure + 1; i++){
+        for(let i = 0; i <= retriesMaxRetriesOnFailure; i++){
             let fetchData = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = {
@@ -184201,16 +184202,18 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          */ const networkKeys = Object.keys(fee['networks']);
         const numNetworks = networkKeys.length;
         if (numNetworks === 1) {
-            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
-            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            const networkFee = this.safeDict(fee['networks'], networkKeys[0], {});
+            fee['withdraw'] = networkFee['withdraw'];
+            fee['deposit'] = networkFee['deposit'];
             return fee;
         }
         const currencyCode = this.safeString(currency, 'code');
         for(let i = 0; i < numNetworks; i++){
             const network = networkKeys[i];
             if (network === currencyCode) {
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
-                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+                const networkFee = this.safeDict(fee['networks'], networkKeys[i], {});
+                fee['withdraw'] = networkFee['withdraw'];
+                fee['deposit'] = networkFee['deposit'];
             }
         }
         return fee;
@@ -214218,7 +214221,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         maintenanceMarginPercentage
                     ]);
                 }
-                this.options['leverageBrackets'][symbol] = result;
+                const leverageBracketsDict = this.safeDict(this.options, 'leverageBrackets', {});
+                leverageBracketsDict[symbol] = result;
+                this.options['leverageBrackets'] = leverageBracketsDict;
             }
         }
         return this.options['leverageBrackets'];
@@ -254080,11 +254085,10 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response = undefined;
         let data = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -254105,7 +254109,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -254918,10 +254922,9 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -254948,7 +254951,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             //
             data = this.safeList(response, 'orders', []);
         } else {
-            response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
             //
             //     [
             //         {
@@ -306318,10 +306321,14 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
             if (code !== undefined) {
-                this.options['networks'][code] = name.toLowerCase();
+                const networksDict1 = this.safeDict(this.options, 'networks', {});
+                networksDict1[code] = name.toLowerCase();
+                this.options['networks'] = networksDict1;
             }
             if (code !== undefined) {
-                this.options['networksById'][code] = name.toLowerCase();
+                const networksByIdDict2 = this.safeDict(this.options, 'networksById', {});
+                networksByIdDict2[code] = name.toLowerCase();
+                this.options['networksById'] = networksByIdDict2;
             }
             let type = 'fiat';
             if (assetId !== undefined) {
@@ -353229,7 +353236,9 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';
         this.options['chainId'] = 11155111;
-        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        const feeDenomDict = this.safeDict(this.options, 'feeDenom', {});
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        this.options['feeDenom'] = feeDenomDict;
     }
 }
 // ---------------------------------------------------------------------------
@@ -391649,12 +391658,16 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
-                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol;
+                const futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol;
+                this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId;
+        const futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId;
+        this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2;
         return symbolOrMarketId;
     }
     parseTicker(ticker, market = undefined) {
@@ -392996,7 +393009,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
             }
             if (uniqueChainId !== undefined) {
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+                const networkNamesByChainIdsDict3 = this.safeDict(this.options, 'networkNamesByChainIds', {});
+                networkNamesByChainIdsDict3[uniqueChainId] = title;
+                this.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3;
             }
             const networkCode = this.networkIdToCode(uniqueChainId, code);
             if (networkCode !== undefined) {
@@ -400256,7 +400271,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         const id = this.safeString(rawCurrency, 'index');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(name);
-        this.options['cachedCurrenciesById'][id] = name;
+        const cachedCurrenciesByIdDict1 = this.safeDict(this.options, 'cachedCurrenciesById', {});
+        cachedCurrenciesByIdDict1[id] = name;
+        this.options['cachedCurrenciesById'] = cachedCurrenciesByIdDict1;
         const result = this.safeCurrencyStructure({
             'id': id,
             'name': name,
@@ -400292,7 +400309,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 }
                 const baseCode = this.safeCurrencyCode(nameWithoutU);
                 if (code !== undefined) {
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                    const spotCurrencyMappingDict2 = this.safeDict(this.options, 'spotCurrencyMapping', {});
+                    spotCurrencyMappingDict2[code] = baseCode;
+                    this.options['spotCurrencyMapping'] = spotCurrencyMappingDict2;
                 }
             }
         }
@@ -401305,7 +401324,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'endTime': until
             }
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -401322,10 +401342,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -401391,7 +401407,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fills = this.infoList(fillsResponse);
         //
         //     [
         //         {
@@ -401412,10 +401429,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //         }
         //     ]
         //
-        let fills = [];
-        if (Array.isArray(response)) {
-            fills = response;
-        }
         return this.parseTrades(fills, market, since, limit);
     }
     amountToPrecision(symbol, amount) {
@@ -403005,7 +403018,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundingsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundings = this.infoList(fundingsResponse);
         //
         //     [
         //         {
@@ -403017,10 +403031,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     ]
         //
         const result = [];
-        let fundings = [];
-        if (Array.isArray(response)) {
-            fundings = response;
-        }
         for(let i = 0; i < fundings.length; i++){
             const entry = this.safeDict(fundings, i);
             const timestamp = this.safeInteger(entry, 'time');
@@ -403078,7 +403088,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         //
         //     [
         //         {
@@ -403093,10 +403104,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     ]
         //
         const orderWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for(let i = 0; i < rawOrders.length; i++){
             const order = this.safeDict(rawOrders, i);
             const extendOrder = {};
@@ -403200,7 +403207,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         //
         //     [
         //         {
@@ -403222,10 +403230,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for(let i = 0; i < historicalOrders.length; i++){
             const rawOrder = historicalOrders[i];
             const entry = this.safeDict(rawOrder, 'order', rawOrder);
@@ -403557,7 +403561,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFills = this.infoList(myFillsResponse);
         //
         //     [
         //         {
@@ -403579,10 +403584,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //         }
         //     ]
         //
-        let myFills = [];
-        if (Array.isArray(response)) {
-            myFills = response;
-        }
         return this.parseTrades(myFills, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -403683,7 +403684,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const infoResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const response = this.infoList(infoResponse);
         //
         //     [
         //         {
@@ -403711,15 +403713,13 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     ]
         //
         const fills = [];
-        if (Array.isArray(response)) {
-            const user = this.safeStringLower(request, 'user');
-            for(let i = 0; i < response.length; i++){
-                const fill = this.safeDict(response, i, {});
-                const liquidation = this.safeDict(fill, 'liquidation', {});
-                // liquidator fills carry the liquidated counterparty here
-                if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
-                    fills.push(fill);
-                }
+        const user = this.safeStringLower(request, 'user');
+        for(let i = 0; i < response.length; i++){
+            const fill = this.safeDict(response, i, {});
+            const liquidation = this.safeDict(fill, 'liquidation', {});
+            // liquidator fills carry the liquidated counterparty here
+            if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
+                fills.push(fill);
             }
         }
         return this.parseLiquidations(fills, market, since, limit);
@@ -404719,7 +404719,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'until'
             ]);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedger = this.infoList(depositLedgerResponse);
         //
         // [
         //     {
@@ -404733,10 +404734,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     }
         // ]
         //
-        let depositLedger = [];
-        if (Array.isArray(response)) {
-            depositLedger = response;
-        }
         const records = this.extractTypeFromDelta(depositLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -404793,7 +404790,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'until'
             ]);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedger = this.infoList(withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -404807,10 +404805,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     }
         // ]
         //
-        let withdrawalLedger = [];
-        if (Array.isArray(response)) {
-            withdrawalLedger = response;
-        }
         const records = this.extractTypeFromDelta(withdrawalLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -405216,6 +405210,19 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             order,
             globalParams
         ];
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */ infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
     }
 }
 //  ---------------------------------------------------------------------------
@@ -410191,7 +410198,9 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
             'baseId': baseId,
             'quoteId': quoteId
         };
-        this.options['delistedMarketsById'][id] = market;
+        const delistedMarketsByIdDict = this.safeDict(this.options, 'delistedMarketsById', {});
+        delistedMarketsByIdDict[id] = market;
+        this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
     }
     parseOrderStatus(status) {
@@ -499129,16 +499138,13 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        const response = await this.publicPostInfo(this.extend({
+        const allMidsResponse = await this.publicPostInfo(this.extend({
             'type': 'allMids'
         }, params));
+        const allMids = this.infoDict(allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        let allMids = {};
-        if (typeof response !== 'string' && !Array.isArray(response)) {
-            allMids = response;
-        }
         const mids = this.safeDict(allMids, 'mids', allMids);
         const tickers = {};
         const outcomesMap = this.outcomes !== undefined ? this.outcomes : {};
@@ -499335,7 +499341,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             }
         };
         const paramsOmitted = this.omit(params, 'until');
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -499352,10 +499359,6 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
@@ -499957,12 +499960,9 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             'type': method,
             'user': userAddress
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         const ordersWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for(let i = 0; i < rawOrders.length; i++){
             const order = rawOrders[i];
             ordersWithStatus.push(this.extend(order, {
@@ -499995,13 +499995,10 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             'type': 'historicalOrders',
             'user': userAddress
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for(let i = 0; i < historicalOrders.length; i++){
             const raw = historicalOrders[i];
             let entry = this.safeDict(raw, 'order');
@@ -500057,11 +500054,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             const isCloid = id.length >= 34;
             request['oid'] = isCloid ? id : this.parseToNumeric(id);
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsValue));
-        let orderStatus = {};
-        if (typeof response !== 'string' && !Array.isArray(response)) {
-            orderStatus = response;
-        }
+        const orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
+        const orderStatus = this.infoDict(orderStatusResponse);
         const orderWrapper = this.safeDict(orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
@@ -500796,6 +500790,31 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             }
         }
         return this.safeValue(config, 'cost', 1);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */ infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */ infoDict(response) {
+        if (typeof response !== 'string' && !Array.isArray(response)) {
+            return response;
+        }
+        return {};
     }
 }
 // ---------------------------------------------------------------------------
@@ -552324,7 +552343,9 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
         const cookies = {
             'JWT_COOKIE': token
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const id = this.requestId().toString();
         const message = {
             'jsonrpc': '2.0',
@@ -556228,7 +556249,9 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         if (currentSymbol !== undefined && currentSymbol !== symbol) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        this.options['watchTrades']['symbol'] = symbol;
+        const watchTradesDict = this.safeDict(this.options, 'watchTrades', {});
+        watchTradesDict['symbol'] = symbol;
+        this.options['watchTrades'] = watchTradesDict;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -632996,8 +633019,9 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             }
         } else if (since !== undefined && limit !== undefined) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
+            const durationMs = this.parseTimeframe(timeframe) * 1000;
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request['endTime'] = Math.min(since - (1 - durationMs * limit), this.milliseconds());
         }
         if (limit !== undefined) {
             request['limit'] = limit;

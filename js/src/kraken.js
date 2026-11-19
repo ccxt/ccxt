@@ -1881,7 +1881,9 @@ export default class kraken extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
         };
-        this.options['delistedMarketsById'][id] = market;
+        const delistedMarketsByIdDict = this.safeDict(this.options, 'delistedMarketsById', {});
+        delistedMarketsByIdDict[id] = market;
+        this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
     }
     parseOrderStatus(status) {

@@ -141,7 +141,9 @@ export default class cex extends cexRest {
         if (currentSymbol !== undefined && currentSymbol !== symbol) {
             throw new ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        this.options['watchTrades']['symbol'] = symbol;
+        const watchTradesDict = this.safeDict(this.options, 'watchTrades', {});
+        watchTradesDict['symbol'] = symbol;
+        this.options['watchTrades'] = watchTradesDict;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }

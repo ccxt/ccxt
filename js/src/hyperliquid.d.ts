@@ -769,4 +769,12 @@ export default class hyperliquid extends Exchange {
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
     parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): [Dict, Dict];
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response: Dict | List | string): Dict[];
 }

@@ -478,7 +478,9 @@ export default class hyperliquid extends Exchange {
         const id = this.safeString(rawCurrency, 'index');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(name);
-        this.options['cachedCurrenciesById'][id] = name;
+        const cachedCurrenciesByIdDict1 = this.safeDict(this.options, 'cachedCurrenciesById', {});
+        cachedCurrenciesByIdDict1[id] = name;
+        this.options['cachedCurrenciesById'] = cachedCurrenciesByIdDict1;
         const result = this.safeCurrencyStructure({
             'id': id,
             'name': name,
@@ -514,7 +516,9 @@ export default class hyperliquid extends Exchange {
                 }
                 const baseCode = this.safeCurrencyCode(nameWithoutU);
                 if (code !== undefined) {
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                    const spotCurrencyMappingDict2 = this.safeDict(this.options, 'spotCurrencyMapping', {});
+                    spotCurrencyMappingDict2[code] = baseCode;
+                    this.options['spotCurrencyMapping'] = spotCurrencyMappingDict2;
                 }
             }
         }
@@ -1542,7 +1546,8 @@ export default class hyperliquid extends Exchange {
                 'endTime': until,
             },
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -1559,10 +1564,6 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1630,7 +1631,8 @@ export default class hyperliquid extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fills = this.infoList(fillsResponse);
         //
         //     [
         //         {
@@ -1651,10 +1653,6 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        let fills = [];
-        if (Array.isArray(response)) {
-            fills = response;
-        }
         return this.parseTrades(fills, market, since, limit);
     }
     amountToPrecision(symbol, amount) {
@@ -3113,7 +3111,8 @@ export default class hyperliquid extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundingsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundings = this.infoList(fundingsResponse);
         //
         //     [
         //         {
@@ -3125,10 +3124,6 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const result = [];
-        let fundings = [];
-        if (Array.isArray(response)) {
-            fundings = response;
-        }
         for (let i = 0; i < fundings.length; i++) {
             const entry = this.safeDict(fundings, i);
             const timestamp = this.safeInteger(entry, 'time');
@@ -3187,7 +3182,8 @@ export default class hyperliquid extends Exchange {
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         //
         //     [
         //         {
@@ -3202,10 +3198,6 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const orderWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.safeDict(rawOrders, i);
             const extendOrder = {};
@@ -3305,7 +3297,8 @@ export default class hyperliquid extends Exchange {
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         //
         //     [
         //         {
@@ -3327,10 +3320,6 @@ export default class hyperliquid extends Exchange {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for (let i = 0; i < historicalOrders.length; i++) {
             const rawOrder = historicalOrders[i];
             const entry = this.safeDict(rawOrder, 'order', rawOrder);
@@ -3663,7 +3652,8 @@ export default class hyperliquid extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFills = this.infoList(myFillsResponse);
         //
         //     [
         //         {
@@ -3685,10 +3675,6 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        let myFills = [];
-        if (Array.isArray(response)) {
-            myFills = response;
-        }
         return this.parseTrades(myFills, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -3791,7 +3777,8 @@ export default class hyperliquid extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const infoResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const response = this.infoList(infoResponse);
         //
         //     [
         //         {
@@ -3819,15 +3806,13 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const fills = [];
-        if (Array.isArray(response)) {
-            const user = this.safeStringLower(request, 'user');
-            for (let i = 0; i < response.length; i++) {
-                const fill = this.safeDict(response, i, {});
-                const liquidation = this.safeDict(fill, 'liquidation', {});
-                // liquidator fills carry the liquidated counterparty here
-                if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
-                    fills.push(fill);
-                }
+        const user = this.safeStringLower(request, 'user');
+        for (let i = 0; i < response.length; i++) {
+            const fill = this.safeDict(response, i, {});
+            const liquidation = this.safeDict(fill, 'liquidation', {});
+            // liquidator fills carry the liquidated counterparty here
+            if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
+                fills.push(fill);
             }
         }
         return this.parseLiquidations(fills, market, since, limit);
@@ -4830,7 +4815,8 @@ export default class hyperliquid extends Exchange {
             request['endTime'] = until;
             params2 = this.omit(params2, ['until']);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedger = this.infoList(depositLedgerResponse);
         //
         // [
         //     {
@@ -4844,10 +4830,6 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        let depositLedger = [];
-        if (Array.isArray(response)) {
-            depositLedger = response;
-        }
         const records = this.extractTypeFromDelta(depositLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -4901,7 +4883,8 @@ export default class hyperliquid extends Exchange {
             request['endTime'] = until;
             params2 = this.omit(params2, ['until']);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedger = this.infoList(withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -4915,10 +4898,6 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        let withdrawalLedger = [];
-        if (Array.isArray(response)) {
-            withdrawalLedger = response;
-        }
         const records = this.extractTypeFromDelta(withdrawalLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -5312,5 +5291,19 @@ export default class hyperliquid extends Exchange {
             order['id'] = id;
         }
         return [order, globalParams];
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
     }
 }

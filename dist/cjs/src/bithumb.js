@@ -1591,11 +1591,10 @@ class bithumb extends bithumb$1["default"] {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response = undefined;
         let data = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1617,7 +1616,7 @@ class bithumb extends bithumb$1["default"] {
         else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -2442,10 +2441,9 @@ class bithumb extends bithumb$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2473,7 +2471,7 @@ class bithumb extends bithumb$1["default"] {
             data = this.safeList(response, 'orders', []);
         }
         else {
-            response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
             //
             //     [
             //         {

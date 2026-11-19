@@ -477,7 +477,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const id = this.safeString(rawCurrency, 'index');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(name);
-        this.options['cachedCurrenciesById'][id] = name;
+        const cachedCurrenciesByIdDict1 = this.safeDict(this.options, 'cachedCurrenciesById', {});
+        cachedCurrenciesByIdDict1[id] = name;
+        this.options['cachedCurrenciesById'] = cachedCurrenciesByIdDict1;
         const result = this.safeCurrencyStructure({
             'id': id,
             'name': name,
@@ -513,7 +515,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                 }
                 const baseCode = this.safeCurrencyCode(nameWithoutU);
                 if (code !== undefined) {
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                    const spotCurrencyMappingDict2 = this.safeDict(this.options, 'spotCurrencyMapping', {});
+                    spotCurrencyMappingDict2[code] = baseCode;
+                    this.options['spotCurrencyMapping'] = spotCurrencyMappingDict2;
                 }
             }
         }
@@ -1541,7 +1545,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'endTime': until,
             },
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -1558,10 +1563,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1629,7 +1630,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fills = this.infoList(fillsResponse);
         //
         //     [
         //         {
@@ -1650,10 +1652,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        let fills = [];
-        if (Array.isArray(response)) {
-            fills = response;
-        }
         return this.parseTrades(fills, market, since, limit);
     }
     amountToPrecision(symbol, amount) {
@@ -3112,7 +3110,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundingsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundings = this.infoList(fundingsResponse);
         //
         //     [
         //         {
@@ -3124,10 +3123,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     ]
         //
         const result = [];
-        let fundings = [];
-        if (Array.isArray(response)) {
-            fundings = response;
-        }
         for (let i = 0; i < fundings.length; i++) {
             const entry = this.safeDict(fundings, i);
             const timestamp = this.safeInteger(entry, 'time');
@@ -3186,7 +3181,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         //
         //     [
         //         {
@@ -3201,10 +3197,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     ]
         //
         const orderWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.safeDict(rawOrders, i);
             const extendOrder = {};
@@ -3304,7 +3296,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         //
         //     [
         //         {
@@ -3326,10 +3319,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for (let i = 0; i < historicalOrders.length; i++) {
             const rawOrder = historicalOrders[i];
             const entry = this.safeDict(rawOrder, 'order', rawOrder);
@@ -3662,7 +3651,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFills = this.infoList(myFillsResponse);
         //
         //     [
         //         {
@@ -3684,10 +3674,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        let myFills = [];
-        if (Array.isArray(response)) {
-            myFills = response;
-        }
         return this.parseTrades(myFills, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -3790,7 +3776,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const infoResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const response = this.infoList(infoResponse);
         //
         //     [
         //         {
@@ -3818,15 +3805,13 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     ]
         //
         const fills = [];
-        if (Array.isArray(response)) {
-            const user = this.safeStringLower(request, 'user');
-            for (let i = 0; i < response.length; i++) {
-                const fill = this.safeDict(response, i, {});
-                const liquidation = this.safeDict(fill, 'liquidation', {});
-                // liquidator fills carry the liquidated counterparty here
-                if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
-                    fills.push(fill);
-                }
+        const user = this.safeStringLower(request, 'user');
+        for (let i = 0; i < response.length; i++) {
+            const fill = this.safeDict(response, i, {});
+            const liquidation = this.safeDict(fill, 'liquidation', {});
+            // liquidator fills carry the liquidated counterparty here
+            if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
+                fills.push(fill);
             }
         }
         return this.parseLiquidations(fills, market, since, limit);
@@ -4829,7 +4814,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['endTime'] = until;
             params2 = this.omit(params2, ['until']);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedger = this.infoList(depositLedgerResponse);
         //
         // [
         //     {
@@ -4843,10 +4829,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         // ]
         //
-        let depositLedger = [];
-        if (Array.isArray(response)) {
-            depositLedger = response;
-        }
         const records = this.extractTypeFromDelta(depositLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -4900,7 +4882,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['endTime'] = until;
             params2 = this.omit(params2, ['until']);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedger = this.infoList(withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -4914,10 +4897,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         // ]
         //
-        let withdrawalLedger = [];
-        if (Array.isArray(response)) {
-            withdrawalLedger = response;
-        }
         const records = this.extractTypeFromDelta(withdrawalLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -5311,6 +5290,20 @@ class hyperliquid extends hyperliquid$1["default"] {
             order['id'] = id;
         }
         return [order, globalParams];
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
     }
 }
 

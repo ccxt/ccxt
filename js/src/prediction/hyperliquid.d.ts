@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -390,4 +390,20 @@ export default class hyperliquid extends Exchange {
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response: Dict | List | string): Dict[];
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    infoDict(response: Dict | List | string): Dict;
 }
