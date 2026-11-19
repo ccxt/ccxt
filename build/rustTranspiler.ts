@@ -8039,6 +8039,26 @@ function nativeLocalStrKeyRemove (content: string): string {
 // unit slot 096
 //
 // unit slot 097
+// `get_value(&Value::from(&b), s.as_str())` on a declared `Option<Book>` local with a declared `String` key reads the
+// book directly: `book_field` is the same `get_value_k` lookup, and an absent book answers `Null` as the boxed read did.
+function readTypedBookFields(content: string): string {
+    if (!content.includes('get_value(&Value::from(&')) return content;
+    const lines = content.split('\n');
+    const declOf = (i: number, name: string): string | undefined => {
+        const re = new RegExp(`^\\s*let (?:mut )?${name}: ([^=]+?) = `);
+        for (let j = i; j >= 0; j--) {
+            const m = re.exec(lines[j]);
+            if (m) return m[1];
+            if (/^\s*(?:pub )?(?:async )?fn /.test(lines[j])) return undefined;
+        }
+        return undefined;
+    };
+    for (let i = 0; i < lines.length; i++) {
+        lines[i] = lines[i].replace(/get_value\(&Value::from\(&(\w+)\), (\w+)\.as_str\(\)\)/g, (all, book, key) =>
+            declOf(i, book) === 'Option<crate::pro::order_book::Book>' && declOf(i, key) === 'String' ? `${book}.book_field(${key}.as_str())` : all);
+    }
+    return lines.join('\n');
+}
 //
 // unit slot 098
 //
@@ -8309,6 +8329,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 096
     //
     // pass slot 097
+    readTypedBookFields,
     //
     // pass slot 098
     //
