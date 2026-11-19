@@ -23,7 +23,7 @@ import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { nativeJavaParamCompare } from './java-local-types.js';
 import { nativeJavaTypedArithmetic, nativeJavaPrimitiveArithmetic, nativeJavaNumericLocalsRetype, nativeJavaSumLongLocals } from './java-local-types.js';
-import { nativeJavaIntegralMultiplySubtract, nativeJavaNumberDivModNeg, nativeJavaInlineDivModNeg } from './java-local-types.js';
+import { nativeJavaIntegralMultiplySubtract, nativeJavaNumberDivModNeg, nativeJavaInlineDivModNeg, nativeJavaLongBoxLocals } from './java-local-types.js';
 import { installJavaStringCoreArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
 import { installJavaCounterTypes } from './java-local-types.js';
@@ -2165,6 +2165,7 @@ class NewTranspiler {
         baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
         baseClass = nativeJavaIntegralMultiplySubtract(baseClass);
         baseClass = nativeJavaNumberDivModNeg(baseClass, true);
+        baseClass = nativeJavaLongBoxLocals(baseClass, (c: string) => nativeJavaNumberDivModNeg(nativeJavaIntegralMultiplySubtract(nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(nativeJavaOrderedComparisons(c)))), true));
         baseClass = nativeJavaMapLocalOps(baseClass);
         return baseClass;
     }
@@ -2689,6 +2690,8 @@ class NewTranspiler {
         content = nativeJavaSumLongLocals(content);
         content = nativeJavaIntegralMultiplySubtract(content);
         content = nativeJavaNumberDivModNeg(content);
+        // Object locals holding only Long boxes retype to Long, then the typed arithmetic/compare passes re-run
+        content = nativeJavaLongBoxLocals(content, (c: string) => nativeJavaNumberDivModNeg(nativeJavaIntegralMultiplySubtract(nativeJavaSumLongLocals(nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(nativeJavaParamCompare(nativeJavaNonNullCompare(nativeJavaOrderedComparisons(nativeJavaTypedArithmetic(c))))))))));
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }

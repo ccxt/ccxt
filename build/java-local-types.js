@@ -19405,15 +19405,32 @@ function javaMaskedText (text) {
     return { masked, unmask: (t) => t.replace (/j31s(\d+)/g, (_, i) => strs[Number (i)]) };
 }
 
+function javaTopLevelOr (cond) {
+    const out = [];
+    let depth = 0, last = 0;
+    for (let k = 0; k < cond.length; k++) {
+        const ch = cond[k];
+        if (ch === '"') return [ cond ];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && cond.startsWith (' || ', k)) { out.push (longLimitStrip (cond.slice (last, k).trim ())); last = k + 4; }
+    }
+    out.push (longLimitStrip (cond.slice (last).trim ()));
+    return out;
+}
+
 function javaLongNonNullValue (ctx, value, nn) {
     if (javaPrimitiveNonNullValue (ctx, value, nn)) return true;
     const { masked, unmask } = javaMaskedText (longLimitStrip (value));
     const t = longLimitSplitTernary (masked);
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        // `equals(x, null) || ..` is false in the else arm only when every disjunct is false, so x is non-null there
+        const ors = javaTopLevelOr (longLimitStrip (t.cond));
         const arm = (a, isTrue) => {
             const x = longLimitStrip (unmask (a));
             if (g !== null && x === g[2] && (g[1] === '!') === isTrue && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
+            if (!isTrue && ors.length > 1 && ors.includes (`java.util.Objects.equals(${x}, null)`) && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
             return /^-?\d+L$/.test (x) || javaLongNonNullValue (ctx, x, nn);
         };
         return arm (t.whenTrue, true) && arm (t.whenFalse, false);
@@ -28022,6 +28039,7 @@ export function installJavaSourceExchangeReads (transpiler) {
     };
 }
 
+<<<<<<< merged
 // ===== fixed-width row accumulators =====
 // `const xs: T[] = []` with T a fixed tuple of N slots, used only by push of N-element literals, reads,
 // `.length`, `return xs` and `xs[r][c] = v` with c a literal (or const literal local) below N: every row
@@ -28171,4 +28189,206 @@ export function patchJavaRowAccumulatorLists (transpiler) {
         return upstreamWrite (node, left, right);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => rowAccumulatorType (printer, declaration));
+=======
+// ===== Object locals whose every write is null or a Long box retype to Long =====
+// Same box (Long or null) before and after, so only box-neutral uses are required; locals of one member may prove
+// each other. Kept per member only when a multiply/subtract/compare/min/max helper then goes native.
+const JAVA_LONG_BOX_TARGETS = /Helpers\.(?:multiply|subtract|isLessThan|isLessThanOrEqual|isGreaterThan|isGreaterThanOrEqual|mathMin|mathMax)\(/g;
+
+function javaLongBoxMember (lines, from, to) {
+    const state = javaPrimitiveArithMemberCtx (lines, from, to);
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    const cands = new Map ();
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null || longLimitDeclarations (lines, from, to, d[2]).length !== 1) continue;
+        const name = d[2];
+        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
+        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const assign = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
+        const writes = [];
+        let ok = true;
+        for (let j = i; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            if (compound.test (code) || (/->/.test (code) && assign.test (code))) { ok = false; break; }
+            const w = writeDecl.exec (lines[j]);
+            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) writes.push ({ line: j, value: w[2].trim () });
+            else if (assign.test (code)) ok = false;
+        }
+        if (ok) cands.set (name, { line: i, writes, d });
+    }
+    const memo = new Map ();
+    const longBox = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        const c = cands.get (name);
+        if (c === undefined || seen.has (name)) return seen.has (name);
+        seen.add (name);
+        // a Long box or null: Generic.sum of integral args is a Long; subtract/multiply of two Long boxes is a Long or null
+        const value = (text, line) => {
+            const v = longLimitStrip (text);
+            if (v === 'null' || /^-?\d+L$/.test (v)) return true;
+            if (/^[A-Za-z_]\w*$/.test (v)) return state.ctx.declType (v) === 'Long' || longBox (v, seen);
+            if (javaSingleBox (state.ctx, v) === 'Long') return true;
+            // a ternary hands back one arm: every arm a Long box or null
+            const t = longLimitSplitTernary (javaMaskedText (v).masked);
+            if (t !== undefined) {
+                const { unmask } = javaMaskedText (v);
+                return [ t.whenTrue, t.whenFalse ].every ((a) => value (unmask (a).trim ().replace (/^\(Object\) /, ''), line));
+            }
+            // `this.sum` binds `Long sum(Long, Long)` only when both operands are statically Long (an int literal picks sum(Object, Object))
+            const sum = /^this\.sum\(/.test (v) ? longLimitCallArgs (v, 'this.sum') : undefined;
+            if (sum !== undefined) return sum.length === 2 && sum.every ((a) => javaLongSumOperand (state, longLimitStrip (a), (x) => longBox (x, seen)));
+            const h = /^(Helpers\.subtract|Helpers\.multiply)\(/.exec (v);
+            const args = h === null ? undefined : longLimitCallArgs (v, h[1]);
+            if (args !== undefined && args.length === 2 && args.every ((a) => value (a, line) || javaRetypeKind (state.ctx, a, () => true) === 'intlit')) return true;
+            return javaRetypeKind (state.ctx, v, (n) => state.nonNullAt (n, line)) === 'long';
+        };
+        const ok = c.writes.every ((w) => value (w.value, w.line));
+        seen.delete (name);
+        if (seen.size === 0) memo.set (name, ok);
+        return ok;
+    };
+    const chosen = [ ...cands.keys () ].filter ((n) => longBox (n, new Set ()));
+    // min/max over Long boxes printed with Object arms: the arms drop `(Object)` once both are Long, compare unchanged
+    const mm = /\(([A-Za-z_]\w*) == null(?: \|\| ([A-Za-z_]\w*) == null)? \? null : \(\(\(Number\) \1\)\.doubleValue\(\) [<>] (?:\(\(Number\) (\w+)\)\.doubleValue\(\)|\(\(double\) (-?\d+L)\)) \? \(Object\) \(\1\) : \(Object\) \(([\w]+)\)\)\)/g;
+    const minMax = (line, isLong) => line.replace (mm, (m, x, g2, b, lit, arm2) => {
+        const other = b ?? lit;
+        if (arm2 !== other || (b !== undefined && g2 !== b) || !isLong (x) || !isLong (other)) return m;
+        return m.replace (`? (Object) (${x}) : (Object) (${other}))`, `? ${x} : ${other})`);
+    });
+    const longName = (set) => (x) => /^-?\d+L$/.test (x) || set.has (x) || state.ctx.declType (x) === 'Long';
+    // uses must read the box alike: no ternary arms, no catch, only box-neutral shapes
+    const usable = chosen.filter ((name) => {
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const c = cands.get (name);
+        for (let j = from; j < to; j++) {
+            if (j === c.line && !mention.test (longLimitCodeOnly (c.d[3]))) continue;
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            // `((Number) x)` reads a Long box exactly as it read the Object box
+            const text = minMax (j === c.line ? `${c.d[1]}j24w = ${c.d[3]};` : lines[j], longName (new Set (chosen))).replace (/\? ([\w]+) : ([\w]+)\)/g, (m, x, y) => (longName (new Set (chosen)) (x) && longName (new Set (chosen)) (y) ? '? j24a : j24b)' : m)).split (`((Number) ${name})`).join ('((Number) j24n)').replace (new RegExp (`(?<![\\w$.])${name} ([=!])= null\\b`, 'g'), 'j24z $1= null')
+                .split (`switch ((Object) (${name}))`).join ('switch ((Object) (j24o))');
+        }
+        return true;
+    });
+    if (usable.length === 0) return false;
+    // a dropped local may not be the only proof of a kept one
+    const keep = new Set (usable);
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const n of [ ...keep ]) {
+            const bad = cands.get (n).writes.some ((w) => { const v = longLimitStrip (w.value); return /^[A-Za-z_]\w*$/.test (v) && cands.has (v) && !keep.has (v); });
+            if (bad) { keep.delete (n); changed = true; }
+        }
+    }
+    for (let j = from + 1; j < to; j++) if (lines[j].includes ('(Object) (')) lines[j] = minMax (lines[j], longName (keep));
+    // `((Long) (switch ((Object) (x)) { case null -> (Long) null; case Long v -> v; .. }))` on a Long x is x itself
+    for (let j = from + 1; j < to; j++) {
+        for (const n of keep) {
+            const head = `((Long) (switch ((Object) (${n})) { case null -> (Long) null; case Long `;
+            for (let k = lines[j].indexOf (head); k !== -1; k = lines[j].indexOf (head, k + 1)) {
+                const v = /^(\w+) -> \1;/.exec (lines[j].slice (k + head.length));
+                const mask = longMultiplyMask (lines[j]);
+                let depth = 0, close = -1;
+                for (let x = k; x < mask.length; x++) {
+                    if (mask[x] === '(') depth++;
+                    else if (mask[x] === ')' && --depth === 0) { close = x; break; }
+                }
+                if (v === null || close === -1) continue;
+                lines[j] = lines[j].slice (0, k) + n + lines[j].slice (close + 1);
+            }
+        }
+    }
+    for (const n of keep) {
+        const c = cands.get (n);
+        lines[c.line] = lines[c.line].replace (/^(\s*)Object /, '$1Long ');
+    }
+    return keep.size > 0;
+}
+
+// Helpers.subtract/multiply(a, b) over Long-declared names or never-null longs: the helper answers null when either
+// box is null and the long result otherwise, so `(a == null ? null : a - b)` is exact (a Long or null).
+function javaGuardedLongArith (lines, from, to) {
+    const state = javaLongArithMemberCtx (lines, from, to);
+    const helpers = [ [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ] ];
+    let changed = false;
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== 2 || !javaPlainValuePosition (mask, start, call.close)) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const guards = [];
+            const ok = args.every ((a) => {
+                if (/^[A-Za-z_]\w*$/.test (a) && state.ctx.declType (a) === 'Long') {
+                    if (!state.nonNullAt (a, j)) guards.push (a);
+                    return true;
+                }
+                return javaPrimitiveKind (state.ctx, a, (n) => state.nonNullAt (n, j)) === 'long';
+            });
+            if (!ok || guards.length === 0) continue;
+            const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
+            const text = `(${[ ...new Set (guards) ].map ((g) => `${g} == null`).join (' || ')} ? null : ${atom (args[0])} ${op} ${atom (args[1])})`;
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+// a Long local still written from an Object-returning helper would not compile: reject the member
+// sum(Long, Long) binds only for Long / long operands: an int or Object operand picks sum(Object, Object)
+function javaLongSumOperand (state, x, isLongLocal) {
+    if (/^-?\d+L$/.test (x)) return true;
+    if (/^[A-Za-z_]\w*$/.test (x)) return state.ctx.declType (x) === 'Long' || isLongLocal (x);
+    return javaPrimitiveKind (state.ctx, x, () => true) === 'long';
+}
+
+// a Long local still written from an Object-returning call would not compile: reject the member
+function javaLongBoxObjectWrite (text) {
+    const lines = text.split ('\n');
+    const state = javaPrimitiveArithMemberCtx (lines, 0, lines.length);
+    for (const line of lines) {
+        const w = /^\s*(?:Long )?([A-Za-z_]\w*) = (.*);(\s*\/\/.*)?$/.exec (line);
+        if (w === null || state.ctx.declType (w[1]) !== 'Long') continue;
+        const v = longLimitStrip (w[2].trim ());
+        if (/^Helpers\.(?:add|subtract|multiply)\(/.test (v)) return true;
+        const sum = /^(?:\w+\.)?this\.sum\(/.test (v) ? longLimitCallArgs (v, v.slice (0, v.indexOf ('('))) : undefined;
+        if (/^(?:\w+\.)?this\.sum\(/.test (v) && (sum === undefined || sum.length !== 2 || !sum.every ((a) => javaLongSumOperand (state, longLimitStrip (a), () => false)))) return true;
+    }
+    return false;
+}
+
+export function nativeJavaLongBoxLocals (content, after = (x) => x) {
+    if (!/^\s*Object [A-Za-z_]\w* = /m.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    if (starts.length === 0) return content;
+    const count = (t) => (longLimitCodeOnly (t).match (JAVA_LONG_BOX_TARGETS) ?? []).length;
+    const out = lines.slice (0, starts[0]);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
+        const work = member.slice ();
+        if (count (member.join ('\n')) > 0 && javaLongBoxMember (work, 0, work.length)) {
+            const nextLines = after (work.join ('\n')).split ('\n');
+            javaGuardedLongArith (nextLines, 0, nextLines.length);
+            const next = nextLines.join ('\n');
+            if (count (next) < count (member.join ('\n')) && !javaLongBoxObjectWrite (next)) { out.push (...next.split ('\n')); changed = true; continue; }
+        }
+        out.push (...member);
+    }
+    return changed ? out.join ('\n') : content;
+>>>>>>> J06
 }
