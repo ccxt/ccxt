@@ -1083,6 +1083,12 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'unsubscribeRequest': 'Dictionary<string, object>',
 });
 
+// a venue declaration whose rows reach only consumers that accept List<Dictionary<string, object>>
+// (htx: generic sortBy into ToDictList); its `result` accumulator proves every push is a dict
+const CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE = {
+    'htx': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+};
+
 // the mapped collection type for a method declaration, or undefined to leave the printer's
 // own decision (async methods and every other name)
 function collectionReturnType (csharp, node, own) {
@@ -1384,6 +1390,10 @@ const collectionDeclarationProofsInProgress = new Set ();
 function declarationCollectionReturnType (csharp, declaration, mapped) {
     if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaration.name === undefined) {
         return undefined;
+    }
+    const venueType = isPredictionSource (declaration) ? undefined : CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE[sourceExchangeId (declaration)]?.[declaration.name.text];
+    if (venueType !== undefined) {
+        return venueType;
     }
     if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
         return undefined;
