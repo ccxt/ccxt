@@ -16332,9 +16332,10 @@ function goFuncTypeAt (lines: string[], masked: string[], start: number, end: nu
 }
 
 function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc: string, typeAt: (name: string, k: number) => string | undefined): string[] {
-    const keys = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((\w+|this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id))\)$/.exec (m.replace (/\s+$/, ''));
-    // the four BaseExchange market tables are map[string]any fields (nil before the first load)
-    if (keys && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (keys[3].startsWith ('this.') || (typeAt (keys[3], k) === 'map[string]any')) && !/\bobjectKey\b/.test (maskedFunc)) {
+    const keys = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((\w+|this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id|Timeframes|RequiredCredentials))\)$/.exec (m.replace (/\s+$/, ''));
+    // BaseExchange map[string]any fields: derefScalar folds a nil one to nil, so the helper answers nil
+    if (keys && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (keys[3].startsWith ('this.') || (typeAt (keys[3], k) === 'map[string]any')) && (keys[2] !== 'objectKey') && (keys[3] !== 'objectKey')) {
+        // the range variable is scoped to its loop and read only by the append: another objectKey loop is untouched
         const [ , ind, ks, recv ] = keys;
         return [
             ind + 'var ' + ks + ' []string = nil',
@@ -16346,9 +16347,9 @@ function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc
             ind + '}',
         ];
     }
-    // a declared map field (Timeframes/RequiredCredentials map[string]any, the *Client param's map[string]*Future
-    // Futures) reaches the helper as a non-nil box, so it answers an empty non-nil slice for a nil map: no nil guard
-    const field = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((this\.(?:Timeframes|RequiredCredentials)|client\.Futures)\)$/.exec (m.replace (/\s+$/, ''));
+    // the *Client param's map[string]*Future Futures: derefScalar does not fold that type, so the helper
+    // answers an empty non-nil slice for a nil map: no nil guard
+    const field = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((client\.Futures)\)$/.exec (m.replace (/\s+$/, ''));
     if (field && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && !/\bobjectKey\b/.test (maskedFunc)
         && (!field[3].startsWith ('client.') || /^func \(this \*\w+\) \w+\(client \*(?:ccxt\.)?Client\b/.test (maskedFunc) && !/\bclient\s*(?::=|=[^=])/.test (maskedFunc))) {
         const [ , ind, ks, recv ] = field;
@@ -16357,6 +16358,21 @@ function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc
             ind + 'for objectKey := range ' + recv + ' {',
             ind + '\t' + ks + ' = append(' + ks + ', objectKey)',
             ind + '}',
+        ];
+    }
+    // `x = ObjectKeys(this.Currencies)` into an `any` local: the box holds the same []string (typed nil for a nil map)
+    const anyAsg = /^(\s*)(\w+) = (?:ccxt\.)?ObjectKeys\((this\.Currencies)\)$/.exec (m.replace (/\s+$/, ''));
+    if (anyAsg && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (typeAt (anyAsg[2], k) === 'any') && !/\bobjectKeys?\b/.test (maskedFunc)) {
+        const [ , ind, x, recv ] = anyAsg;
+        return [
+            ind + 'var objectKeys []string = nil',
+            ind + 'if ' + recv + ' != nil {',
+            ind + '\tobjectKeys = make([]string, 0, len(' + recv + '))',
+            ind + '\tfor objectKey := range ' + recv + ' {',
+            ind + '\t\tobjectKeys = append(objectKeys, objectKey)',
+            ind + '\t}',
+            ind + '}',
+            ind + x + ' = objectKeys',
         ];
     }
     // `X = ObjectKeys(m)` into a []string local or one of the []string BaseExchange key fields
@@ -17607,6 +17623,10 @@ function goTypedAddElemMapWrite (rhs: string, n: string, nilOk = false): string 
 function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: number, end: number) {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const names = new Set ([ ...maskedFunc.matchAll (/(?<![\w.])(?:ccxt\.)?AddElementToObject\((\w+), /g) ].map ((m) => m[1]));
+    // a `var ks []string = ObjectKeys(x)` receiver typed the same way reaches the keys-range rule
+    for (const m of maskedFunc.matchAll (/^\s*var \w+ \[\]string = (?:ccxt\.)?ObjectKeys\((\w+)\)$/gm)) {
+        names.add (m[1]);
+    }
     for (const name of names) {
         const n = goAccessEscape (name);
         const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
@@ -17675,10 +17695,16 @@ function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
     r = f ('\tvar a any = nil\n\ta = this.SafeDict(p, code)\n\tthis.Use(a)\n\tif a == nil {\n\t\tpanic(p)\n\t}\n\tAddElementToObject(a, "x", 1)\n');
     r += f ('\tvar b any = nil\n\tif p != nil {\n\t\tb = this.SafeDict(p, code)\n\t\tif b == nil {\n\t\t\treturn nil\n\t\t}\n\t}\n\tAddElementToObject(b, "x", 1)\n');
     ok (r.includes ('var a any = nil') && r.includes ('var b any = nil'), 'read before the guard or nested guard keeps the box: ' + r);
+    r = goNativeKeysAndRemove (f ('\tvar q any = this.Extend(p)\n\tq = this.Omit(q, "a")\n\tvar ks []string = ObjectKeys(q)\n\t_ = ks\n'));
+    ok (r.includes ('var q map[string]any = this.Extend(p)') && r.includes ('q = this.OmitDict(q, "a")') && r.includes ('for objectKey := range q {') && !r.includes ('ObjectKeys'), 'ObjectKeys receiver is typed: ' + r);
+    r = goNativeKeysAndRemove (f ('\tvar q any = this.SafeDict(p, code)\n\tvar ks []string = ObjectKeys(q)\n\t_ = ks\n'));
+    ok (r.includes ('var q any = ') && r.includes ('ObjectKeys(q)'), 'nil-capable ObjectKeys receiver keeps the box: ' + r);
+    r = goNativeKeysAndRemove ('func (this *X) f() any {\n\tvar c any = []any{}\n\tif true {\n\t\tc = ObjectKeys(this.Currencies)\n\t}\n\treturn c\n}\n');
+    ok (r.includes ('\t\tc = objectKeys') && !r.includes ('ObjectKeys('), 'Currencies keys into an any local: ' + r);
 }
 
 function goTypedAddElemRetypeMapLocals (content: string): string {
-    return goRewriteEachFunc (content, /\bAddElementToObject\(/.test (content), goTypedAddElemRetypeFunc);
+    return goRewriteEachFunc (content, /\b(?:AddElementToObject|ObjectKeys)\(/.test (content), goTypedAddElemRetypeFunc);
 }
 
 // ===== GetValue(m, "lit") -> m["lit"] on multi-line market-row locals =====
@@ -20852,7 +20878,9 @@ export function goStdlibStringHelpers (content: string): string {
         const chunk = masked.slice (fnStart, (fnEnd < 0) ? masked.length : fnEnd + 2);
         if (shadow.test (chunk)) { continue; }
         const args = spans.map (([ s, e ]) => text.slice (s, e).trim ());
-        const typeOf = (a: string) => (/^"(?:[^"\\\n]|\\.)*"$|^`[^`]*`$/.test (a) ? 'string' : (/^\w+$/.test (a) ? goChunkDeclType (chunk, a) : undefined));
+        // this.Ids/Symbols/Codes are []string BaseExchange fields: a nil one joins to "" as the helper answers
+        const typeOf = (a: string) => (/^"(?:[^"\\\n]|\\.)*"$|^`[^`]*`$/.test (a) ? 'string' : (/^\w+$/.test (a) ? goChunkDeclType (chunk, a)
+            : (/^this\.(?:Ids|Symbols|Codes)$/.test (a) ? '[]string' : undefined)));
         const subject = (call.helper === 'Join') ? '[]string' : 'string';
         if ((typeOf (args[0]) !== subject) || args.slice (1).some ((a) => typeOf (a) !== 'string')) { continue; }
         const native = 'strings.' + ((call.helper === 'Replace') ? 'ReplaceAll' : call.helper) + '(' + args.join (', ') + ')';
@@ -20885,6 +20913,8 @@ function goStdlibStringHelpersCheck (ok: SelfTestOk): void {
         ok (!(!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')), 'unproven site not left as the helper call: ' + k);
     }
     ok (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') === goStdlibStringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")')), 'not idempotent');
+    ok (run ('\treturn Join(this.Ids, ",")').includes ('strings.Join(this.Ids, ",")'), 'Ids field joins natively');
+    ok (!run ('\treturn Join(this.Options, ",")').includes ('strings.'), 'boxed field keeps the helper');
     const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
     ok (goStdlibStringHelpers (hand) === hand, 'hand-written file rewritten');
 }
