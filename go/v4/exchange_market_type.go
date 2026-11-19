@@ -33,7 +33,7 @@ func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs
 // HandleSubTypeAndParams is ts/src/base/Exchange.ts handleSubTypeAndParams with its
 // [SubType, Dict] tuple spelled as two Go results (the transpiled copy is dropped).
 func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
-	market := GetArg(optionalArgs, 0, nil)
+	market := GetArgMap(optionalArgs, 0, nil)
 	params := GetArgMap(optionalArgs, 1, map[string]any{})
 	defaultValue := GetArg(optionalArgs, 2, nil)
 	var subType *string = nil
@@ -46,10 +46,10 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 	}
 	// at first, check from market object
 	if market != nil {
-		if GetValue(market, "linear") == true {
+		if derefScalar(market["linear"]) == true {
 			linearType := "linear"
 			subType = &linearType
-		} else if GetValue(market, "inverse") == true {
+		} else if derefScalar(market["inverse"]) == true {
 			inverseType := "inverse"
 			subType = &inverseType
 		}
@@ -169,13 +169,13 @@ func (this *BaseExchange) HandleOptionBoolAndParams2Nullable(params any, methodN
 // MarketCodes is ts/src/base/Exchange.ts marketCodes with its Strings result typed:
 // absent input answers a nil slice, every element is the common currency code.
 func (this *BaseExchange) MarketCodes(optionalArgs ...any) []any {
-	codes := GetArg(optionalArgs, 0, nil)
+	codes := GetArgStringSlice(optionalArgs, 0, nil)
 	if codes == nil {
 		return nil
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(codes); i++ {
-		result = append(result, this.CommonCurrencyCode(GetValue(codes, i)))
+	for _, code := range codes {
+		result = append(result, this.CommonCurrencyCode(code))
 	}
 	return result
 }

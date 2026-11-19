@@ -490,7 +490,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
+		if has, isBool := derefScalar(hasFetchCurrencies).(bool); isBool && has {
 			// a nil currencies map stays untyped nil: SetMarkets reads it as "not fetched"
 			if fetchedCurrencies := (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value; fetchedCurrencies != nil {
 				currencies = fetchedCurrencies
@@ -1452,8 +1452,8 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
-	return starknetGetSelectorFromName(ToString(a)).String()
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a string) string {
+	return starknetGetSelectorFromName(a).String()
 }
 
 func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
