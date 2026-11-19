@@ -64,20 +64,21 @@ public partial class BaseExchange
     {
         List<LighterSigner.Signer.CreateOrderTxReq> ordersArr = new List<LighterSigner.Signer.CreateOrderTxReq>() { };
         var ordersList = (IList<object>)(request != null && request.ContainsKey("orders") ? request["orders"] : null);
-        foreach (var order in ordersList)
+        // every element is a Dictionary built by lighter createOrderRequest (extend / safeDict rows)
+        foreach (IDictionary<string, object> order in ordersList)
         {
             ordersArr.Add(new LighterSigner.Signer.CreateOrderTxReq
             {
-                MarketIndex = Convert.ToInt16(getValue(order, "market_index")),
-                ClientOrderIndex = Convert.ToInt64(getValue(order, "client_order_index")),
-                BaseAmount = Convert.ToInt64(getValue(order, "base_amount")),
-                Price = Convert.ToUInt32(getValue(order, "avg_execution_price")),
-                IsAsk = Convert.ToByte(getValue(order, "is_ask")),
-                Type = Convert.ToByte(getValue(order, "order_type")),
-                TimeInForce = Convert.ToByte(getValue(order, "time_in_force")),
-                ReduceOnly = Convert.ToByte(getValue(order, "reduce_only")),
-                TriggerPrice = Convert.ToUInt32(getValue(order, "trigger_price")),
-                OrderExpiry = Convert.ToInt64(getValue(order, "order_expiry"))
+                MarketIndex = Convert.ToInt16((order.ContainsKey("market_index") ? order["market_index"] : null)),
+                ClientOrderIndex = Convert.ToInt64((order.ContainsKey("client_order_index") ? order["client_order_index"] : null)),
+                BaseAmount = Convert.ToInt64((order.ContainsKey("base_amount") ? order["base_amount"] : null)),
+                Price = Convert.ToUInt32((order.ContainsKey("avg_execution_price") ? order["avg_execution_price"] : null)),
+                IsAsk = Convert.ToByte((order.ContainsKey("is_ask") ? order["is_ask"] : null)),
+                Type = Convert.ToByte((order.ContainsKey("order_type") ? order["order_type"] : null)),
+                TimeInForce = Convert.ToByte((order.ContainsKey("time_in_force") ? order["time_in_force"] : null)),
+                ReduceOnly = Convert.ToByte((order.ContainsKey("reduce_only") ? order["reduce_only"] : null)),
+                TriggerPrice = Convert.ToUInt32((order.ContainsKey("trigger_price") ? order["trigger_price"] : null)),
+                OrderExpiry = Convert.ToInt64((order.ContainsKey("order_expiry") ? order["order_expiry"] : null))
             });
         }
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCreateGroupedOrders(
