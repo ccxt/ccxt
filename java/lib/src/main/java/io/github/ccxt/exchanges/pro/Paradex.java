@@ -314,7 +314,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 try
                 {
-                    (this.unsubscribeChannelAt(url, topic, channels, subMessageHashes, symbols, i, parameters)).join();
+                    (this.unsubscribeChannelAt(url, topic, channels, subMessageHashes, symbols, ((long) i), parameters)).join();
                 } catch(Exception e)
                 {
                     // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
@@ -353,7 +353,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     try
                     {
-                        (this.unsubscribeChannelAt(url, topic, channels, subMessageHashes, symbols, i, parameters)).join();
+                        (this.unsubscribeChannelAt(url, topic, channels, subMessageHashes, symbols, ((long) i), parameters)).join();
                     } catch(Exception e)
                     {
                         refused = (refused + 1L);
@@ -379,14 +379,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    public CompletableFuture<Object> unsubscribeChannelAt(String url, String topic, Object channels, Object subMessageHashes, Object symbols, Object index, Map<String, Object> parameters)
+    public CompletableFuture<Object> unsubscribeChannelAt(String url, String topic, Object channels, Object subMessageHashes, Object symbols, Long index, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object channel = Helpers.GetValue(channels, index);
+            Object channel = (channels == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(index.intValue()));
             String symbol = this.safeString(symbols, index);
-            List<Object> hashes = new ArrayList<Object>(Arrays.asList(Helpers.GetValue(subMessageHashes, index)));
+            List<Object> hashes = new ArrayList<Object>(Arrays.asList((subMessageHashes == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)subMessageHashes).size() ? null : ((List<?>)subMessageHashes).get(index.intValue()))));
             List<String> channelSymbols = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbol, null))
             {

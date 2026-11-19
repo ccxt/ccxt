@@ -1638,7 +1638,7 @@ public class Poloniex extends PoloniexApi
             }};
             if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
-                Tickers tickers = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+                Tickers tickers = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
                 Map<String, Object> contractTicker = this.safeDict(tickers, symbol, null);
                 return contractTicker;
             }
@@ -2599,8 +2599,8 @@ public class Poloniex extends PoloniexApi
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Object entryMarket = (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
-                ((List<Object>)results).add(this.parseOrder(entry, ((Map<String, Object>) (switch ((Object) (entryMarket)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))));
+                Map<String, Object> entryMarket = (Map<String, Object>) (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
+                ((List<Object>)results).add(this.parseOrder(entry, entryMarket));
             }
             return results;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

@@ -1627,7 +1627,7 @@ public class Mudrex extends MudrexApi
             Long maxCalls = (Long) ((List<Object>) maxCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsparamsPaginationCallsVariable).get(1);
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            Object pageSize = (((java.util.Objects.equals(limit, null)))) ? 0 : (limit * 2L);
+            Long pageSize = (((java.util.Objects.equals(limit, null)))) ? 0 : (limit * 2L);
             List<Object> allRows = new ArrayList<Object>(Arrays.asList());
             long transactionsCount = 0;
             long calls = 0;
@@ -1660,7 +1660,7 @@ public class Mudrex extends MudrexApi
                 calls = (calls + 1L);
                 paging = false;
                 // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-                if ((!java.util.Objects.equals(limit, null)) && ((((Number) dataLength).longValue() == ((Number) pageSize).longValue())))
+                if ((!java.util.Objects.equals(limit, null)) && (java.util.Objects.equals(((Number) dataLength).longValue(), pageSize)))
                 {
                     if (((transactionsCount < limit)) && ((maxCalls != null && calls < maxCalls)))
                     {

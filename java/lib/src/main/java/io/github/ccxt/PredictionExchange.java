@@ -1011,10 +1011,10 @@ public Map<String, Object> describe()
         // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
         // carry no searchable words
         Object marketPart = outcomeSymbol;
-        Object colonIndex = ((String)outcomeSymbol).indexOf(":");
-        if ((((Integer) colonIndex) >= 0))
+        Integer colonIndex = ((String)outcomeSymbol).indexOf(":");
+        if (((colonIndex != null && colonIndex >= 0)))
         {
-            marketPart = (outcomeSymbol == null ? null : ((String)outcomeSymbol).substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? ((String)outcomeSymbol).length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), ((String)outcomeSymbol).length())));
+            marketPart = (outcomeSymbol == null ? null : ((String)outcomeSymbol).substring(0, (int) Math.min(colonIndex < 0 ? ((String)outcomeSymbol).length() + colonIndex : colonIndex, ((String)outcomeSymbol).length())));
         }
         if ((((String)marketPart).indexOf("0x") == 0))
         {

@@ -1936,8 +1936,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 // the requested state is already reached, so the unWatch call resolves through the
                 // regular unsubscription handler, the subscription is echoed only inside the text
-                Object subscriptionStart = ((String)ret_msg).indexOf("{");
-                Object subscription = this.parseJson(Helpers.slice(ret_msg, subscriptionStart, null));
+                Integer subscriptionStart = ((String)ret_msg).indexOf("{");
+                Object subscription = this.parseJson((ret_msg == null ? null : ret_msg.substring((int) Math.min(Math.max(subscriptionStart < 0 ? ret_msg.length() + subscriptionStart : subscriptionStart, 0), ret_msg.length()))));
                 if (!java.util.Objects.equals(subscription, null))
                 {
                     this.handleUnsubscription(client, (Map<String, Object>) (subscription));

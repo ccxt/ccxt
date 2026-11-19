@@ -941,7 +941,7 @@ public class Cex extends CexApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("pair", market.get("id"));
-            request.put("resolution", Helpers.GetValue(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("resolution", (this.timeframes == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : this.timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1m"))));
             request.put("dataType", dataType);
             if (!java.util.Objects.equals(since, null))
             {

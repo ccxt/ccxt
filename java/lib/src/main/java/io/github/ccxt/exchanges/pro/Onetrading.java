@@ -371,14 +371,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch(url, messageHash, request, subscribeHash, request)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscribeHash, request)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
             trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, false);
-            Integer numTrades = (switch ((Object)(trades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
+            Integer numTrades = (trades == null ? 0 : trades.size());
             if ((numTrades != null && numTrades == 0))
             {
                 return (this.watchMyTrades(symbolResolved, since, limitResolved, parameters)).join();
@@ -565,14 +565,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            Object orders = (this.watch(url, messageHash, request, subscribeHash, request)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, subscribeHash, request)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
             orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, false);
-            Integer numOrders = (switch ((Object)(orders)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+            Integer numOrders = (orders == null ? 0 : orders.size());
             if ((numOrders != null && numOrders == 0))
             {
                 return (this.watchOrders(symbolResolved, since, limitResolved, parameters)).join();

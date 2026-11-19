@@ -1491,7 +1491,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
     }
 
-    public CompletableFuture<Object> watchPublicMultiple(String streamType, Object markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
+    public CompletableFuture<Object> watchPublicMultiple(String streamType, List<Object> markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1504,10 +1504,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 boolean clientSubscription = (this.safeValue(client.subscriptions, messageHash)) != null;
                 if (!clientSubscription)
                 {
-                    Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
+                    Map<String, Object> market = (Map<String, Object>) (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                     Long id = this.requestId();
                     Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : (subscriptionParams == null || i < 0 || i >= ((List<?>)subscriptionParams).size() ? null : ((List<?>)subscriptionParams).get(i));
-                    Map<String, Object> request = this.createPublicSubscriptionRequest("subscribe", (String) (streamType), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })), id, ((Map<String, Object>) (switch ((Object) (requestParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+                    Map<String, Object> request = this.createPublicSubscriptionRequest("subscribe", (String) (streamType), market, id, ((Map<String, Object>) (switch ((Object) (requestParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
                     String subscribeHash = ("subscribe:" + this.json(request.get("stream")));
                     boolean streamSubscription = (this.safeValue(client.subscriptions, subscribeHash)) != null;
                     if (!streamSubscription)
@@ -1551,7 +1551,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, Object markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
+    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, List<Object> markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1564,7 +1564,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Long id = this.requestId();
                 String unsubscribeHash = ("unsubscribe:" + messageHash);
                 Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : (subscriptionParams == null || i < 0 || i >= ((List<?>)subscriptionParams).size() ? null : ((List<?>)subscriptionParams).get(i));
-                Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), ((Map<String, Object>) (switch ((Object) ((markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), id, ((Map<String, Object>) (switch ((Object) (requestParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), ((Map<String, Object>) (switch ((Object) ((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), id, ((Map<String, Object>) (switch ((Object) (requestParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "messageHash", messageHash );

@@ -1329,7 +1329,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         // spot update
         // {
@@ -1491,7 +1491,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-        if (((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("closed"); case Map<?, ?> j39v8 -> j39v8.containsKey("closed"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v7 -> j39v7.contains("fills"); case Map<?, ?> j39v6 -> j39v6.containsKey("fills"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v5 -> j39v5.contains("open"); case Map<?, ?> j39v4 -> j39v4.containsKey("open"); case null, default -> false; })))
+        if ((message.containsKey("closed")) || (message.containsKey("fills")) || (message.containsKey("open")))
         {
             List<Object> closed = this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
             List<Object> open = this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));

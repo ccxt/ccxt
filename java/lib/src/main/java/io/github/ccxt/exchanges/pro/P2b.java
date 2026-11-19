@@ -373,7 +373,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                this.ohlcvs.get(symbol).put(timeframe, stored);
             }
             stored.append(parsed);
             if (!java.util.Objects.equals(channel, null))

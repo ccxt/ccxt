@@ -260,7 +260,7 @@ public class Hyperliquid extends HyperliquidApi
             if ((((Integer) colonIndex) > -1))
             {
                 String key = (part == null ? null : part.substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? part.length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), part.length())));
-                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })), null);
+                String value = Helpers.slice(part, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; })), null);
                 result.put(key, value);
             }
         }
@@ -312,12 +312,12 @@ public class Hyperliquid extends HyperliquidApi
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    public String buildOutcomeParentSymbol(Map<String, Object> desc, Object outcomeId, Object name, Map<String, Object> question)
+    public String buildOutcomeParentSymbol(Map<String, Object> desc, String outcomeId, Object name, Map<String, Object> question)
     {
         String underlying = this.safeString(desc, "underlying", "");
         if (!java.util.Objects.equals(underlying, ""))
@@ -428,17 +428,17 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 if ((!java.util.Objects.equals(outcomeSlug, null)) && (!java.util.Objects.equals(outcomeSlug, "")))
                 {
-                    return ((((questionSlug + "_") + outcomeSlug) + "_") + String.valueOf(outcomeId));
+                    return ((((questionSlug + "_") + outcomeSlug) + "_") + outcomeId);
                 }
-                return ((questionSlug + "_") + String.valueOf(outcomeId));
+                return ((questionSlug + "_") + outcomeId);
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(name, ""), null)) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(name, ""), "")))
         {
-            return ((this.shortenSlug((String) (java.util.Objects.requireNonNullElse(name, ""))) + "_") + String.valueOf(outcomeId));
+            return ((this.shortenSlug((String) (java.util.Objects.requireNonNullElse(name, ""))) + "_") + outcomeId);
         }
-        return ("OUTCOME_" + String.valueOf(outcomeId));
+        return ("OUTCOME_" + outcomeId);
     }
 
     /**
@@ -524,7 +524,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> outcomeInfo = this.safeDict(outcomesList, i, new HashMap<String, Object>() {{}});
                 Long outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
                 Map<String, Object> linkedQuestion = this.safeDict(outcomesToQuestions, String.valueOf(outcomeId), new HashMap<String, Object>() {{}});
-                Object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+                Object market = this.parseOutcomeMarket(outcomeInfo, String.valueOf(outcomeId), outcomeId, linkedQuestion);
                 ((List<Object>)markets).add(market);
                 // Build outcomes dictionary from market outcomes
                 List<Object> marketOutcomes = this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
@@ -554,17 +554,18 @@ public class Hyperliquid extends HyperliquidApi
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public Object parseOutcomeMarket(Map<String, Object> outcomeInfo, Object outcomeId, Map<String, Object> question)
+    public Object parseOutcomeMarket(Map<String, Object> outcomeInfo, String outcomeKey, Object outcomeId, Map<String, Object> question)
     {
         String description = this.safeString(outcomeInfo, "description", "");
         String name = this.safeString(outcomeInfo, "name", "");
         List<Object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> desc = this.parseOutcomeDescription((String) (description));
-        String parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        String parentSymbol = this.buildOutcomeParentSymbol(desc, (String) (outcomeKey), name, question);
         Object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         Object noEncoding = this.outcomeEncoding(outcomeId, 1);
         String yesOutcomeSymbol = (parentSymbol + ":YES");
@@ -641,12 +642,12 @@ public class Hyperliquid extends HyperliquidApi
     }});
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList(mapLiteral1, mapLiteral2));
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", String.valueOf(outcomeId));
+        mapLiteral3.put("id", outcomeKey);
         mapLiteral3.put("market", parentSymbol);
         mapLiteral3.put("base", Arrays.stream(((String)parentSymbol).split(java.util.regex.Pattern.quote("/"))).findFirst().orElse(null));
         mapLiteral3.put("quote", quoteCurrency);
         mapLiteral3.put("settle", null);
-        mapLiteral3.put("baseId", String.valueOf(outcomeId));
+        mapLiteral3.put("baseId", outcomeKey);
         mapLiteral3.put("quoteId", quoteCurrency);
         mapLiteral3.put("settleId", null);
         mapLiteral3.put("type", "prediction");
@@ -1336,10 +1337,10 @@ public class Hyperliquid extends HyperliquidApi
         {
             return null;
         }
-        Object colonIndex = ((String)outcomeInput).indexOf(":");
-        if ((((Integer) colonIndex) > -1) && (((Integer) colonIndex) < (((long) ((String)outcomeInput).length()) - 1L)))
+        Integer colonIndex = ((String)outcomeInput).indexOf(":");
+        if ((colonIndex != null && colonIndex > -1) && ((colonIndex == null || colonIndex < (((long) ((String)outcomeInput).length()) - 1L))))
         {
-            String side = ((String)Helpers.slice(outcomeInput, ((Object) (switch ((Object) (colonIndex)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; })), null)).toUpperCase();
+            String side = ((String)Helpers.slice(outcomeInput, (((long) colonIndex) + 1L), null)).toUpperCase();
             if (java.util.Objects.equals(side, "YES") || java.util.Objects.equals(side, "NO"))
             {
                 return side;

@@ -2680,11 +2680,11 @@ public class Limitless extends LimitlessApi
     public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        String r = (String) signature.get("r");
-        String s = (String) signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        String rPadded = (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r);
-        String sPadded = (s.length() >= 64 ? s.substring(s.length() - 64) : String.format("%" + (64 - s.length()) + "s", "").replace(' ', '0') + s);
+        String rPadded = (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r));
+        String sPadded = (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s));
         String result = ((("0x" + rPadded) + sPadded) + v);
         return result.toLowerCase();
     }
@@ -3055,9 +3055,9 @@ public class Limitless extends LimitlessApi
                 String strategy = this.safeStringLower(item, "strategy");
                 if (!java.util.Objects.equals(strategy, null))
                 {
-                    Object buyIndex = ((String)strategy).indexOf("buy");
-                    Object sellIndex = ((String)strategy).indexOf("sell");
-                    if (((((Integer) buyIndex) >= 0)) || ((((Integer) sellIndex) >= 0)))
+                    Integer buyIndex = ((String)strategy).indexOf("buy");
+                    Integer sellIndex = ((String)strategy).indexOf("sell");
+                    if ((((buyIndex != null && buyIndex >= 0))) || (((sellIndex != null && sellIndex >= 0))))
                     {
                         ((List<Object>)trades).add(item);
                     }
@@ -3162,9 +3162,9 @@ public class Limitless extends LimitlessApi
         {
             throw new ExchangeError((this.id + " parsePredictionTrade() missing rawSide")) ;
         }
-        Object sellIndex = ((String)rawSide).indexOf("sell");
+        Integer sellIndex = ((String)rawSide).indexOf("sell");
         String side = "buy";
-        if ((((Integer) sellIndex) >= 0))
+        if (((sellIndex != null && sellIndex >= 0)))
         {
             side = "sell";
         }

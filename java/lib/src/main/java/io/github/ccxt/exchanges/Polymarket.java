@@ -1672,7 +1672,7 @@ public class Polymarket extends PolymarketApi
             for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> ack = this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                Object marketInner = (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
+                Map<String, Object> marketInner = (Map<String, Object>) (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
                 Map<String, Object> echo = this.safeDict(ordersEntries, i, new HashMap<String, Object>() {{}});
                 String status = this.safeString(ack, "status");
                 Map<String, Object> merged = this.extend(echo, new HashMap<String, Object>() {{
@@ -1686,7 +1686,7 @@ public class Polymarket extends PolymarketApi
                 {
                     merged.put("status", null);
                 }
-                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, ((Map<String, Object>) (switch ((Object) (marketInner)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, marketInner);
                 parsed.put("info", ack);
                 ((List<Object>)results).add(parsed);
             }
@@ -2770,7 +2770,7 @@ public class Polymarket extends PolymarketApi
                 put( "ts", ts );
             }};
             byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-            String signature = this.signMessage(encoded, this.privateKey);
+            String signature = this.signMessage(encoded, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", new HashMap<String, Object>() {{
                     put( "type", "withdraw" );
@@ -3071,18 +3071,18 @@ public class Polymarket extends PolymarketApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signHash(String hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
-        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), Helpers.slice(privateKey, -64, null), secp256k1(), null);
-        String r = (String) signature.get("r");
-        String sVal = (String) signature.get("s");
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (((String)privateKey) == null ? null : ((String)((String)privateKey)).substring(Math.max(((String)((String)privateKey)).length() - 64, 0))), secp256k1(), null);
+        String r = this.safeString(signature, "r", "");
+        String sVal = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        return ((("0x" + (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r)) + (sVal.length() >= 64 ? sVal.substring(sVal.length() - 64) : String.format("%" + (64 - sVal.length()) + "s", "").replace(' ', '0') + sVal)) + v);
+        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)sVal).length() >= 64 ? ((String)sVal).substring(((String)sVal).length() - 64) : String.format("%" + (64 - ((String)sVal).length()) + "s", "").replace(' ', '0') + ((String)sVal))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash((String) (this.hashMessage(message)), privateKey);
+        return this.signHash((String) (this.hashMessage(message)), (String) (privateKey));
     }
 
     /**
@@ -3103,7 +3103,7 @@ public class Polymarket extends PolymarketApi
             // key over a timestamped nonce - unpredictable without the wallet
             // secret and unique per provisioning, the paradex stark-key idiom
             String nonceMessage = ((("polymarket-perps-proxy:" + String.valueOf(this.milliseconds())) + ":") + String.valueOf(this.randNumber(9)));
-            String seedSignature = this.signMessage(nonceMessage, this.privateKey);
+            String seedSignature = this.signMessage(nonceMessage, (String) (this.privateKey));
             Object proxyPrivateKey = this.hash(this.encode(seedSignature), keccak(), "hex");
             String proxyAddress = this.ethGetAddressFromPrivateKey(proxyPrivateKey);
             String owner = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -3139,7 +3139,7 @@ public class Polymarket extends PolymarketApi
                 put( "ts", ts );
             }};
             byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-            String signature = this.signMessage(encoded, this.privateKey);
+            String signature = this.signMessage(encoded, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", new HashMap<String, Object>() {{
                     put( "type", "createProxy" );

@@ -1181,7 +1181,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String pair = this.safeString(data, "pair");
-        String symbol = this.pairToSymbol(pair);
+        String symbol = this.pairToSymbol((String) (pair));
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1206,9 +1206,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         client.resolve(orderbook, messageHash);
     }
 
-    public String pairToSymbol(Object pair)
+    public String pairToSymbol(String pair)
     {
-        List<Object> parts = (List<Object>) Helpers.split(pair, ":");
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)((String)pair)).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
@@ -1240,7 +1240,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long incrementalId = this.safeInteger(data, "id");
         String pair = this.safeString(data, "pair", "");
-        String symbol = this.pairToSymbol(pair);
+        String symbol = this.pairToSymbol((String) (pair));
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1414,7 +1414,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String pair = this.safeString(data, "pair");
-        String symbol = this.pairToSymbol(pair);
+        String symbol = this.pairToSymbol((String) (pair));
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1439,7 +1439,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String pair = this.safeString(message, "pair");
-        String symbol = this.pairToSymbol(pair);
+        String symbol = this.pairToSymbol((String) (pair));
         if (java.util.Objects.equals(symbol, ""))
         {
             return;

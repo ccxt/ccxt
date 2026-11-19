@@ -534,11 +534,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             // frames still arriving until the client resubscribes
             return;
         }
-        List<Object> handlers = new ArrayList<Object>(Arrays.asList("handleOrderBook", "handleTrades"));
-        for (var j = 0; j < handlers.size(); j++)
-        {
-            Object handler = (handlers == null || j < 0 || j >= handlers.size() ? null : handlers.get(j));
-            Helpers.callDynamically(this, handler, new Object[] {client, message, (subscriptions == null || 0 >= ((List<?>)subscriptions).size() ? null : ((List<?>)subscriptions).get(0))});
-        }
+        Map<String, Object> subscription = this.safeDict(subscriptions, 0, new HashMap<String, Object>() {{}});
+        this.handleOrderBook(client, message, subscription);
+        this.handleTrades(client, message, subscription);
     }
 }

@@ -27,7 +27,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         String logText = (((((exchange.id + " ") + method) + " [symbols: ") + exchange.json(symbols)) + "] ");
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 30000);
-        Object symbolsLength = ((List<?>)symbols).size();
+        Integer symbolsLength = ((List<?>)symbols).size();
         List<String> returnedSymbols = new ArrayList<String>(Arrays.asList());
         Boolean allReceived = false;
         // keep watching until every symbol traded or the deadline passed, a quiet market can stay silent for a while
@@ -62,7 +62,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                         returnedSymbols.add(symbol);
                     }
                 }
-                Object returnedLength = returnedSymbols.size();
+                Integer returnedLength = returnedSymbols.size();
                 if (java.util.Objects.equals(returnedLength, symbolsLength))
                 {
                     allReceived = true;

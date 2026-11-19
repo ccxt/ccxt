@@ -852,8 +852,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Boolean isPerpetual = (java.util.Objects.equals(settlementPeriod, "perpetual"));
         Boolean isFuture = !Boolean.TRUE.equals(isPerpetual) && (((String)kind).indexOf("future") >= 0);
         Boolean isOption = (((String)kind).indexOf("option") >= 0);
-        Object comboPosition = ((String)kind).indexOf("combo");
-        Boolean isComboMarket = (((Integer) comboPosition) >= 0);
+        Integer comboPosition = ((String)kind).indexOf("combo");
+        Boolean isComboMarket = ((comboPosition != null && comboPosition >= 0));
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);

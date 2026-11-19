@@ -26,12 +26,12 @@ public class TestLoadMarkets extends BaseTest {
         Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{false, new HashMap<String, Object>() {{}}})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert((exchange.symbols instanceof List), ".symbols is not an array");
-        Object symbolsLength = ((List<?>)exchange.symbols).size();
+        Integer symbolsLength = ((List<?>)exchange.symbols).size();
         Assert(!java.util.Objects.equals(exchange.markets, null), ".markets is undefined");
         List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
-        Object marketKeysLength = marketKeys.size();
-        Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
-        Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
+        Integer marketKeysLength = marketKeys.size();
+        Assert((symbolsLength != null && symbolsLength > 0), ".symbols count <= 0 (less than or equal to zero)");
+        Assert((marketKeysLength != null && marketKeysLength > 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(java.util.Objects.equals(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
         List<Object> marketValues = Helpers.objectValues(markets);
         for (var i = 0; i < marketValues.size(); i++)

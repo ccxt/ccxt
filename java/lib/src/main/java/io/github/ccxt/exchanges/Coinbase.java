@@ -6135,12 +6135,12 @@ public class Coinbase extends CoinbaseApi
         if (!java.util.Objects.equals(url, ""))
         {
             uri = ((method + " ") + (url == null ? null : ((String)url).replaceFirst("https://", "")));
-            Object quesPos = ((String)uri).indexOf("?");
+            Integer quesPos = ((String)uri).indexOf("?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
-            if ((((Integer) quesPos) > 0))
+            if ((quesPos != null && quesPos > 0))
             {
-                uri = (uri == null ? null : ((String)uri).substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? ((String)uri).length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), ((String)uri).length())));
+                uri = (uri == null ? null : ((String)uri).substring(0, (int) Math.min(quesPos < 0 ? ((String)uri).length() + quesPos : quesPos, ((String)uri).length())));
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

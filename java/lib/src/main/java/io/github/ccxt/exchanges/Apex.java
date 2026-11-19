@@ -1516,11 +1516,11 @@ public class Apex extends ApexApi
     public String addHyphenBeforeUsdt(String symbol)
     {
         String uppercaseSymbol = ((String)symbol).toUpperCase();
-        Object index = ((String)uppercaseSymbol).indexOf("USDT");
-        String symbolChar = this.safeString(symbol, ((((Number) index).longValue()) - 1L));
-        if ((((Integer) index) > 0) && !java.util.Objects.equals(symbolChar, "-"))
+        Integer index = ((String)uppercaseSymbol).indexOf("USDT");
+        String symbolChar = this.safeString(symbol, (((long) index) - 1L));
+        if ((index != null && index > 0) && !java.util.Objects.equals(symbolChar, "-"))
         {
-            return (((symbol == null ? null : symbol.substring(0, (int) Math.min(((Number)index).intValue() < 0 ? symbol.length() + ((Number)index).intValue() : ((Number)index).intValue(), symbol.length()))) + "-") + (symbol == null ? null : symbol.substring((int) Math.min(Math.max(((Number)index).intValue() < 0 ? symbol.length() + ((Number)index).intValue() : ((Number)index).intValue(), 0), symbol.length()))));
+            return (((symbol == null ? null : symbol.substring(0, (int) Math.min(index < 0 ? symbol.length() + index : index, symbol.length()))) + "-") + (symbol == null ? null : symbol.substring((int) Math.min(Math.max(index < 0 ? symbol.length() + index : index, 0), symbol.length()))));
         }
         return symbol;
     }

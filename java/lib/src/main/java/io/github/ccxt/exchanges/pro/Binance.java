@@ -2458,7 +2458,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "symbol", Binance.this.marketId((String) (symbol)) );
                 put( "returnRateLimits", returnRateLimits );
-                put( "interval", Helpers.GetValue(Binance.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                put( "interval", (Binance.this.timeframes == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : Binance.this.timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
             }};
             Long until = this.safeInteger(paramsReturnRateLimits, "until");
             Map<String, Object> paramsOmitted = this.omit(paramsReturnRateLimits, "until");

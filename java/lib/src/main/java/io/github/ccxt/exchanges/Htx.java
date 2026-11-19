@@ -9465,7 +9465,7 @@ public class Htx extends HtxApi
                     Map<String,Object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                String auth = Helpers.replace(((String)this.urlencode(request, true)), "%2c", "%2C"); // in c# it manually needs to be uppercased
+                String auth = this.urlencode(request, true).replaceFirst("%2c", "%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), hostname, url, auth));
                 String payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
@@ -11272,8 +11272,7 @@ public class Htx extends HtxApi
             List<Object> list = this.safeList(settlement, "list", null);
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                Map<String, Object> parsedSettlement = this.parseSettlement(settlement, (Map<String, Object>) (market));
-                ((List<Object>)result).add(parsedSettlement);
+                ((List<Object>)result).add(this.parseSettlement(settlement, (Map<String, Object>) (market)));
             } else if (!java.util.Objects.equals(list, null))
             {
                 Long timestamp = this.safeInteger(settlement, "settlement_time");

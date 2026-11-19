@@ -7077,41 +7077,13 @@ public class Bingx extends BingxApi
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
-            List<Object> liquidations = null;
+            String key = "data";
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.cswapV1PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType))).join();
-                //
-                //     {
-                //         "code": 0,
-                //         "msg": "",
-                //         "timestamp": 1721280071678,
-                //         "data": [
-                //             {
-                //                 "orderId": "string",
-                //                 "symbol": "string",
-                //                 "type": "string",
-                //                 "side": "string",
-                //                 "positionSide": "string",
-                //                 "price": "string",
-                //                 "quantity": "float64",
-                //                 "stopPrice": "string",
-                //                 "workingType": "string",
-                //                 "status": "string",
-                //                 "time": "int64",
-                //                 "avgPrice": "string",
-                //                 "executedQty": "string",
-                //                 "profit": "string",
-                //                 "commission": "string",
-                //                 "updateTime": "string"
-                //             }
-                //         ]
-                //     }
-                //
-                liquidations = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                response = (this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType))).join();
+                Map<String, Object> swapResponse = (this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType))).join();
                 //
                 //     {
                 //         "code": 0,
@@ -7141,9 +7113,10 @@ public class Bingx extends BingxApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                liquidations = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+                response = (Map<String, Object>) this.safeDict(swapResponse, "data", new HashMap<String, Object>() {{}});
+                key = "orders";
             }
+            List<Object> liquidations = this.safeList(response, key, new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 

@@ -3279,8 +3279,8 @@ public class Kalshi extends KalshiApi
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
-            Object tradeApiIndex = ((String)baseUrl).indexOf("/trade-api");
-            String versionPrefix = Helpers.slice(baseUrl, tradeApiIndex, null);
+            Integer tradeApiIndex = ((String)baseUrl).indexOf("/trade-api");
+            String versionPrefix = (baseUrl == null ? null : baseUrl.substring((int) Math.min(Math.max(tradeApiIndex < 0 ? baseUrl.length() + tradeApiIndex : tradeApiIndex, 0), baseUrl.length())));
             String pathForSigning = ((versionPrefix + "/") + implodedPath);
             String payload = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM

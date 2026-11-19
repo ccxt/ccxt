@@ -1595,13 +1595,21 @@ public class Bullish extends BullishApi
                 {
                     if (java.util.Objects.equals(method, "fetchOHLCV"))
                     {
-                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, paramsOmitted)).join();
+                        if (java.util.Objects.equals(symbol, null))
+                        {
+                            throw new ArgumentsRequired((this.id + " market() requires a symbol argument")) ;
+                        }
+                        return (this.fetchOHLCV(symbol, timeframe, since, limit, paramsOmitted)).join();
                     } else if (java.util.Objects.equals(method, "fetchFundingRateHistory"))
                     {
                         return (this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted)).join();
                     } else
                     {
-                        return (this.fetchTrades(((String)symbol), since, limit, paramsOmitted)).join();
+                        if (java.util.Objects.equals(symbol, null))
+                        {
+                            throw new ArgumentsRequired((this.id + " market() requires a symbol argument")) ;
+                        }
+                        return (this.fetchTrades(symbol, since, limit, paramsOmitted)).join();
                     }
                 } catch(Exception e)
                 {

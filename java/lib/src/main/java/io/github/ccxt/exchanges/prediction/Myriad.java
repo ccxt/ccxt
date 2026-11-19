@@ -1591,14 +1591,14 @@ public class Myriad extends MyriadApi
         {
             throw new ExchangeError((this.id + " toOrderbookWei() missing scaled")) ;
         }
-        Object dotIndex = ((String)scaled).indexOf(".");
+        Integer dotIndex = ((String)scaled).indexOf(".");
         if (java.util.Objects.equals(scaled, null))
         {
             throw new ExchangeError((this.id + " toOrderbookWei() missing scaled")) ;
         }
-        if ((((Integer) dotIndex) > -1))
+        if ((dotIndex != null && dotIndex > -1))
         {
-            return (scaled == null ? null : scaled.substring(0, (int) Math.min(((Number)dotIndex).intValue() < 0 ? scaled.length() + ((Number)dotIndex).intValue() : ((Number)dotIndex).intValue(), scaled.length())));
+            return (scaled == null ? null : scaled.substring(0, (int) Math.min(dotIndex < 0 ? scaled.length() + dotIndex : dotIndex, scaled.length())));
         }
         return scaled;
     }

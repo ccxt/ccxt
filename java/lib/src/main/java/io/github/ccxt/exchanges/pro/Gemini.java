@@ -401,8 +401,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //
         String type = this.safeString(message, "type", "");
         String timeframeIdFull = (type == null ? null : ((String)type).substring(Math.min(8, ((String)type).length())));
-        Object timeframeEndIndex = ((String)timeframeIdFull).indexOf("_");
-        String timeframeId = (timeframeIdFull == null ? null : timeframeIdFull.substring(0, (int) Math.min(((Number)timeframeEndIndex).intValue() < 0 ? timeframeIdFull.length() + ((Number)timeframeEndIndex).intValue() : ((Number)timeframeEndIndex).intValue(), timeframeIdFull.length())));
+        Integer timeframeEndIndex = ((String)timeframeIdFull).indexOf("_");
+        String timeframeId = (timeframeIdFull == null ? null : timeframeIdFull.substring(0, (int) Math.min(timeframeEndIndex < 0 ? timeframeIdFull.length() + timeframeEndIndex : timeframeEndIndex, timeframeIdFull.length())));
         String marketId = this.safeString(message, "symbol", "").toLowerCase();
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
@@ -1158,9 +1158,9 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             this.checkRequiredCredentials(true);
             String wsBaseUrl = this.safeString(this.urls.get("api"), "ws", "");
             Integer startIndex = wsBaseUrl.length();
-            Object urlParamsIndex = ((String)url).indexOf("?");
+            Integer urlParamsIndex = ((String)url).indexOf("?");
             Object urlLength = url.length();
-            Object endIndex = ((((((Integer) urlParamsIndex) >= 0)))) ? urlParamsIndex : urlLength;
+            Object endIndex = (((((urlParamsIndex != null && urlParamsIndex >= 0))))) ? urlParamsIndex : urlLength;
             String request = Helpers.slice(url, startIndex, endIndex);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "request", request );
