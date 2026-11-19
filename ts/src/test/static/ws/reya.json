@@ -139,7 +139,7 @@
         ],
         "watchTicker": [
             {
-                "description": "market summary exposes mark/index without inventing last trade",
+                "description": "market summary: mark and index, and the book mid as close and last, since the summary has no last trade price",
                 "input": [
                     "BTC/RUSD:RUSD"
                 ],
@@ -154,7 +154,8 @@
                             "markPrice": "100",
                             "oraclePrice": "99",
                             "volume24h": "50000",
-                            "pxChange24h": "2"
+                            "pxChange24h": "2",
+                            "throttledMidPrice": "100.5"
                         }
                     }
                 ],
@@ -169,13 +170,13 @@
                     "ask": null,
                     "askVolume": null,
                     "vwap": null,
-                    "open": null,
-                    "close": null,
-                    "last": null,
+                    "open": 98.5,
+                    "close": 100.5,
+                    "last": 100.5,
                     "previousClose": null,
                     "change": 2,
-                    "percentage": null,
-                    "average": null,
+                    "percentage": 2.030456852791878,
+                    "average": 99.5,
                     "baseVolume": null,
                     "quoteVolume": 50000,
                     "markPrice": 100,
@@ -186,7 +187,8 @@
                         "markPrice": "100",
                         "oraclePrice": "99",
                         "volume24h": "50000",
-                        "pxChange24h": "2"
+                        "pxChange24h": "2",
+                        "throttledMidPrice": "100.5"
                     }
                 }
             }

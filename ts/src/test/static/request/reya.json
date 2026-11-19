@@ -394,6 +394,161 @@
                 "input": [],
                 "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/configuration"
             }
+        ],
+        "editOrder": [
+            {
+                "description": "SDK golden order_modify_state: post-modify GTT order with the immutable fields restated",
+                "input": [
+                    "63552420354981888",
+                    "ETH/RUSD:RUSD",
+                    "limit",
+                    "buy",
+                    0.75,
+                    2950,
+                    {
+                        "accountId": 12345,
+                        "clientOrderId": "42",
+                        "timeInForce": "GTT",
+                        "postOnly": true,
+                        "expiresAfter": 1745003600,
+                        "nonce": "1700000000000005",
+                        "deadline": 1745000300
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/modifyOrder",
+                "output": {
+                    "nonce": "1700000000000005",
+                    "deadline": 1745000300,
+                    "accountId": 12345,
+                    "symbol": "ETHRUSDPERP",
+                    "exchangeId": 2,
+                    "isBuy": true,
+                    "orderType": "LIMIT",
+                    "timeInForce": "GTT",
+                    "qty": "0.75",
+                    "limitPx": "2950",
+                    "reduceOnly": false,
+                    "postOnly": true,
+                    "orderId": "63552420354981888",
+                    "clientOrderId": "42",
+                    "expiresAfter": 1745003600,
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0x3d63bcbae53e3d2d23a7930c68d80e98bd55953ce91553094d8dd87d930a8d362b2fab25d5873619623813c5ba34d1b03f33f57478ebb58f5b122e4792ec6a821b"
+                }
+            },
+            {
+                "description": "without params.timeInForce the resting order is read first",
+                "input": [
+                    "123456789012345678",
+                    "BTC/RUSD:RUSD",
+                    "limit",
+                    "buy",
+                    3,
+                    null
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/openOrders"
+            },
+            {
+                "description": "targeted by client order id only, with the immutable fields restated by the caller",
+                "input": [
+                    "",
+                    "BTC/RUSD:RUSD",
+                    "limit",
+                    "sell",
+                    1.5,
+                    101.5,
+                    {
+                        "clientOrderId": "0042",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "nonce": "1700000000000006",
+                        "deadline": 1745000360
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/modifyOrder",
+                "output": {
+                    "nonce": "1700000000000006",
+                    "deadline": 1745000360,
+                    "accountId": 42,
+                    "symbol": "BTCRUSDPERP",
+                    "exchangeId": 2,
+                    "isBuy": false,
+                    "orderType": "LIMIT",
+                    "timeInForce": "GTC",
+                    "qty": "1.5",
+                    "limitPx": "101.5",
+                    "reduceOnly": false,
+                    "postOnly": false,
+                    "clientOrderId": "42",
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0xedea44a585fba93d6c6fe7090c8ab01482bada256acd7379361a8ede6e766cf37bb0c230dc9d002daeba50343a40612704b0d45b39873481ba337235cb8633981c"
+                }
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "SDK golden cancel_all_after_arm",
+                "input": [
+                    30000,
+                    {
+                        "accountId": 12345,
+                        "nonce": "1700000000000003",
+                        "deadline": 1745000180
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelAllAfter",
+                "output": {
+                    "nonce": "1700000000000003",
+                    "deadline": 1745000180,
+                    "accountId": 12345,
+                    "timeoutMs": 30000,
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0x7d8d65dc7949e42fea86da56df36fbfc0fa07bbd8f8f6be8b9f8f5b2f46031bc190cf90ff18671afe86dce8d27dfceff513e9c8b9df45c94c5bfb937b3b495141c"
+                }
+            },
+            {
+                "description": "SDK golden cancel_all_after_disarm",
+                "input": [
+                    0,
+                    {
+                        "accountId": 12345,
+                        "nonce": "1700000000000004",
+                        "deadline": 1745000240
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelAllAfter",
+                "output": {
+                    "nonce": "1700000000000004",
+                    "deadline": 1745000240,
+                    "accountId": 12345,
+                    "timeoutMs": 0,
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0x8ef177568c9b4077353f261779b284f33f39d95c73a720c332cf07304ee540915380177af7b95dabfcd8efbe278ab440b82c6623944818d4a16228fce075beb21b"
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "asset definitions",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/assetDefinitions"
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "one market summary",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "url": "https://api.reya.xyz/v2/perpMarket/BTCRUSDPERP/summary"
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "every market summary",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/perpMarkets/summary"
+            }
         ]
     },
     "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"

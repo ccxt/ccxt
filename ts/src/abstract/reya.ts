@@ -101,12 +101,20 @@ abstract class Exchange extends _Exchange {
         return this.request ('createOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 
+    privatePostModifyOrder (params = {}): Promise<Dict | List> {
+        return this.request ('modifyOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
     privatePostCancelOrder (params = {}): Promise<Dict | List> {
         return this.request ('cancelOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     privatePostCancelAll (params = {}): Promise<Dict | List> {
         return this.request ('cancelAll', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('cancelAllAfter', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 }
 

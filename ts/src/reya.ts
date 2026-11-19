@@ -7,7 +7,7 @@ import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, B
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { int, Account, Balances, Currency, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { int, Account, Balances, Currencies, Currency, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class reya
@@ -31,14 +31,16 @@ export default class reya extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createStopOrder': false,
-                'editOrder': false,
+                'editOrder': true,
+                'editOrderWithClientOrderId': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -48,6 +50,8 @@ export default class reya extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -72,6 +76,15 @@ export default class reya extends Exchange {
                 'www': 'https://reya.xyz',
                 'doc': [ 'https://docs.reya.xyz/developers', 'https://github.com/Reya-Labs/reya-api-specs' ],
                 'fees': 'https://docs.reya.xyz',
+            },
+            'fees': {
+                // tier 0, where every account starts; fetchTradingFees returns the account's own tier
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.0003'),
+                    'maker': this.parseNumber ('0'),
+                },
             },
             'requiredCredentials': { 'apiKey': false, 'secret': false, 'walletAddress': true, 'privateKey': true },
             'precisionMode': TICK_SIZE,
@@ -106,7 +119,7 @@ export default class reya extends Exchange {
                         'wallet/{address}/perpExecutions': 1,
                         'wallet/{address}/transfers': 1,
                     },
-                    'post': { 'createOrder': 1, 'cancelOrder': 1, 'cancelAll': 1 },
+                    'post': { 'createOrder': 1, 'modifyOrder': 1, 'cancelOrder': 1, 'cancelAll': 1, 'cancelAllAfter': { 'cost': 1 } as Endpoint<Dict> },
                 },
             },
             'options': {
@@ -306,6 +319,66 @@ export default class reya extends Exchange {
 
     /**
      * @method
+     * @name reya#fetchCurrencies
+     * @description fetch the assets Reya accepts as collateral
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
+        const assets = await this.publicGetAssetDefinitions (params);
+        const result: Dict = this.parseCurrencies (assets);
+        // a perpetual's base is not a collateral asset, but every market's base needs a currency entry
+        const definitions = await this.publicGetPerpMarketDefinitions ();
+        const definitionsLength = definitions.length;
+        for (let i = 0; i < definitionsLength; i++) {
+            const definition = definitions[i];
+            const marketId = this.safeString (definition, 'symbol', '');
+            if (marketId.endsWith ('RUSDPERP')) {
+                const baseId = marketId.slice (0, -8);
+                const code = this.safeCurrencyCode (baseId) as string;
+                if (this.safeDict (result, code) === undefined) {
+                    const categories = this.safeList (definition, 'categories', []);
+                    result[code] = this.safeCurrencyStructure ({
+                        'info': definition, 'id': baseId, 'code': code, 'name': undefined,
+                        'type': (this.inArray ('CRYPTO', categories)) ? 'crypto' : 'other',
+                        'active': undefined, 'deposit': false, 'withdraw': false, 'fee': undefined,
+                        'precision': this.safeNumber (definition, 'qtyStepSize'),
+                        'limits': {
+                            'amount': { 'min': undefined, 'max': undefined },
+                            'deposit': { 'min': undefined, 'max': undefined },
+                            'withdraw': { 'min': undefined, 'max': undefined },
+                        },
+                        'networks': {},
+                    });
+                }
+            }
+        }
+        return result as Currencies;
+    }
+
+    /** @ignore */
+    override parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'asset');
+        // ENABLED allows deposits and withdrawals, WITHDRAWAL_ONLY only withdrawals
+        const status = this.safeString (rawCurrency, 'status');
+        const canDeposit = (status === 'ENABLED');
+        const canWithdraw = canDeposit || (status === 'WITHDRAWAL_ONLY');
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency, 'id': currencyId, 'code': this.safeCurrencyCode (currencyId), 'name': undefined, 'type': 'crypto',
+            'active': canWithdraw, 'deposit': canDeposit, 'withdraw': canWithdraw, 'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'deposit': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+        });
+    }
+
+    /**
+     * @method
      * @name reya#fetchOrderBook
      * @description fetch a bounded L2 order book snapshot
      * @param {string} symbol unified market symbol
@@ -327,12 +400,15 @@ export default class reya extends Exchange {
     /** @ignore */
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'updatedAt');
+        // the summary has no last trade price: close is the book mid, or the mark on an empty or one-sided book
+        // (Reya's chart falls back to the mark the same way); open follows from close and the 24h change
+        const close = this.safeString2 (ticker, 'throttledMidPrice', 'markPrice');
         return this.safeTicker ({
             'symbol': this.safeSymbol (this.safeString (ticker, 'symbol'), market),
             'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
             'high': undefined, 'low': undefined, 'bid': undefined, 'bidVolume': undefined,
             'ask': undefined, 'askVolume': undefined, 'vwap': undefined, 'open': undefined,
-            'close': undefined, 'last': undefined, 'previousClose': undefined,
+            'close': close, 'last': close, 'previousClose': undefined,
             'change': this.safeString (ticker, 'pxChange24h'), 'percentage': undefined, 'average': undefined,
             'baseVolume': undefined, 'quoteVolume': this.safeString (ticker, 'volume24h'),
             'markPrice': this.safeNumber (ticker, 'markPrice'), 'indexPrice': this.safeNumber (ticker, 'oraclePrice'),
@@ -343,7 +419,7 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchTicker
-     * @description fetch market summary; last trade price is not provided by this endpoint
+     * @description fetch a market summary; last and close are the order book mid price, or the mark price on a one-sided book, as the summary has no last trade price
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a ticker structure
@@ -415,6 +491,55 @@ export default class reya extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetPerpMarketsSummary (params);
         return this.parseFundingRates (response, symbols);
+    }
+
+    /** @ignore */
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
+        const marketId = this.safeString (interest, 'symbol');
+        const resolved = this.safeMarket (marketId, market);
+        const amount = this.safeString (interest, 'oiQty');
+        const markPrice = this.safeString (interest, 'markPrice');
+        const notional = ((amount !== undefined) && (markPrice !== undefined)) ? Precise.stringMul (amount, markPrice) : undefined;
+        const timestamp = this.safeInteger (interest, 'updatedAt');
+        return this.safeOpenInterest ({
+            'symbol': resolved['symbol'],
+            'openInterestAmount': this.parseNumber (amount),
+            'openInterestValue': this.parseNumber (notional),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, resolved);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOpenInterest
+     * @description retrieves the open interest of a perpetual market, in base units and valued at the mark price
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetPerpMarketSymbolSummary (this.extend ({ 'symbol': market['id'] }, params));
+        return this.parseOpenInterest (response, market);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOpenInterests
+     * @description retrieves the open interest of every perpetual market, or of the given ones
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} open interest structures indexed by symbol
+     */
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
+        await this.loadMarkets ();
+        const response = await this.publicGetPerpMarketsSummary (params);
+        return this.parseOpenInterests (response, this.marketSymbols (symbols));
     }
 
     /**
@@ -1198,13 +1323,9 @@ export default class reya extends Exchange {
             }
             request['expiresAfter'] = expiresAfter;
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.reyaClientOrderId (this.safeString (params, 'clientOrderId'));
         if (clientOrderId !== undefined) {
-            const normalized = Precise.stringAdd (clientOrderId, '0');
-            if (normalized === undefined || normalized.indexOf ('.') >= 0 || Precise.stringLe (normalized, '0') || Precise.stringGt (normalized, '18446744073709551615')) {
-                throw new InvalidOrder (this.id + ' clientOrderId must be a non-zero uint64 decimal string');
-            }
-            request['clientOrderId'] = normalized;
+            request['clientOrderId'] = clientOrderId;
         }
         const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'reduceOnly', 'slippage', 'expiresAfter' ]);
         const response = await this.privatePostCreateOrder (this.extend (omitted, request));
@@ -1258,6 +1379,157 @@ export default class reya extends Exchange {
     }
 
     /** @ignore */
+    async reyaRestingOrder (orderId: Str, clientOrderId: Str, accountId: number, marketId: Str): Promise<Dict> {
+        const hasId = (orderId !== undefined) && (orderId !== '');
+        if (!hasId && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an order id or params.clientOrderId');
+        }
+        const response = await this.privateGetWalletAddressOpenOrders ({ 'address': this.reyaWalletAddress () });
+        const orders = this.reyaFilterOrders (response, accountId);
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const order = orders[i];
+            // Reya keeps client order ids per market, so a client id lookup also matches the market
+            const matches = (hasId) ? (this.safeString (order, 'orderId') === orderId) : ((this.safeString (order, 'clientOrderId') === clientOrderId) && (this.safeString (order, 'symbol') === marketId));
+            if (matches) {
+                return order;
+            }
+        }
+        const target = (hasId) ? orderId : clientOrderId;
+        throw new OrderNotFound (this.id + ' editOrder found no open order ' + target);
+    }
+
+    /**
+     * @method
+     * @name reya#editOrder
+     * @description modify a resting limit order in place, keeping its order id and client order id
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} id exchange order id, or an empty string to target params.clientOrderId
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit'; protective stops cannot be modified through editOrder
+     * @param {string} side 'buy' or 'sell'; it must match the resting order
+     * @param {float} [amount] new total quantity, including any part already filled; defaults to the resting quantity
+     * @param {float} [price] new limit price; defaults to the resting price
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id
+     * @param {string} [params.clientOrderId] the resting order's client id: the target when id is empty, and required with params.timeInForce when the order has one
+     * @param {string} [params.timeInForce] the resting order's GTC or GTT; given with amount, price and params.postOnly, it skips the open-order lookup
+     * @param {bool} [params.postOnly] maker-only flag after the modification; defaults to the resting order's flag, and is required with params.timeInForce
+     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds; defaults to the resting order's expiry
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const market = this.market (symbol);
+        if (type !== 'limit') {
+            throw new NotSupported (this.id + ' editOrder modifies resting limit orders only');
+        }
+        const accountId = this.reyaAccountId (params);
+        const isBuy = (side === 'buy');
+        let orderId: Str = id;
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let clientOrderId = this.reyaClientOrderId (this.safeString (params, 'clientOrderId'));
+        let qty: Str = (amount === undefined) ? undefined : this.amountToPrecision (symbol, amount);
+        let limitPx: Str = (price === undefined) ? undefined : this.priceToPrecision (symbol, price);
+        let postOnly = this.safeBool (params, 'postOnly');
+        let expiresAfter = this.safeInteger (params, 'expiresAfter');
+        let exchangeId = this.safeInteger (this.reyaNetwork (), 'exchangeId');
+        let resting: Dict = {};
+        if (timeInForce === undefined) {
+            // the modify restates the immutable fields of the resting order, so read them first
+            resting = await this.reyaRestingOrder (id, clientOrderId, accountId, market['id']);
+            if (this.safeString (resting, 'symbol') !== market['id']) {
+                throw new InvalidOrder (this.id + ' editOrder found the order in another market than ' + symbol);
+            }
+            if (this.safeString (resting, 'orderType') !== 'LIMIT') {
+                throw new NotSupported (this.id + ' editOrder cannot modify protective stops');
+            }
+            if ((this.safeString (resting, 'side') === 'B') !== isBuy) {
+                throw new InvalidOrder (this.id + ' editOrder cannot change the side of an order');
+            }
+            orderId = this.safeString (resting, 'orderId');
+            timeInForce = this.safeString (resting, 'timeInForce');
+            clientOrderId = this.safeString (resting, 'clientOrderId');
+            exchangeId = this.safeInteger (resting, 'exchangeId');
+            if (qty === undefined) {
+                qty = this.safeString (resting, 'qty');
+            }
+            if (limitPx === undefined) {
+                limitPx = this.safeString (resting, 'limitPx');
+            }
+            if (postOnly === undefined) {
+                postOnly = this.safeBool (resting, 'postOnly', false);
+            }
+            if (expiresAfter === undefined) {
+                expiresAfter = this.safeInteger (resting, 'expiresAfter');
+            }
+        } else if ((qty === undefined) || (limitPx === undefined) || (postOnly === undefined)) {
+            // without the lookup nothing is restated for the caller, and an omitted postOnly would clear the flag
+            throw new ArgumentsRequired (this.id + ' editOrder requires amount, price and params.postOnly when params.timeInForce is given');
+        } else if (((orderId === undefined) || (orderId === '')) && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an order id or params.clientOrderId');
+        }
+        if ((timeInForce !== 'GTC') && (timeInForce !== 'GTT')) {
+            throw new InvalidOrder (this.id + ' editOrder modifies resting GTC or GTT orders only');
+        }
+        const request: Dict = {
+            'accountId': accountId, 'symbol': market['id'], 'exchangeId': exchangeId, 'isBuy': isBuy,
+            'orderType': 'LIMIT', 'timeInForce': timeInForce, 'qty': qty, 'limitPx': limitPx,
+            'reduceOnly': false, 'postOnly': (postOnly === true),
+        };
+        if ((orderId !== undefined) && (orderId !== '')) {
+            request['orderId'] = orderId;
+        }
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        if (timeInForce === 'GTT') {
+            if (expiresAfter === undefined) {
+                throw new ArgumentsRequired (this.id + ' editOrder requires params.expiresAfter for a GTT order');
+            }
+            request['expiresAfter'] = expiresAfter;
+        }
+        const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'expiresAfter' ]);
+        const response = await this.privatePostModifyOrder (this.extend (omitted, request));
+        const sideId = (isBuy) ? 'B' : 'A';
+        const merged = this.extend (this.extend (resting, request), this.extend ({ 'side': sideId }, response));
+        return this.parseOrder (merged, market);
+    }
+
+    /**
+     * @method
+     * @name reya#cancelAllOrdersAfter
+     * @description arm, refresh or disarm a countdown that cancels the account's open orders, except protective stops, when it expires
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {number} timeout countdown in milliseconds, from 5000 to 60000, or 0 to disarm
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id
+     * @returns {object} the raw response: accountId, timeoutMs and, while armed, the advisory triggerAt in milliseconds
+     */
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
+        this.checkRequiredCredentials ();
+        if ((timeout === undefined) || ((timeout !== 0) && ((timeout < 5000) || (timeout > 60000)))) {
+            throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout must be 0 to disarm, or from 5000 to 60000 milliseconds');
+        }
+        const request: Dict = { 'accountId': this.reyaAccountId (params), 'timeoutMs': timeout };
+        const response = await this.privatePostCancelAllAfter (this.extend (this.omit (params, 'accountId'), request));
+        return response;
+    }
+
+    /** @ignore */
+    reyaClientOrderId (clientOrderId: Str): Str {
+        if (clientOrderId === undefined) {
+            return undefined;
+        }
+        const normalized = Precise.stringAdd (clientOrderId, '0');
+        if (normalized === undefined || normalized.indexOf ('.') >= 0 || Precise.stringLe (normalized, '0') || Precise.stringGt (normalized, '18446744073709551615')) {
+            throw new InvalidOrder (this.id + ' clientOrderId must be a non-zero uint64 decimal string');
+        }
+        return normalized;
+    }
+
+    /** @ignore */
     override nonce (): int {
         // microseconds; incrementingNonce () bumps past the previous value when two signed requests share one
         return this.milliseconds () * 1000;
@@ -1280,7 +1552,8 @@ export default class reya extends Exchange {
         const marketId = (market === undefined) ? 0 : this.safeInteger (market['info'], 'marketId');
         let types: Dict = {};
         const message: Dict = { 'verifyingChainId': this.safeInteger (network, 'chainId'), 'deadline': deadline };
-        if (path === 'createOrder') {
+        if ((path === 'createOrder') || (path === 'modifyOrder')) {
+            // a modify signs the same envelope over the complete post-modify order
             if (this.safeString (request, 'orderType') !== 'LIMIT') {
                 throw new NotSupported (this.id + ' signing supports LIMIT orders only');
             }
@@ -1318,6 +1591,13 @@ export default class reya extends Exchange {
                 ],
             };
             message['cancel'] = { 'accountId': accountId, 'marketId': marketId, 'orderId': this.safeString (request, 'orderId', '0'), 'clOrdId': this.safeString (request, 'clientOrderId', '0'), 'nonce': nonce };
+        } else if (path === 'cancelAllAfter') {
+            types = {
+                'CancelAllAfter': [ { 'name': 'verifyingChainId', 'type': 'uint64' }, { 'name': 'deadline', 'type': 'uint64' }, { 'name': 'cancelAllAfter', 'type': 'CancelAllAfterDetails' } ],
+                'CancelAllAfterDetails': [ { 'name': 'accountId', 'type': 'uint64' }, { 'name': 'timeoutMs', 'type': 'uint64' }, { 'name': 'nonce', 'type': 'uint64' } ],
+            };
+            message['cancelAllAfter'] = { 'accountId': accountId, 'timeoutMs': this.safeInteger (request, 'timeoutMs'), 'nonce': nonce };
+            request['signerWallet'] = this.ethGetAddressFromPrivateKey (this.privateKey);
         } else {
             types = {
                 'MassCancel': [ { 'name': 'verifyingChainId', 'type': 'uint64' }, { 'name': 'deadline', 'type': 'uint64' }, { 'name': 'massCancel', 'type': 'MassCancelDetails' } ],
