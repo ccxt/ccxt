@@ -6388,7 +6388,7 @@ class NewTranspiler {
         content = this.retypeIdentifierCopies (content);
         content = this.dropIdentityStringCasts (content);
         // the copies retyped above are declarations the native helper pass could not see yet
-        content = nativeDeclaredHelperCalls (retypeOrderBookCacheLocals (content));
+        content = csharpLiteralApiDispatch (nativeDeclaredHelperCalls (retypeOrderBookCacheLocals (content)), csharpRetApiTable (this.currentVenue, this.isPrediction));
         if (ws || this.isPrediction) {
             content = nativeWsCacheCalls (content);
         }
@@ -7284,7 +7284,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
-    return csharpStringEncodeIdentity (csharpTypedRowCaches (csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut)))); // parse, then tuple-slot reads
+    return csharpTypedStringSlice (csharpStringEncodeIdentity (csharpTypedRowCaches (csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut))))); // parse, then tuple-slot reads
 }
 
 // `this.encode(x)` is `(string)x` (Exchange.Encode.cs): on an operand declared `string`/`string?`
@@ -7336,6 +7336,7 @@ function csharpStringEncodeIdentity (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
+<<<<<<< merged
 // `this.encode(e)` on an expression whose static type is `string` (a literal, a `string`-returning
 // call, `.ToUpper()` of a proven string, a `+` concat of proven strings) is `e` itself
 function csharpStringEncodeCallArgs (line: string, lines: string[], provenName: (n: string) => boolean, stringFields: string[]): string {
@@ -7383,6 +7384,101 @@ function csharpStringEncodeCallArgs (line: string, lines: string[], provenName: 
         if (isString (arg)) line = line.substring (0, c.index) + arg.trim () + line.substring (close + 1);
     }
     return line;
+=======
+// `slice(s, a, b)` (Exchange.TranspileHelpers.cs Slice) on a string declared `string`/`string?` (every
+// declaration in the member, or a string credential field) with int/Int64 local or literal bounds: the
+// helper's own body (null -> null, negative bounds count from the end, end clamped to the length)
+function csharpTypedStringSlice (content: string): string {
+    if (!content.includes ('slice(')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    let changed = false;
+    const bound = '(?:-?\\d+L?|[A-Za-z_]\\w*|\\([A-Za-z_]\\w* \\+ \\d+L?\\))';
+    const call = new RegExp ('(?<![\\w.])slice\\(((?:this\\.)?[A-Za-z_]\\w*), (' + bound + '), (' + bound + ')\\)', 'g');
+    const member = /^    (?:public|private|protected|internal)\b/;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes ('slice(')) {
+            continue;
+        }
+        let start = i;
+        while ((start > 0) && !member.test (lines[start])) start--;
+        let end = i + 1;
+        while ((end < lines.length) && !member.test (lines[end])) end++;
+        const declaredAs = (name: string, types: string[]): boolean => {
+            const decl = new RegExp ('(?:^|[(,{;]|\\s)([A-Za-z_][\\w.<>\\[\\], ]*?\\??)\\s+' + name + '\\s*(?:=(?!=)|;|,|\\)|\\bin\\b)', 'g');
+            let seen = 0;
+            for (let k = start; k < end; k++) {
+                const text = lines[k].replace (/"(?:[^"\\]|\\.)*"/g, '""');
+                for (const m of text.matchAll (decl)) {
+                    const type = m[1].trim ().split (/[\s(,]+/).pop ();
+                    if ((type === '') || [ 'return', 'else', 'new', 'throw', 'await', 'case', 'in', 'is', 'as' ].includes (type)) {
+                        continue;
+                    }
+                    if (!types.includes (type)) {
+                        return false;
+                    }
+                    seen++;
+                }
+            }
+            return seen > 0;
+        };
+        const ints = [ 'int', 'Int64' ];
+        const index = (b: string, s: string): string | undefined => {
+            if (/^\d+L?$/.test (b)) {
+                return b.replace ('L', '');
+            }
+            if (/^-\d+L?$/.test (b)) {
+                return s + '.Length' + b.replace ('L', '');
+            }
+            const sum = /^\(([A-Za-z_]\w*) \+ (\d+)L?\)$/.exec (b);
+            if (sum !== null) {
+                return declaredAs (sum[1], ints) ? '(int)(' + b + ' < 0 ? ' + s + '.Length + ' + b + ' : ' + b + ')' : undefined;
+            }
+            return declaredAs (b, ints) ? '(int)(' + b + ' < 0 ? ' + s + '.Length + ' + b + ' : ' + b + ')' : undefined;
+        };
+        const next = lines[i].replace (call, (all, s, a, b) => {
+            const isString = s.startsWith ('this.') ? (s === 'this.secret') : declaredAs (s, [ 'string', 'string?' ]);
+            const from = index (a, s);
+            const to = index (b, s);
+            if (!isString || (from === undefined) || (to === undefined)) {
+                return all;
+            }
+            return '((' + s + ' == null) ? null : ' + s + '[' + from + '..Math.Min(' + to + ', ' + s + '.Length)])';
+        });
+        if (next !== lines[i]) {
+            lines[i] = next;
+            changed = true;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// `callDynamically(this, v, new object[] { arg })` where `string v` is written once, from a literal naming a
+// generated implicit-API endpoint (api/<venue>.cs, one declaration, not redeclared in the venue): the direct
+// call reflection resolves to; awaiting it yields the same dictionary the Task<object> wrapper did
+function csharpLiteralApiDispatch (content: string, api: Map<string, string> | undefined): string {
+    if ((api === undefined) || !content.includes ('callDynamically(this, ')) {
+        return content;
+    }
+    const re = /\(\(Task<object>\)callDynamically\(this, ([A-Za-z_]\w*), new object\[\] \{ ([^{}\n]*) \}\)\)/g;
+    const dropped: string[] = [];
+    const out = content.replace (re, (whole, v, args) => {
+        const decls = [ ...content.matchAll (new RegExp ('\\bstring\\?? ' + v + ' = "(\\w+)";', 'g')) ];
+        const uses = (content.match (new RegExp ('(?<![\\w."])' + v + '(?![\\w"])', 'g')) ?? []).length;
+        if ((decls.length !== 1) || (uses !== 2) || (csharpArgumentCount (args) !== 1)) {
+            return whole;
+        }
+        const name = decls[0][1];
+        if (!api.has (name) || new RegExp ('\\s' + name + '\\(').test (content.replace (/this\.\w+\(/g, ''))) {
+            return whole;
+        }
+        dropped.push (decls[0][0]);
+        return '(this.' + name + '(' + args + '))';
+    });
+    // the name local is dead once the call is direct (CS0219 under TreatWarningsAsErrors)
+    return dropped.reduce ((text, decl) => text.replace (new RegExp ('\\n[ \\t]*' + decl.replace (/[?.]/g, '\\$&')), ''), out);
+>>>>>>> C09
 }
 
 // ws caches Exchange.Options.cs declares with a typed row (`IDictionary<string, IDictionary<string, object>>`):
