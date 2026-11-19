@@ -4339,7 +4339,9 @@ function mutSelfFieldStoreBacks(content: string): string {
             end++;
         }
         const rest = [lines[i].slice(m.index + m[0].length), ...lines.slice(i + 1, end + 1)].join('\n');
-        if (/\bself\b/.test(rest) || /\bself\b/.test(lines[i].slice(0, m.index).replace(/^\s*/, '').replace(/^(?:if let Value::Dict\(\w+\) = |\{ let \w+ = |get_value_mut\(|.*get_value_mut\()/, ''))) continue;
+        // `{ let __be_tmp = <owned read>; { let __d = CAST; ..} }`: the read is a finished statement before the borrow
+        const pre = lines[i].slice(0, m.index).replace(/^\s*/, '').replace(/^\{ let __be_tmp = .*; \{ let __d = $/, '');
+        if (/\bself\b/.test(rest) || /\bself\b/.test(pre.replace(/^(?:if let Value::Dict\(\w+\) = |\{ let \w+ = |get_value_mut\(|.*get_value_mut\()/, ''))) continue;
         lines[i] = lines[i].slice(0, m.index) + '&mut self.' + m[1] + lines[i].slice(m.index + m[0].length);
     }
     return lines.join('\n');
@@ -6792,7 +6794,7 @@ export class RustTranspilerBuilder {
             // Specific sync methods known to mutate self.
             [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string|sign|handle_errors)\(&self,/g,
                 'pub fn $1(&mut self,'],
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce)\(&self\)/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce|has_autocorrect)\(&self\)/g,
                 'pub fn $1(&mut self)'],
 
             // (`}\nimpl X {\n` collapse is applied per-call-site in
