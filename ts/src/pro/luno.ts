@@ -459,10 +459,8 @@ export default class luno extends lunoRest {
             // frames still arriving until the client resubscribes
             return;
         }
-        const handlers = [ this.handleOrderBook, this.handleTrades ];
-        for (let j = 0; j < handlers.length; j++) {
-            const handler = handlers[j];
-            handler.call (this, client, message, subscriptions[0]);
-        }
+        const subscription: Dict = this.safeDict (subscriptions, 0, {});
+        this.handleOrderBook (client, message, subscription);
+        this.handleTrades (client, message, subscription);
     }
 }
