@@ -472,7 +472,7 @@ function firstArg (text: string): string | undefined {
 class Proof {
     content: string;
     regions: Region[];
-    calls = new Map<number, boolean>();
+    calls = new Map<string, boolean>();
     locals = new Map<string, boolean>();
 
     constructor (content: string, regions: Region[]) {
@@ -495,7 +495,7 @@ class Proof {
 
     private localTagFreeUncached (name: string, body: string, region: Region, depth: number): boolean {
         if (body.includes('"__')) return false;
-        const decl = new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*(?:Value|crate::value::Dict|Option<crate::value::Dict>)(?![\\w:<])(.*)$', 'gm');
+        const decl = new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*(?:Value|crate::value::Dict|Option<crate::value::Dict>|indexmap::IndexMap<String, Value>)(?![\\w:<])(.*)$', 'gm');
         const bare = new RegExp('^[ \\t]*let (?:mut )?' + name + '[ \\t]*=(.*)$', 'gm');
         const bound = new RegExp('(^|[^.\\w])' + name + '[ \\t]*=(?!=)(.*)$', 'gm');
         const sources: string[] = [];
@@ -537,6 +537,12 @@ class Proof {
         if (depth > 2) return false;
         if (t.startsWith('Value::Map(')) return true;
         if (t.startsWith('Value::Null')) return true;
+        if (/^\(\{\s*let mut m = indexmap::IndexMap::new\(\);[\s\S]*\n\s*m\s*\}\)$/.test(t)) return true;
+        const destr = t.match(/^(__destr_tmp\w*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\);/);
+        if (destr !== null) return this.destrSlot0Plain(destr[1], body.indexOf(src), body);
+        // a parser on the REST parent (another file) returns a fresh plain dict
+        const parent = t.match(/^crate::exchange::DerivedExchange::([a-z_]+)\(&self\.parent,/);
+        if (parent !== null) return PARSERS.has(parent[1]);
         const callee = t.match(/^(?:self\.|<Self as crate::exchange::DerivedExchange>::)([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
         if (callee === null) return /^(?:(?:__pro_message|message)\.get\(|get_value\(&|crate::value::KeyRead::read\(&&)/.test(t) && this.wireRead(t, body, region, depth + 1);
         const name = callee[1];
@@ -584,11 +590,67 @@ class Proof {
         return n > 0;
     }
 
-    /** Same-file method whose only `return` is a proven tag-free local. */
-    calleePlain (name: string, caller: Region): boolean {
-        const key = caller.start;
-        const cache = this.calls.get(key * 100000 + (name.charCodeAt(0) || 0));
+    /** `let T: Vec<Value> = <self.m(..) | if c { self.a(..) } else { self.b(..) }>` before `at`: every callee's slot 0 is plain. */
+    destrSlot0Plain (tmp: string, at: number, body: string): boolean {
+        if (at < 0) return false;
+        const head = 'let ' + tmp + ': Vec<Value> = ';
+        const d = body.lastIndexOf(head, at);
+        if (d < 0) return false;
+        const e = body.slice(d + head.length);
+        const names: string[] = [];
+        const one = (x: string, i: number): number => {
+            const m = /^self\.([a-z_][a-z0-9_]*)\(/.exec(x.slice(i));
+            if (m === null) return -1;
+            names.push(m[1]);
+            return closeParenAt(x, i + m[0].length - 1);
+        };
+        let end: number;
+        if (e.startsWith('(if ')) {
+            const a = e.indexOf(' { self.');
+            if (a < 0 || e.slice(4, a).includes('{')) return false;
+            const ae = one(e, a + 3);
+            if (ae < 0 || !e.startsWith(' } else { ', ae)) return false;
+            const be = one(e, ae + 10);
+            if (be < 0 || !e.startsWith(' })', be)) return false;
+            end = be + 3;
+        }
+        else end = one(e, 0);
+        if (end < 0 || !e.startsWith('.as_array().cloned().unwrap_or_default();', end)) return false;
+        return names.every(n => this.calleePlain(n, { start: -1, end: -1 }, true));
+    }
+
+    /** Same-file method whose every `return` is a proven tag-free value (`slot0`: slot 0 of a returned `vec![..]`). */
+    calleePlain (name: string, caller: Region, slot0 = false): boolean {
+        const key = caller.start + ':' + name + (slot0 ? '#0' : '');
+        const cache = this.calls.get(key);
         if (cache !== undefined) return cache;
+        this.calls.set(key, false);
+        let verdict = false;
+        for (const r of this.regions) {
+            const body = this.content.slice(r.start, r.end);
+            const header = body.slice(0, body.indexOf('\n') < 0 ? body.length : body.indexOf('\n'));
+            if (!new RegExp('fn ' + name + '\\s*\\(').test(header) || body.includes('"__')) continue;
+            const rets = [...body.matchAll(/^[ \t]*return ([^\n]*);$/gm)].map(m => m[1]);
+            const plainVal = (v: string): boolean => {
+                const id = v.match(/^(?:Value::(?:Dict|Map)\(|Value::from\(&)([A-Za-z_]\w*)\)$/);
+                return id !== null ? this.localTagFree(id[1], body, r) : this.srcTagFree(v, body, r, 1);
+            };
+            const ok = rets.length > 0 && rets.every(v => {
+                if (!slot0) return plainVal(v);
+                if (v === 'Value::Null') return true;
+                if (!v.startsWith('Value::from(vec![')) return false;
+                const first = firstArg('(' + v.slice('Value::from(vec!['.length));
+                return first !== undefined && plainVal(first.trim());
+            });
+            verdict = ok;
+            break;
+        }
+        if (!slot0 && !verdict) verdict = this.calleePlainLocal(name);
+        this.calls.set(key, verdict);
+        return verdict;
+    }
+
+    calleePlainLocal (name: string): boolean {
         let verdict = false;
         for (const r of this.regions) {
             const body = this.content.slice(r.start, r.end);
@@ -602,7 +664,6 @@ class Proof {
             }
             if (new RegExp('\\b[A-Z][a-z0-9]*::' + name + '\\(').test(body)) { verdict = true; break; }
         }
-        this.calls.set(key * 100000 + (name.charCodeAt(0) || 0), verdict);
         return verdict;
     }
 }
