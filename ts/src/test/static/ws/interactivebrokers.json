@@ -11,7 +11,10 @@
         "liveSessionTokenExpiration": 9999999999999,
         "signaturePemPath": "./private_signature.pem",
         "encryptionPemPath": "./private_encryption.pem",
-        "dhParamPemPath": "./dhparam.pem"
+        "dhParamPemPath": "./dhparam.pem",
+        "watchOrders": {
+            "warnIfWithoutSymbol": false
+        }
     },
     "methods": {
         "watchMyTrades": [
