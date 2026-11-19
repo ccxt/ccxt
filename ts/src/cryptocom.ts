@@ -1723,7 +1723,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: Str, symbol: string, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
