@@ -847,7 +847,7 @@ const CONTAINER_OP_CLIENT_STATE = /^&get_value\(&(client), &Value::Str\("(subscr
 // A side marker is the only `Value` whose length differs from `Value::len`.
 const CONTAINER_OP_SIDE_WORD = /asks|bids|[Ss]ide|[Bb]ook|entries|__sideKind/;
 // Sources that yield a plain JSON tree or a plain container.
-const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit|(?:public|private)_\w+)\(|^get_arg\(|^split\(|^json_parse\(|^Value::(?:Map|List|Array|Str|from)\(/;
+const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit|(?:public|private)_\w+|(?:[a-z0-9]+_)+(?:public|private)_(?:[a-z0-9]+_)*(?:get|post|put|delete|patch)_\w+)\(|^get_arg\(|^split\(|^json_parse\(|^Value::(?:Map|List|Array|Str|from)\(|^Value::Null$/;
 // Reads that cannot change the stored container shape.
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
@@ -1026,6 +1026,9 @@ class ContainerOpProver {
         // One unpinned write clears the shape for good: no later write restores it.
         let shapeUnknown = false;
         let lenSafe = !CONTAINER_OP_SIDE_WORD.test (name);
+        const prologue = isParam && new RegExp (`[^A-Za-z0-9_]${name}\\s*:\\s*impl Into<crate::Value>`).test (header)
+            ? `${name}.into()` : undefined;
+        let prologueSeen = false;
         const writesRe = new RegExp (`(?<![A-Za-z0-9_.*])(let (?:mut )?)?${name}\\b(\\s*:\\s*([A-Za-z_][A-Za-z0-9_<>,:& ]*?))?\\s*=(?!=)`, 'g');
         for (const m of region.matchAll (writesRe)) {
             const typed = m[3] === undefined ? 'Value' : m[3].replace (/\s+/g, '');
@@ -1035,6 +1038,8 @@ class ContainerOpProver {
             const end = containerOpStmtEnd (real, rhsStart);
             if (end < 0) return undefined;
             const raw = containerOpParens (real.slice (rhsStart, end));
+            // The `x.into()` parameter prologue is a JSON read when every caller passes one.
+            if (raw === prologue && this.callersLenSafe (header, name)) { writes++; prologueSeen = true; continue; }
             const write = this.source (raw, from + (m.index as number), seen);
             writes++;
             if (write === undefined) {
@@ -1061,11 +1066,47 @@ class ContainerOpProver {
             if (!CONTAINER_OP_SHAPE_WRITES.test (before)) return undefined;
         }
         for (const m of region.matchAll (new RegExp (`(?<![A-Za-z0-9_.])${name}\\.([A-Za-z_][A-Za-z0-9_]*)`, 'g'))) {
+            const decl = `let mut ${name}: Value = `;
+            if (m[1] === 'into' && prologueSeen && region.slice (Math.max (0, (m.index as number) - decl.length), m.index as number) === decl) continue;
             if (!CONTAINER_OP_READS.has (m[1])) return undefined;
         }
         // A parameter has no declaration to prove: only the length rule can fire.
         if (isParam) return lenSafe ? { lenSafe } : undefined;
         return shapeUnknown ? { lenSafe } : { proof, lenSafe };
+    }
+
+    // True when the fn is private to this file and every `self.f(` call passes a length-safe value in the
+    // parameter's slot. The by-name dispatch arm is reachable only through a quoted name no other ts file uses.
+    private callersLenSafe (header: string, param: string): boolean {
+        const fm = /fn ([a-z_][A-Za-z0-9_]*)\(&(?:mut )?self, ([^]*)\)/.exec (header);
+        if (fm === null || !containerOpFnIsPrivate (fm[1])) return false;
+        const slot = containerOpSplit (fm[2]).findIndex (p => new RegExp (`^\\s*(?:mut )?${param}\\s*:`).test (p));
+        if (slot < 0) return false;
+        let calls = 0;
+        for (const m of this.masked.matchAll (new RegExp (`self\\.${fm[1]}\\(`, 'g'))) {
+            const lineStart = this.masked.lastIndexOf ('\n', m.index as number) + 1;
+            // The by-name dispatch arm (`"f" => self.f(args…)`) is excluded by the quoted-name check.
+            if (/=>\s*$/.test (this.masked.slice (lineStart, m.index as number))) continue;
+            const open = (m.index as number) + m[0].length - 1;
+            const close = containerOpClose (this.content, open);
+            if (close < 0) return false;
+            const arg = containerOpParens (containerOpSplit (this.content.slice (open + 1, close))[slot] ?? '');
+            const ident = /^&?([a-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec (arg);
+            const ok = ident !== null
+                ? this.nativeList (ident[1], m.index as number) || this.facts (ident[1], m.index as number)?.lenSafe === true
+                : CONTAINER_OP_JSON_SOURCE.test (arg) && !CONTAINER_OP_SIDE_WORD.test (arg);
+            if (!ok) return false;
+            calls++;
+        }
+        return calls > 0;
+    }
+
+    // A local declared once as a native `crate::value::List` (a plain Vec: no marker).
+    private nativeList (name: string, pos: number): boolean {
+        const lo = this.region (pos);
+        const region = this.masked.slice (this.headers[lo], this.headers[lo + 1]);
+        const decls = region.match (new RegExp (`(?<![A-Za-z0-9_.])let (?:mut )?${name}\\b\\s*:`, 'g')) ?? [];
+        return decls.length === 1 && new RegExp (`let (?:mut )?${name}: crate::value::List = `).test (region);
     }
 
     // Shape and marker safety of one right-hand side.
@@ -1104,6 +1145,30 @@ class ContainerOpProver {
         }
         return undefined;
     }
+}
+
+// Method names (snake case) declared or named in exactly one ts/src file.
+let containerOpPrivateFns: Set<string> | undefined;
+function containerOpFnIsPrivate (fn: string): boolean {
+    if (containerOpPrivateFns === undefined) {
+        const seen = new Map<string, number> ();
+        const walk = (d: string) => {
+            if (!fs.existsSync (d)) return;
+            for (const e of fs.readdirSync (d, { withFileTypes: true })) {
+                const full = `${d}/${e.name}`;
+                if (e.isDirectory ()) walk (full);
+                else if (e.name.endsWith ('.ts')) {
+                    const text = fs.readFileSync (full, 'utf8');
+                    for (const w of new Set (text.match (/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])) seen.set (w, (seen.get (w) ?? 0) + 1);
+                    // A quoted name may be dispatched dynamically: never private.
+                    for (const q of text.matchAll (/['"`]([A-Za-z_][A-Za-z0-9_]*)['"`]/g)) seen.set (q[1], 2);
+                }
+            }
+        };
+        walk ('./ts/src');
+        containerOpPrivateFns = new Set ([ ...seen ].filter (([ , n ]) => n === 1).map (([ w ]) => toSnakeCase (w)));
+    }
+    return containerOpPrivateFns.has (fn);
 }
 
 function containerOpKeyText (key: string): string | undefined {
@@ -1214,6 +1279,17 @@ function nativeContainerOpsSelfTest (): string[] {
     // A parameter has no declaration to prove: the helper call stays.
     const param = fn ('        if (in_op(&params, &Value::Str("k".to_string()))) {\n            let n: Value = object_keys(&params);\n        }');
     if (nativeContainerOps (param) !== param) problems.push ('param: helper not kept');
+    // A file-private fn whose every caller passes an API read: the `.into()` prologue is length-safe.
+    const into = (arg: string) => `    pub fn probe_only_here(&self, r: impl Into<crate::Value>) -> Value {\n        let mut r: Value = r.into();\n        let n: Value = get_array_length(&r);\n    }\n`
+        + `    pub fn caller(&self) -> Value {\n        let mut a: Value = ${arg};\n        return self.probe_only_here(a.clone());\n    }\n`;
+    containerOpPrivateFns = new Set ([ 'probe_only_here' ]);
+    const apiArg = into ('self.public_get_x(&[q]).await');
+    check ('into prologue', apiArg, apiArg.replace ('get_array_length(&r)', 'Value::Int(r.len() as i64)'));
+    const anyArg = into ('self.something(q)');
+    if (nativeContainerOps (anyArg) !== anyArg) problems.push ('into prologue: unproven caller kept');
+    containerOpPrivateFns = new Set ();
+    if (nativeContainerOps (apiArg) !== apiArg) problems.push ('into prologue: shared fn kept');
+    containerOpPrivateFns = undefined;
     // A side marker keeps the helper: the store holds its entries, not the dict.
     const side = fn ('        let mut storedAsks: Value = self.safe_value_k(book.clone(), "asks", &[]);\n        let n: Value = get_array_length(&storedAsks);');
     if (nativeContainerOps (side) !== side) problems.push ('side marker: helper not kept');
