@@ -7,7 +7,8 @@
             "chainId": 89346162,
             "ordersGateway": "0x7Ec89E555c771D2B5939aBE5C4E4291852633D4D",
             "exchangeId": 2
-        }
+        },
+        "spotAccountId": 10000000042
     },
     "outputType": "json",
     "methods": {
@@ -38,6 +39,13 @@
                     "BTC/RUSD:RUSD"
                 ],
                 "url": "https://api.reya.xyz/v2/perpMarket/BTCRUSDPERP/summary"
+            },
+            {
+                "description": "spot market summary",
+                "input": [
+                    "ETH/RUSD"
+                ],
+                "url": "https://api.reya.xyz/v2/spotMarket/WETHRUSD/summary"
             }
         ],
         "fetchBalance": [
@@ -53,6 +61,15 @@
                 "input": [
                     {
                         "method": "accountBalances"
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/accountBalances"
+            },
+            {
+                "description": "spot balances read the realized balances",
+                "input": [
+                    {
+                        "type": "spot"
                     }
                 ],
                 "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/accountBalances"
@@ -138,6 +155,68 @@
                     "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
                     "signature": "0xf2d69b90a93c361c28a44483d26e6667721f63fb8c8ec1a12106773c663a43972c42d4b2ea68531b9b63d25e3a90cf093892db8983525424a6b0044d4c6d28bf1b"
                 }
+            },
+            {
+                "description": "spot post-only limit from the SPOT account, signed with the spot market id",
+                "input": [
+                    "ETH/RUSD",
+                    "limit",
+                    "buy",
+                    0.25,
+                    1800.5,
+                    {
+                        "postOnly": true,
+                        "clientOrderId": "9",
+                        "nonce": "1700000000000201",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/createOrder",
+                "output": {
+                    "nonce": "1700000000000201",
+                    "deadline": 1745000000,
+                    "accountId": 10000000042,
+                    "symbol": "WETHRUSD",
+                    "isBuy": true,
+                    "orderType": "LIMIT",
+                    "timeInForce": "GTC",
+                    "qty": "0.25",
+                    "exchangeId": 2,
+                    "limitPx": "1800.5",
+                    "postOnly": true,
+                    "clientOrderId": "9",
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0xee65c82808068811902c3dc7a277b3fcf777037a0ab5a0a23fe4e5bb608a9fcf59ff7efadc18d563c5ba73c3b1662924bb3659ea15dce92111976abf430abc7e1c"
+                }
+            },
+            {
+                "description": "spot IOC order carries no reduceOnly field",
+                "input": [
+                    "ETH/RUSD",
+                    "market",
+                    "sell",
+                    0.25,
+                    1790,
+                    {
+                        "nonce": "1700000000000202",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/createOrder",
+                "output": {
+                    "nonce": "1700000000000202",
+                    "deadline": 1745000000,
+                    "accountId": 10000000042,
+                    "symbol": "WETHRUSD",
+                    "isBuy": false,
+                    "orderType": "LIMIT",
+                    "timeInForce": "IOC",
+                    "qty": "0.25",
+                    "exchangeId": 2,
+                    "limitPx": "1790",
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0xb3cbd15df9120bae94b6608944b16868869ffa5a05c5a825f137f439e292b70d453b4c2863027a1eac8062efe306fb2ab15a8c2760e7d253cb0adc182b3a5f0c1b"
+                }
             }
         ],
         "cancelOrder": [
@@ -162,6 +241,26 @@
                     "symbol": "ETHRUSDPERP",
                     "signature": "0x90ddba6ff879dee4773c214c927a470720f42378574281866edce100ea8c59d775fb29e4ab6108a9ea84bfe12fffcdbbd6dfff98ea6ae034bbd87f4c21254f941b"
                 }
+            },
+            {
+                "description": "spot cancel from the SPOT account",
+                "input": [
+                    "501",
+                    "ETH/RUSD",
+                    {
+                        "nonce": "1700000000000203",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelOrder",
+                "output": {
+                    "nonce": "1700000000000203",
+                    "deadline": 1745000000,
+                    "orderId": "501",
+                    "symbol": "WETHRUSD",
+                    "accountId": 10000000042,
+                    "signature": "0x2ec5820d5a5ad3b49ad2501cd98aec7a1fbedcada132cdb385b257f7173b10a77171b5c9511bbd101ef15a7215b45736fdd78eb891fb9a41a13ff385deb079331c"
+                }
             }
         ],
         "cancelAllOrders": [
@@ -182,6 +281,24 @@
                     "nonce": "1700000000000002",
                     "deadline": 1745000120,
                     "signature": "0x86d4f060ffbba16698cf8f89fdeabb0397a814be6f54075f908ccbd73894a4227c33b0b77ac8c2e495eca0848e56e60711cd5fa60b657a4ba675fd6bd13be9201b"
+                }
+            },
+            {
+                "description": "spot cancel-all for params.type spot",
+                "input": [
+                    null,
+                    {
+                        "type": "spot",
+                        "nonce": "1700000000000204",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelAll",
+                "output": {
+                    "nonce": "1700000000000204",
+                    "deadline": 1745000000,
+                    "accountId": 10000000042,
+                    "signature": "0x01420d08a7cffbcdeccc45a7aac8736a73edc9136d5bdcb6a0665a464c61387b1e99c1d6813cac941e27db3a3f1f6f193252280a14326e85a0103815d8bb08181b"
                 }
             }
         ],
@@ -483,6 +600,43 @@
                     "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
                     "signature": "0xedea44a585fba93d6c6fe7090c8ab01482bada256acd7379361a8ede6e766cf37bb0c230dc9d002daeba50343a40612704b0d45b39873481ba337235cb8633981c"
                 }
+            },
+            {
+                "description": "spot modify from the SPOT account restates reduceOnly false, as every limit modify does",
+                "input": [
+                    "501",
+                    "ETH/RUSD",
+                    "limit",
+                    "buy",
+                    0.3,
+                    1795.5,
+                    {
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "clientOrderId": "9",
+                        "nonce": "1700000000000206",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/modifyOrder",
+                "output": {
+                    "nonce": "1700000000000206",
+                    "deadline": 1745000000,
+                    "accountId": 10000000042,
+                    "symbol": "WETHRUSD",
+                    "exchangeId": 2,
+                    "isBuy": true,
+                    "orderType": "LIMIT",
+                    "timeInForce": "GTC",
+                    "qty": "0.3",
+                    "limitPx": "1795.5",
+                    "reduceOnly": false,
+                    "postOnly": true,
+                    "orderId": "501",
+                    "clientOrderId": "9",
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0xee55ef28d01a69e7372e273c1bbcb6920cef0a29d751f2d64f4d5579298aa81a2090bc5b352046eda7ffc5c061256d2273ae60761368759fdcd1c21665cba6bd1c"
+                }
             }
         ],
         "cancelAllOrdersAfter": [
@@ -525,6 +679,26 @@
                     "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
                     "signature": "0x8ef177568c9b4077353f261779b284f33f39d95c73a720c332cf07304ee540915380177af7b95dabfcd8efbe278ab440b82c6623944818d4a16228fce075beb21b"
                 }
+            },
+            {
+                "description": "countdown for the SPOT account with params.type spot",
+                "input": [
+                    30000,
+                    {
+                        "type": "spot",
+                        "nonce": "1700000000000207",
+                        "deadline": 1745000180
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelAllAfter",
+                "output": {
+                    "nonce": "1700000000000207",
+                    "deadline": 1745000180,
+                    "accountId": 10000000042,
+                    "timeoutMs": 30000,
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0x20326b579e259be2d115447a6b8577f5d97e1e02b8a7bb0f982f4d094ce65a404b96cc4ef66c3e050edbc00d0fdc9746adb8173eb5a04881b7ff19506628beef1c"
+                }
             }
         ],
         "fetchCurrencies": [
@@ -548,6 +722,48 @@
                 "description": "every market summary",
                 "input": [],
                 "url": "https://api.reya.xyz/v2/perpMarkets/summary"
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot summaries for spot symbols",
+                "input": [
+                    [
+                        "ETH/RUSD",
+                        "BTC/RUSD"
+                    ]
+                ],
+                "url": "https://api.reya.xyz/v2/spotMarkets/summary"
+            },
+            {
+                "description": "spot summaries for params.type spot",
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/spotMarkets/summary"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot executions of a spot market",
+                "input": [
+                    "ETH/RUSD",
+                    null,
+                    50
+                ],
+                "url": "https://api.reya.xyz/v2/market/WETHRUSD/spotExecutions?limit=50"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot executions of the wallet for a spot market",
+                "input": [
+                    "ETH/RUSD"
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/spotExecutions"
             }
         ]
     },

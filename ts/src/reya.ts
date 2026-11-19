@@ -7,7 +7,7 @@ import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, B
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { int, Account, Balances, Currencies, Currency, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { int, Account, Balances, Currencies, Currency, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, MarketInterface, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class reya
@@ -25,7 +25,7 @@ export default class reya extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -95,8 +95,12 @@ export default class reya extends Exchange {
                         'perpMarketDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
                         'perpMarkets/summary': { 'cost': 1 } as Endpoint<Dict[]>,
                         'perpMarket/{symbol}/summary': 1,
+                        'spotMarketDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'spotMarkets/summary': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'spotMarket/{symbol}/summary': 1,
                         'market/{symbol}/depth': 1,
                         'market/{symbol}/perpExecutions': 1,
+                        'market/{symbol}/spotExecutions': 1,
                         'candleHistory/{symbol}/{resolution}': 1,
                         'fundingRateHistory/{symbol}/{resolution}': 1,
                         'assetDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
@@ -117,6 +121,7 @@ export default class reya extends Exchange {
                         'wallet/{address}/openOrders': { 'cost': 1 } as Endpoint<Dict[]>,
                         'wallet/{address}/orderHistory': 1,
                         'wallet/{address}/perpExecutions': 1,
+                        'wallet/{address}/spotExecutions': 1,
                         'wallet/{address}/transfers': 1,
                     },
                     'post': { 'createOrder': 1, 'modifyOrder': 1, 'cancelOrder': 1, 'cancelAll': 1, 'cancelAllAfter': { 'cost': 1 } as Endpoint<Dict> },
@@ -124,7 +129,9 @@ export default class reya extends Exchange {
             },
             'options': {
                 'defaultType': 'swap',
-                'accountId': undefined,
+                'accountId': undefined, // the perpetual (MAINPERP or SUBPERP) account
+                'spotAccountId': undefined, // the SPOT account, for spot orders, balances and trades
+                'fetchMarkets': { 'types': [ 'swap', 'spot' ] },
                 'lastNonce': 0,
                 'slippage': 0.005,
                 'deadlineSeconds': 30,
@@ -135,64 +142,70 @@ export default class reya extends Exchange {
                 'sandbox': { 'chainId': 89346162, 'exchangeId': 1, 'ordersGateway': '0x7Ec89E555c771D2B5939aBE5C4E4291852633D4D' },
             },
             'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': false, // use params.postOnly with GTC or venue-specific GTT
+                            'GTD': false, // venue-specific GTT uses params.expiresAfter
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': { 'limit': 200 },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'sandbox': true,
-                        'createOrder': {
-                            'marginMode': false,
-                            'triggerPrice': false,
-                            'triggerPriceType': undefined,
-                            'triggerDirection': false,
-                            'stopLossPrice': false,
-                            'takeProfitPrice': false,
-                            'attachedStopLossTakeProfit': undefined,
-                            'timeInForce': {
-                                'GTC': true,
-                                'IOC': true,
-                                'FOK': false,
-                                'PO': false, // use params.postOnly with GTC or venue-specific GTT
-                                'GTD': false, // venue-specific GTT uses params.expiresAfter
-                            },
-                            'hedged': false,
-                            'trailing': false,
-                            'leverage': false,
-                            'marketBuyByCost': false,
-                            'marketBuyRequiresPrice': false,
-                            'selfTradePrevention': false,
-                            'iceberg': false,
-                        },
-                        'createOrders': undefined,
-                        'fetchMyTrades': {
-                            'marginMode': false,
-                            'limit': 100,
-                            'daysBack': undefined,
-                            'untilDays': undefined,
-                            'symbolRequired': false,
-                        },
-                        'fetchOrder': {
-                            'marginMode': false,
-                            'trigger': false,
-                            'trailing': false,
-                            'symbolRequired': false,
-                        },
-                        'fetchOpenOrders': {
-                            'marginMode': false,
-                            'limit': undefined,
-                            'trigger': false,
-                            'trailing': false,
-                            'symbolRequired': false,
-                        },
-                        'fetchOrders': {
-                            'marginMode': false,
-                            'limit': 100,
-                            'daysBack': undefined,
-                            'untilDays': undefined,
-                            'trigger': false,
-                            'trailing': false,
-                            'symbolRequired': false,
-                        },
-                        'fetchClosedOrders': undefined,
-                        'fetchOHLCV': { 'limit': 200 },
+                        'extends': 'default',
                     },
                     'inverse': undefined,
                 },
@@ -248,13 +261,29 @@ export default class reya extends Exchange {
     }
 
     /** @ignore */
-    reyaAccountId (params: Dict = {}): number {
-        const raw = this.safeString (params, 'accountId', this.safeString (this.options, 'accountId'));
-        const accountId = this.safeInteger (params, 'accountId', this.safeInteger (this.options, 'accountId'));
+    reyaAccountId (params: Dict = {}, marketType: Str = undefined): number {
+        // spot trades from the SPOT account in options.spotAccountId, perpetuals from options.accountId
+        const optionKey = (marketType === 'spot') ? 'spotAccountId' : 'accountId';
+        const raw = this.safeString (params, 'accountId', this.safeString (this.options, optionKey));
+        const accountId = this.safeInteger (params, 'accountId', this.safeInteger (this.options, optionKey));
         if (accountId === undefined || accountId <= 0 || accountId > 9007199254740991 || !Precise.stringEq (raw, this.numberToString (accountId))) {
-            throw new ArgumentsRequired (this.id + ' requires a positive safe-integer options.accountId or params.accountId');
+            throw new ArgumentsRequired (this.id + ' requires a positive safe-integer options.' + optionKey + ' or params.accountId');
         }
         return accountId;
+    }
+
+    /** @ignore */
+    reyaAccountAndParams (methodName: string, market: Market = undefined, params: Dict = {}): any[] {
+        // the account of the market's type, or of params.type or options.defaultType without a market
+        const [ marketType, query ] = this.handleMarketTypeAndParams (methodName, market, params);
+        return [ this.reyaAccountId (query, marketType), query ];
+    }
+
+    /** @ignore */
+    reyaCheckPerpMarket (market: MarketInterface, methodName: string) {
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' ' + methodName + ' supports perpetual markets only; ' + market['symbol'] + ' is a spot market');
+        }
     }
 
     /** @ignore */
@@ -274,20 +303,32 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchMarkets
-     * @description fetch perpetual market definitions and trading increments
+     * @description fetch perpetual and spot market definitions and trading increments
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of market structures
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const response = await this.publicGetPerpMarketDefinitions (params);
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
+        const types = this.safeList (fetchMarketsOptions, 'types', [ 'swap', 'spot' ]);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            // a definition outside the BASERUSDPERP naming has no unified symbol; skip it rather than fail loadMarkets
-            const marketId = this.safeString (market, 'symbol', '');
-            if (marketId.endsWith ('RUSDPERP')) {
-                result.push (this.parseMarket (market));
+        if (this.inArray ('swap', types)) {
+            const perps = await this.publicGetPerpMarketDefinitions (params);
+            const perpsLength = perps.length;
+            for (let i = 0; i < perpsLength; i++) {
+                const market = perps[i];
+                // a definition outside the BASERUSDPERP naming has no unified symbol; skip it rather than fail loadMarkets
+                const marketId = this.safeString (market, 'symbol', '');
+                if (marketId.endsWith ('RUSDPERP')) {
+                    result.push (this.parseMarket (market));
+                }
+            }
+        }
+        if (this.inArray ('spot', types)) {
+            const spots = await this.publicGetSpotMarketDefinitions (params);
+            const spotsLength = spots.length;
+            for (let i = 0; i < spotsLength; i++) {
+                result.push (this.parseMarket (spots[i]));
             }
         }
         return result;
@@ -295,6 +336,9 @@ export default class reya extends Exchange {
 
     /** @ignore */
     override parseMarket (market: Dict): Market {
+        if (this.safeString (market, 'baseAsset') !== undefined) {
+            return this.parseSpotMarket (market);
+        }
         const marketId = this.safeString (market, 'symbol', '');
         const baseId = marketId.slice (0, -8);
         const base = this.safeCurrencyCode (baseId);
@@ -313,6 +357,33 @@ export default class reya extends Exchange {
                 'leverage': { 'min': 1, 'max': this.safeNumber (market, 'maxLeverage') },
             },
             'marginModes': { 'cross': true, 'isolated': false },
+            'info': market,
+        });
+    }
+
+    /** @ignore */
+    parseSpotMarket (market: Dict): Market {
+        // a spot market trades a collateral asset against rUSD from a SPOT account; its market id is the core id + 1e10
+        const marketId = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return this.safeMarketStructure ({
+            'id': marketId, 'symbol': base + '/' + quote, 'base': base, 'quote': quote, 'settle': undefined,
+            'baseId': baseId, 'quoteId': quoteId, 'settleId': undefined,
+            'type': 'spot', 'spot': true, 'margin': false, 'swap': false, 'future': false, 'option': false,
+            // spot definitions carry no status: the listed markets are the tradable ones
+            'active': true,
+            'contract': false, 'linear': undefined, 'inverse': undefined, 'contractSize': undefined,
+            'expiry': undefined, 'expiryDatetime': undefined, 'strike': undefined, 'optionType': undefined,
+            'precision': { 'amount': this.safeNumber (market, 'qtyStepSize'), 'price': this.safeNumber (market, 'tickSize') },
+            'limits': {
+                'amount': { 'min': this.safeNumber (market, 'minOrderQty'), 'max': undefined },
+                'price': { 'min': this.safeNumber (market, 'tickSize'), 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+                'leverage': { 'min': undefined, 'max': undefined },
+            },
             'info': market,
         });
     }
@@ -400,9 +471,9 @@ export default class reya extends Exchange {
     /** @ignore */
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'updatedAt');
-        // the summary has no last trade price: close is the book mid, or the mark on an empty or one-sided book
-        // (Reya's chart falls back to the mark the same way); open follows from close and the 24h change
-        const close = this.safeString2 (ticker, 'throttledMidPrice', 'markPrice');
+        // the summary has no last trade price: close is the book mid, or on an empty or one-sided book the mark
+        // (Reya's chart falls back to the mark the same way), or for spot the oracle price; open follows from close and the 24h change
+        const close = this.safeStringN (ticker, [ 'throttledMidPrice', 'markPrice', 'oraclePrice' ]);
         return this.safeTicker ({
             'symbol': this.safeSymbol (this.safeString (ticker, 'symbol'), market),
             'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
@@ -419,7 +490,7 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchTicker
-     * @description fetch a market summary; last and close are the order book mid price, or the mark price on a one-sided book, as the summary has no last trade price
+     * @description fetch a market summary; last and close are the order book mid price, or on a one-sided book the mark price (the oracle price for spot), as the summary has no last trade price
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a ticker structure
@@ -427,26 +498,70 @@ export default class reya extends Exchange {
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetPerpMarketSymbolSummary (this.extend ({ 'symbol': market['id'] }, params));
+        const request: Dict = { 'symbol': market['id'] };
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotMarketSymbolSummary (this.extend (request, params));
+        } else {
+            response = await this.publicGetPerpMarketSymbolSummary (this.extend (request, params));
+        }
         return this.parseTicker (response, market);
     }
 
     /**
      * @method
      * @name reya#fetchTickers
-     * @description fetch all perpetual market summaries
+     * @description fetch market summaries: of every loaded market, of the markets of the given symbols, or of every market of params.type
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] swap or spot: only the markets of that type
      * @returns {object} ticker structures indexed by symbol
      */
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const response = await this.publicGetPerpMarketsSummary (params);
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-            results.push (this.parseTicker (response[i]));
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const requestedType = this.safeString (params, 'type');
+        const query = this.omit (params, 'type');
+        let fetchSwap = (requestedType === 'swap');
+        let fetchSpot = (requestedType === 'spot');
+        if (requestedType === undefined) {
+            if (symbolsNormalized === undefined) {
+                // every loaded market type
+                const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
+                const types = this.safeList (fetchMarketsOptions, 'types', [ 'swap', 'spot' ]);
+                fetchSwap = this.inArray ('swap', types);
+                fetchSpot = this.inArray ('spot', types);
+            } else {
+                const symbolsLength = symbolsNormalized.length;
+                for (let i = 0; i < symbolsLength; i++) {
+                    const market = this.market (symbolsNormalized[i]);
+                    if (market['spot']) {
+                        fetchSpot = true;
+                    } else {
+                        fetchSwap = true;
+                    }
+                }
+            }
         }
-        return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
+        let rows: Dict[] = [];
+        if (fetchSwap) {
+            const perpSummaries = await this.publicGetPerpMarketsSummary (query);
+            rows = this.arrayConcat (rows, perpSummaries);
+        }
+        if (fetchSpot) {
+            const spotSummaries = await this.publicGetSpotMarketsSummary (query);
+            rows = this.arrayConcat (rows, spotSummaries);
+        }
+        const results = [];
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            // summaries can list markets without a definition, such as an unlisted spot pair; those have no unified symbol
+            const marketId = this.safeString (rows[i], 'symbol');
+            if (this.safeList (this.markets_by_id, marketId) !== undefined) {
+                results.push (this.parseTicker (rows[i]));
+            }
+        }
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     /** @ignore */
@@ -475,6 +590,7 @@ export default class reya extends Exchange {
     override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        this.reyaCheckPerpMarket (market, 'fetchFundingRate');
         const response = await this.publicGetPerpMarketSymbolSummary (this.extend ({ 'symbol': market['id'] }, params));
         return this.parseFundingRate (response, market);
     }
@@ -523,6 +639,7 @@ export default class reya extends Exchange {
     override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        this.reyaCheckPerpMarket (market, 'fetchOpenInterest');
         const response = await this.publicGetPerpMarketSymbolSummary (this.extend ({ 'symbol': market['id'] }, params));
         return this.parseOpenInterest (response, market);
     }
@@ -604,6 +721,7 @@ export default class reya extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        this.reyaCheckPerpMarket (market, 'fetchFundingRateHistory');
         const resolution = this.safeString (params, 'resolution', '1h');
         const entryLimit = (limit === undefined) ? 200 : Math.min (limit, 1000);
         const request: Dict = { 'symbol': market['id'], 'resolution': resolution, 'limit': entryLimit };
@@ -689,7 +807,7 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchTrades
-     * @description fetch settled public executions
+     * @description fetch settled public executions of a perpetual or spot market
      * @param {string} symbol unified market symbol
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] maximum entries, up to 100
@@ -702,7 +820,12 @@ export default class reya extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.extend ({ 'symbol': market['id'] }, this.reyaHistoryRequest (since, limit, params));
-        const response = await this.publicGetMarketSymbolPerpExecutions (request);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetMarketSymbolSpotExecutions (request);
+        } else {
+            response = await this.publicGetMarketSymbolPerpExecutions (request);
+        }
         return this.parseTrades (this.safeList (response, 'data', []), market, since, limit);
     }
 
@@ -729,16 +852,38 @@ export default class reya extends Exchange {
      * @description fetch the rUSD margin of one cross-margined account: total is the margin balance, free the free collateral and used the rest, the initial margin of its positions (all of the margin balance while it is below the initial margin); collateral held in other assets counts at its haircut value
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id, defaults to options.accountId
+     * @param {string} [params.type] swap (default) or spot: the balances of the SPOT account in options.spotAccountId, each all free, since resting spot orders reserve nothing (Reya checks the balance when an order matches)
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId, or options.spotAccountId for spot
      * @param {string} [params.method] accountSummaries (default) or accountBalances, the realized balance of each collateral asset as total only
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
-        const accountId = this.reyaAccountId (params);
-        const [ method, methodParams ] = this.handleOptionAndParams (params, 'fetchBalance', 'method', 'accountSummaries');
+        const [ marketType, typeParams ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const accountId = this.reyaAccountId (typeParams, marketType);
+        const [ method, methodParams ] = this.handleOptionAndParams (typeParams, 'fetchBalance', 'method', 'accountSummaries');
         const request: Dict = { 'address': this.reyaWalletAddress () };
         const query = this.omit (methodParams, 'accountId');
         const account = this.numberToString (accountId);
+        if (marketType === 'spot') {
+            const spotBalances = await this.privateGetWalletAddressAccountBalances (this.extend (request, query));
+            const spotResult: Dict = { 'info': spotBalances };
+            const spotBalancesLength = spotBalances.length;
+            for (let i = 0; i < spotBalancesLength; i++) {
+                const entry = spotBalances[i];
+                if (this.safeString (entry, 'accountId') === account) {
+                    const code = this.safeCurrencyCode (this.safeString (entry, 'asset'));
+                    const realBalance = this.safeString (entry, 'realBalance');
+                    const spotBalance = this.account ();
+                    spotBalance['total'] = realBalance;
+                    spotBalance['free'] = realBalance;
+                    spotBalance['used'] = '0';
+                    if (code !== undefined) {
+                        spotResult[code] = spotBalance;
+                    }
+                }
+            }
+            return this.safeBalance (spotResult);
+        }
         if (method === 'accountBalances') {
             const balances = await this.privateGetWalletAddressAccountBalances (this.extend (request, query));
             const assetResult: Dict = { 'info': balances };
@@ -787,13 +932,14 @@ export default class reya extends Exchange {
 
     /** @ignore */
     async reyaTransferHistory (movementType: string, code: Str, since: Int, limit: Int, params: Dict): Promise<Dict[]> {
-        const accountId = this.numberToString (this.reyaAccountId (params));
-        const maxPages = this.safeInteger (params, 'paginationCalls', 10);
+        const [ accountIdValue, typeParams ] = this.reyaAccountAndParams ('fetchTransfers', undefined, params);
+        const accountId = this.numberToString (accountIdValue);
+        const maxPages = this.safeInteger (typeParams, 'paginationCalls', 10);
         const maxResults = (limit === undefined) ? 100 : this.parseToInt (limit);
         if (maxResults < 1 || maxPages < 1) {
             throw new BadRequest (this.id + ' limit and paginationCalls must be positive integers');
         }
-        const query = this.omit (params, [ 'paginationCalls', 'limit', 'address', 'type' ]);
+        const query = this.omit (typeParams, [ 'paginationCalls', 'limit', 'address', 'type' ]);
         const request: Dict = this.extend ({ 'address': this.reyaWalletAddress (), 'type': movementType }, this.reyaHistoryRequest (since, undefined, query));
         const currencyCode = this.safeCurrencyCode (code);
         const result = [];
@@ -906,7 +1052,7 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] maximum entries to return, defaults to 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] account id, defaults to options.accountId
+     * @param {int} [params.accountId] account id, defaults to options.accountId, or options.spotAccountId with params.type spot
      * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
      * @param {int} [params.until] latest timestamp in milliseconds
      * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; pages containing only other accounts or assets are skipped
@@ -927,7 +1073,7 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] maximum entries to return, defaults to 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] account id, defaults to options.accountId
+     * @param {int} [params.accountId] account id, defaults to options.accountId, or options.spotAccountId with params.type spot
      * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
      * @param {int} [params.until] latest timestamp in milliseconds
      * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; pending and destination-completed bridge transactions are not distinguished
@@ -948,7 +1094,7 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] maximum entries to return, defaults to 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] account id, defaults to options.accountId
+     * @param {int} [params.accountId] account id, defaults to options.accountId, or options.spotAccountId with params.type spot
      * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
      * @param {int} [params.until] latest timestamp in milliseconds
      * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; identical movements sharing a transaction hash remain distinct
@@ -1033,6 +1179,7 @@ export default class reya extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            this.reyaCheckPerpMarket (market, 'fetchFundingHistory');
             request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
@@ -1142,14 +1289,15 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest order creation timestamp in milliseconds
      * @param {int} [limit] maximum entries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
      * @returns {object[]} order structures
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const accountId = this.reyaAccountId (params);
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const response = await this.privateGetWalletAddressOpenOrders (this.extend ({ 'address': this.reyaWalletAddress () }, this.omit (params, 'accountId')));
+        const [ accountId, query ] = this.reyaAccountAndParams ('fetchOpenOrders', market, params);
+        const response = await this.privateGetWalletAddressOpenOrders (this.extend ({ 'address': this.reyaWalletAddress () }, this.omit (query, 'accountId')));
         return this.parseOrders (this.reyaFilterOrders (response, accountId), market, since, limit);
     }
 
@@ -1161,16 +1309,17 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest event timestamp in milliseconds
      * @param {int} [limit] maximum events per page, up to 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
      * @param {string} [params.cursor] opaque pagination cursor
      * @param {int} [params.until] latest event timestamp in milliseconds
      * @returns {object[]} order structures
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const accountId = this.reyaAccountId (params);
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const request = this.extend ({ 'address': this.reyaWalletAddress () }, this.reyaHistoryRequest (since, limit, params));
+        const [ accountId, query ] = this.reyaAccountAndParams ('fetchOrders', market, params);
+        const request = this.extend ({ 'address': this.reyaWalletAddress () }, this.reyaHistoryRequest (since, limit, query));
         const response = await this.privateGetWalletAddressOrderHistory (request);
         return this.parseOrders (this.reyaFilterOrders (this.safeList (response, 'data', []), accountId), market, undefined, limit);
     }
@@ -1182,15 +1331,17 @@ export default class reya extends Exchange {
      * @param {string} id exchange order id
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
      * @param {int} [params.maxPages] maximum history pages to search, defaults to 20
      * @returns {object} an order structure
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        const accountId = this.reyaAccountId (params);
-        const maxPages = this.safeInteger (params, 'maxPages', 20);
-        const query = this.omit (params, 'maxPages');
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ accountId, typeParams ] = this.reyaAccountAndParams ('fetchOrder', market, params);
+        const maxPages = this.safeInteger (typeParams, 'maxPages', 20);
+        const query = this.extend (this.omit (typeParams, 'maxPages'), { 'accountId': accountId });
         const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, query);
         for (let i = 0; i < openOrders.length; i++) {
             const openOrder = this.safeDict (openOrders, i);
@@ -1225,17 +1376,24 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] maximum entries per page, up to 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id, defaults to options.accountId
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
      * @param {string} [params.cursor] opaque pagination cursor
      * @param {int} [params.until] latest timestamp in milliseconds
      * @returns {object[]} trade structures
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const accountId = this.numberToString (this.reyaAccountId (params));
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const request = this.extend ({ 'address': this.reyaWalletAddress () }, this.reyaHistoryRequest (since, limit, params));
-        const response = await this.privateGetWalletAddressPerpExecutions (request);
+        const [ marketType, typeParams ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const accountId = this.numberToString (this.reyaAccountId (typeParams, marketType));
+        const request = this.extend ({ 'address': this.reyaWalletAddress () }, this.reyaHistoryRequest (since, limit, typeParams));
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetWalletAddressSpotExecutions (request);
+        } else {
+            response = await this.privateGetWalletAddressPerpExecutions (request);
+        }
         const rows = this.safeList (response, 'data', []);
         const trades = [];
         for (let i = 0; i < rows.length; i++) {
@@ -1246,28 +1404,8 @@ export default class reya extends Exchange {
         return this.filterBySymbolSinceLimit (this.sortBy (trades, 'timestamp'), symbol, since, limit) as Trade[];
     }
 
-    /**
-     * @method
-     * @name reya#createOrder
-     * @description create a perpetual order; market orders use an IOC limit with a slippage cap
-     * @param {string} symbol unified market symbol
-     * @param {string} type limit or market
-     * @param {string} side buy or sell
-     * @param {float} amount quantity in base units
-     * @param {float} [price] limit price, or worst execution price for a market order
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
-     * @param {string} [params.clientOrderId] non-zero uint64 decimal client id
-     * @param {string} [params.timeInForce] GTC, IOC or GTT
-     * @param {bool} [params.postOnly] maker-only GTC/GTT order
-     * @param {bool} [params.reduceOnly] only supported for IOC orders
-     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds
-     * @param {float} [params.slippage] market order slippage fraction, defaults to 0.005
-     * @returns {object} an order structure
-     */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        await this.loadMarkets ();
-        this.checkRequiredCredentials ();
+    /** @ignore */
+    async reyaCreateOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         const market = this.market (symbol);
         if (type !== 'limit' && type !== 'market') {
             throw new NotSupported (this.id + ' supports limit and market (IOC limit) orders');
@@ -1281,15 +1419,17 @@ export default class reya extends Exchange {
         if ((type === 'market' && timeInForce !== 'IOC') || (timeInForce !== 'GTC' && timeInForce !== 'IOC' && timeInForce !== 'GTT')) {
             throw new InvalidOrder (this.id + ' invalid timeInForce');
         }
+        if (reduceOnly && market['spot']) {
+            throw new NotSupported (this.id + ' reduceOnly is not supported on spot markets');
+        }
         if (reduceOnly && timeInForce !== 'IOC') {
             throw new NotSupported (this.id + ' reduceOnly requires IOC');
         }
         if (postOnly && timeInForce === 'IOC') {
             throw new InvalidOrder (this.id + ' postOnly cannot be combined with IOC');
         }
-        const accountId = this.reyaAccountId (params);
         const request: Dict = {
-            'accountId': accountId, 'symbol': market['id'], 'isBuy': side === 'buy',
+            'accountId': this.reyaAccountId (params, market['type']), 'symbol': market['id'], 'isBuy': side === 'buy',
             'orderType': 'LIMIT', 'timeInForce': timeInForce,
             'qty': this.amountToPrecision (symbol, amount),
             'exchangeId': this.safeInteger (this.reyaNetwork (), 'exchangeId'),
@@ -1312,7 +1452,10 @@ export default class reya extends Exchange {
         }
         request['limitPx'] = this.priceToPrecision (symbol, orderPrice);
         if (timeInForce === 'IOC') {
-            request['reduceOnly'] = reduceOnly;
+            // Reya takes reduceOnly on perpetual IOC orders only and rejects the field, even false, on spot
+            if (!market['spot']) {
+                request['reduceOnly'] = reduceOnly;
+            }
         } else {
             request['postOnly'] = postOnly;
         }
@@ -1328,12 +1471,51 @@ export default class reya extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'reduceOnly', 'slippage', 'expiresAfter' ]);
-        const response = await this.privatePostCreateOrder (this.extend (omitted, request));
-        const sideId = (side === 'buy') ? 'B' : 'A';
-        const merged = this.extend (this.extend (request, { 'side': sideId }), response);
-        const parsed = this.parseOrder (merged, market);
+        return this.extend (omitted, request);
+    }
+
+    /** @ignore */
+    reyaMergeOrderResponse (request: Dict, response: Dict, resting: Dict = {}): Dict {
+        // order responses carry the outcome only; the request and the resting order supply the rest
+        const sideId = (this.safeBool (request, 'isBuy')) ? 'B' : 'A';
+        return this.extend (this.extend (resting, request), this.extend ({ 'side': sideId }, response));
+    }
+
+    /**
+     * @method
+     * @name reya#createOrder
+     * @description create a perpetual or spot order; market orders use an IOC limit with a slippage cap
+     * @param {string} symbol unified market symbol
+     * @param {string} type limit or market
+     * @param {string} side buy or sell
+     * @param {float} amount quantity in base units
+     * @param {float} [price] limit price, or worst execution price for a market order
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId, or options.spotAccountId for a spot market
+     * @param {string} [params.clientOrderId] non-zero uint64 decimal client id
+     * @param {string} [params.timeInForce] GTC, IOC or GTT
+     * @param {bool} [params.postOnly] maker-only GTC/GTT order
+     * @param {bool} [params.reduceOnly] only supported for perpetual IOC orders
+     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds
+     * @param {float} [params.slippage] market order slippage fraction, defaults to 0.005
+     * @returns {object} an order structure
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const market = this.market (symbol);
+        const request = await this.reyaCreateOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostCreateOrder (request);
+        const parsed = this.parseOrder (this.reyaMergeOrderResponse (request, response), market);
         parsed['type'] = type;
         return parsed;
+    }
+
+    /** @ignore */
+    reyaCancelOrderRequest (id: string, symbol: string, params: Dict = {}): Dict {
+        const market = this.market (symbol);
+        const request: Dict = { 'orderId': id, 'symbol': market['id'], 'accountId': this.reyaAccountId (params, market['type']) };
+        return this.extend (this.omit (params, 'accountId'), request);
     }
 
     /**
@@ -1343,7 +1525,7 @@ export default class reya extends Exchange {
      * @param {string} id exchange order id
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
      * @returns {object} an order structure
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -1352,9 +1534,20 @@ export default class reya extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires symbol');
         }
         const market = this.market (symbol);
-        const request = { 'orderId': id, 'symbol': market['id'], 'accountId': this.reyaAccountId (params) };
-        const response = await this.privatePostCancelOrder (this.extend (this.omit (params, 'accountId'), request));
+        const request = this.reyaCancelOrderRequest (id, symbol, params);
+        const response = await this.privatePostCancelOrder (request);
         return this.parseOrder (response, market);
+    }
+
+    /** @ignore */
+    reyaCancelAllOrdersRequest (symbol: Str = undefined, params: Dict = {}): Dict {
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ accountId, query ] = this.reyaAccountAndParams ('cancelAllOrders', market, params);
+        const request: Dict = { 'accountId': accountId };
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        return this.extend (this.omit (query, 'accountId'), request);
     }
 
     /**
@@ -1363,18 +1556,15 @@ export default class reya extends Exchange {
      * @description cancel all orders for one account, optionally restricted to a market
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
      * @returns {object[]} an order structure containing the raw cancellation count
      */
     override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const request: Dict = { 'accountId': this.reyaAccountId (params) };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        const response = await this.privatePostCancelAll (this.extend (this.omit (params, 'accountId'), request));
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const request = this.reyaCancelAllOrdersRequest (symbol, params);
+        const response = await this.privatePostCancelAll (request);
         return [ this.parseOrder (response, market) ];
     }
 
@@ -1399,33 +1589,13 @@ export default class reya extends Exchange {
         throw new OrderNotFound (this.id + ' editOrder found no open order ' + target);
     }
 
-    /**
-     * @method
-     * @name reya#editOrder
-     * @description modify a resting limit order in place, keeping its order id and client order id
-     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
-     * @param {string} id exchange order id, or an empty string to target params.clientOrderId
-     * @param {string} symbol unified market symbol
-     * @param {string} type 'limit'; protective stops cannot be modified through editOrder
-     * @param {string} side 'buy' or 'sell'; it must match the resting order
-     * @param {float} [amount] new total quantity, including any part already filled; defaults to the resting quantity
-     * @param {float} [price] new limit price; defaults to the resting price
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
-     * @param {string} [params.clientOrderId] the resting order's client id: the target when id is empty, and required with params.timeInForce when the order has one
-     * @param {string} [params.timeInForce] the resting order's GTC or GTT; given with amount, price and params.postOnly, it skips the open-order lookup
-     * @param {bool} [params.postOnly] maker-only flag after the modification; defaults to the resting order's flag, and is required with params.timeInForce
-     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds; defaults to the resting order's expiry
-     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
-     */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        await this.loadMarkets ();
-        this.checkRequiredCredentials ();
+    /** @ignore */
+    async reyaEditOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         const market = this.market (symbol);
         if (type !== 'limit') {
             throw new NotSupported (this.id + ' editOrder modifies resting limit orders only');
         }
-        const accountId = this.reyaAccountId (params);
+        const accountId = this.reyaAccountId (params, market['type']);
         const isBuy = (side === 'buy');
         let orderId: Str = id;
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1491,10 +1661,37 @@ export default class reya extends Exchange {
             request['expiresAfter'] = expiresAfter;
         }
         const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'expiresAfter' ]);
-        const response = await this.privatePostModifyOrder (this.extend (omitted, request));
-        const sideId = (isBuy) ? 'B' : 'A';
-        const merged = this.extend (this.extend (resting, request), this.extend ({ 'side': sideId }, response));
-        return this.parseOrder (merged, market);
+        return { 'request': this.extend (omitted, request), 'resting': resting };
+    }
+
+    /**
+     * @method
+     * @name reya#editOrder
+     * @description modify a resting limit order in place, keeping its order id and client order id
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} id exchange order id, or an empty string to target params.clientOrderId
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit'; protective stops cannot be modified through editOrder
+     * @param {string} side 'buy' or 'sell'; it must match the resting order
+     * @param {float} [amount] new total quantity, including any part already filled; defaults to the resting quantity
+     * @param {float} [price] new limit price; defaults to the resting price
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.clientOrderId] the resting order's client id: the target when id is empty, and required with params.timeInForce when the order has one
+     * @param {string} [params.timeInForce] the resting order's GTC or GTT; given with amount, price and params.postOnly, it skips the open-order lookup
+     * @param {bool} [params.postOnly] maker-only flag after the modification; defaults to the resting order's flag, and is required with params.timeInForce
+     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds; defaults to the resting order's expiry
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const market = this.market (symbol);
+        const built = await this.reyaEditOrderRequest (id, symbol, type, side, amount, price, params);
+        const request: Dict = built['request'];
+        const resting: Dict = built['resting'];
+        const response = await this.privatePostModifyOrder (request);
+        return this.parseOrder (this.reyaMergeOrderResponse (request, response, resting), market);
     }
 
     /**
@@ -1504,7 +1701,8 @@ export default class reya extends Exchange {
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {number} timeout countdown in milliseconds, from 5000 to 60000, or 0 to disarm
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.accountId] trading account id
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId, or options.spotAccountId with params.type spot
+     * @param {string} [params.type] swap or spot, defaults to options.defaultType
      * @returns {object} the raw response: accountId, timeoutMs and, while armed, the advisory triggerAt in milliseconds
      */
     override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
@@ -1512,8 +1710,9 @@ export default class reya extends Exchange {
         if ((timeout === undefined) || ((timeout !== 0) && ((timeout < 5000) || (timeout > 60000)))) {
             throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout must be 0 to disarm, or from 5000 to 60000 milliseconds');
         }
-        const request: Dict = { 'accountId': this.reyaAccountId (params), 'timeoutMs': timeout };
-        const response = await this.privatePostCancelAllAfter (this.extend (this.omit (params, 'accountId'), request));
+        const [ accountId, query ] = this.reyaAccountAndParams ('cancelAllOrdersAfter', undefined, params);
+        const request: Dict = { 'accountId': accountId, 'timeoutMs': timeout };
+        const response = await this.privatePostCancelAllAfter (this.extend (this.omit (query, 'accountId'), request));
         return response;
     }
 

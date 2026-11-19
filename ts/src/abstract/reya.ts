@@ -21,12 +21,28 @@ abstract class Exchange extends _Exchange {
         return this.request ('perpMarket/{symbol}/summary', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
+    publicGetSpotMarketDefinitions (params = {}): Promise<Dict[]> {
+        return this.request ('spotMarketDefinitions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSpotMarketsSummary (params = {}): Promise<Dict[]> {
+        return this.request ('spotMarkets/summary', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSpotMarketSymbolSummary (params = {}): Promise<Dict | List> {
+        return this.request ('spotMarket/{symbol}/summary', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
     publicGetMarketSymbolDepth (params = {}): Promise<Dict | List> {
         return this.request ('market/{symbol}/depth', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     publicGetMarketSymbolPerpExecutions (params = {}): Promise<Dict | List> {
         return this.request ('market/{symbol}/perpExecutions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketSymbolSpotExecutions (params = {}): Promise<Dict | List> {
+        return this.request ('market/{symbol}/spotExecutions', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     publicGetCandleHistorySymbolResolution (params = {}): Promise<Dict | List> {
@@ -91,6 +107,10 @@ abstract class Exchange extends _Exchange {
 
     privateGetWalletAddressPerpExecutions (params = {}): Promise<Dict | List> {
         return this.request ('wallet/{address}/perpExecutions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletAddressSpotExecutions (params = {}): Promise<Dict | List> {
+        return this.request ('wallet/{address}/spotExecutions', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     privateGetWalletAddressTransfers (params = {}): Promise<Dict | List> {
