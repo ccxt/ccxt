@@ -56,7 +56,7 @@ class phemex(ccxt.async_support.phemex):
         if en is None:
             return None
         precise = Precise(en)
-        precise.decimals = self.sum(precise.decimals, scale)
+        precise.decimals = self.sum(precise.decimals, self.safe_integer([scale], 0, 0))
         precise.reduce()
         return str(precise)
 

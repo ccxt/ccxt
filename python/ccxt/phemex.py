@@ -1301,7 +1301,7 @@ class phemex(Exchange, ImplicitAPI):
             return None
         stringN = self.number_to_string(n)
         precise = Precise(stringN)
-        precise.decimals = self.sum(precise.decimals, scale * -1)
+        precise.decimals = self.sum(precise.decimals, self.parse_to_int(scale * -1))
         precise.reduce()
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
@@ -1320,7 +1320,7 @@ class phemex(Exchange, ImplicitAPI):
         if en is None or scale is None:
             return None
         precise = Precise(en)
-        precise.decimals = self.sum(precise.decimals, scale)
+        precise.decimals = self.sum(precise.decimals, self.parse_to_int(scale))
         precise.reduce()
         return str(precise)
 

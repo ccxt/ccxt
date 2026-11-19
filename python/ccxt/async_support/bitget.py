@@ -2389,12 +2389,14 @@ class bitget(Exchange, ImplicitAPI):
             priceEndStep = self.safe_string(market, 'priceEndStep')
             sizeMultiplier = self.safe_string(market, 'sizeMultiplier')
             precise = Precise(priceEndStep)
-            precise.decimals = max(precise.decimals, pricePlaces)
+            if pricePlaces is not None:
+                precise.decimals = max(precise.decimals, pricePlaces)
             precise.reduce()
             priceString = str(precise)
             pricePrecision = self.parse_number(priceString)
             preciseAmount = Precise(sizeMultiplier)
-            preciseAmount.decimals = max(preciseAmount.decimals, volumePlaces)
+            if volumePlaces is not None:
+                preciseAmount.decimals = max(preciseAmount.decimals, volumePlaces)
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)

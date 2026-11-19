@@ -871,7 +871,7 @@ class cex(ccxt.async_support.cex):
         if amount is None:
             return None
         precise = Precise(amount)
-        precise.decimals = self.sum(precise.decimals, scale)
+        precise.decimals = self.sum(precise.decimals, self.safe_integer([scale], 0, 0))
         precise.reduce()
         return str(precise)
 
