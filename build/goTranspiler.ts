@@ -12167,6 +12167,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goTypedNilFoldLocals (content) : content;
     content = path.endsWith ('.go') ? goTypedEndpointNilLocals (content) : content;
     content = path.endsWith ('.go') ? goLateNativeInOp (content) : content;  // receivers typed by the three passes above
+    content = path.endsWith ('.go') ? goTypedLenNative (content) : content;  // list locals typed only by the late passes
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
     overwriteFile (path, content);
