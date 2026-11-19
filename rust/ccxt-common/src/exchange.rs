@@ -928,14 +928,11 @@ impl Exchange {
         if let Some(v) = safe_string(cfg, "id",       None) { self.id       = Value::Str(v.into()); }
         if let Some(v) = safe_string(cfg, "name",     None) { self.name     = Value::Str(v.into()); }
         if let Some(v) = safe_string(cfg, "hostname", None) { self.hostname = Value::Str(v.into()); }
-        let rate_limit = crate::get_value(cfg, &Value::Str("rateLimit".into()));
-        if matches!(rate_limit, Value::Int(_) | Value::Float(_)) { self.rateLimit = rate_limit; }
-        let timeout = crate::get_value(cfg, &Value::Str("timeout".into()));
-        if matches!(timeout, Value::Int(_) | Value::Float(_)) { self.timeout = timeout; }
-        let fetch_history_cache_size = crate::get_value(cfg, &Value::Str("fetchHistoryCacheSize".into()));
-        if matches!(fetch_history_cache_size, Value::Int(_) | Value::Float(_)) { self.fetchHistoryCacheSize = fetch_history_cache_size; }
-        let urls = crate::get_value(cfg, &Value::Str("urls".into()));
-        if let (Value::Dict(_), Value::Dict(m)) = (&urls, deep_merge(&Value::Dict(self.urls.clone()), &urls)) { self.urls = m; }
+        match cfg.at("rateLimit") { &Value::Int(n) => self.rateLimit = Value::Int(n), &Value::Float(x) => self.rateLimit = Value::Float(x), _ => {} }
+        match cfg.at("timeout") { &Value::Int(n) => self.timeout = Value::Int(n), &Value::Float(x) => self.timeout = Value::Float(x), _ => {} }
+        match cfg.at("fetchHistoryCacheSize") { &Value::Int(n) => self.fetchHistoryCacheSize = Value::Int(n), &Value::Float(x) => self.fetchHistoryCacheSize = Value::Float(x), _ => {} }
+        let urls = cfg.at("urls");
+        if let (Value::Dict(_), Value::Dict(m)) = (urls, deep_merge(&Value::Dict(self.urls.clone()), urls)) { self.urls = m; }
         if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v.into()); }
         if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v.into()); }
         if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v.into()); }
@@ -1463,8 +1460,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // binary frames are decompressed unless the exchange opts out (mexc, paradex)
         let __decompress_binary = !matches!(self.options.get("decompressBinary"), Some(Value::Bool(false)));
         // options.ws.options.headers ride on the upgrade request, as in the other ports
-        let __ws_options = crate::get_value(self.options.get("ws").unwrap_or(&Value::Null), &Value::Str("options".into()));
-        let __ws_headers: Vec<(String, String)> = match crate::get_value(&__ws_options, &Value::Str("headers".into())) {
+        let __ws_options = self.options.get("ws").unwrap_or(&Value::Null).at("options");
+        let __ws_headers: Vec<(String, String)> = match __ws_options.at("headers") {
             Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
                 Value::Str(s) => Some((k.clone(), s.to_string())),
                 Value::Int(n) => Some((k.clone(), n.to_string())),
@@ -2023,9 +2020,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             if let Some(by_id_arc) = &self.markets_by_id {
                 let mut by_id = (**by_id_arc).clone();
                 for market in markets.values() {
-                    let id  = crate::get_value(market, &Value::Str("id".into()));
-                    let id2 = crate::get_value(market, &Value::Str("id2".into()));
-                    if let (Value::Str(id2s), Value::Str(ids)) = (&id2, &id) {
+                    if let (Value::Str(id2s), Value::Str(ids)) = (market.at("id2"), market.at("id")) {
                         if id2s != ids && !id2s.is_empty() && !by_id.contains_key(id2s.as_ref()) {
                             by_id.insert(id2s.to_string(), Value::List(vec![market.clone()]));
                         }
@@ -2452,9 +2447,8 @@ impl Exchange {
     /// a single `urls.api.rest` URL for all scopes. Fall back to it
     /// when the per-scope lookup misses.
     fn fallback_rest_url(&self, api: &Value) -> Option<String> {
-        let rest = crate::get_value(api, &Value::Str("rest".into()));
-        if let Value::Str(s) = rest {
-            return Some(self.implode_hostname_typed(&s));
+        if let Value::Str(s) = api.at("rest") {
+            return Some(self.implode_hostname_typed(s));
         }
         // Last resort: if urls.api itself is a string, use it.
         if let Value::Str(s) = api {
@@ -3010,8 +3004,8 @@ mod throttle_tests {
         exchange.build_implicit_api();
         let ticker_config = &exchange.internals.implicit_api["public_get_ticker"].3;
         assert_eq!(
-            crate::get_value(ticker_config, &Value::Str("cost".into())),
-            Value::Float(0.1),
+            ticker_config.at("cost"),
+            &Value::Float(0.1),
             "numeric endpoint costs must be normalized to a config object"
         );
         let depth_config = &exchange.internals.implicit_api["public_get_depth"].3;
@@ -3063,8 +3057,8 @@ mod cow_alias_tests {
         let ohlcvs = Value::List(vec![row.clone(), row]);
         let r = ex.convert_ohlcv_to_trading_view(ohlcvs, &[]);
         for key in ["t", "o", "h", "l", "c", "v"] {
-            let col = crate::get_value(&r, &Value::Str(key.to_string().into()));
-            assert_eq!(get_array_length(&col), Value::Int(2),
+            let col = r.at(key);
+            assert_eq!(get_array_length(col), Value::Int(2),
                 "result['{key}'] lost its pushes — COW write-back failed");
         }
     }
@@ -3107,8 +3101,8 @@ mod http_error_tests {
     }
     impl DerivedExchange for EnvelopeCore {
         fn handle_errors(&mut self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
-            let code = crate::get_value(&response, &Value::Str("code".into()));
-            if !matches!(code, Value::Null) && code != Value::Str("0".into()) {
+            let code = response.at("code");
+            if !matches!(code, Value::Null) && *code != Value::Str("0".into()) {
                 panic!("{}", crate::exchange_errors::create_error("InsufficientFunds", "code 51008"));
             }
             Value::Null
