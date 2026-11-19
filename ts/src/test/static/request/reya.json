@@ -42,9 +42,19 @@
         ],
         "fetchBalance": [
             {
-                "description": "fetchBalance",
+                "description": "account summary of the configured account",
                 "method": "fetchBalance",
                 "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/accountSummaries?accountId=42"
+            },
+            {
+                "description": "realized balance of each collateral asset",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "method": "accountBalances"
+                    }
+                ],
                 "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/accountBalances"
             }
         ],
@@ -185,7 +195,22 @@
                     1699999920000,
                     2
                 ],
-                "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/1m?endTime=1699999980000"
+                "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/1m?endTime=1699999980000&priceSource=trade"
+            },
+            {
+                "description": "merged candles on request",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "priceSource": "merged",
+                        "until": 1700000000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/1h?endTime=1700000000000&priceSource=merged"
             }
         ],
         "fetchDeposits": [
@@ -267,6 +292,107 @@
                     }
                 ],
                 "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=TRANSFER&startTime=1700000000000&endTime=1700000010000&cursor=entry-88&limit=100"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "valued positions of the configured account",
+                "method": "fetchPositions",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/positionRisk?accountId=42"
+            },
+            {
+                "description": "position records without valuation",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "method": "positions",
+                        "accountId": 43
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/positions"
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price candles",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    "5m",
+                    null,
+                    null,
+                    {
+                        "until": 1700000000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/5m?endTime=1700000000000&priceSource=mark"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "forward window from since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    1700000000000,
+                    3
+                ],
+                "url": "https://api.reya.xyz/v2/fundingRateHistory/BTCRUSDPERP/1h?limit=3&startTime=1700000000000&endTime=1700010799999"
+            },
+            {
+                "description": "resolution and until override the window",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    1700000000000,
+                    5000,
+                    {
+                        "resolution": "1d",
+                        "until": 1700500000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/fundingRateHistory/BTCRUSDPERP/1d?limit=1000&startTime=1700000000000&endTime=1700500000000"
+            },
+            {
+                "description": "newest page by default",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "url": "https://api.reya.xyz/v2/fundingRateHistory/BTCRUSDPERP/1h?limit=200"
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "configured account, every market",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/fundingPayments?accountId=42"
+            },
+            {
+                "description": "one market and window with cursor",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    1700000000000,
+                    2000,
+                    {
+                        "accountId": 43,
+                        "until": 1700003600000,
+                        "cursor": "funding-page-2"
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/fundingPayments?accountId=43&startTime=1700000000000&endTime=1700003600000&cursor=funding-page-2&symbol=BTCRUSDPERP&limit=1000"
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "wallet fee tier lookup",
+                "method": "fetchTradingFees",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/configuration"
             }
         ]
     },

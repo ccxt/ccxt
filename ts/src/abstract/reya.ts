@@ -33,6 +33,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('candleHistory/{symbol}/{resolution}', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
+    publicGetFundingRateHistorySymbolResolution (params = {}): Promise<Dict | List> {
+        return this.request ('fundingRateHistory/{symbol}/{resolution}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
     publicGetAssetDefinitions (params = {}): Promise<Dict[]> {
         return this.request ('assetDefinitions', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
@@ -57,8 +61,20 @@ abstract class Exchange extends _Exchange {
         return this.request ('wallet/{address}/accountBalances', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
+    privateGetWalletAddressAccountSummaries (params = {}): Promise<Dict[]> {
+        return this.request ('wallet/{address}/accountSummaries', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
     privateGetWalletAddressPositions (params = {}): Promise<Dict[]> {
         return this.request ('wallet/{address}/positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletAddressPositionRisk (params = {}): Promise<Dict[]> {
+        return this.request ('wallet/{address}/positionRisk', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletAddressFundingPayments (params = {}): Promise<Dict | List> {
+        return this.request ('wallet/{address}/fundingPayments', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
     privateGetWalletAddressConfiguration (params = {}): Promise<Dict | List> {

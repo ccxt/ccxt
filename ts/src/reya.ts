@@ -3,11 +3,11 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/reya.js';
-import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { int, Account, Balances, Currency, Dict, Endpoint, FundingRate, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { int, Account, Balances, Currency, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class reya
@@ -40,10 +40,12 @@ export default class reya extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -54,6 +56,7 @@ export default class reya extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFees': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
@@ -82,6 +85,7 @@ export default class reya extends Exchange {
                         'market/{symbol}/depth': 1,
                         'market/{symbol}/perpExecutions': 1,
                         'candleHistory/{symbol}/{resolution}': 1,
+                        'fundingRateHistory/{symbol}/{resolution}': 1,
                         'assetDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
                         'assetOraclePrices': { 'cost': 1 } as Endpoint<Dict[]>,
                         'feeTiers': { 'cost': 1 } as Endpoint<Dict[]>,
@@ -92,7 +96,10 @@ export default class reya extends Exchange {
                     'get': {
                         'wallet/{address}/accounts': { 'cost': 1 } as Endpoint<Dict[]>,
                         'wallet/{address}/accountBalances': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/accountSummaries': { 'cost': 1 } as Endpoint<Dict[]>,
                         'wallet/{address}/positions': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/positionRisk': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/fundingPayments': 1,
                         'wallet/{address}/configuration': 1,
                         'wallet/{address}/openOrders': { 'cost': 1 } as Endpoint<Dict[]>,
                         'wallet/{address}/orderHistory': 1,
@@ -108,6 +115,9 @@ export default class reya extends Exchange {
                 'lastNonce': 0,
                 'slippage': 0.005,
                 'deadlineSeconds': 30,
+                'fetchBalance': { 'method': 'accountSummaries' }, // or accountBalances, the realized balance of each collateral asset
+                'fetchPositions': { 'method': 'positionRisk' }, // or positions, which omits valuation and never fails on stale prices
+                'fetchOHLCV': { 'priceSource': 'trade' }, // merged (the Reya app's candles) or trade
                 'mainnet': { 'chainId': 1729, 'exchangeId': 2, 'ordersGateway': '0xfc8c96be87da63cecddbf54abfa7b13ee8044739' },
                 'sandbox': { 'chainId': 89346162, 'exchangeId': 1, 'ordersGateway': '0x7Ec89E555c771D2B5939aBE5C4E4291852633D4D' },
             },
@@ -193,6 +203,7 @@ export default class reya extends Exchange {
                     'ORDER_EXPIRES_TOO_SOON_ERROR': InvalidOrder,
                     'PRICE_QTY_BOUNDS_ERROR': InvalidOrder,
                     'MODIFY_QTY_BELOW_FILLED_ERROR': InvalidOrder,
+                    'MODIFY_ALREADY_HELD_ERROR': OperationRejected,
                     'EMPTY_MODIFY_ERROR': InvalidOrder,
                     'REDUCE_ONLY_CONDITION_NOT_MET_ERROR': InvalidOrder,
                     'OPEN_INTEREST_CAP_ERROR': InvalidOrder,
@@ -405,14 +416,17 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchOHLCV
-     * @description fetch up to 200 candles; volume is undefined because Reya does not return it
+     * @description fetch up to 200 candles with the base volume of their match fills; trade candles by default
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {string} symbol unified market symbol
      * @param {string} [timeframe] candle interval
      * @param {int} [since] earliest candle timestamp in milliseconds
      * @param {int} [limit] maximum candles, up to 200
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] latest candle timestamp in milliseconds
-     * @returns {object[]} OHLCV arrays
+     * @param {string} [params.price] "mark" for mark-price candles
+     * @param {string} [params.priceSource] trade (default: fill prices, flat at the last fill without fills), merged (fill prices, else the mark price, as charted in the Reya app) or mark
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
@@ -424,18 +438,71 @@ export default class reya extends Exchange {
             endTime = Math.min (endTime, this.sum (since, duration * (candleLimit - 1)));
         }
         const until = this.safeInteger (params, 'until', endTime);
-        const request: Dict = { 'symbol': market['id'], 'resolution': this.safeString (this.timeframes, timeframe, timeframe), 'endTime': until };
-        const response = await this.publicGetCandleHistorySymbolResolution (this.extend (request, this.omit (params, 'until')));
+        const [ configuredSource, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'priceSource', 'trade');
+        const priceSource = (this.safeString (query, 'price') === 'mark') ? 'mark' : configuredSource;
+        const request: Dict = { 'symbol': market['id'], 'resolution': this.safeString (this.timeframes, timeframe, timeframe), 'endTime': until, 'priceSource': priceSource };
+        const response = await this.publicGetCandleHistorySymbolResolution (this.extend (request, this.omit (query, [ 'until', 'price' ])));
         const timestamps = this.safeList (response, 't', []);
         const opens = this.safeList (response, 'o', []);
         const highs = this.safeList (response, 'h', []);
         const lows = this.safeList (response, 'l', []);
         const closes = this.safeList (response, 'c', []);
+        const volumes = this.safeList (response, 'v', []);
         const result = [];
         for (let i = 0; i < timestamps.length; i++) {
-            result.push ([ this.safeTimestamp (timestamps, i), this.safeNumber (opens, i), this.safeNumber (highs, i), this.safeNumber (lows, i), this.safeNumber (closes, i), undefined ]);
+            result.push ([ this.safeTimestamp (timestamps, i), this.safeNumber (opens, i), this.safeNumber (highs, i), this.safeNumber (lows, i), this.safeNumber (closes, i), this.safeNumber (volumes, i) ]);
         }
         return this.filterBySinceLimit (this.sortBy (result, 0), since, candleLimit, 0, since === undefined) as OHLCV[];
+    }
+
+    /**
+     * @method
+     * @name reya#fetchFundingRateHistory
+     * @description fetch the hourly funding rate last sampled in each interval; funding accrues continuously, so entries are samples, not settlements
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] earliest interval start in milliseconds
+     * @param {int} [limit] maximum entries, up to 1000, defaults to 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] latest interval start in milliseconds
+     * @param {string} [params.resolution] interval length: 1m, 5m, 15m, 30m, 1h, 4h or 1d, defaults to 1h
+     * @returns {object[]} a list of [funding rate history structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+     */
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const resolution = this.safeString (params, 'resolution', '1h');
+        const entryLimit = (limit === undefined) ? 200 : Math.min (limit, 1000);
+        const request: Dict = { 'symbol': market['id'], 'resolution': resolution, 'limit': entryLimit };
+        if (since !== undefined) {
+            // pages are newest first, so bound the end to read forward from since
+            request['startTime'] = since;
+            request['endTime'] = this.sum (since, this.parseTimeframe (resolution) * 1000 * entryLimit) - 1;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetFundingRateHistorySymbolResolution (this.extend (request, this.omit (params, [ 'until', 'resolution' ])));
+        const rows = this.safeList (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
+            const timestamp = this.safeInteger (entry, 'timestamp');
+            rates.push ({
+                'info': entry,
+                'symbol': market['symbol'],
+                // hourly rate in percentage points
+                'fundingRate': this.parseNumber (Precise.stringDiv (this.safeString (entry, 'fundingRate'), '100')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     /** @ignore */
@@ -528,23 +595,64 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchBalance
-     * @description fetch realized balances for one account; free margin and unrealized PnL are not reported by this endpoint
+     * @description fetch the rUSD margin of one cross-margined account: total is the margin balance, used the initial margin of its positions and free the free collateral; collateral held in other assets counts at its haircut value
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountId] trading account id, defaults to options.accountId
-     * @returns {object} a balance structure with total balances only
+     * @param {string} [params.method] accountSummaries (default) or accountBalances, the realized balance of each collateral asset as total only
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
-        const accountId = this.numberToString (this.reyaAccountId (params));
-        const response = await this.privateGetWalletAddressAccountBalances (this.extend ({ 'address': this.reyaWalletAddress () }, this.omit (params, 'accountId')));
-        const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            if (this.safeString (entry, 'accountId') === accountId) {
+        const accountId = this.reyaAccountId (params);
+        const [ method, methodParams ] = this.handleOptionAndParams (params, 'fetchBalance', 'method', 'accountSummaries');
+        const request: Dict = { 'address': this.reyaWalletAddress () };
+        const query = this.omit (methodParams, 'accountId');
+        if (method === 'accountBalances') {
+            const balances = await this.privateGetWalletAddressAccountBalances (this.extend (request, query));
+            return this.parseReyaAssetBalances (balances, accountId);
+        }
+        request['accountId'] = accountId;
+        const response = await this.privateGetWalletAddressAccountSummaries (this.extend (request, query));
+        return this.parseReyaAccountSummary (response, accountId);
+    }
+
+    /** @ignore */
+    parseReyaAccountSummary (summaries: Dict[], accountId: number): Balances {
+        const account = this.numberToString (accountId);
+        const result: Dict = { 'info': summaries };
+        for (let i = 0; i < summaries.length; i++) {
+            const summary = summaries[i];
+            if (this.safeString (summary, 'accountId') === account) {
+                const timestamp = this.safeInteger (summary, 'updatedAt');
+                const total = this.safeString (summary, 'marginBalance');
+                let free = this.safeString (summary, 'freeCollateral');
+                if (Precise.stringLt (free, '0')) {
+                    free = '0'; // an initial margin deficit leaves nothing free
+                }
+                const balance = this.account ();
+                balance['total'] = total;
+                balance['free'] = free;
+                balance['used'] = Precise.stringSub (total, free);
+                result['RUSD'] = balance;
+                result['timestamp'] = timestamp;
+                result['datetime'] = this.iso8601 (timestamp);
+            }
+        }
+        return this.safeBalance (result);
+    }
+
+    /** @ignore */
+    parseReyaAssetBalances (balances: Dict[], accountId: number): Balances {
+        const account = this.numberToString (accountId);
+        const result: Dict = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            if (this.safeString (entry, 'accountId') === account) {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'asset'));
-                const account = this.account ();
-                account['total'] = this.safeString (entry, 'realBalance');
+                const balance = this.account ();
+                balance['total'] = this.safeString (entry, 'realBalance');
                 if (code !== undefined) {
-                    result[code] = account;
+                    result[code] = balance;
                 }
             }
         }
@@ -728,17 +836,19 @@ export default class reya extends Exchange {
 
     /** @ignore */
     override parsePosition (position: Dict, market: Market = undefined): Position {
+        // valuation fields come from positionRisk and are undefined for a plain position record
         const side = this.safeString (position, 'side');
+        const timestamp = this.safeInteger (position, 'updatedAt');
         return this.safePosition ({
             'info': position, 'id': undefined, 'symbol': this.safeSymbol (this.safeString (position, 'symbol'), market),
-            'timestamp': undefined, 'datetime': undefined, 'lastUpdateTimestamp': undefined,
+            'timestamp': timestamp, 'datetime': this.iso8601 (timestamp), 'lastUpdateTimestamp': undefined,
             'hedged': false, 'side': (side === 'B') ? 'long' : 'short',
             'contracts': this.safeNumber (position, 'qty'), 'contractSize': 1,
-            'entryPrice': this.safeNumber (position, 'avgEntryPrice'), 'markPrice': undefined,
-            'notional': undefined, 'leverage': undefined, 'collateral': undefined,
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'), 'markPrice': this.safeNumber (position, 'markPrice'),
+            'notional': this.safeNumber (position, 'notional'), 'leverage': undefined, 'collateral': undefined,
             'initialMargin': undefined, 'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined, 'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': undefined, 'liquidationPrice': undefined, 'marginRatio': undefined,
+            'maintenanceMargin': this.safeNumber (position, 'liquidationMarginRequirement'), 'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'), 'liquidationPrice': this.safeNumber (position, 'liquidationPrice'), 'marginRatio': undefined,
             'marginMode': 'cross', 'percentage': undefined,
         });
     }
@@ -746,23 +856,115 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchPositions
-     * @description fetch positions for one account
+     * @description fetch the open positions of one account with mark price, notional, unrealized PnL, liquidation margin and an estimated cross-margin liquidation price
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {string[]} [symbols] unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountId] trading account id, defaults to options.accountId
-     * @returns {object[]} position structures
+     * @param {string} [params.method] positionRisk (default), which fails while a required price is stale, or positions, the position records without valuation
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const accountId = this.numberToString (this.reyaAccountId (params));
-        const response = await this.privateGetWalletAddressPositions (this.extend ({ 'address': this.reyaWalletAddress () }, this.omit (params, 'accountId')));
+        const accountId = this.reyaAccountId (params);
+        const [ method, methodParams ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'positionRisk');
+        const request: Dict = { 'address': this.reyaWalletAddress () };
+        const query = this.omit (methodParams, 'accountId');
+        let response = undefined;
+        if (method === 'positions') {
+            response = await this.privateGetWalletAddressPositions (this.extend (request, query));
+        } else {
+            request['accountId'] = accountId;
+            response = await this.privateGetWalletAddressPositionRisk (this.extend (request, query));
+        }
+        const account = this.numberToString (accountId);
         const positions = [];
         for (let i = 0; i < response.length; i++) {
-            if (this.safeString (response[i], 'accountId') === accountId) {
+            if (this.safeString (response[i], 'accountId') === account) {
                 positions.push (this.parsePosition (response[i]));
             }
         }
         return this.filterByArrayPositions (positions, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchFundingHistory
+     * @description fetch the funding one account's positions paid or received, one entry per market and UTC hour starting at its timestamp; the funding is already in the balance
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] earliest hour start in milliseconds
+     * @param {int} [limit] maximum entries, up to 1000, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId
+     * @param {int} [params.until] latest hour start in milliseconds
+     * @param {string} [params.cursor] opaque cursor from the raw response meta.nextCursor
+     * @returns {object[]} a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+     */
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
+        await this.loadMarkets ();
+        const request: Dict = this.extend ({ 'address': this.reyaWalletAddress (), 'accountId': this.reyaAccountId (params) }, this.reyaHistoryRequest (since, undefined, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateGetWalletAddressFundingPayments (request);
+        return this.parseIncomes (this.safeList (response, 'data', []), market, since, limit);
+    }
+
+    /** @ignore */
+    override parseIncome (income: Dict, market: Market = undefined): object {
+        const timestamp = this.safeInteger (income, 'timestamp');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (this.safeString (income, 'symbol'), market),
+            'code': 'RUSD',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (income, 'payment'),
+        };
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTradingFees
+     * @description fetch the fee rates of the wallet's fee tier, which apply to every market
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+     */
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const configuration = await this.privateGetWalletAddressConfiguration (this.extend ({ 'address': this.reyaWalletAddress () }, params));
+        const tierId = this.safeString (configuration, 'feeTierId');
+        const tiers = await this.publicGetFeeTiers ();
+        let tier = undefined;
+        for (let i = 0; i < tiers.length; i++) {
+            if (this.safeString (tiers[i], 'tierId') === tierId) {
+                tier = tiers[i];
+            }
+        }
+        if (tier === undefined) {
+            throw new ExchangeError (this.id + ' fee tier ' + tierId + ' is not listed');
+        }
+        const result: Dict = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': tier,
+                'symbol': symbol,
+                'maker': this.safeNumber (tier, 'makerFee'),
+                'taker': this.safeNumber (tier, 'takerFee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result as TradingFees;
     }
 
     /** @ignore */
