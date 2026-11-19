@@ -54,8 +54,8 @@ pub fn testSafeString() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
     // safeString
     assert!(ccxt::runtime::is_true(&((exchange.safe_string(&inputDict, Value::Str("i".into()), &[]).as_str() == Some("1")))));
     assert!(ccxt::runtime::is_true(&((exchange.safe_string(&inputDict, Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
@@ -158,14 +158,14 @@ pub fn testSafeValue() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
-    let mut compareDict: Value = Value::Map({
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let compareDict: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
         m
     });
-    let mut compareList: Value = Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
+    let compareList: Value = Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
     // safeValue
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value(&inputDict, Value::Str("i".into()), &[]), &Value::Int(1))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value(&inputDict, Value::Str("f".into()), &[]), &Value::Float(0.123))))));
@@ -203,9 +203,9 @@ pub fn testSafeDict() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
-    let mut compareDict: Value = Value::Map({
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let compareDict: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
         m
@@ -236,12 +236,12 @@ pub fn testSafeList() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
     // safeList
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list(&inputDict, Value::Str("dict".into()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list(&inputList, Value::Int(1), &[]) == Value::Null))));
-    let mut arrayOfDicts: Value = exchange.safe_list(&inputDict, Value::Str("listOfDicts".into()), &[]);
+    let arrayOfDicts: Value = exchange.safe_list(&inputDict, Value::Str("listOfDicts".into()), &[]);
     assert!(ccxt::runtime::is_true(&(equals(arrayOfDicts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
@@ -262,9 +262,9 @@ pub fn testSafeInteger() {
         m
     }));
     // safeInteger
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
-    let mut factor: i64 = 10;
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let factor: i64 = 10;
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(&inputDict, Value::Str("i".into()), &[]).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(&inputDict, Value::Str("f".into()), &[]).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(&inputDict, Value::Str("strNumber".into()), &[]).as_f64() == Some(3.0)))));
@@ -316,8 +316,8 @@ pub fn testSafeTimestamp() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
     // safeTimestamp
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp(&inputDict, Value::Str("i".into()), &[]).as_f64() == Some(1000.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp(&inputDict, Value::Str("f".into()), &[]).as_f64() == Some(123.0)))));
@@ -344,8 +344,8 @@ pub fn testSafeFloat() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
     // safeFloat
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float(&inputDict, Value::Str("i".into()), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(1)).as_f64()))));
@@ -399,8 +399,8 @@ pub fn testSafeNumber() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
     // safeNumber
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(&inputDict, Value::Str("i".into()), &[]).as_f64() == exchange.parse_number(Value::Int(1), &[]).as_f64()))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(&inputDict, Value::Str("f".into()), &[]).as_f64() == exchange.parse_number(Value::Float(0.123), &[]).as_f64()))));
@@ -434,8 +434,8 @@ pub fn testSafeBool() {
             m.insert("id".to_string(), Value::Str("sampleex".into()));
         m
     }));
-    let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
+    let inputDict: Value = helperDefaultInputDict();
+    let inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
     // safeBool
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool(&inputDict, Value::Str("bool".into()), &[]).as_bool() == Some(true)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool(&inputList, Value::Int(1), &[]) == Value::Null))));
@@ -466,8 +466,8 @@ pub fn testCacheSafeCalls() {
     // Test cache types - ArrayCacheByTimestamp
     let mut arrayCacheByTimestamp = ArrayCacheByTimestamp::new(Value::Int(100));
     arrayCacheByTimestamp.append(Value::from(vec![Value::Int(1000), Value::Int(50000), Value::Int(1), Value::Int(2), Value::Int(3)]));
-    let mut arrayCacheByTimestampData: Value = exchange.safe_value(arrayCacheByTimestamp.clone(), Value::Str("Data".into()), &[]);
-    let mut cacheByTimestampData: Value = (if (arrayCacheByTimestampData != Value::Null) { arrayCacheByTimestampData } else { arrayCacheByTimestamp.clone() });
+    let arrayCacheByTimestampData: Value = exchange.safe_value(arrayCacheByTimestamp.clone(), Value::Str("Data".into()), &[]);
+    let cacheByTimestampData: Value = (if (arrayCacheByTimestampData != Value::Null) { arrayCacheByTimestampData } else { arrayCacheByTimestamp.clone() });
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheByTimestampData).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test cache types - ArrayCacheBySymbolById
     let mut arrayCacheBySymbolById = ArrayCacheBySymbolById::new(Value::Int(100));
@@ -479,11 +479,11 @@ pub fn testCacheSafeCalls() {
         m
     }));
     // Use direct property access for object attributes
-    let mut arrayCacheBySymbolByIdHashmap: Value = get_value(&arrayCacheBySymbolById, &Value::Str("hashmap".into()));
+    let arrayCacheBySymbolByIdHashmap: Value = get_value(&arrayCacheBySymbolById, &Value::Str("hashmap".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(arrayCacheBySymbolByIdHashmap.as_map().and_then(|__m| __m.get("ETH/USDT")).cloned().unwrap_or(Value::Null) != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&arrayCacheBySymbolByIdHashmap.as_map().and_then(|__m| __m.get("ETH/USDT")).cloned().unwrap_or(Value::Null), &Value::Str("order2".into())) != Value::Null))));
-    let mut arrayCacheBySymbolByIdData: Value = exchange.safe_value(arrayCacheBySymbolById.clone(), Value::Str("Data".into()), &[]);
-    let mut cacheBySymbolByIdData: Value = (if (arrayCacheBySymbolByIdData != Value::Null) { arrayCacheBySymbolByIdData } else { arrayCacheBySymbolById.clone() });
+    let arrayCacheBySymbolByIdData: Value = exchange.safe_value(arrayCacheBySymbolById.clone(), Value::Str("Data".into()), &[]);
+    let cacheBySymbolByIdData: Value = (if (arrayCacheBySymbolByIdData != Value::Null) { arrayCacheBySymbolByIdData } else { arrayCacheBySymbolById.clone() });
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheBySymbolByIdData).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test cache types - ArrayCacheBySymbolBySide
     let mut arrayCacheBySymbolBySide = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -495,57 +495,57 @@ pub fn testCacheSafeCalls() {
         m
     }));
     // Use direct property access for object attributes
-    let mut arrayCacheBySymbolBySideHashmap: Value = get_value(&arrayCacheBySymbolBySide, &Value::Str("hashmap".into()));
+    let arrayCacheBySymbolBySideHashmap: Value = get_value(&arrayCacheBySymbolBySide, &Value::Str("hashmap".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(arrayCacheBySymbolBySideHashmap.as_map().and_then(|__m| __m.get("BNB/USDT")).cloned().unwrap_or(Value::Null) != Value::Null))));
-    let mut arrayCacheBySymbolBySideData: Value = exchange.safe_value(arrayCacheBySymbolBySide.clone(), Value::Str("Data".into()), &[]);
-    let mut cacheBySymbolBySideData: Value = (if (arrayCacheBySymbolBySideData != Value::Null) { arrayCacheBySymbolBySideData } else { arrayCacheBySymbolBySide.clone() });
+    let arrayCacheBySymbolBySideData: Value = exchange.safe_value(arrayCacheBySymbolBySide.clone(), Value::Str("Data".into()), &[]);
+    let cacheBySymbolBySideData: Value = (if (arrayCacheBySymbolBySideData != Value::Null) { arrayCacheBySymbolBySideData } else { arrayCacheBySymbolBySide.clone() });
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheBySymbolBySideData).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test map[string]map[string]interface{} (ArrayCache.hashmap)
     // Use direct property access for object attributes
-    let mut arrayCacheHashmapDirect: Value = get_value(&arrayCache, &Value::Str("hashmap".into()));
-    let mut nestedMap: Value = arrayCacheHashmapDirect;
+    let arrayCacheHashmapDirect: Value = get_value(&arrayCache, &Value::Str("hashmap".into()));
+    let nestedMap: Value = arrayCacheHashmapDirect;
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&nestedMap, Value::Str("NONEXISTENT".into()), &[]) == Value::Null))));
     // Test map[string]*ArrayCache (Trades structure)
-    let mut tradesMap: Value = Value::Map({
+    let tradesMap: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("BTC/USDT".to_string(), arrayCache);
             m.insert("ETH/USDT".to_string(), arrayCacheBySymbolById);
         m
     });
-    let mut stored: Value = exchange.safe_value(&tradesMap, Value::Str("BTC/USDT".into()), &[]);
+    let stored: Value = exchange.safe_value(&tradesMap, Value::Str("BTC/USDT".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(stored != Value::Null))));
     // Use direct property access for hashmap (object attribute)
-    let mut retrievedArrayCacheHashmap: Value = get_value(&stored, &Value::Str("hashmap".into()));
+    let retrievedArrayCacheHashmap: Value = get_value(&stored, &Value::Str("hashmap".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheHashmap != Value::Null))));
-    let mut retrievedArrayCacheBySymbolById: Value = exchange.safe_value(&tradesMap, Value::Str("ETH/USDT".into()), &[]);
+    let retrievedArrayCacheBySymbolById: Value = exchange.safe_value(&tradesMap, Value::Str("ETH/USDT".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheBySymbolById != Value::Null))));
     // Use direct property access for hashmap (object attribute)
-    let mut retrievedArrayCacheBySymbolByIdHashmap: Value = get_value(&retrievedArrayCacheBySymbolById, &Value::Str("hashmap".into()));
+    let retrievedArrayCacheBySymbolByIdHashmap: Value = get_value(&retrievedArrayCacheBySymbolById, &Value::Str("hashmap".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheBySymbolByIdHashmap != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&tradesMap, Value::Str("NONEXISTENT".into()), &[]) == Value::Null))));
     // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
-    let mut ohlcvInnerMap: Value = Value::Map({
+    let ohlcvInnerMap: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("1m".to_string(), arrayCacheByTimestamp);
             m.insert("5m".to_string(), ArrayCacheByTimestamp::new(Value::Int(100)));
         m
     });
-    let mut retrievedArrayCacheByTimestamp: Value = exchange.safe_value(&ohlcvInnerMap, Value::Str("1m".into()), &[]);
+    let retrievedArrayCacheByTimestamp: Value = exchange.safe_value(&ohlcvInnerMap, Value::Str("1m".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheByTimestamp != Value::Null))));
     // Use direct property access for object attributes
-    let mut retrievedArrayCacheByTimestampHashmap: Value = get_value(&retrievedArrayCacheByTimestamp, &Value::Str("hashmap".into()));
+    let retrievedArrayCacheByTimestampHashmap: Value = get_value(&retrievedArrayCacheByTimestamp, &Value::Str("hashmap".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheByTimestampHashmap != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&ohlcvInnerMap, Value::Str("5m".into()), &[]) != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&ohlcvInnerMap, Value::Str("NONEXISTENT".into()), &[]) == Value::Null))));
     // Test map[string]*ArrayCacheBySymbolBySide
-    let mut cacheBySideMap: Value = Value::Map({
+    let cacheBySideMap: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("BTC/USDT".to_string(), arrayCacheBySymbolBySide);
         m
     });
-    let mut retrievedArrayCacheBySymbolBySide: Value = exchange.safe_value(&cacheBySideMap, Value::Str("BTC/USDT".into()), &[]);
+    let retrievedArrayCacheBySymbolBySide: Value = exchange.safe_value(&cacheBySideMap, Value::Str("BTC/USDT".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheBySymbolBySide != Value::Null))));
-    let mut retrievedArrayCacheBySymbolBySideHashmap: Value = get_value(&retrievedArrayCacheBySymbolBySide, &Value::Str("hashmap".into()));
+    let retrievedArrayCacheBySymbolBySideHashmap: Value = get_value(&retrievedArrayCacheBySymbolBySide, &Value::Str("hashmap".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(retrievedArrayCacheBySymbolBySideHashmap != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&cacheBySideMap, Value::Str("NONEXISTENT".into()), &[]) == Value::Null))));
 }

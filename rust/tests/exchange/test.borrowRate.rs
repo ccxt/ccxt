@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testBorrowRate(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut requestedCode: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("currency".to_string(), Value::Str("USDT".into()));

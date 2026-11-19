@@ -18,10 +18,10 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m
         }), &[skippedProperties.clone()]);
     }
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("id".to_string(), Value::Str("123".into()));
@@ -43,13 +43,13 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m.insert("remaining".to_string(), exchange.parse_number(Value::Str("0.123".into()), &[]));
             m.insert("status".to_string(), Value::Str("ok".into()));
             m.insert("fee".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("trades".to_string(), Value::from(vec![]));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()),
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()),
         Value::Str("postOnly".into()), Value::Str("side".into()), Value::Str("price".into()), Value::Str("amount".into()), Value::Str("cost".into()), Value::Str("filled".into()), Value::Str("remaining".into()), Value::Str("status".into()), Value::Str("fee".into())]); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
@@ -69,7 +69,7 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()), exchange.safe_string(&entry, Value::Str("remaining".into()), &[]).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()), exchange.safe_string(&entry, Value::Str("filled".into()), &[]).clone()]);
     if !(in_op(&skippedProperties, &Value::Str("trades".into()))) {
-        let mut skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
+        let skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::Bool(true));
                 m.insert("datetime".to_string(), Value::Bool(true));

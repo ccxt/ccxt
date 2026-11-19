@@ -18,33 +18,33 @@ pub fn testBinaryToBase16() {
     // @SKIP_START_GO
     // Test 1: simple known bytes
     // 'ff' => [255]
-    let mut binary1: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("ff".into()), &[]);
+    let binary1: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("ff".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary1, &[])).as_str() == Some("ff")))));
     // Test 2: all zeros
     // '0000' => [0, 0]
-    let mut binary2: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("0000".into()), &[]);
+    let binary2: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("0000".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary2, &[])).as_str() == Some("0000")))));
     // Test 3: ascending bytes 01 02 03 04
-    let mut binary3: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("01020304".into()), &[]);
+    let binary3: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("01020304".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary3, &[])).as_str() == Some("01020304")))));
     // Test 4: single byte zero
-    let mut binary4: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("00".into()), &[]);
+    let binary4: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("00".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary4, &[])).as_str() == Some("00")))));
     // Test 5: single byte max
-    let mut binary5: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("ff".into()), &[]);
+    let binary5: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("ff".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.binary_length(&binary5, &[])).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(&binary5, &[]))));
     // Test 6: 8 bytes (like a timestamp encoding)
     // 00 00 00 00 49 96 02 d2 = 1234567890
-    let mut binary6: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("00000000499602d2".into()), &[]);
+    let binary6: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("00000000499602d2".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary6, &[])).as_str() == Some("00000000499602d2")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.binary_length(&binary6, &[])).as_f64() == Some(8.0)))));
     // Test 7: roundtrip with deadbeef
-    let mut binary7: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("deadbeef".into()), &[]);
+    let binary7: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("deadbeef".into()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary7, &[])).as_str() == Some("deadbeef")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.binary_length(&binary7, &[])).as_f64() == Some(4.0)))));
     // Test 8: roundtrip binaryToBase16 -> base16ToBinary
-    let mut hex8: Value = Value::Str("cafebabe".into());
-    let mut binary8: ccxt::value::Bytes = exchange.base16_to_binary(hex8.clone(), &[]);
+    let hex8: Value = Value::Str("cafebabe".into());
+    let binary8: ccxt::value::Bytes = exchange.base16_to_binary(hex8.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base16(&binary8, &[])).as_str() == hex8.as_str()))));
 }

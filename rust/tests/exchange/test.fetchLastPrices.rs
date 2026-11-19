@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLastprices".into());
+    let method: Value = Value::Str("fetchLastprices".into());
     // log ('fetching all tickers at once...')
     let mut response: Value = Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     });
     let mut checkedSymbol: Value = Value::Null;
@@ -25,7 +25,7 @@ if _try_result.is_err() {
         checkedSymbol = symbol;
     }
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), checkedSymbol.clone()]);
-    let mut values: Value = object_values(&response);
+    let values: Value = object_values(&response);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     let mut atLeastOnePassed: Value = Value::Bool(false);
     {

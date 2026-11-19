@@ -18,7 +18,7 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
             m
         }), &[skippedProperties.clone()]);
     }
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
             m.insert("asks".to_string(), Value::from(vec![Value::from(vec![exchange.parse_number(Value::Str("1.24".into()), &[]), exchange.parse_number(Value::Str("0.453".into()), &[])]), Value::from(vec![exchange.parse_number(Value::Str("1.25".into()), &[]), exchange.parse_number(Value::Str("0.157".into()), &[])])]));
@@ -28,23 +28,23 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
             m.insert("nonce".to_string(), Value::Int(134234234));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("nonce".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("nonce".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone()]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".into()), symbol.clone()]);
-    let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());
+    let logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
-    let mut bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
-    let mut bidsLength: i64 = get_array_length(&bids).as_i64().unwrap_or_default();
+    let bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
+    let bidsLength: i64 = get_array_length(&bids).as_i64().unwrap_or_default();
     {
                 let mut i: i64 = 0;
         let mut __for_first_1562: bool = true;
         while { if !__for_first_1562 { i += 1; } __for_first_1562 = false; i < bidsLength } {
-        let mut currentBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(i)), Value::Int(0), &[]);
+        let currentBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
-            let mut nextI: Value = Value::Int((i + 1));
+            let nextI: Value = Value::Int((i + 1));
             if (bidsLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
-                let mut nextBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &nextI), Value::Int(0), &[]);
+                let nextBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &nextI), Value::Int(0), &[]);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&currentBidString, &nextBidString))));
             }
         }
@@ -55,17 +55,17 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         }
     }
     }
-    let mut asks: Value = orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null);
-    let mut asksLength: i64 = get_array_length(&asks).as_i64().unwrap_or_default();
+    let asks: Value = orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null);
+    let asksLength: i64 = get_array_length(&asks).as_i64().unwrap_or_default();
     {
                 let mut i: i64 = 0;
         let mut __for_first_1563: bool = true;
         while { if !__for_first_1563 { i += 1; } __for_first_1563 = false; i < asksLength } {
-        let mut currentAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(i)), Value::Int(0), &[]);
+        let currentAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
-            let mut nextI: Value = Value::Int((i + 1));
+            let nextI: Value = Value::Int((i + 1));
             if (asksLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
-                let mut nextAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &nextI), Value::Int(0), &[]);
+                let nextAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &nextI), Value::Int(0), &[]);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&currentAskString, &nextAskString))));
             }
         }
@@ -78,8 +78,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     }
     if !(in_op(&skippedProperties, &Value::Str("spread".into()))) {
         if (bidsLength > 0) && (asksLength > 0) {
-            let mut firstBid: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]);
-            let mut firstAsk: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]);
+            let firstBid: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]);
+            let firstAsk: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]);
             // check bid-ask spread
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&firstBid, &firstAsk))));
         }

@@ -10,11 +10,11 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMyLiquidations(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMyLiquidations".into());
+    let method: Value = Value::Str("fetchMyLiquidations".into());
     if (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
         return Value::Bool(true);
     }
-    let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_liquidations", vec![code.clone()]).await;
+    let items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_liquidations", vec![code.clone()]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&items, Value::Arr(_))))));
     {
                 let mut i: i64 = 0;

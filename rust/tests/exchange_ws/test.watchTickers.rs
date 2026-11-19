@@ -10,27 +10,27 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchTickers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut withoutSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties, Value::from(vec![symbol]), &[]).await;
+    let withoutSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
+    let withSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties, Value::from(vec![symbol]), &[]).await;
     promise_all(&Value::from(vec![withSymbol, withoutSymbol])).await;
 
     Value::Null
 }
 pub async fn testWatchTickersHelper(mut exchange: Value, mut skippedProperties: Value, mut argSymbols: Value, optional_args: &[Value]) -> Value {
-    let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
-    let mut method: Value = Value::Str("watchTickers".into());
+    let argParams: Value = get_arg(optional_args, 0, Value::Null);
+    let method: Value = Value::Str("watchTickers".into());
     let mut now: i64 = exchange.milliseconds();
-    let mut ends: i64 = (now + 15000);
-    let mut maxIdleTime: i64 = 5000;
+    let ends: i64 = (now + 15000);
+    let maxIdleTime: i64 = 5000;
     let mut idle: bool = false;
     while (now < ends) && !idle {
         let mut response: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
+            let m = indexmap::IndexMap::new();
             m
         });
         let mut success: bool = true;
         let mut shouldReturn: bool = false;
-        let mut startTime: i64 = exchange.milliseconds();
+        let startTime: i64 = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_tickers", vec![argSymbols.clone(), argParams.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -55,7 +55,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if success {
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
-            let mut values: Value = object_values(&response);
+            let values: Value = object_values(&response);
             let mut checkedSymbol: Value = Value::Null;
             if (argSymbols != Value::Null) && (Value::Int(argSymbols.len() as i64).as_f64() == Some(1.0)) {
                 checkedSymbol = argSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -65,13 +65,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_1617: bool = true;
                 while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; i < (values.len() as i64) } {
-                let mut ticker: Value = values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let ticker: Value = values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
                     let mut ohlcv: Value = Value::Null;
-                    let mut tickerSymbol: Option<String> = ccxt::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+                    let tickerSymbol: Option<String> = ccxt::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
                     if (tickerSymbol.is_some()) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
                         ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.map(Value::from).unwrap_or(Value::Null), Value::Str("1d".into()), Value::Null, Value::Int(5)]).await;
                     }

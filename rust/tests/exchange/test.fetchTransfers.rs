@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTransfers(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTransfers".into());
-    let mut transfers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transfers", vec![code.clone()]).await;
+    let method: Value = Value::Str("fetchTransfers".into());
+    let transfers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transfers", vec![code.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), transfers.clone(), code.clone()]);
     {
                 let mut i: i64 = 0;

@@ -119,8 +119,8 @@ impl Binancecoinm {
 }
 
     pub async fn transfer_in(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         return self.futures_transfer(code, amount, Value::Int(3), &[params]).await;
@@ -129,8 +129,8 @@ impl Binancecoinm {
 }
 
     pub async fn transfer_out(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         return self.futures_transfer(code, amount, Value::Int(4), &[params]).await;

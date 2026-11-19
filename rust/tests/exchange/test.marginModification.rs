@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testMarginModification(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("type".to_string(), Value::Str("add".into()));
@@ -24,7 +24,7 @@ pub fn testMarginModification(mut exchange: Value, mut skippedProperties: Value,
             m.insert("status".to_string(), Value::Str("ok".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("status".into()), Value::Str("symbol".into()), Value::Str("code".into()), Value::Str("total".into()), Value::Str("amount".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("status".into()), Value::Str("symbol".into()), Value::Str("code".into()), Value::Str("total".into()), Value::Str("amount".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
     //

@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testDepositWithdrawal(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut requestedCode: Value, mut now: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("id".to_string(), Value::Str("1234".into()));
@@ -33,12 +33,12 @@ pub fn testDepositWithdrawal(mut exchange: Value, mut skippedProperties: Value, 
             m.insert("status".to_string(), Value::Str("ok".into()));
             m.insert("updated".to_string(), Value::Int(1502962946233));
             m.insert("fee".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("address".into()), Value::Str("addressTo".into()), Value::Str("addressFrom".into()), Value::Str("tag".into()), Value::Str("tagTo".into()), Value::Str("tagFrom".into())]); // below we still do assertion for to/from
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("address".into()), Value::Str("addressTo".into()), Value::Str("addressFrom".into()), Value::Str("tag".into()), Value::Str("tagTo".into()), Value::Str("tagFrom".into())]); // below we still do assertion for to/from
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);

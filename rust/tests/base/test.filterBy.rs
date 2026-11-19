@@ -14,7 +14,7 @@ pub fn testFilterBy() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut sampleArray: Value = Value::from(vec![Value::Map({
+    let sampleArray: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));
     m
@@ -52,8 +52,8 @@ pub fn testFilterBy() {
         m.insert("foo".to_string(), Value::Str("c".into()));
     m
 })]);
-    let mut currentValue: Value = Value::Arr(exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]));
-    let mut storedValue: Value = Value::from(vec![Value::Map({
+    let currentValue: Value = Value::Arr(exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]));
+    let storedValue: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));
     m

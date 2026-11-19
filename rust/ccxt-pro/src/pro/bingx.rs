@@ -98,47 +98,48 @@ impl Bingx {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "get_order_book_limit_by_market_type" => self.get_order_book_limit_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-            "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_my_trades" => { self.handle_my_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
-            "handle_order" => { self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_positions" => { self.handle_positions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ticker" => { self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
-            "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
-            "handle_un_subscription" => { self.handle_un_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "keep_alive_listen_key" => { crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.to_vec()); crate::Value::Null },
-            "load_balance_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.to_vec()); crate::Value::Null },
-            "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
-            "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
-            "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
-            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]); crate::Value::Null },
-            "un_watch" => { crate::exchange_stubs::enqueue_spawn("un_watch", args.to_vec()); crate::Value::Null },
-            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
-            "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
-            "un_watch_ticker" => { crate::exchange_stubs::enqueue_spawn("un_watch_ticker", args.to_vec()); crate::Value::Null },
-            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
-            "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
-            "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
-            "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
-            "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
-            "watch_orders" => { crate::exchange_stubs::enqueue_spawn("watch_orders", args.to_vec()); crate::Value::Null },
-            "watch_positions" => { crate::exchange_stubs::enqueue_spawn("watch_positions", args.to_vec()); crate::Value::Null },
-            "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.to_vec()); crate::Value::Null },
-            "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.to_vec()); crate::Value::Null },
+            "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "get_order_book_limit_by_market_type" => self.get_order_book_limit_by_market_type(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_error_message" => self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
+            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_subscription_status" => self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
+            "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "keep_alive_listen_key" => { crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "load_balance_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
+            "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())),
+            "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                args.get(4).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "un_watch" => { crate::exchange_stubs::enqueue_spawn("un_watch", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "un_watch_ticker" => { crate::exchange_stubs::enqueue_spawn("un_watch_ticker", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_orders" => { crate::exchange_stubs::enqueue_spawn("watch_orders", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_positions" => { crate::exchange_stubs::enqueue_spawn("watch_positions", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
+            "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             _ => crate::Value::Null,
         }
     }
@@ -282,8 +283,8 @@ impl Bingx {
 }
 
     pub async fn un_watch(&mut self, messageHash: &str, subMessageHash: &str, subscribeHash: &str, mut dataType: Value, topic: &str, market: Option<&crate::types::Market>, methodName: &str, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         let mut marketType: Option<String> = None;
@@ -297,8 +298,8 @@ impl Bingx {
         }  else {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[]);
         }
-        let mut id: String = self.uuid(&[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let id: String = self.uuid(&[]);
+        let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(id.clone()));
                 m.insert("dataType".to_string(), dataType);
@@ -344,12 +345,12 @@ impl Bingx {
     pub async fn watch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Ticker> {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -358,17 +359,17 @@ impl Bingx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: Option<String> = None;
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchTicker".into()), Some(&market), &[&params]);
-        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
+        let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchTicker".into()), Some(&market), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
+        let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
+        let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
-        let mut messageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from((market).symbol.clone())]);
+        let messageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from((market).symbol.clone())]);
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -379,7 +380,7 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             request.insert("reqType".into(), Value::Str("sub".into()));
         }
-        let mut subscription: indexmap::IndexMap<String, Value> = ({
+        let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), Value::from(uuid));
@@ -405,23 +406,23 @@ impl Bingx {
     pub async fn un_watch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut dataType: String = format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@ticker".into()));
-        let mut subMessageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from((market).symbol.clone())]);
-        let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
-        let mut topic: String = "ticker".to_string();
-        let mut methodName: String = "unWatchTicker".to_string();
+        let dataType: String = format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@ticker".into()));
+        let subMessageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from((market).symbol.clone())]);
+        let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
+        let topic: String = "ticker".to_string();
+        let methodName: String = "unWatchTicker".to_string();
         return self.un_watch(messageHash.as_str(), subMessageHash.as_deref().unwrap_or_default(), messageHash.as_str(), Value::from(dataType), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
@@ -485,21 +486,21 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.key_dict("data");
+        let data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         // const marketId = messageHash.split('@')[0];
-        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
+        let isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
+        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
-        let mut inverseUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "inverse", &[]);
-        let mut isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market), &[isInverse]);
+        let inverseUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "inverse", &[]);
+        let isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
+        let ticker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market), &[isInverse]);
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         client.resolve(Value::from(&ticker), &self.get_message_hash("ticker", &[&symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         if ((match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("all@ticker")) {
@@ -508,8 +509,8 @@ impl Bingx {
 }
 
     pub fn parse_ws_ticker(&self, message: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::Dict {
-        let mut message: Value = message.into();
-        let mut isInverse = get_arg(optional_args, 0, Value::Null);
+        let message: Value = message.into();
+        let isInverse = get_arg(optional_args, 0, Value::Null);
         //
         //     {
         //         "e": "24hTicker",
@@ -532,15 +533,15 @@ impl Bingx {
         //         "b": "2.5747"
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(&message, "C", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k_opt(&message, "s", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let mut close: Option<String> = self.safe_string_k_opt(&message, "c", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(&message, "C", &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_k_opt(&message, "s", &[]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
+        let close: Option<String> = self.safe_string_k_opt(&message, "c", &[]);
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let mut inverse: bool = (isInverse.as_bool() == Some(true)) || ((isInverse == Value::Null) && (crate::value::KeyRead::key_read(&&marketResolved, "inverse").as_bool() == Some(true)));
-        let mut baseVolumeKey: String = (if inverse { "m".to_string() } else { "v".to_string() });
+        let inverse: bool = (isInverse.as_bool() == Some(true)) || ((isInverse == Value::Null) && (crate::value::KeyRead::key_read(&&marketResolved, "inverse").as_bool() == Some(true)));
+        let baseVolumeKey: String = (if inverse { "m".to_string() } else { "v".to_string() });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -570,7 +571,7 @@ impl Bingx {
 }
 
     pub fn get_order_book_limit_by_market_type(&self, mut marketType: Value, optional_args: &[&Value]) -> Value {
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let limit = get_arg(optional_args, 0, Value::Null);
         if (limit == Value::Null) {
             return Value::Int(100);
         }
@@ -585,8 +586,8 @@ impl Bingx {
 }
 
     pub fn get_message_hash(&self, unifiedChannel: &str, optional_args: &[&Value]) -> Option<String> {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut extra = get_arg(optional_args, 1, Value::Null);
+        let symbol = get_arg(optional_args, 0, Value::Null);
+        let extra = get_arg(optional_args, 1, Value::Null);
         let mut hash: String = unifiedChannel.to_string();
         if (symbol != Value::Null) {
             hash.push_str(&format!("{}{}", "::", symbol));
@@ -615,34 +616,34 @@ impl Bingx {
     pub async fn watch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since: Option<i64> = since;
-        let mut limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let since: Option<i64> = since;
+        let limit: Option<i64> = limit;
+        let params = get_arg(optional_args, 2, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = (market).symbol.clone();
         let mut url: Option<String> = None;
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchTrades".into()), Some(&market), &[&params]);
-        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
+        let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchTrades".into()), Some(&market), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
+        let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
+        let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
-        let mut messageHash: String = format!("{}{}", "trade::", symbolValue);
+        let messageHash: String = format!("{}{}", "trade::", symbolValue);
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -653,7 +654,7 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             request.insert("reqType".into(), Value::Str("sub".into()));
         }
-        let mut subscription: indexmap::IndexMap<String, Value> = ({
+        let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), Value::from(uuid));
@@ -665,7 +666,7 @@ impl Bingx {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
         }
-        let mut result: Value = Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        let result: Value = Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         if (match &(self.handle_option(Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)])) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut filtered: Value = self.remove_repeated_trades_from_array(result.clone());
@@ -692,22 +693,22 @@ impl Bingx {
     pub async fn un_watch_trades(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut subMessageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol.clone())]);
-        let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
-        let mut topic: String = "trades".to_string();
-        let mut methodName: String = "unWatchTrades".to_string();
+        let subMessageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol.clone())]);
+        let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
+        let topic: String = "trades".to_string();
+        let methodName: String = "unWatchTrades".to_string();
         return self.un_watch(messageHash.as_str(), subMessageHash.as_deref().unwrap_or_default(), messageHash.as_str(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@trade".into())).into()), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
@@ -798,18 +799,18 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::from(vec![]) });
-        let mut rawHash: String = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let mut hashParts: crate::value::List = crate::value::List::new(rawHash.split("@").map(Value::from).collect());
-        let mut marketId: Option<String> = self.safe_string_opt(&hashParts, Value::Int(0), &[]);
-        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
+        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::from(vec![]) });
+        let rawHash: String = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
+        let hashParts: crate::value::List = crate::value::List::new(rawHash.split("@").map(Value::from).collect());
+        let marketId: Option<String> = self.safe_string_opt(&hashParts, Value::Int(0), &[]);
+        let isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", "trade::", symbol.as_deref().unwrap_or("null"));
+        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
+        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let messageHash: String = format!("{}{}", "trade::", symbol.as_deref().unwrap_or("null"));
         let mut trades: Value = Value::Null;
         if (matches!(&data, Value::Arr(_))) {
             trades = Value::Arr(self.parse_trades(data.clone(), Some(&market), &[]));
@@ -818,7 +819,7 @@ impl Bingx {
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
@@ -847,13 +848,13 @@ impl Bingx {
     pub async fn watch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OrderBook> {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -862,20 +863,20 @@ impl Bingx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: Option<String> = None;
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchOrderBook".into()), Some(&market), &[&params]);
-        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
+        let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchOrderBook".into()), Some(&market), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
+        let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
+        let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
-        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
-        let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
-        let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
-        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::from((market).symbol.clone())]);
+        let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
+        let depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
+        let subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
+        let messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::from((market).symbol.clone())]);
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -887,7 +888,7 @@ impl Bingx {
             request.insert("reqType".into(), Value::Str("sub".into()));
         }
         let mut subscriptionArgs: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
+            let m = indexmap::IndexMap::new();
             m
         });
         if ((market).inverse == Some(true)) {
@@ -930,32 +931,32 @@ impl Bingx {
     pub async fn un_watch_order_book(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
-        let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
-        let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
-        let mut topic: String = "orderbook".to_string();
-        let mut methodName: String = "unWatchOrderBook".to_string();
+        let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
+        let depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
+        let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
+        let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
+        let topic: String = "orderbook".to_string();
+        let methodName: String = "unWatchOrderBook".to_string();
         return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
 
     pub fn handle_delta(&self, bookside: &mut crate::pro::order_book::Side, mut delta: Value) {
-        let mut price: Option<f64> = self.safe_float2(&delta, Value::Int(0), Value::Str("p".into()), &[]).as_f64();
-        let mut amount: Option<f64> = self.safe_float2(delta, Value::Int(1), Value::Str("a".into()), &[]).as_f64();
+        let price: Option<f64> = self.safe_float2(&delta, Value::Int(0), Value::Str("p".into()), &[]).as_f64();
+        let amount: Option<f64> = self.safe_float2(delta, Value::Int(1), Value::Str("a".into()), &[]).as_f64();
         bookside.store(price, amount);
 }
 
@@ -1030,29 +1031,29 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.key_dict("data");
-        let mut dataType: String = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut parts: crate::value::List = crate::value::List::new(dataType.split("@").map(Value::from).collect());
-        let mut firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
-        let mut isAllEndpoint: bool = firstPart.as_deref() == Some("all");
-        let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[&firstPart]);
-        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
+        let data: crate::value::Dict = __pro_message.key_dict("data");
+        let dataType: String = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+        let parts: crate::value::List = crate::value::List::new(dataType.split("@").map(Value::from).collect());
+        let firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
+        let isAllEndpoint: bool = firstPart.as_deref() == Some("all");
+        let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[&firstPart]);
+        let isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType)]);
+        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
             // const limit = [ 5, 10, 20, 50, 100 ]
-            let mut subscriptionHash: String = dataType;
-            let mut subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscriptionHash));
+            let subscriptionHash: String = dataType;
+            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscriptionHash));
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
-            let mut limit: i64 = self.safe_integer_k(&subscription, "limit", &[Value::Int(100)]).as_i64().unwrap_or(100);
+            let limit: i64 = self.safe_integer_k(&subscription, "limit", &[Value::Int(100)]).as_i64().unwrap_or(100);
             { let __cv = self.order_book(&[Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
@@ -1065,14 +1066,14 @@ impl Bingx {
         }  else {
             snapshot = Value::Dict(self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         }
-        let mut nonce: Option<i64> = self.safe_integer_k(&data, "lastUpdateId", &[]).as_i64();
+        let nonce: Option<i64> = self.safe_integer_k(&data, "lastUpdateId", &[]).as_i64();
         snapshot.set_book_meta("nonce", Value::from(nonce));
         orderbook.reset(snapshot);
-        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[&symbol.map(Value::from).unwrap_or(Value::Null)]);
+        let messageHash: Option<String> = self.get_message_hash("orderbook", &[&symbol.map(Value::from).unwrap_or(Value::Null)]);
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
         // resolve for "all"
         if isAllEndpoint {
-            let mut messageHashForAll: Option<String> = self.get_message_hash("orderbook", &[]);
+            let messageHashForAll: Option<String> = self.get_message_hash("orderbook", &[]);
             client.resolve(Value::from(&orderbook), messageHashForAll.as_deref());
         }
 }
@@ -1091,8 +1092,8 @@ impl Bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let mut isSpot: bool = self.safe_bool_k_opt(&market, "spot", &[Value::Bool(false)]).unwrap_or(false);
-        let mut isInverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
+        let isSpot: bool = self.safe_bool_k_opt(&market, "spot", &[Value::Bool(false)]).unwrap_or(false);
+        let isInverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: String = "T".to_string();
         if isSpot {
             timestamp = "t".to_string();
@@ -1171,48 +1172,48 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
-        let mut dataType: String = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let mut parts: crate::value::List = crate::value::List::new(dataType.split("@").map(Value::from).collect());
-        let mut firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
-        let mut isAllEndpoint: bool = firstPart.as_deref() == Some("all");
-        let mut marketId: Option<String> = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => firstPart.map(Value::from).unwrap_or(Value::Null) }).as_str().map(str::to_owned);
+        let isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
+        let dataType: String = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
+        let parts: crate::value::List = crate::value::List::new(dataType.split("@").map(Value::from).collect());
+        let firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
+        let isAllEndpoint: bool = firstPart.as_deref() == Some("all");
+        let marketId: Option<String> = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => firstPart.map(Value::from).unwrap_or(Value::Null) }).as_str().map(str::to_owned);
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
         }
-        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.clone())]);
+        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.clone())]);
         let mut candles: Option<crate::value::List> = None;
         if isSwap {
             if ((market).inverse == Some(true)) {
                 candles = Some(std::sync::Arc::new(vec![(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }) })]));
             }  else {
                 candles = (match message.get("data") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => Some(std::sync::Arc::new(Vec::new())) });
             }
         }  else {
-            let mut data: crate::value::Dict = message.key_dict("data");
+            let data: crate::value::Dict = message.key_dict("data");
             candles = Some(std::sync::Arc::new(vec![self.safe_dict_k(&data, "K", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 })])]));
         }
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
-        let mut timeframeParts: crate::value::List = crate::value::List::new(dataType.split("_").map(Value::from).collect());
-        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframeParts, Value::Int(1), &[]);
-        let mut marketOptions: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(marketType));
-        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&marketOptions, "timeframes");
-        let mut unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]));
+        let timeframeParts: crate::value::List = crate::value::List::new(dataType.split("_").map(Value::from).collect());
+        let rawTimeframe: Option<String> = self.safe_string_opt(&timeframeParts, Value::Int(1), &[]);
+        let marketOptions: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(marketType));
+        let timeframes: crate::value::Dict = self.safe_dict_k_t(&marketOptions, "timeframes");
+        let unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]));
         if (self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe).is_none()) {
-            let mut subscriptionHash: String = dataType;
-            let mut subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscriptionHash));
+            let subscriptionHash: String = dataType;
+            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscriptionHash));
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
-            let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[self.safe_integer_k(&self.options, "OHLCVLimit", &[Value::Int(1000)])]).as_i64();
+            let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[self.safe_integer_k(&self.options, "OHLCVLimit", &[Value::Int(1000)])]).as_i64();
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&unifiedTimeframe);
@@ -1220,17 +1221,17 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_91: bool = true;
             while { if !__for_first_91 { i += 1; } __for_first_91 = false; i < (candles.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut candle: Value = candles.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: crate::value::List = self.parse_ws_ohlcv(candle, Some(&market));
+            let candle: Value = candles.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let parsed: crate::value::List = self.parse_ws_ohlcv(candle, Some(&market));
             stored.append(Value::Arr(parsed));
         }
         }
-        let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), Value::from(&stored)]);
-        let mut messageHash: Option<String> = self.get_message_hash("ohlcv", &[&symbol, &unifiedTimeframe]);
+        let resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), Value::from(&stored)]);
+        let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&symbol, &unifiedTimeframe]);
         client.resolve(resolveData.clone(), messageHash.as_deref());
         // resolve for "all"
         if isAllEndpoint {
-            let mut messageHashForAll: Option<String> = self.get_message_hash("ohlcv", &[&Value::Null, &unifiedTimeframe]);
+            let messageHashForAll: Option<String> = self.get_message_hash("ohlcv", &[&Value::Null, &unifiedTimeframe]);
             client.resolve(resolveData, messageHashForAll.as_deref());
         }
 }
@@ -1252,15 +1253,15 @@ impl Bingx {
     pub async fn watch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::OHLCV>> {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since: Option<i64> = since;
-        let mut limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let since: Option<i64> = since;
+        let limit: Option<i64> = limit;
+        let params = get_arg(optional_args, 3, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -1269,11 +1270,11 @@ impl Bingx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: Option<String> = None;
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchOHLCV".into()), Some(&market), &[&params]);
-        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
+        let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchOHLCV".into()), Some(&market), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
+        let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
+        let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
@@ -1282,11 +1283,11 @@ impl Bingx {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV is not supported for ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets.")));
         }
-        let mut options: crate::value::Dict = self.safe_dict_t(&self.options, &marketType);
-        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
-        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[&timeframe]);
-        let mut messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from((market).symbol.clone()), &timeframe]);
-        let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
+        let options: crate::value::Dict = self.safe_dict_t(&self.options, &marketType);
+        let timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
+        let rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[&timeframe]);
+        let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from((market).symbol.clone()), &timeframe]);
+        let subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1297,7 +1298,7 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             request.insert("reqType".into(), Value::Str("sub".into()));
         }
-        let mut subscriptionArgs: indexmap::IndexMap<String, Value> = ({
+        let subscriptionArgs: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(uuid));
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1306,7 +1307,7 @@ impl Bingx {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let mut result: Value = self.watch(url.as_deref(), messageHash.as_deref(), __ws_arg_4, subscriptionHash.as_str(), Value::Map(subscriptionArgs)).await;
+        let result: Value = self.watch(url.as_deref(), messageHash.as_deref(), __ws_arg_4, subscriptionHash.as_str(), Value::Map(subscriptionArgs)).await;
         let mut ohlcv: Value = get_value(&result, &Value::Int(2));
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -1332,27 +1333,27 @@ impl Bingx {
     pub async fn un_watch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let mut symbol = __it.next().unwrap_or_default();
+        let symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from((market).market_type.clone()));
-        let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
-        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[&timeframe]);
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
-        let mut topic: String = "ohlcv".to_string();
-        let mut methodName: String = "unWatchOHLCV".to_string();
-        let mut symbolsAndTimeframes: crate::value::List = std::sync::Arc::new(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]);
+        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from((market).market_type.clone()));
+        let timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
+        let rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[&timeframe]);
+        let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
+        let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
+        let topic: String = "ohlcv".to_string();
+        let methodName: String = "unWatchOHLCV".to_string();
+        let symbolsAndTimeframes: crate::value::List = std::sync::Arc::new(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), Value::Arr(symbolsAndTimeframes)); }
         return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
         Value::Null
@@ -1378,11 +1379,11 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since: Option<i64> = since;
-        let mut limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let symbol = get_arg(optional_args, 0, Value::Null);
+        let since: Option<i64> = since;
+        let limit: Option<i64> = limit;
+        let params = get_arg(optional_args, 3, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -1393,21 +1394,21 @@ impl Bingx {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
+        let symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[&params]);
-        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
+        let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let subTypeVariable = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeVariable.0.as_str().map(str::to_owned);
-        let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut spotHash: String = "spot:private".to_string();
-        let mut swapHash: String = "swap:private".to_string();
+        let subType: Option<String> = subTypeVariable.0.as_str().map(str::to_owned);
+        let isSpot: bool = type_var.as_deref() == Some("spot");
+        let spotHash: String = "spot:private".to_string();
+        let swapHash: String = "swap:private".to_string();
         let mut subscriptionHash: String = swapHash;
         if isSpot {
             subscriptionHash = spotHash;
         }
-        let mut spotMessageHash: String = "spot:order".to_string();
-        let mut swapMessageHash: String = "swap:order".to_string();
+        let spotMessageHash: String = "spot:order".to_string();
+        let swapMessageHash: String = "swap:order".to_string();
         let mut messageHash: String = swapMessageHash.clone();
         if isSpot {
             messageHash = spotMessageHash.clone();
@@ -1437,12 +1438,12 @@ impl Bingx {
                 m
             }));
         }
-        let mut userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
+        let userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
         if (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " watchOrders() requires a websocket URL and a listen key")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
-        let mut subscription: indexmap::IndexMap<String, Value> = ({
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
+        let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), Value::from(uuid));
@@ -1477,11 +1478,11 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since: Option<i64> = since;
-        let mut limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let symbol = get_arg(optional_args, 0, Value::Null);
+        let since: Option<i64> = since;
+        let limit: Option<i64> = limit;
+        let params = get_arg(optional_args, 3, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -1492,21 +1493,21 @@ impl Bingx {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
+        let symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]);
-        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
+        let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let subTypeVariable = self.handle_sub_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeVariable.0.as_str().map(str::to_owned);
-        let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut spotHash: String = "spot:private".to_string();
-        let mut swapHash: String = "swap:private".to_string();
+        let subType: Option<String> = subTypeVariable.0.as_str().map(str::to_owned);
+        let isSpot: bool = type_var.as_deref() == Some("spot");
+        let spotHash: String = "spot:private".to_string();
+        let swapHash: String = "swap:private".to_string();
         let mut subscriptionHash: String = swapHash;
         if isSpot {
             subscriptionHash = spotHash;
         }
-        let mut spotMessageHash: String = "spot:mytrades".to_string();
-        let mut swapMessageHash: String = "swap:mytrades".to_string();
+        let spotMessageHash: String = "spot:mytrades".to_string();
+        let swapMessageHash: String = "swap:mytrades".to_string();
         let mut messageHash: String = swapMessageHash.clone();
         if isSpot {
             messageHash = spotMessageHash.clone();
@@ -1536,12 +1537,12 @@ impl Bingx {
                 m
             }));
         }
-        let mut userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
+        let userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
         if (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " watchMyTrades() requires a websocket URL and a listen key")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
-        let mut subscription: indexmap::IndexMap<String, Value> = ({
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
+        let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), Value::from(uuid));
@@ -1573,8 +1574,8 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -1582,16 +1583,16 @@ impl Bingx {
         }
         self.authenticate(&[]).await;
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[&params]);
-        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
+        let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), None, &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
-        let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut spotSubHash: String = "spot:balance".to_string();
-        let mut swapSubHash: String = "swap:private".to_string();
-        let mut spotMessageHash: String = "spot:balance".to_string();
-        let mut swapMessageHash: String = "swap:balance".to_string();
+        let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
+        let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
+        let isSpot: bool = type_var.as_deref() == Some("spot");
+        let spotSubHash: String = "spot:balance".to_string();
+        let swapSubHash: String = "swap:private".to_string();
+        let spotMessageHash: String = "spot:balance".to_string();
+        let swapMessageHash: String = "swap:balance".to_string();
         let mut messageHash: String = swapMessageHash;
         if isSpot {
             messageHash = spotMessageHash;
@@ -1619,22 +1620,22 @@ impl Bingx {
                 m
             }));
         }
-        let mut userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
+        let userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
         if (type_var.is_none()) || (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " watchBalance() requires a websocket URL and a listen key")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
         self.set_balance_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), subType.map(Value::from).unwrap_or(Value::Null), subscriptionHash.as_str(), Value::from(&paramsSubType));
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = self.handle_option_bool_and_params(&paramsSubType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
-        let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.0 == Some(true);
-        let mut paramsFetchBalanceSnapshot: crate::value::Dict = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.1;
+        let fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.0 == Some(true);
+        let paramsFetchBalanceSnapshot: crate::value::Dict = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.1;
         let awaitBalanceSnapshotVariable = self.handle_option_bool_and_params(&paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(false)]);
-        let mut awaitBalanceSnapshot: bool = awaitBalanceSnapshotVariable.0 == Some(true);
+        let awaitBalanceSnapshot: bool = awaitBalanceSnapshotVariable.0 == Some(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
-        let mut subscription: indexmap::IndexMap<String, Value> = ({
+        let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), Value::from(uuid));
@@ -1651,16 +1652,16 @@ impl Bingx {
             return;
         }
         let fetchBalanceSnapshotVariable = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
-        let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotVariable.0 == Some(true);
+        let fetchBalanceSnapshot: bool = fetchBalanceSnapshotVariable.0 == Some(true);
         if fetchBalanceSnapshot {
-            let mut messageHash: String = format!("{}{}", Value::from(type_var), ":fetchBalanceSnapshot");
+            let messageHash: String = format!("{}{}", Value::from(type_var), ":fetchBalanceSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
                 self.spawn(&[Value::Str("load_balance_snapshot".into()), client, Value::from(messageHash), Value::from(type_var), subType]);
             }
         }  else {
             { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(type_var)), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 })); }
         }
@@ -1668,14 +1669,14 @@ impl Bingx {
 
     pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut subType: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let mut response: crate::types::Balances = (match self.fetch_balance(Value::Map({
+        let response: crate::types::Balances = (match self.fetch_balance(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
         m.insert("subType".to_string(), subType);
     m
 })).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let __ws_arg_5 = self.balance.get(crate::runtime::stringify_param(&type_var).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_5]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
@@ -1706,11 +1707,11 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut since: Option<i64> = since;
-        let mut limit: Option<i64> = limit;
-        let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let since: Option<i64> = since;
+        let limit: Option<i64> = limit;
+        let params = get_arg(optional_args, 3, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.is_none()) {
@@ -1719,50 +1720,50 @@ impl Bingx {
         self.authenticate(&[]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "".to_string();
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         if (symbolsNormalized.is_some()) && !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(symbolsNormalized.as_deref());
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchPositions".into()), market.as_ref(), &[&params, &Value::Str("swap".into())]);
-        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
+        let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
+        let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), market.as_ref(), &[&Value::from(&paramsMarketType), &Value::Str("linear".into())]);
-        let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
-        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
+        let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
+        let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         if (type_var.as_deref() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchPositions is not supported for spot markets")));
         }
         if (subType.as_deref() == Some("inverse")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchPositions is not supported for inverse swap markets yet")));
         }
-        let mut subscriptionHash: String = "swap:private".to_string();
+        let subscriptionHash: String = "swap:private".to_string();
         messageHash = format!("{}{}", "swap:positions", messageHash);
-        let mut baseUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
+        let baseUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
+        let userStreamKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
         if (baseUrl.is_none()) || (userStreamKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " watchPositions() requires a websocket URL and a listen key")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), userStreamKey.as_deref().unwrap_or("null"));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
         self.set_positions_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = self.handle_option_bool_and_params(&paramsSubType, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
-        let mut fetchPositionsSnapshot: bool = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.0 == Some(true);
-        let mut paramsFetchPositionsSnapshot: crate::value::Dict = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.1;
+        let fetchPositionsSnapshot: bool = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.0 == Some(true);
+        let paramsFetchPositionsSnapshot: crate::value::Dict = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.1;
         let awaitPositionsSnapshotVariable = self.handle_option_bool_and_params(&paramsFetchPositionsSnapshot, Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(false)]);
-        let mut awaitPositionsSnapshot: bool = awaitPositionsSnapshotVariable.0 == Some(true);
+        let awaitPositionsSnapshot: bool = awaitPositionsSnapshotVariable.0 == Some(true);
         let mut uuid: String = self.uuid(&[]);
-        let mut subscription: indexmap::IndexMap<String, Value> = ({
+        let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
                 m.insert("id".to_string(), Value::from(uuid));
             m
         });
         if fetchPositionsSnapshot && awaitPositionsSnapshot && (self.positions.is_none()) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchPositionsSnapshot").into()))).await;
+            let snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchPositionsSnapshot").into()))).await;
             return Value::Arr(self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since, limit, &[Value::Bool(true)]));
         }
-        let mut newPositions: Value = self.watch(url.as_str(), messageHash.as_str(), Value::Null, subscriptionHash.as_str(), Value::Map(subscription)).await;
+        let newPositions: Value = self.watch(url.as_str(), messageHash.as_str(), Value::Null, subscriptionHash.as_str(), Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1773,13 +1774,13 @@ impl Bingx {
 
     pub fn set_positions_cache(&mut self, mut client: Value, type_var: &str, optional_args: &[Value]) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols = get_arg(optional_args, 0, Value::Null);
         if (self.positions.is_some()) {
             return;
         }
-        let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
+        let fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         if (fetchPositionsSnapshot == Some(true)) {
-            let mut messageHash: String = format!("{}{}", Value::from(type_var), ":fetchPositionsSnapshot");
+            let messageHash: String = format!("{}{}", Value::from(type_var), ":fetchPositionsSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
                 self.spawn(&[Value::Str("load_positions_snapshot".into()), client, Value::from(messageHash), Value::from(type_var)]);
@@ -1802,8 +1803,8 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { i += 1; } __for_first_92 = false; i < (positions.len() as i64) } {
-            let mut position: Option<&crate::types::Position> = positions.get(i as usize);
-            let mut contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[Value::Int(0)]).as_f64();
+            let position: Option<&crate::types::Position> = positions.get(i as usize);
+            let contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[Value::Int(0)]).as_f64();
             if (contracts.is_some()) && (contracts > Some(0.0)) {
                 self.positions.append(position);
             }
@@ -1831,9 +1832,9 @@ impl Bingx {
         //         "ps": "LONG"          // Position Side
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(&position, "s", &[]);
-        let mut contracts: Option<String> = self.safe_string_k_opt(&position, "pa", &[]);
-        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts).as_str().map(str::to_owned);
+        let marketId: Option<String> = self.safe_string_k_opt(&position, "s", &[]);
+        let contracts: Option<String> = self.safe_string_k_opt(&position, "pa", &[]);
+        let contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&contracts).as_str().map(str::to_owned);
         let mut positionSide: Option<String> = self.safe_string_lower_k_opt(&position, "ps", &[]);
         let mut hedged: bool = true;
         if (positionSide.as_deref() == Some("both")) {
@@ -1846,8 +1847,8 @@ impl Bingx {
                 }
             }
         }
-        let mut marginMode: Option<String> = self.safe_string_k_opt(&position, "mt", &[]);
-        let mut collateral: Option<f64> = (if (marginMode.as_deref() == Some("isolated")) { self.safe_number_k(&position, "iw", &[]).as_f64() } else { None });
+        let marginMode: Option<String> = self.safe_string_k_opt(&position, "mt", &[]);
+        let collateral: Option<f64> = (if (marginMode.as_deref() == Some("isolated")) { self.safe_number_k(&position, "iw", &[]).as_f64() } else { None });
         return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Null);
@@ -1911,35 +1912,35 @@ impl Bingx {
         if !(data.contains_key("P")) {
             return;
         }
-        let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
+        let rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_93: bool = true;
             while { if !__for_first_93 { i += 1; } __for_first_93 = false; i < (rawPositions.len() as i64) } {
-            let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None);
-            let mut symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
+            let symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
             }
-            let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+            let timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(timestamp));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::Dict(position));
         }
         }
-        let mut messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("swap:positions::".into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("swap:positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_94: bool = true;
             while { if !__for_first_94 { i += 1; } __for_first_94 = false; i < (messageHashes.len() as i64) } {
-            let mut messageHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut parts: Vec<Value> = Value::Array(messageHash.split("::").map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-            let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let mut filteredSymbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &filteredSymbols, &[Value::Bool(false)]).into_list();
+            let messageHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let parts: Vec<Value> = Value::Array(messageHash.split("::").map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+            let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
+            let filteredSymbols: crate::value::List = crate::value::List::new(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
+            let positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &filteredSymbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_str());
             }
@@ -1960,10 +1961,10 @@ impl Bingx {
         //     "msg": '',
         //     "timestamp": 1696245842307
         // }
-        let mut code: Option<String> = (match __pro_message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let code: Option<String> = (match __pro_message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code.is_some()) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
                 self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, Value::from(feedback));
             }
          #[allow(unreachable_code)] { Value::Null }}));
@@ -1976,8 +1977,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         let mut listenKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
@@ -1992,24 +1993,24 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             })]).await; // extend the expiry
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
-            let mut types: crate::value::List = std::sync::Arc::new(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
+            let types: crate::value::List = std::sync::Arc::new(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_96: bool = true;
                 while { if !__for_first_96 { i += 1; } __for_first_96 = false; i < (types.len() as i64) } {
-                let mut type_var: Option<&str> = types.get(i as usize).and_then(Value::as_str);
-                let mut baseUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]);
+                let type_var: Option<&str> = types.get(i as usize).and_then(Value::as_str);
+                let baseUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]);
                 if (baseUrl.is_none()) {
                     continue;
                 }
-                let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), listenKey.as_deref().unwrap_or("null"));
+                let url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "?listenKey=").into()), listenKey.as_deref().unwrap_or("null"));
                 let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
-                let mut messageHashes: Vec<Value> = client.future_keys();
+                let messageHashes: Vec<Value> = client.future_keys();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_95: bool = true;
                     while { if !__for_first_95 { j += 1; } __for_first_95 = false; j < (messageHashes.len() as i64) } {
-                    let mut messageHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let messageHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                     client.reject(error.clone(), messageHash.as_deref());
                 }
                 }
@@ -2020,20 +2021,20 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             return Value::Null;
         }
         // whether or not to schedule another listenKey keepAlive request
-        let mut listenKeyRefreshRate: i64 = self.safe_integer_k(&self.options, "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
+        let listenKeyRefreshRate: i64 = self.safe_integer_k(&self.options, "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
         self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()), params]).await;
 
     Value::Null
 }
 
     pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
-        let mut time: i64 = self.milliseconds();
-        let mut lastAuthenticatedTime: i64 = self.safe_integer_k(&self.options, "lastAuthenticatedTime", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut listenKeyRefreshRate: i64 = self.safe_integer_k(&self.options, "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000); // 1 hour
+        let time: i64 = self.milliseconds();
+        let lastAuthenticatedTime: i64 = self.safe_integer_k(&self.options, "lastAuthenticatedTime", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let listenKeyRefreshRate: i64 = self.safe_integer_k(&self.options, "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000); // 1 hour
         if (true) && (((time - lastAuthenticatedTime)) > listenKeyRefreshRate) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
@@ -2042,7 +2043,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             // the registry: client.future () is the atomic check-and-insert
             // and client.resolve () / client.reject () settle and remove the
             // entry under the same lock in every port
-            let mut messageHash: String = "authenticate".to_string();
+            let messageHash: String = "authenticate".to_string();
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
@@ -2053,10 +2054,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             // reusableFuture (), not future () - the two match in
             // js/py/php/cs/java, but go's Client.Future () yields a channel
             // that the trailing suspension point below would panic on
-            let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
+            let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut response: crate::value::Dict = self.parent.user_auth_private_post_user_data_stream(&[]).await.unwrap_or_default();
-                let mut listenKey: Option<String> = self.safe_string_k_opt(&response, "listenKey", &[]);
+                let response: crate::value::Dict = self.parent.user_auth_private_post_user_data_stream(&[]).await.unwrap_or_default();
+                let listenKey: Option<String> = self.safe_string_k_opt(&response, "listenKey", &[]);
                 if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " authenticate() received an empty listenKey")));
                 }
@@ -2084,8 +2085,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (message.as_str() == Some("Ping")) {
                 client.send(&[Value::Str("Pong".into())]);
             }  else {
-                let mut ping: Option<String> = self.safe_string_k_opt(&message, "ping", &[]);
-                let mut time: Option<String> = self.safe_string_k_opt(message, "time", &[]);
+                let ping: Option<String> = self.safe_string_k_opt(&message, "ping", &[]);
+                let time: Option<String> = self.safe_string_k_opt(message, "time", &[]);
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("pong".to_string(), ping.map(Value::from).unwrap_or(Value::Null));
@@ -2095,7 +2096,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
-            let mut error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " pong failed with error ").into()), self.exception_message(e, &[]))));
+            let error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " pong failed with error ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
 
@@ -2188,26 +2189,26 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        }
         //    }
         //
-        let mut isSpot: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("dataType"));
-        let mut data: crate::value::Dict = self.safe_dict2_t(&message, Value::Str("data".into()), Value::Str("o".into()));
+        let isSpot: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("dataType"));
+        let data: crate::value::Dict = self.safe_dict2_t(&message, Value::Str("data".into()), Value::Str("o".into()));
         if (self.orders.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut parsedOrder: crate::value::Dict = self.parse_order(Value::Dict(data), None);
         if !isSpot {
             // The envelope T is the order update time; o.T is the trade time.
-            let mut updateTimestamp: Option<i64> = (match __pro_message.get("T") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
+            let updateTimestamp: Option<i64> = (match __pro_message.get("T") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
             if (updateTimestamp.is_some()) && (updateTimestamp > Some(0)) {
-                let mut orderId: Option<String> = self.safe_string_k_opt(&parsedOrder, "id", &[]);
+                let orderId: Option<String> = self.safe_string_k_opt(&parsedOrder, "id", &[]);
                 if (orderId.is_some()) {
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_97: bool = true;
                         while { if !__for_first_97 { i += 1; } __for_first_97 = false; (i as f64) < Value::Int(CacheSlot::size(&self.orders)).as_f64().unwrap_or(f64::NAN) } {
-                        let mut previousOrder: Value = get_value(&Value::from(&self.orders), &Value::Int(i));
+                        let previousOrder: Value = get_value(&Value::from(&self.orders), &Value::Int(i));
                         if ((orderId.as_deref() == self.safe_string_k(&previousOrder, "id", &[]).as_str())) && (self.safe_string_k(&previousOrder, "symbol", &[]).as_str() == self.safe_string_k(&parsedOrder, "symbol", &[]).as_str()) {
-                            let mut previousTimestamp: Option<i64> = self.safe_integer_k(&previousOrder, "lastUpdateTimestamp", &[]).as_i64();
+                            let previousTimestamp: Option<i64> = self.safe_integer_k(&previousOrder, "lastUpdateTimestamp", &[]).as_i64();
                             if (previousTimestamp.is_some()) && ((updateTimestamp.is_some() && previousTimestamp.is_some() && updateTimestamp < previousTimestamp)) {
                                 return;
                             }
@@ -2220,9 +2221,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         self.orders.append(Value::from(&parsedOrder));
-        let mut symbol: String = self.safe_string_k(&parsedOrder, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut spotHash: String = "spot:order".to_string();
-        let mut swapHash: String = "swap:order".to_string();
+        let symbol: String = self.safe_string_k(&parsedOrder, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let spotHash: String = "spot:order".to_string();
+        let swapHash: String = "swap:order".to_string();
         let mut messageHash: String = swapHash;
         if isSpot {
             messageHash = spotHash;
@@ -2288,22 +2289,22 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        }
         //    }
         //
-        let mut isSpot: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("dataType"));
-        let mut result: crate::value::Dict = self.safe_dict2_t(message, Value::Str("data".into()), Value::Str("o".into()));
+        let isSpot: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("dataType"));
+        let result: crate::value::Dict = self.safe_dict2_t(message, Value::Str("data".into()), Value::Str("o".into()));
         if (self.myTrades.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut type_var: String = "swap".to_string();
         if isSpot {
             type_var = "spot".to_string();
         }
-        let mut marketId: Option<String> = self.safe_string_k_opt(&result, "s", &[]);
-        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into()), Value::from(type_var)]);
-        let mut parsed: crate::value::Dict = self.parse_trade(Value::Dict(result), Some(&market));
-        let mut symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut spotHash: String = "spot:mytrades".to_string();
-        let mut swapHash: String = "swap:mytrades".to_string();
+        let marketId: Option<String> = self.safe_string_k_opt(&result, "s", &[]);
+        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into()), Value::from(type_var)]);
+        let parsed: crate::value::Dict = self.parse_trade(Value::Dict(result), Some(&market));
+        let symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let spotHash: String = "spot:mytrades".to_string();
+        let swapHash: String = "swap:mytrades".to_string();
         let mut messageHash: String = swapHash;
         if isSpot {
             messageHash = spotHash;
@@ -2353,18 +2354,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut a: crate::value::Dict = __pro_message.key_dict("a");
-        let mut data: crate::value::List = self.safe_list_k_t(&a, "B");
-        let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
-        let mut spotUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot", &[]);
-        let mut isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
+        let a: crate::value::Dict = __pro_message.key_dict("a");
+        let data: crate::value::List = self.safe_list_k_t(&a, "B");
+        let timestamp: Option<i64> = self.safe_integer2(message, Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
+        let spotUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot", &[]);
+        let isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
         let mut type_var: String = "swap".to_string();
         if isSpot {
             type_var = "spot".to_string();
         }
         if !(self.balance.contains_key(type_var.as_str())) {
             { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 })); }
         }
@@ -2375,9 +2376,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_98: bool = true;
             while { if !__for_first_98 { i += 1; } __for_first_98 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::Int(i)).into_dict();
-            let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "a", &[]);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
+            let balance: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::Int(i)).into_dict();
+            let currencyId: Option<String> = self.safe_string_k_opt(&balance, "a", &[]);
+            let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("info".into(), Value::from(&balance));
             account.insert("used".into(), self.safe_string_k(&balance, "lk", &[]));
@@ -2409,7 +2410,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.spawn(&[Value::Str("pong".into()), client, message]);
             return;
         }
-        let mut dataType: String = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+        let dataType: String = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if dataType.contains("@depth") {
             self.handle_order_book(client.clone(), message.clone());
             return;
@@ -2427,28 +2428,28 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if dataType.contains("executionReport") {
-            let mut data: crate::value::Dict = __pro_message.key_dict("data");
-            let mut type_var: Option<String> = self.safe_string_k_opt(&data, "x", &[]);
+            let data: crate::value::Dict = __pro_message.key_dict("data");
+            let type_var: Option<String> = self.safe_string_k_opt(&data, "x", &[]);
             if (type_var.as_deref() == Some("TRADE")) {
                 self.handle_my_trades(&client, message.clone());
             }
             self.handle_order(&client, message.clone());
             return;
         }
-        let mut e: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let e: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (e.as_deref() == Some("ACCOUNT_UPDATE")) {
             self.handle_balance(&client, message.clone());
             self.handle_positions(&client, message.clone());
         }
         if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) {
             self.handle_order(&client, message.clone());
-            let mut data: crate::value::Dict = __pro_message.key_dict("o");
-            let mut type_var: Option<String> = self.safe_string_k_opt(&data, "x", &[]);
-            let mut status: Option<String> = self.safe_string_k_opt(&data, "X", &[]);
+            let data: crate::value::Dict = __pro_message.key_dict("o");
+            let type_var: Option<String> = self.safe_string_k_opt(&data, "x", &[]);
+            let status: Option<String> = self.safe_string_k_opt(&data, "X", &[]);
             let mut isExecution: bool = status.as_deref() == Some("FILLED");
             if (type_var.as_deref() == Some("TRADE")) && (status.as_deref() == Some("PARTIALLY_FILLED")) {
-                let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
-                let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into()), Value::Str("swap".into())]);
+                let marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
+                let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into()), Value::Str("swap".into())]);
                 // parseTrade gates its `l`/`L` last-fill preference on the same
                 // `market['linear'] === true`, so an unresolved market id must be skipped here:
                 // delivering it would report the order aggregate `q`/`p` as a single fill.
@@ -2458,8 +2459,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.handle_my_trades(&client, message.clone());
             }
         }
-        let mut msgData: crate::value::Dict = __pro_message.key_dict("data");
-        let mut msgEvent: Option<String> = self.safe_string_k_opt(&msgData, "e", &[]);
+        let msgData: crate::value::Dict = __pro_message.key_dict("data");
+        let msgEvent: Option<String> = self.safe_string_k_opt(&msgData, "e", &[]);
         if (msgEvent.as_deref() == Some("24hTicker")) {
             self.handle_ticker(&client, &message);
         }
@@ -2480,10 +2481,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "timestamp": 1759225965363
         //     }
         //
-        let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-        let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
-        let mut isUnSubMessage: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
+        let id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
+        let subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
+        let isUnSubMessage: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if isUnSubMessage {
             self.handle_un_subscription(client, Value::Dict(subscription));
         }
@@ -2495,14 +2496,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_un_subscription(&mut self, client: &Value, mut subscription: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = subscription.as_map().unwrap_or(&__pro_message_empty);
-        let mut messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
-        let mut subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
+        let messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
         {
                         let mut i: i64 = 0;
             let mut __for_first_99: bool = true;
             while { if !__for_first_99 { i += 1; } __for_first_99 = false; i < (messageHashes.len() as i64) } {
-            let mut unsubHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut subHash: String = self.safe_string(&subMessageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let unsubHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let subHash: String = self.safe_string(&subMessageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             self.clean_unsubscription(client, Value::from(subHash), Value::from(unsubHash), &[]);
         }
         }

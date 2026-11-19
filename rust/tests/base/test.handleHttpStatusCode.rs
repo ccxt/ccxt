@@ -90,15 +90,15 @@ if _try_result.is_err() {
     // dispatch composition: the base handleErrors stub returns undefined, so an
     // error envelope on an uncovered status passes both steps without a throw —
     // a derived handleErrors that wants to surface it must throw on its own
-    let mut skip: Value = exchange.handle_errors(Value::Int(406), Value::Str("Not Acceptable".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Map({
-        let mut m = indexmap::IndexMap::new();
+    let skip: Value = exchange.handle_errors(Value::Int(406), Value::Str("Not Acceptable".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Map({
+        let m = indexmap::IndexMap::new();
         m
     }), Value::Str("{\"success\":false}".into()), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("success".to_string(), Value::Bool(false));
         m
     }), Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }), Value::Str("".into()));
     assert!(ccxt::runtime::is_true(&((skip == Value::Null))));

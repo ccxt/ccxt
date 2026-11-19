@@ -112,11 +112,11 @@ impl Binanceusdm {
         m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
         m.insert("leverageBrackets".to_string(), Value::Null);
         m.insert("marginTypes".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         m.insert("marginModes".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
     m
@@ -139,8 +139,8 @@ impl Binanceusdm {
 }
 
     pub async fn transfer_in(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         return self.futures_transfer(code, amount, Value::Int(1), &[params]).await;
@@ -149,8 +149,8 @@ impl Binanceusdm {
 }
 
     pub async fn transfer_out(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = indexmap::IndexMap::new();
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
     m
 }));
         return self.futures_transfer(code, amount, Value::Int(2), &[params]).await;

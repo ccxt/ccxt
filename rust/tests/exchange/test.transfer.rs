@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testTransfer(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut requestedCode: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("id".to_string(), Value::Str("1234".into()));
@@ -26,7 +26,7 @@ pub fn testTransfer(mut exchange: Value, mut skippedProperties: Value, mut metho
             m.insert("status".to_string(), Value::Str("ok".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fromAccount".into()), Value::Str("toAccount".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("fromAccount".into()), Value::Str("toAccount".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Int(exchange.milliseconds()).clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);

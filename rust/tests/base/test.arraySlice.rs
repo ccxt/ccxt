@@ -14,7 +14,7 @@ pub fn testArraySlice() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut arr: Value = Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
+    let arr: Value = Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
     // the second argument is the end index (exclusive), not a length
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testArraySlice".into()), Value::Arr(exchange.array_slice(arr.clone(), Value::Int(0), &[Value::Int(2)])).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into())])]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testArraySlice".into()), Value::Arr(exchange.array_slice(arr.clone(), Value::Int(2), &[Value::Int(4)])).clone(), Value::from(vec![Value::Str("c".into()), Value::Str("d".into())])]);

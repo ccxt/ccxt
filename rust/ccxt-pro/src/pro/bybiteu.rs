@@ -82,9 +82,9 @@ impl Bybiteu {
     pub fn describe(&self) -> Value {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::bybiteu::Bybiteu::new(None);
-        let mut restDescribe: Value = restInstance.describe();
-        let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
+        let restDescribe: Value = restInstance.describe();
+        let parentWsDescribe: Value = self.parent.describe_data();
+        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
         return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bybiteu".into()));

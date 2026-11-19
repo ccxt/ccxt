@@ -17,7 +17,7 @@ pub async fn testFetchHistoryBase() -> Value {
         m
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".into())), &Value::Int(2))))));
-    let mut trueAssertion: Value = Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null);
+    let trueAssertion: Value = Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null);
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample1".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;

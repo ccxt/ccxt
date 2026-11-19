@@ -16,23 +16,23 @@ fn helperTestInitThrottler() {
         m
     }));
     // todo: assert!(ccxt::runtime::is_true(&(exchange.MAX_VALUE !== undefined)));
-    let mut tokenBucket: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("tokenBucket".into())); // trick for uncamelcase transpilation
+    let tokenBucket: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("tokenBucket".into())); // trick for uncamelcase transpilation
     assert!(ccxt::runtime::is_true(&(Value::Bool(tokenBucket != Value::Null))));
-    let mut rateLimit: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".into()));
+    let rateLimit: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimit".into()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&rateLimit, &Value::Float(10.8))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("delay".into())), &Value::Float(0.001))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".into())), &(match (&(Value::Int(1)), &(rateLimit)) { (__a, __b) => match (__a.as_f64(), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
         Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) if __y != 0.0 => Value::Float(__x / __y), _ => Value::Null } }))))));
     // fix decimal/integer issues across langs
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".into())), Value::from(vec![Value::Int(1), Value::Int(1)]))))));
-    let mut cost: Value = exchange.parse_to_numeric(exchange.safe_string2(&tokenBucket, Value::Str("cost".into()), Value::Str("defaultCost".into()), &[])); // python sync, todo fix
+    let cost: Value = exchange.parse_to_numeric(exchange.safe_string2(&tokenBucket, Value::Str("cost".into()), Value::Str("defaultCost".into()), &[])); // python sync, todo fix
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(cost, Value::from(vec![Value::Int(1), Value::Int(1)]))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&tokenBucket, &Value::Str("maxCapacity".into())))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".into())), Value::from(vec![Value::Int(1000), Value::Int(1000)])))))));
 }
 fn helperTestSandboxState(mut exchange: ccxt::exchange::Exchange, mut expectEnabled: Value) {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("urls".into())) != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&exchange.prop(&&Value::Str("urls".into())), &Value::Str("test".into()))))));
-    let mut isSandboxModeEnabled: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("isSandboxModeEnabled".into()));
+    let isSandboxModeEnabled: Value = crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("isSandboxModeEnabled".into()));
     if expectEnabled.as_bool() == Some(true) {
         assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&isSandboxModeEnabled, &Value::Bool(true))))));
         assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&exchange.prop(&&Value::Str("urls".into())), &Value::Str("api".into())), &Value::Str("public".into())).as_str() == Some("https://testnet.org")))));
@@ -97,7 +97,7 @@ fn helperTestInitSandbox() {
 }
 fn helperTestInitMarket() {
     // ############# markets ############# //
-    let mut sampleMarket: indexmap::IndexMap<String, Value> = ({
+    let sampleMarket: indexmap::IndexMap<String, Value> = ({
         let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("BtcUsd".into()));
             m.insert("symbol".to_string(), Value::Str("BTC/USD".into()));
@@ -123,7 +123,7 @@ fn helperTestInitMarket() {
 }
 fn helperTestProperties() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }));
     //
@@ -135,8 +135,8 @@ fn helperTestProperties() {
                 let mut i: i64 = 0;
         let mut __for_first_1539: bool = true;
         while { if !__for_first_1539 { i += 1; } __for_first_1539 = false; i < (keys.len() as i64) } {
-        let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-        let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
+        let key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+        let userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(userAgent != Value::Null))));
     }
     }
@@ -156,7 +156,7 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("privateKey".into())) == Value::Null) || (crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("privateKey".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("walletAddress".into())) == Value::Null) || (crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("walletAddress".into())).as_str() == Some(""))))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("token".into())) == Value::Null))));
-    let mut requiredCredentials: Value = Value::Map({
+    let requiredCredentials: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("apiKey".to_string(), Value::Bool(true));
             m.insert("secret".to_string(), Value::Bool(true));
@@ -171,7 +171,7 @@ fn helperTestProperties() {
         m
     });
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("requiredCredentials".into()), crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("requiredCredentials".into())).clone(), requiredCredentials.clone()]);
     //
@@ -231,12 +231,12 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("certified".into())))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("pro".into())))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.prop(&&Value::Str("alias".into())))))));
-    let mut httpExceptionKeys: Value = Value::from(vec![Value::Str("400".into()), Value::Str("401".into()), Value::Str("403".into()), Value::Str("404".into()), Value::Str("405".into()), Value::Str("407".into()), Value::Str("408".into()), Value::Str("409".into()), Value::Str("410".into()), Value::Str("418".into()), Value::Str("422".into()),
+    let httpExceptionKeys: Value = Value::from(vec![Value::Str("400".into()), Value::Str("401".into()), Value::Str("403".into()), Value::Str("404".into()), Value::Str("405".into()), Value::Str("407".into()), Value::Str("408".into()), Value::Str("409".into()), Value::Str("410".into()), Value::Str("418".into()), Value::Str("422".into()),
         Value::Str("429".into()), Value::Str("451".into()), Value::Str("500".into()), Value::Str("501".into()), Value::Str("502".into()), Value::Str("503".into()), Value::Str("504".into()), Value::Str("511".into()), Value::Str("520".into()), Value::Str("521".into()), Value::Str("522".into()), Value::Str("525".into()), Value::Str("526".into()), Value::Str("530".into())]);
     // php errors with below, bcz integer key cast
     // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
     assert!(ccxt::runtime::is_true(&((Value::Int((object_keys(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpExceptions".into())))).len() as i64).as_f64() == Value::Int(httpExceptionKeys.len() as i64).as_f64()))));
-    let mut limits: Value = Value::Map({
+    let limits: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -265,12 +265,12 @@ fn helperTestProperties() {
         m
     });
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("limits".into()), exchange.prop(&&Value::Str("limits".into())).clone(), limits.clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rollingWindowSize".into())), &Value::Int(60000))))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("countries".into())) == Value::Null))));
-    let mut urls: Value = Value::Map({
+    let urls: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("logo".to_string(), Value::Null);
             m.insert("api".to_string(), Value::Null);
@@ -283,7 +283,7 @@ fn helperTestProperties() {
         m
     });
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("urls".into()), exchange.prop(&&Value::Str("urls".into())).clone(), urls.clone()]);
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("precision".into())) == Value::Null))));
@@ -291,10 +291,10 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("precisionMode".into())) == Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("precisionMode".into())), &Value::Int(4))))));
     assert!(ccxt::runtime::is_true(&(((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("paddingMode".into())) == Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("paddingMode".into())), &Value::Int(5))))));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("headers".into()), exchange.prop(&&Value::Str("headers".into())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone()]);
     // assert!(ccxt::runtime::is_true(&(exchange.origin === '*')));
@@ -302,7 +302,7 @@ fn helperTestProperties() {
     // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'quoteJsonNumbers') === true)));
     // assert!(ccxt::runtime::is_true(&(testSharedMethods.exchangeProp (exchange, 'handleContentTypeApplicationZip') === false)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("reduceFees".into())), &Value::Bool(true))))));
-    let mut fees: Value = Value::Map({
+    let fees: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("trading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -317,11 +317,11 @@ fn helperTestProperties() {
         m.insert("tierBased".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
     m
@@ -329,10 +329,10 @@ fn helperTestProperties() {
         m
     });
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("fees".into()), exchange.prop(&&Value::Str("fees".into())).clone(), fees.clone()]);
-    let mut status: Value = Value::Map({
+    let status: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("status".to_string(), Value::Str("ok".into()));
             m.insert("updated".to_string(), Value::Null);
@@ -342,7 +342,7 @@ fn helperTestProperties() {
         m
     });
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("status".into()), exchange.prop(&&Value::Str("status".into())).clone(), status.clone()]);
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("timeout".into())).as_f64() == Some(10000.0)))));
@@ -362,34 +362,34 @@ fn helperTestProperties() {
     //
     // todo: remove initialization from GO
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("balance".into()), exchange.prop(&&Value::Str("balance".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("bidsasks".into()), exchange.prop(&&Value::Str("bidsasks".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("orderbooks".into()), exchange.prop(&&Value::Str("orderbooks".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("tickers".into()), exchange.prop(&&Value::Str("tickers".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("liquidations".into())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myLiquidations".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("orders".into())), &Value::Null)))));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("trades".into()), exchange.prop(&&Value::Str("trades".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("transactions".into()), exchange.prop(&&Value::Str("transactions".into())).clone(), exchange.create_safe_dictionary(&[]).clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("ohlcvs".into()), exchange.prop(&&Value::Str("ohlcvs".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myTrades".into())) == Value::Null))));
@@ -402,10 +402,10 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("markets_by_id".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("ids".into())) == Value::Null))));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("currencies".into()), exchange.prop(&&Value::Str("currencies".into())).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone()]);
     assert!(ccxt::runtime::is_true(&((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("baseCurrencies".into())) == Value::Null))));
@@ -416,7 +416,7 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&((crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("accountsById".into())) == Value::Null))));
     // @SKIP_END_GO
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone(), Value::Str("commonCurrencies".into()), crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("commonCurrencies".into())).clone(), Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -425,7 +425,7 @@ fn helperTestProperties() {
         m
     }).clone()]);
     // fetch history
-    let mut fetchHistoryCache: Value = exchange.get_fetch_cache();
+    let fetchHistoryCache: Value = exchange.get_fetch_cache();
     assert!(ccxt::runtime::is_true(&((Value::Int(fetchHistoryCache.len() as i64).as_f64() == Some(0.0)))));
 }
 pub fn testAfterConstructor() {

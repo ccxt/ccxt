@@ -18,10 +18,10 @@ pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut met
             m
         }), &[skippedProperties.clone()]);
     }
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
@@ -29,7 +29,7 @@ pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut met
             m.insert("taker".to_string(), exchange.parse_number(Value::Str("0.003".into()), &[]));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("tierBased".into()), Value::Str("percentage".into()), Value::Str("symbol".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("tierBased".into()), Value::Str("percentage".into()), Value::Str("symbol".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("symbol".into()), symbol.clone()]);
 }

@@ -20,10 +20,10 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m
         }), &[skippedProperties.clone()]);
     }
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("id".to_string(), Value::Str("12345-67890:09876/54321".into()));
@@ -47,7 +47,7 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     });
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fees".into()), Value::Str("fee".into()), Value::Str("symbol".into()), Value::Str("order".into()), Value::Str("id".into()), Value::Str("takerOrMaker".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("fees".into()), Value::Str("fee".into()), Value::Str("symbol".into()), Value::Str("order".into()), Value::Str("id".into()), Value::Str("takerOrMaker".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol.clone()]);

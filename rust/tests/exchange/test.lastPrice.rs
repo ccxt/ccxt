@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testLastPrice(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
@@ -23,7 +23,7 @@ pub fn testLastPrice(mut exchange: Value, mut skippedProperties: Value, mut meth
             m.insert("side".to_string(), Value::Str("buy".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("side".into()), Value::Str("price".into())]); // binance sometimes provides empty prices for old pairs
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("side".into()), Value::Str("price".into())]); // binance sometimes provides empty prices for old pairs
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     //

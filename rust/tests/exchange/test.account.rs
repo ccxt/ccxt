@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testAccount(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("code".to_string(), Value::Str("BTC".into()));
@@ -21,7 +21,7 @@ pub fn testAccount(mut exchange: Value, mut skippedProperties: Value, mut method
             m.insert("id".to_string(), Value::Str("12345".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("code".into()), Value::Str("id".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("code".into()), Value::Str("id".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
 }

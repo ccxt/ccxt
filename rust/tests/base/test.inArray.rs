@@ -14,7 +14,7 @@ pub fn testInArray() {
             m.insert("id".to_string(), Value::Str("regirock".into()));
         m
     }));
-    let mut array: Value = Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
+    let array: Value = Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(1), array.clone())))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(2), array.clone())))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(3), array.clone())))));

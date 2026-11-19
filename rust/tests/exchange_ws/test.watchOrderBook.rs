@@ -10,20 +10,20 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOrderBook(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchOrderBook".into());
+    let method: Value = Value::Str("watchOrderBook".into());
     // `watchOrderBook` only resolves when the exchange pushes an update, and a
     // pending subscription can not be cancelled from here, so every extra
     // iteration risks blocking until the test-runner kills the whole exchange.
     // a validated book is already a pass, so keep sampling only while updates
     // keep arriving quickly and stop once the book goes quiet.
-    let mut maxIdleTime: i64 = 5000;
+    let maxIdleTime: i64 = 5000;
     let mut now: i64 = exchange.milliseconds();
-    let mut ends: i64 = (now + 15000);
+    let ends: i64 = (now + 15000);
     let mut idle: bool = false;
     while (now < ends) && !idle {
         let mut response: Value = Value::Null;
         let mut success: bool = true;
-        let mut startTime: i64 = exchange.milliseconds();
+        let startTime: i64 = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_order_book", vec![symbol.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -38,7 +38,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         now = exchange.milliseconds();
         if success && (response != Value::Null) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response, symbol.clone());
-            let mut elapsed: i64 = (now - startTime);
+            let elapsed: i64 = (now - startTime);
             if elapsed > maxIdleTime {
                 // this market updates slower than the remaining test window, so
                 // awaiting another delta would only end in a harness timeout

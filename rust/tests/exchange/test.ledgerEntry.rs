@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut requestedCode: Value, mut now: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("id".to_string(), Value::Str("x1234".into()));
@@ -26,7 +26,7 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
             m.insert("before".to_string(), exchange.parse_number(Value::Str("111".into()), &[]));
             m.insert("after".to_string(), exchange.parse_number(Value::Str("133".into()), &[]));
             m.insert("fee".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("direction".to_string(), Value::Str("in".into()));
@@ -35,7 +35,7 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
             m.insert("type".to_string(), Value::Str("deposit".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("referenceId".into()), Value::Str("referenceAccount".into()), Value::Str("id".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("referenceId".into()), Value::Str("referenceAccount".into()), Value::Str("id".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);

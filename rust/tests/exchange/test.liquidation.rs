@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("symbol".to_string(), Value::Str("ETH/BTC".into()));
@@ -27,19 +27,19 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
         m
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("quoteValue".into()), Value::Str("baseValue".into()), Value::Str("previousClose".into()), Value::Str("price".into()), Value::Str("contractSize".into()), Value::Str("contracts".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("quoteValue".into()), Value::Str("baseValue".into()), Value::Str("previousClose".into()), Value::Str("price".into()), Value::Str("contractSize".into()), Value::Str("contracts".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
-    let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
+    let logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()), Value::Str("0".into())]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".into()), Value::Str("0".into())]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".into()), Value::Str("0".into())]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("baseValue".into()), Value::Str("0".into())]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("quoteValue".into()), Value::Str("0".into())]);
-    let mut contracts: Value = exchange.safe_string(&entry, Value::Str("contracts".into()), &[]);
-    let mut contractSize: Value = exchange.safe_string(&entry, Value::Str("contractSize".into()), &[]);
-    let mut price: Value = exchange.safe_string(&entry, Value::Str("price".into()), &[]);
-    let mut baseValue: Value = exchange.safe_string(&entry, Value::Str("baseValue".into()), &[]);
+    let contracts: Value = exchange.safe_string(&entry, Value::Str("contracts".into()), &[]);
+    let contractSize: Value = exchange.safe_string(&entry, Value::Str("contractSize".into()), &[]);
+    let price: Value = exchange.safe_string(&entry, Value::Str("price".into()), &[]);
+    let baseValue: Value = exchange.safe_string(&entry, Value::Str("baseValue".into()), &[]);
     if (contracts != Value::Null) && (contracts.as_str() != Some("")) && (contractSize != Value::Null) && (contractSize.as_str() != Some("")) {
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
         if (price != Value::Null) && (price.as_str() != Some("")) {

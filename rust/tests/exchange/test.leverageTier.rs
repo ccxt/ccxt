@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testLeverageTier(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("tier".to_string(), exchange.parse_number(Value::Str("1".into()), &[]));
             m.insert("minNotional".to_string(), exchange.parse_number(Value::Str("0".into()), &[]));
@@ -18,12 +18,12 @@ pub fn testLeverageTier(mut exchange: Value, mut skippedProperties: Value, mut m
             m.insert("maintenanceMarginRate".to_string(), exchange.parse_number(Value::Str("0.01".into()), &[]));
             m.insert("maxLeverage".to_string(), exchange.parse_number(Value::Str("25".into()), &[]));
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("maintenanceMarginRate".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("maintenanceMarginRate".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     //
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("tier".into()), Value::Str("0".into())]);

@@ -10,18 +10,18 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
-    let mut method: Value = Value::Str("watchOrderBookForSymbols".into());
+    let method: Value = Value::Str("watchOrderBookForSymbols".into());
     // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
     // loop has to be bounded by the deadline alone. waiting for every requested
     // symbol to be seen would hang forever whenever one of them stays idle.
-    let mut maxIdleTime: i64 = 5000;
+    let maxIdleTime: i64 = 5000;
     let mut currentTime: i64 = exchange.milliseconds();
-    let mut deadline: i64 = (currentTime + 15000);
+    let deadline: i64 = (currentTime + 15000);
     let mut idle: bool = false;
     while (currentTime < deadline) && !idle {
         let mut response: Value = Value::Null;
         let mut succeeded: bool = true;
-        let mut startTime: i64 = exchange.milliseconds();
+        let startTime: i64 = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_order_book_for_symbols", vec![symbols.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -36,7 +36,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if succeeded && (response != Value::Null) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), Value::Null);
             crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response, Value::Str("symbol".into()), symbols.clone()]);
-            let mut elapsed: i64 = (currentTime - startTime);
+            let elapsed: i64 = (currentTime - startTime);
             if elapsed > maxIdleTime {
                 idle = true;
             }

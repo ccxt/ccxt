@@ -15,15 +15,15 @@ pub fn testJson() {
         m
     }));
     // Test: object
-    let mut obj: Value = Value::Map({
+    let obj: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("k".to_string(), Value::Str("v".into()));
         m
     });
-    let mut objJson: Option<String> = exchange.json(obj).as_str().map(str::to_owned);
+    let objJson: Option<String> = exchange.json(obj).as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(Value::Bool(objJson.as_deref() == Some("{\"k\":\"v\"}")))));
     // Test: list
-    let mut list: Value = Value::from(vec![Value::Int(1), Value::Int(2)]);
-    let mut listJson: Option<String> = exchange.json(list).as_str().map(str::to_owned);
+    let list: Value = Value::from(vec![Value::Int(1), Value::Int(2)]);
+    let listJson: Option<String> = exchange.json(list).as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(Value::Bool(listJson.as_deref() == Some("[1,2]")))));
 }

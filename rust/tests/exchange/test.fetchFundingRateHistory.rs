@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchFundingRateHistory(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchFundingRateHistory".into());
-    let mut fundingRatesHistory: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_funding_rate_history", vec![symbol.clone()]).await;
+    let method: Value = Value::Str("fetchFundingRateHistory".into());
+    let fundingRatesHistory: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_funding_rate_history", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), fundingRatesHistory.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;

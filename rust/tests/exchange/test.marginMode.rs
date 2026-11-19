@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testMarginMode(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value) {
-    let mut format: Value = Value::Map({
+    let format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("info".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
+    let m = indexmap::IndexMap::new();
     m
 }));
             m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".into()));
             m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("symbol".into())]);
+    let emptyAllowedFor: Value = Value::from(vec![Value::Str("symbol".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method, entry, format, emptyAllowedFor]);
 }
