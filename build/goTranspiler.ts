@@ -9189,6 +9189,25 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
     return true;
 }
 
+// InOp on map locals that goTypedRecvLocals / goTypedNilFoldLocals / goTypedEndpointNilLocals typed after the container pass ran
+function goLateNativeInOp (content: string): string {
+    return goRewriteEachFunc (content, /\bInOp\(/.test (content), (lines: string[], masked: string[], start: number, end: number) => {
+        const maskedFunc = masked.slice (start, end + 1).join ('\n');
+        const offsets: number[] = [];
+        for (let k = start, o = 0; k <= end; o += masked[k].length + 1, k++) {
+            offsets.push (o);
+        }
+        const declOf = (name: string) => goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines);
+        const typeAt = (name: string, k: number) => {
+            const d = declOf (name);
+            return ((d === undefined) || ((d.index !== undefined) && (d.index >= offsets[k - start]))) ? undefined : d.type;
+        };
+        for (let k = start + 1; k < end; k++) {
+            goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt);
+        }
+    });
+}
+
 // ------------------------------------------------------------------------------------
 // AddElementToObject(m, k, v) -> m[k] = v
 // ------------------------------------------------------------------------------------
@@ -11946,6 +11965,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goTypedRecvLocals (content) : content;  // after every pass keyed on `x := rN.Value`
     content = path.endsWith ('.go') ? goTypedNilFoldLocals (content) : content;
     content = path.endsWith ('.go') ? goTypedEndpointNilLocals (content) : content;
+    content = path.endsWith ('.go') ? goLateNativeInOp (content) : content;  // receivers typed by the three passes above
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
     overwriteFile (path, content);
@@ -12129,6 +12149,12 @@ function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
     ok (out.includes ('\tvar b []any = OrdersToList(r1.Value)\n'), 'ToList fold typed: ' + out);
     ok (out.includes ('\tvar c any = nil\n'), 'untabled fold kept: ' + out);
     ok (out.includes ('\tvar d any = nil\n'), 'fold handed on as a value kept: ' + out);
+}
+
+function goLateNativeInOpCheck (ok: SelfTestOk): void {
+    const f = (body: string) => goLateNativeInOp ('func (this *X) f(k any) any {\n\tvar m map[string]any = nil\n\tr1 := <-this.GAsync()\n\tm = r1.Value\n' + body + '\treturn nil\n}\n');
+    ok (f ('\tif InOp(m, "a") {\n\t}\n').includes ('if _, ok := m["a"]; ok {'), 'late inop: typed receive map, literal key');
+    ok (f ('\tif InOp(m, k) {\n\t}\n').includes ('InOp(m, k)'), 'late inop: any key keeps the helper');
 }
 
 function goTypedRecvLocalsCheck (ok: SelfTestOk): void {
@@ -15611,7 +15637,7 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ],
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
             goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
