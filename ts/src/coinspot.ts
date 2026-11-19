@@ -295,7 +295,7 @@ export default class coinspot extends Exchange {
         const result: Dict = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
-            const rows: Dict[] = this.toArray (balances);
+            const rows: Dict[] = this.safeList2 (response, 'balance', 'balances', []);
             const numRows = rows.length;
             for (let i = 0; i < numRows; i++) {
                 const currencies: Dict = this.safeDict (rows, i, {});
