@@ -1459,7 +1459,7 @@ public class Polymarket extends PolymarketApi
                 String symbol = this.safeString(this.symbols, i, "");
                 Map<String, Object> market = this.market(symbol);
                 String category = this.safeString(market.get("info"), "category");
-                Object entry = this.safeDict(byCategory, category, fallback);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(byCategory, category, fallback);
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "symbol", symbol );

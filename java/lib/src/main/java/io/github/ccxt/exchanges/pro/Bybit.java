@@ -2119,7 +2119,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String marketId = this.safeString(rawLiquidation, "s");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "", "contract");
                 String symbol = (String) market.get("symbol");
-                Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+                Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(rawLiquidation, market);
                 if (java.util.Objects.equals(this.liquidations, null))
                 {
                     Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -2136,7 +2136,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String marketId = this.safeString(rawLiquidation, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "", "contract");
             String symbol = (String) market.get("symbol");
-            Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(rawLiquidation, market);
             if (java.util.Objects.equals(this.liquidations, null))
             {
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);

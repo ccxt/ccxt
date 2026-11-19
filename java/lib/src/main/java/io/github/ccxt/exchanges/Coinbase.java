@@ -2400,11 +2400,15 @@ public class Coinbase extends CoinbaseApi
                 String name = this.safeString(currency, "name");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networks")), code, name.toLowerCase());
+                    Map<String, Object> networksDict1 = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+                    networksDict1.put(code, name.toLowerCase());
+                    this.options.put("networks", networksDict1);
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networksById")), code, name.toLowerCase());
+                    Map<String, Object> networksByIdDict2 = this.safeDict(this.options, "networksById", new HashMap<String, Object>() {{}});
+                    networksByIdDict2.put(code, name.toLowerCase());
+                    this.options.put("networksById", networksByIdDict2);
                 }
                 String type = "fiat";
                 if (!java.util.Objects.equals(assetId, null))

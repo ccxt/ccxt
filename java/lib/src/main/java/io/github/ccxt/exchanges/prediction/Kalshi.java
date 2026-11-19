@@ -1106,8 +1106,8 @@ public class Kalshi extends KalshiApi
             put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "info", interest );
         }}, market);
-        Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol((String) (null), market));
-        Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
+        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol((String) (null), market));
+        ((Map<String, Object>)openInterest).put("outcomeId", this.safeString(market, "outcomeId"));
         ((Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
     }

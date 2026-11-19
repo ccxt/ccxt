@@ -2224,7 +2224,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"))).join();
+            List<Object> response = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"))).join();
             return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -2482,7 +2482,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper("fetchTransfers", code, since, limit, this.omit(parameters, "methodName"))).join();
+            List<Object> response = (this.fetchTransactionsHelper("fetchTransfers", code, since, limit, this.omit(parameters, "methodName"))).join();
             List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
             List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
             List<Object> rows = (List<Object>) this.arrayConcat(transferIn, transferOut);
@@ -2649,7 +2649,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper("fetchWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
+            List<Object> response = (this.fetchTransactionsHelper("fetchWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
             List<Object> rows = this.filterBy(response, "type", "WITHDRAWAL");
             return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2683,7 +2683,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper("fetchDeposits", code, since, limit, this.omit(parameters, "methodName"))).join();
+            List<Object> response = (this.fetchTransactionsHelper("fetchDeposits", code, since, limit, this.omit(parameters, "methodName"))).join();
             List<Object> rows = this.filterBy(response, "type", "DEPOSIT");
             return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -2717,7 +2717,7 @@ public class Dydx extends DydxApi
             {
                 currency = this.currency((String) (code));
             }
-            Object response = (this.fetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
+            List<Object> response = (this.fetchTransactionsHelper("fetchDepositsWithdrawals", code, since, limit, this.omit(parameters, "methodName"))).join();
             List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
             List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
             List<Object> rows = (List<Object>) this.arrayConcat(withdrawals, deposits);
@@ -2726,7 +2726,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchTransactionsHelper(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3066,6 +3066,8 @@ public class Dydx extends DydxApi
         // rewrite testnet parameters
         this.options.put("chainName", "dydx-testnet-4");
         this.options.put("chainId", 11155111);
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("feeDenom")), "CHAINTOKEN_DENOM", "adv4tnt");
+        Map<String, Object> feeDenomDict = this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
+        feeDenomDict.put("CHAINTOKEN_DENOM", "adv4tnt");
+        this.options.put("feeDenom", feeDenomDict);
     }
 }

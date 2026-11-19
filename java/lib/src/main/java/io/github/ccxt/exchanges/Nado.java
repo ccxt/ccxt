@@ -3551,7 +3551,7 @@ public class Nado extends NadoApi
         {
             String paddedLeft = (zeros + value);
             Long start = (((long) paddedLeft.length()) - this.parseToInt(length));
-            return Helpers.slice(paddedLeft, start, paddedLeft.length());
+            return (paddedLeft == null ? null : paddedLeft.substring((int) Math.min(Math.min(Math.max(start < 0 ? paddedLeft.length() + start : start, 0), paddedLeft.length()), paddedLeft.length()), (int) paddedLeft.length()));
         }
         String paddedRight = (value + zeros);
         return Helpers.slice(paddedRight, 0, length);

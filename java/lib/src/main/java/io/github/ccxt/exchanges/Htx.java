@@ -2975,12 +2975,16 @@ public class Htx extends HtxApi
             }
             if (java.util.Objects.equals(constructedId, symbolOrMarketId))
             {
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("futureMarketIdsForSymbols")), symbolOrMarketId, marketSymbol);
+                Map<String, Object> futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+                futureMarketIdsForSymbolsDict1.put(symbolOrMarketId, marketSymbol);
+                this.options.put("futureMarketIdsForSymbols", futureMarketIdsForSymbolsDict1);
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("futureMarketIdsForSymbols")), symbolOrMarketId, symbolOrMarketId);
+        Map<String, Object> futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+        futureMarketIdsForSymbolsDict2.put(symbolOrMarketId, symbolOrMarketId);
+        this.options.put("futureMarketIdsForSymbols", futureMarketIdsForSymbolsDict2);
         return symbolOrMarketId;
     }
 
@@ -4493,7 +4497,9 @@ public class Htx extends HtxApi
             }
             if (!java.util.Objects.equals(uniqueChainId, null))
             {
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkNamesByChainIds")), uniqueChainId, title);
+                Map<String, Object> networkNamesByChainIdsDict3 = this.safeDict(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
+                networkNamesByChainIdsDict3.put(uniqueChainId, title);
+                this.options.put("networkNamesByChainIds", networkNamesByChainIdsDict3);
             }
             String networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))

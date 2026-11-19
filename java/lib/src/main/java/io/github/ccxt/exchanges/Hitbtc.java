@@ -1706,7 +1706,7 @@ public class Hitbtc extends HitbtcApi
         return this.safeTrade(mapLiteral2, marketResolved);
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String types, String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchTransactionsHelper(String types, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1758,7 +1758,7 @@ public class Hitbtc extends HitbtcApi
             //     ]
             //
             return this.parseTransactions(response, currency, since, limit, parameters);
-        });
+        }).thenApply(res -> (List<Object>) res);
 
     }
 
@@ -1891,7 +1891,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1913,7 +1913,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1935,7 +1935,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

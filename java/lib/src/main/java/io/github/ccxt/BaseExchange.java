@@ -5768,7 +5768,7 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v21 -> (List<String>) hx4J40v21; case Object hx4J40v21 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v21.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v20 -> (List<String>) hx4J40v20; case Object hx4J40v20 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v20.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -9172,7 +9172,7 @@ public Map<String, Object> describe()
             Long retryDelayMaxRetriesOnFailureDelay = (Long) ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(0);
             var paramsMaxRetriesOnFailureDelay = ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(1);
             Boolean fetchDataCacheEnabled = (this.fetchHistoryCacheSize > 0);
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, (retriesMaxRetriesOnFailure == null ? null : (Object) (retriesMaxRetriesOnFailure + 1L))); i++)
+            for (var i = 0; ((retriesMaxRetriesOnFailure != null && i <= retriesMaxRetriesOnFailure)); i++)
             {
                 Map<String, Object> fetchData = null;
                 if (Boolean.TRUE.equals(fetchDataCacheEnabled))
@@ -10798,7 +10798,7 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v10 -> hx4J40v10; case Number hx4J40v10 -> Long.valueOf(hx4J40v10.longValue()); case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v10.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
@@ -11402,8 +11402,9 @@ public Map<String, Object> describe()
         Integer numNetworks = networkKeys.size();
         if (java.util.Objects.equals(numNetworks, 1))
         {
-            fee.put("withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "withdraw"));
-            fee.put("deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "deposit"));
+            Map<String, Object> networkFee = this.safeDict(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0)), new HashMap<String, Object>() {{}});
+            fee.put("withdraw", networkFee.get("withdraw"));
+            fee.put("deposit", networkFee.get("deposit"));
             return fee;
         }
         String currencyCode = this.safeString(currency, "code");
@@ -11412,8 +11413,9 @@ public Map<String, Object> describe()
             Object network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
             if (java.util.Objects.equals(network, currencyCode))
             {
-                fee.put("withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "withdraw"));
-                fee.put("deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "deposit"));
+                Map<String, Object> networkFee = this.safeDict(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i)), new HashMap<String, Object>() {{}});
+                fee.put("withdraw", networkFee.get("withdraw"));
+                fee.put("deposit", networkFee.get("deposit"));
             }
         }
         return fee;
@@ -11750,7 +11752,7 @@ public Map<String, Object> describe()
             Long current = this.milliseconds();
             List<Object> tasks = new ArrayList<Object>(Arrays.asList());
             Long time = (((long) this.parseTimeframe(timeframe)) * 1000L);
-            Object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
+            Long maxEntriesPerRequestValue = (Long) this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
             Long step = (time * this.parseToInt(maxEntriesPerRequestValue));
             Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
             Object currentSince = ((current - ((maxCallsLimit * step))) - 1L);
@@ -11793,7 +11795,7 @@ public Map<String, Object> describe()
                 {
                     break;
                 }
-                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v6 -> hx4J40v6; case Number hx4J40v6 -> Long.valueOf(hx4J40v6.longValue()); case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v6.getClass().getName()); })), ((Long) (switch ((Object) (maxEntriesPerRequestValue)) { case null -> (Long) null; case Long hx4J40v5 -> hx4J40v5; case Number hx4J40v5 -> Long.valueOf(hx4J40v5.longValue()); case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v5.getClass().getName()); })), timeframe, paramsOmitted));
+                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v5 -> hx4J40v5; case Number hx4J40v5 -> Long.valueOf(hx4J40v5.longValue()); case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v5.getClass().getName()); })), maxEntriesPerRequestValue, timeframe, paramsOmitted));
                 // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
                 currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }

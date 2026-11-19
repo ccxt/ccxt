@@ -7934,7 +7934,7 @@ public class Bitget extends BitgetApi
             }
             if (Boolean.TRUE.equals(isStockOrUta))
             {
-                Object request = this.createUtaOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsUTA);
+                Map<String, Object> request = (Map<String, Object>) this.createUtaOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsUTA);
                 if (Boolean.TRUE.equals(isStockSpot))
                 {
                     response = (this.privateUtaPostV3TradePlaceRealityOrder(request)).join();

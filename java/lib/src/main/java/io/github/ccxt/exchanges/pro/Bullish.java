@@ -144,7 +144,9 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> cookies = new HashMap<String, Object>() {{
                 put( "JWT_COOKIE", token );
             }};
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "cookies", cookies);
+            Map<String, Object> wsDict = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            wsDict.put("cookies", cookies);
+            this.options.put("ws", wsDict);
             String id = String.valueOf(this.requestId());
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

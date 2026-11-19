@@ -180,7 +180,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 throw new ArgumentsRequired((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
             }
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("watchTrades")), "symbol", symbol);
+            Map<String, Object> watchTradesDict = this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
+            watchTradesDict.put("symbol", symbol);
+            this.options.put("watchTrades", watchTradesDict);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();

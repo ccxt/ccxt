@@ -2215,7 +2215,7 @@ public class Alpaca extends AlpacaApi
         this.options.put("sandboxMode", enable);
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String type, String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<List<Object>> fetchTransactionsHelper(String type, String code, Long since, Long limit, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2311,7 +2311,7 @@ public class Alpaca extends AlpacaApi
                 }
             }
             return this.parseTransactions(results, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-        });
+        }).thenApply(res -> (List<Object>) res);
 
     }
 
@@ -2331,7 +2331,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchTransactionsHelper("BOTH", (String) (code), since, limit, parameters)).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("BOTH", (String) (code), since, limit, parameters)).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2353,7 +2353,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchTransactionsHelper("INCOMING", (String) (code), since, limit, parameters)).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("INCOMING", (String) (code), since, limit, parameters)).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2375,7 +2375,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object transactions = (this.fetchTransactionsHelper("OUTGOING", (String) (code), since, limit, parameters)).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("OUTGOING", (String) (code), since, limit, parameters)).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

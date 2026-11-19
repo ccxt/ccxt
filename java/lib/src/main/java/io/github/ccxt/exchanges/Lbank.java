@@ -3699,7 +3699,7 @@ public class Lbank extends LbankApi
         {
             Long start = (((long) i) * 64L);
             Long end = (start + 64L);
-            pem = (pem + (Helpers.slice(this.secret, start, end) + "\n")); // eslint-disable-line
+            pem = (pem + ((this.secret == null ? null : ((String)this.secret).substring((int) Math.min(Math.min(start, ((String)this.secret).length()), Math.min(end < 0 ? ((String)this.secret).length() + end : end, ((String)this.secret).length())), (int) Math.min(end < 0 ? ((String)this.secret).length() + end : end, ((String)this.secret).length()))) + "\n")); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");
     }

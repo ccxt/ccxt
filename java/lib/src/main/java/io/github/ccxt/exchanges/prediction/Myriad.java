@@ -4561,7 +4561,7 @@ public class Myriad extends MyriadApi
             String updated = Precise.stringAdd(prior, deltaShares);
             if (!java.util.Objects.equals(posId, null))
             {
-                Helpers.addElementToObject(balances, posId, updated);
+                balances.put(posId, updated);
             }
             this.options.put("positionBalances", balances);
             contracts = this.parseNumber(updated);

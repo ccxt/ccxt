@@ -751,7 +751,7 @@ public class Backpack extends BackpackApi
             //     ]
             //
             Map<String, Object> currencies = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> currency = (Map<String, Object>) this.parseCurrency(this.safeDict(response, i, new HashMap<String, Object>() {{}}));
                 if (!Boolean.TRUE.equals(stock) || (java.util.Objects.equals(this.safeString(currency, "type"), "stock")))
@@ -772,7 +772,7 @@ public class Backpack extends BackpackApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         List<Object> networks = this.safeList(rawCurrency, "tokens", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networks).size(); j++)
+        for (var j = 0; j < networks.size(); j++)
         {
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "blockchain");
@@ -872,7 +872,7 @@ public class Backpack extends BackpackApi
             }};
             List<String> supportedTypes = new ArrayList<String>(Arrays.asList("SPOT", "PERP", "RFQ"));
             List<String> marketTypes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)requestedTypes).size(); i++)
+            for (var i = 0; i < requestedTypes.size(); i++)
             {
                 String requestedType = this.safeString(requestedTypes, i, "");
                 String normalizedType = this.safeString(aliases, requestedType, requestedType);
@@ -900,7 +900,7 @@ public class Backpack extends BackpackApi
             Map<String,Object> securityById = this.indexBy(securities, "asset");
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> rawMarket = this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String rawType = this.safeString(rawMarket, "marketType", "");
@@ -1123,7 +1123,7 @@ public class Backpack extends BackpackApi
                 String minimum = null;
                 String maximum = null;
                 Boolean unbounded = false;
-                for (var i = 0; i < ((List<?>)sessions).size(); i++)
+                for (var i = 0; i < sessions.size(); i++)
                 {
                     String sessionStep = this.safeString((sessions == null || i < 0 || i >= sessions.size() ? null : sessions.get(i)), "stepSize");
                     if ((!java.util.Objects.equals(sessionStep, null)) && ((java.util.Objects.equals(stepSize, null)) || Precise.stringLt(sessionStep, stepSize)))
@@ -1144,7 +1144,7 @@ public class Backpack extends BackpackApi
                         maximum = sessionMax;
                     }
                 }
-                Integer sessionsLength = ((List<?>)sessions).size();
+                Integer sessionsLength = sessions.size();
                 if ((sessionsLength != null && sessionsLength > 0))
                 {
                     amountPrecision = this.parseNumber(stepSize);
@@ -1704,12 +1704,12 @@ public class Backpack extends BackpackApi
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    public List<Object> filterStockStructures(List<Object> entries)
+    public List<Object> filterStockStructures(Object entries)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)entries).size(); i++)
         {
-            Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
+            Object entry = (entries == null || i < 0 || i >= ((List<?>)entries).size() ? null : ((List<?>)entries).get(i));
             String symbol = this.safeString(entry, "symbol");
             Map<String, Object> market = this.safeDict(this.markets, symbol, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
@@ -1757,7 +1757,7 @@ public class Backpack extends BackpackApi
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbolsLength = ((List<?>)symbols).size();
+                symbolsLength = symbols.size();
             }
             List<String> symbolsResolved = new ArrayList<String>(((Map<String, Object>)this.markets).keySet());
             if (!java.util.Objects.equals(symbolsLength, 0))
@@ -1768,7 +1768,7 @@ public class Backpack extends BackpackApi
             Boolean hasStockSymbol = false;
             if (!java.util.Objects.equals(symbols, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+                for (var i = 0; i < symbolsResolved.size(); i++)
                 {
                     Map<String, Object> market = this.market(this.safeString(symbolsResolved, i));
                     if (java.util.Objects.equals(market.get("stock"), true))
@@ -1806,7 +1806,7 @@ public class Backpack extends BackpackApi
                 externalResponseById = this.indexBy(externalResponse, "symbol");
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
                 String marketSymbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
                 Map<String, Object> market = this.market(marketSymbol);
@@ -1963,7 +1963,7 @@ public class Backpack extends BackpackApi
             {
                 List<Object> supportedLimits = new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500));
                 requestLimit = 500;
-                for (var i = 0; i < ((List<?>)supportedLimits).size(); i++)
+                for (var i = 0; i < supportedLimits.size(); i++)
                 {
                     Long supportedLimit = this.safeInteger(supportedLimits, i, 0);
                     if (((supportedLimit != null && limit <= supportedLimit)))
@@ -2036,7 +2036,11 @@ public class Backpack extends BackpackApi
             }
             Long defaultLimit = 100L;
             Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : Math.min(limit, 2000);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : windowLimit;
+            Long limitResolved = null;
+            if (!java.util.Objects.equals(limit, null))
+            {
+                limitResolved = windowLimit;
+            }
             Long now = this.milliseconds();
             Object startTime = since;
             Object untilValue = until;
@@ -2260,7 +2264,7 @@ public class Backpack extends BackpackApi
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> rawRates = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawRates).size(); i++)
+            for (var i = 0; i < rawRates.size(); i++)
             {
                 Object rate = (rawRates == null || i < 0 || i >= rawRates.size() ? null : rawRates.get(i));
                 String datetime = this.safeString(rate, "intervalEndTimestamp");
@@ -2405,7 +2409,7 @@ public class Backpack extends BackpackApi
                     rfqTrades = this.filterStockStructures(rfqTrades);
                 }
                 List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)rfqTrades).size(); i++)
+                for (var i = 0; i < rfqTrades.size(); i++)
                 {
                     Object trade = (rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i));
                     Long timestamp = this.safeInteger(trade, "timestamp");
@@ -2627,7 +2631,7 @@ public class Backpack extends BackpackApi
                 Map<String,Object> securityIds = this.indexBy(securities, "asset");
                 Map<String, Object> balances = new HashMap<String, Object>() {{}};
                 List<String> assetIds = new ArrayList<String>(response.keySet());
-                for (var i = 0; i < ((List<?>)assetIds).size(); i++)
+                for (var i = 0; i < assetIds.size(); i++)
                 {
                     String assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
                     if (securityIds.containsKey(assetId))
@@ -2655,7 +2659,7 @@ public class Backpack extends BackpackApi
         //
         List<String> balanceKeys = new ArrayList<String>(response.keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
+        for (var i = 0; i < balanceKeys.size(); i++)
         {
             String id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
             String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
@@ -3120,7 +3124,7 @@ public class Backpack extends BackpackApi
                 throw new InvalidOrder((this.id + " createOrder() RFQs require a positive base quantity")) ;
             }
             List<String> unsupported = new ArrayList<String>(Arrays.asList("cost", "quoteQuantity", "postOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "reduceOnly", "timeInForce", "selfTradePrevention"));
-            for (var i = 0; i < ((List<?>)unsupported).size(); i++)
+            for (var i = 0; i < unsupported.size(); i++)
             {
                 String key = (String) (unsupported == null || i < 0 || i >= unsupported.size() ? null : unsupported.get(i));
                 if (paramsResolved.containsKey(key))
@@ -3523,7 +3527,7 @@ public class Backpack extends BackpackApi
                     put( "symbol", market.get("id") );
                     put( "rfqId", id );
                 }}))).join();
-                for (var i = 0; i < ((List<?>)rfqResponse).size(); i++)
+                for (var i = 0; i < rfqResponse.size(); i++)
                 {
                     Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rfqResponse, i, new HashMap<String, Object>() {{}}), market);
                     if (java.util.Objects.equals(order.get("id"), id))
@@ -3588,7 +3592,7 @@ public class Backpack extends BackpackApi
             {
                 response = (this.privateGetWapiV1HistoryOrders(this.extend(query, request))).join();
             }
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(response, i, new HashMap<String, Object>() {{}}), market);
                 if (java.util.Objects.equals(order.get("id"), id))

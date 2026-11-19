@@ -881,7 +881,7 @@ public class Gemini extends GeminiApi
                 String cell3 = this.safeString(cells, 3, "");
                 String pricePrecisionString = cell3.replaceFirst("<td>", "");
                 List<Object> pricePrecisionParts = new ArrayList<Object>(Arrays.asList(((String)pricePrecisionString).split(java.util.regex.Pattern.quote(" "))));
-                String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
+                String quoteId = this.safeStringLower(pricePrecisionParts, 1, (marketId == null ? null : marketId.substring((int) Math.min(Math.min(Math.max(startingIndex < 0 ? marketId.length() + startingIndex : startingIndex, 0), marketId.length()), Math.min(idLength, marketId.length())), (int) Math.min(idLength, marketId.length()))));
                 String baseId = this.safeStringLower(amountPrecisionParts, 1, (marketId == null ? null : ((String)marketId).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(quoteId, "")), "")));
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);

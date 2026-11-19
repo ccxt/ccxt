@@ -2565,7 +2565,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; i < 63; i++)
         {
             Object next = (((long) i) + 1L);
-            if (!java.util.Objects.equals(Helpers.slice(raw, i, next), "0"))
+            if (!java.util.Objects.equals((raw == null ? null : raw.substring((int) Math.min(Math.min(((Number)i).intValue(), raw.length()), Math.min(((Number)next).intValue(), raw.length())), (int) Math.min(((Number)next).intValue(), raw.length()))), "0"))
             {
                 start = i;
                 break;

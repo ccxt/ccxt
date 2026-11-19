@@ -417,7 +417,7 @@ public class Predictfun extends PredictfunApi
                 HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                 mapLiteral2.put("slug", slug);
                 Map<String, Object> response = (this.predictfunGetV1CategoriesSlug(this.extend(mapLiteral2, rest))).join();
-                Object data = this.safeDict(response, "data", null);
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", null);
                 rawTopics = new ArrayList<Object>(Arrays.asList(data));
             } else if ((queriesLength != null && queriesLength > 0))
             {

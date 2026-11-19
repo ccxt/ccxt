@@ -3800,7 +3800,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionsHelper(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3913,7 +3913,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
+            Map<String, Object> response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -3945,7 +3945,7 @@ public class Poloniex extends PoloniexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
+            Map<String, Object> response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -4133,7 +4133,7 @@ public class Poloniex extends PoloniexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
+            Map<String, Object> response = (this.fetchTransactionsHelper(code, since, limit, parameters)).join();
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {

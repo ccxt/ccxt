@@ -2130,7 +2130,7 @@ public Map<String, Object> describe()
             {
                 continue;
             }
-            return this.padHexToEven((String) ((h == null ? null : h.substring((int) Math.min(Math.max(((Number)i).intValue() < 0 ? h.length() + ((Number)i).intValue() : ((Number)i).intValue(), 0), h.length())))));
+            return this.padHexToEven((String) ((h == null ? null : h.substring((int) Math.min(((Number)i).intValue(), h.length())))));
         }
         return "";
     }

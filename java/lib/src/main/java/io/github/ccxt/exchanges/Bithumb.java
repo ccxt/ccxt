@@ -1316,7 +1316,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; i < quotes.size(); i++)
                 {
                     String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    Object response = this.safeDict(responses, i, null);
+                    Map<String, Object> response = (Map<String, Object>) this.safeDict(responses, i, null);
                     Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Map<String, Object> tickers = this.omit(data, "date");

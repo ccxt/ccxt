@@ -816,17 +816,13 @@ public class Hyperliquid extends HyperliquidApi
                 // no filter — warm the whole outcome set so identities resolve from the cache
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
             }
-            Object response = (this.publicPostInfo(this.extend(new HashMap<String, Object>() {{
+            Object allMidsResponse = (this.publicPostInfo(this.extend(new HashMap<String, Object>() {{
                 put( "type", "allMids" );
             }}, parameters))).join();
+            Object allMids = this.infoDict(allMidsResponse);
             //
             // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
             //
-            Object allMids = new HashMap<String, Object>() {{}};
-            if ((!(response instanceof String)) && !(response instanceof List))
-            {
-                allMids = response;
-            }
             Object mids = this.safeDict(allMids, "mids", allMids);
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             Map<String, Object> outcomesMap = (((!java.util.Objects.equals(this.outcomes, null)))) ? this.outcomes : new HashMap<String, Object>() {{}};
@@ -1042,7 +1038,8 @@ public class Hyperliquid extends HyperliquidApi
             mapLiteral6.put("endTime", until);
             request.put("req", mapLiteral6);
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
+            Object candlesResponse = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
+            List<Object> candles = this.infoList(candlesResponse);
             //
             //     [
             //         {
@@ -1059,11 +1056,6 @@ public class Hyperliquid extends HyperliquidApi
             //         }
             //     ]
             //
-            List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
-            {
-                candles = (List<Object>) response;
-            }
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1768,13 +1760,9 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", method );
                 put( "user", userAddress );
             }};
-            Object response = (this.publicPostInfo(this.extend(request, paramsMethod))).join();
+            Object rawOrdersResponse = (this.publicPostInfo(this.extend(request, paramsMethod))).join();
+            List<Object> rawOrders = this.infoList(rawOrdersResponse);
             List<Object> ordersWithStatus = new ArrayList<Object>(Arrays.asList());
-            List<Object> rawOrders = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
-            {
-                rawOrders = (List<Object>) response;
-            }
             for (var i = 0; i < rawOrders.size(); i++)
             {
                 Object order = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
@@ -1819,14 +1807,10 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", "historicalOrders" );
                 put( "user", userAddress );
             }};
-            Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+            Object historicalOrdersResponse = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+            List<Object> historicalOrders = this.infoList(historicalOrdersResponse);
             // Deduplicate by oid keeping most recent statusTimestamp
             Map<String, Object> deduped = new HashMap<String, Object>() {{}};
-            List<Object> historicalOrders = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
-            {
-                historicalOrders = (List<Object>) response;
-            }
             for (var i = 0; i < historicalOrders.size(); i++)
             {
                 Object raw = (historicalOrders == null || i < 0 || i >= historicalOrders.size() ? null : historicalOrders.get(i));
@@ -1901,12 +1885,8 @@ public class Hyperliquid extends HyperliquidApi
                 Boolean isCloid = ((String)id).length() >= 34;
                 request.put("oid", ((Boolean.TRUE.equals(isCloid))) ? id : this.parseToNumeric(id));
             }
-            Object response = (this.publicPostInfo(this.extend(request, paramsValue))).join();
-            Object orderStatus = new HashMap<String, Object>() {{}};
-            if ((!(response instanceof String)) && !(response instanceof List))
-            {
-                orderStatus = response;
-            }
+            Object orderStatusResponse = (this.publicPostInfo(this.extend(request, paramsValue))).join();
+            Object orderStatus = this.infoDict(orderStatusResponse);
             Object orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
             Map<String, Object> parsed = this.parsePredictionOrder((Map<String, Object>) (orderWrapper), (Map<String, Object>) null);
             if (!java.util.Objects.equals(outcome, null))
@@ -2790,5 +2770,38 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         return this.safeValue(config, "cost", 1);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    public List<Object> infoList(Object response)
+    {
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        if ((response instanceof List))
+        {
+            result = (List<Object>) response;
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    public Object infoDict(Object response)
+    {
+        if ((!(response instanceof String)) && !(response instanceof List))
+        {
+            return response;
+        }
+        return new HashMap<String, Object>() {{}};
     }
 }

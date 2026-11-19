@@ -4015,8 +4015,8 @@ public class Deribit extends DeribitApi
             Long duration = (((long) this.parseTimeframe(eachItemDuration)) * 1000L);
             Long now = this.milliseconds();
             Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
-            Long defaultSince = (now - month);
-            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? defaultSince : since;
+            Object defaultSince = (now - month);
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? defaultSince : since;
             Long time = now;
             if (!java.util.Objects.equals(since, null))
             {
@@ -4024,7 +4024,7 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
-            request.put("start_timestamp", (sinceResolved - 1L));
+            request.put("start_timestamp", ((((Number) sinceResolved).longValue()) - 1L));
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             Long endTimestamp = time;
@@ -4072,7 +4072,7 @@ public class Deribit extends DeribitApi
                 Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
                 ((List<Object>)rates).add(rate);
             }
-            return this.filterBySymbolSinceLimit(rates, symbol, sinceResolved, limit, false);
+            return this.filterBySymbolSinceLimit(rates, symbol, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v0 -> hx4J40v0; case Number hx4J40v0 -> Long.valueOf(hx4J40v0.longValue()); case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v0.getClass().getName()); })), limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }

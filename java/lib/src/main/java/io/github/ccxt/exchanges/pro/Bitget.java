@@ -129,14 +129,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     {
         Boolean useProductType = (java.util.Objects.equals(market, null)) || Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false)));
         String instTypeDefault = "SPOT";
-        Object paramsProductType = parameters;
+        Map<String, Object> paramsProductType = parameters;
         if (Boolean.TRUE.equals(useProductType))
         {
-            List<Object> instTypeDefaultparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            instTypeDefault = (String) ((List<Object>) instTypeDefaultparamsProductTypeVariable).get(0);
-            paramsProductType = ((List<Object>) instTypeDefaultparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> instTypeDefaultparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            instTypeDefault = instTypeDefaultparamsProductTypeVariable.first();
+            paramsProductType = instTypeDefaultparamsProductTypeVariable.second();
         }
-        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), (String) (methodName), "instType", instTypeDefault);
+        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams(paramsProductType, (String) (methodName), "instType", instTypeDefault);
         String instTypeOption = instTypeOptionparamsInstTypeVariable.first();
         Map<String, Object> paramsInstType = instTypeOptionparamsInstTypeVariable.second();
         if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(uta, false)) && (!java.util.Objects.equals(instTypeOption, null)))
@@ -2997,10 +2997,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     Map<String, Object> entry = this.safeDict(coins, j, null);
                     String currencyId = this.safeString(entry, "coin");
                     String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                    Object account = this.account();
+                    Map<String, Object> account = this.account();
                     if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                     {
-                        account = this.safeDict(this.balance, code, account);
+                        account = (Map<String, Object>) this.safeDict(this.balance, code, account);
                     }
                     String borrow = this.safeString(entry, "borrow");
                     String debts = this.safeString(entry, "debts");
@@ -3020,10 +3020,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                Object account = this.account();
+                Map<String, Object> account = this.account();
                 if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                 {
-                    account = this.safeDict(this.balance, code, account);
+                    account = (Map<String, Object>) this.safeDict(this.balance, code, account);
                 }
                 String borrow = this.safeString(rawBalance, "borrow");
                 if (!java.util.Objects.equals(borrow, null))

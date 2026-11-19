@@ -14591,7 +14591,9 @@ public class Binance extends BinanceApi
                         String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                         ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
                     }
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("leverageBrackets")), symbol, result);
+                    Map<String, Object> leverageBracketsDict = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
+                    leverageBracketsDict.put(symbol, result);
+                    this.options.put("leverageBrackets", leverageBracketsDict);
                 }
             }
             return this.options.get("leverageBrackets");

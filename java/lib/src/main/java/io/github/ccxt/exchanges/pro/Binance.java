@@ -3984,7 +3984,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             for (var i = 0; i < clients.size(); i++)
             {
-                Client client = (Client)this.safeDict(clients, i, null);
+                Map<String, Object> client = (Map<String, Object>) this.safeDict(clients, i, null);
                 Map<String, Object> clientSubscriptions = this.safeDict(client, "subscriptions", new HashMap<String, Object>() {{}});
                 List<String> subscriptionKeys = new ArrayList<String>(clientSubscriptions.keySet());
                 for (var j = 0; j < subscriptionKeys.size(); j++)

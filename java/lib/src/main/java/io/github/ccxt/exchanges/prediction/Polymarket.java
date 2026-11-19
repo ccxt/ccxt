@@ -1933,9 +1933,9 @@ public class Polymarket extends PolymarketApi
             put( "datetime", null );
             put( "info", interest );
         }}, market);
-        Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol((String) (null), market));
-        Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
-        Helpers.addElementToObject(openInterest, "market", this.safeString(market, "market"));
+        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol((String) (null), market));
+        ((Map<String, Object>)openInterest).put("outcomeId", this.safeString(market, "outcomeId"));
+        ((Map<String, Object>)openInterest).put("market", this.safeString(market, "market"));
         ((Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
     }
@@ -2553,7 +2553,7 @@ public class Polymarket extends PolymarketApi
             // request echo first so the response's real orderID/status/success win on overlap
             Map<String, Object> enriched = this.extend(this.safeDict(built, "request", null), response);
             Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
-            Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
+            ((Map<String, Object>)order).put("info", response); // keep info the raw exchange response, not the request echo
             return order;
         }).thenApply(PredictionOrder::new);
 
@@ -2617,7 +2617,7 @@ public class Polymarket extends PolymarketApi
                     Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), rawItem);
                     Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-                    Helpers.addElementToObject(parsedItem, "info", rawItem); // keep info the raw exchange response
+                    ((Map<String, Object>)parsedItem).put("info", rawItem); // keep info the raw exchange response
                     ((List<Object>)result).add(parsedItem);
                 }
             } else
@@ -4108,31 +4108,31 @@ public class Polymarket extends PolymarketApi
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
-            Object bids = ((Object)Helpers.GetValue(orderbook, "bids"));
-            Object asks = ((Object)Helpers.GetValue(orderbook, "asks"));
+            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
             Double bestBid = null;
             Double bestBidVolume = null;
             Integer bidsLength = 0;
             if (!java.util.Objects.equals(bids, null))
             {
-                bidsLength = (switch ((Object)(bids)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; });
+                bidsLength = ((List<?>)bids).size();
             }
             if ((!java.util.Objects.equals(bids, null)) && ((bidsLength != null && bidsLength > 0)))
             {
-                bestBid = this.safeNumber(Helpers.GetValue(bids, 0), 0, (Object) null);
-                bestBidVolume = this.safeNumber(Helpers.GetValue(bids, 0), 1, (Object) null);
+                bestBid = this.safeNumber((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 0, (Object) null);
+                bestBidVolume = this.safeNumber((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 1, (Object) null);
             }
             Double bestAsk = null;
             Double bestAskVolume = null;
             Integer asksLength = 0;
             if (!java.util.Objects.equals(asks, null))
             {
-                asksLength = (switch ((Object)(asks)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; });
+                asksLength = ((List<?>)asks).size();
             }
             if ((!java.util.Objects.equals(asks, null)) && ((asksLength != null && asksLength > 0)))
             {
-                bestAsk = this.safeNumber(Helpers.GetValue(asks, 0), 0, (Object) null);
-                bestAskVolume = this.safeNumber(Helpers.GetValue(asks, 0), 1, (Object) null);
+                bestAsk = this.safeNumber((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 0, (Object) null);
+                bestAskVolume = this.safeNumber((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 1, (Object) null);
             }
             Double mid = null;
             if ((!java.util.Objects.equals(bestBid, null)) && (!java.util.Objects.equals(bestAsk, null)))
