@@ -2034,10 +2034,14 @@ class coinbase extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             if ($code !== null) {
-                $this->options['networks'][$code] = strtolower($name);
+                $networksDict1 = $this->safe_dict($this->options, 'networks', array());
+                $networksDict1[$code] = strtolower($name);
+                $this->options['networks'] = $networksDict1;
             }
             if ($code !== null) {
-                $this->options['networksById'][$code] = strtolower($name);
+                $networksByIdDict2 = $this->safe_dict($this->options, 'networksById', array());
+                $networksByIdDict2[$code] = strtolower($name);
+                $this->options['networksById'] = $networksByIdDict2;
             }
             $type = 'fiat';
             if ($assetId !== null) {

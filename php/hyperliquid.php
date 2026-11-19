@@ -474,7 +474,9 @@ class hyperliquid extends Exchange {
         $id = $this->safe_string($rawCurrency, 'index');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($name);
-        $this->options['cachedCurrenciesById'][$id] = $name;
+        $cachedCurrenciesByIdDict1 = $this->safe_dict($this->options, 'cachedCurrenciesById', array());
+        $cachedCurrenciesByIdDict1[$id] = $name;
+        $this->options['cachedCurrenciesById'] = $cachedCurrenciesByIdDict1;
         $result = $this->safe_currency_structure(array(
             'id' => $id,
             'name' => $name,
@@ -510,7 +512,9 @@ class hyperliquid extends Exchange {
                 }
                 $baseCode = $this->safe_currency_code($nameWithoutU);
                 if ($code !== null) {
-                    $this->options['spotCurrencyMapping'][$code] = $baseCode;
+                    $spotCurrencyMappingDict2 = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                    $spotCurrencyMappingDict2[$code] = $baseCode;
+                    $this->options['spotCurrencyMapping'] = $spotCurrencyMappingDict2;
                 }
             }
         }
@@ -1550,7 +1554,8 @@ class hyperliquid extends Exchange {
                 'endTime' => $until,
             ),
         );
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $candlesResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $candles = $this->info_list($candlesResponse);
         //
         //     [
         //         {
@@ -1567,10 +1572,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $originalSince, $limit, $useTail);
     }
 
@@ -1639,7 +1640,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fillsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fills = $this->info_list($fillsResponse);
         //
         //     [
         //         {
@@ -1660,10 +1662,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $fills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $fills = $response;
-        }
         return $this->parse_trades($fills, $market, $since, $limit);
     }
 
@@ -3130,7 +3128,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fundingsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fundings = $this->info_list($fundingsResponse);
         //
         //     [
         //         {
@@ -3142,10 +3141,6 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $result = array();
-        $fundings = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $fundings = $response;
-        }
         for ($i = 0; $i < count($fundings); $i++) {
             $entry = $this->safe_dict($fundings, $i);
             $timestamp = $this->safe_integer($entry, 'time');
@@ -3206,7 +3201,8 @@ class hyperliquid extends Exchange {
                 $request['dex'] = $dexName;
             }
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsMethod));
+        $rawOrdersResponse = $this->publicPostInfo($this->extend($request, $paramsMethod));
+        $rawOrders = $this->info_list($rawOrdersResponse);
         //
         //     [
         //         {
@@ -3221,10 +3217,6 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $orderWithStatus = array();
-        $rawOrders = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $rawOrders = $response;
-        }
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->safe_dict($rawOrders, $i);
             $extendOrder = array();
@@ -3320,7 +3312,8 @@ class hyperliquid extends Exchange {
                 $request['dex'] = $dexName;
             }
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        $historicalOrdersResponse = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        $historicalOrders = $this->info_list($historicalOrdersResponse);
         //
         //     [
         //         {
@@ -3342,10 +3335,6 @@ class hyperliquid extends Exchange {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         $deduplicatedByOid = array();
-        $historicalOrders = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $historicalOrders = $response;
-        }
         for ($i = 0; $i < count($historicalOrders); $i++) {
             $rawOrder = $historicalOrders[$i];
             $entry = $this->safe_dict($rawOrder, 'order', $rawOrder);
@@ -3678,7 +3667,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $myFillsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $myFills = $this->info_list($myFillsResponse);
         //
         //     [
         //         {
@@ -3700,10 +3690,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $myFills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $myFills = $response;
-        }
         return $this->parse_trades($myFills, $market, $since, $limit);
     }
 
@@ -3807,7 +3793,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $infoResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $response = $this->info_list($infoResponse);
         //
         //     [
         //         {
@@ -3835,15 +3822,13 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $fills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $user = $this->safe_string_lower($request, 'user');
-            for ($i = 0; $i < count($response); $i++) {
-                $fill = $this->safe_dict($response, $i, array());
-                $liquidation = $this->safe_dict($fill, 'liquidation', array());
-                // liquidator fills carry the liquidated counterparty here
-                if ($this->safe_string_lower($liquidation, 'liquidatedUser') === $user) {
-                    $fills[] = $fill;
-                }
+        $user = $this->safe_string_lower($request, 'user');
+        for ($i = 0; $i < count($response); $i++) {
+            $fill = $this->safe_dict($response, $i, array());
+            $liquidation = $this->safe_dict($fill, 'liquidation', array());
+            // liquidator fills carry the liquidated counterparty here
+            if ($this->safe_string_lower($liquidation, 'liquidatedUser') === $user) {
+                $fills[] = $fill;
             }
         }
         return $this->parse_liquidations($fills, $market, $since, $limit);
@@ -4851,7 +4836,8 @@ class hyperliquid extends Exchange {
             $request['endTime'] = $until;
             $params2 = $this->omit($params2, array( 'until' ));
         }
-        $response = $this->publicPostInfo($this->extend($request, $params2));
+        $depositLedgerResponse = $this->publicPostInfo($this->extend($request, $params2));
+        $depositLedger = $this->info_list($depositLedgerResponse);
         //
         // [
         //     {
@@ -4865,10 +4851,6 @@ class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        $depositLedger = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $depositLedger = $response;
-        }
         $records = $this->extract_type_from_delta($depositLedger);
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -4921,7 +4903,8 @@ class hyperliquid extends Exchange {
             $request['endTime'] = $until;
             $params2 = $this->omit($params2, array( 'until' ));
         }
-        $response = $this->publicPostInfo($this->extend($request, $params2));
+        $withdrawalLedgerResponse = $this->publicPostInfo($this->extend($request, $params2));
+        $withdrawalLedger = $this->info_list($withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -4935,10 +4918,6 @@ class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        $withdrawalLedger = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $withdrawalLedger = $response;
-        }
         $records = $this->extract_type_from_delta($withdrawalLedger);
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -5334,5 +5313,19 @@ class hyperliquid extends Exchange {
             $order['id'] = $id;
         }
         return array( $order, $globalParams );
+    }
+
+    public function info_list(mixed $response): array {
+        /**
+         * @ignore
+         * narrows an info endpoint $response for a request type that answers with a JSON array
+         * @param {object|array[]|string} $response the info endpoint $response
+         * @return {array[]} the $response array, or an empty array for any other $response
+         */
+        $result = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $result = $response;
+        }
+        return $result;
     }
 }

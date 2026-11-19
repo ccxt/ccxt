@@ -1582,7 +1582,6 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = null;
         $data = array();
         if ($generation === 2) {
             $request['market'] = $this->get_gen2_market_id($market);
@@ -2418,7 +2417,6 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         $data = null;
         if ($twap) {
             $response = $this->privateGetV1Twap($this->extend($request, $paramsRequest));

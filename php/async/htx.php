@@ -1991,12 +1991,16 @@ class htx extends Exchange {
                 $constructedId = $marketBase . '_' . $contractSuffix;
             }
             if ($constructedId === $symbolOrMarketId) {
-                $this->options['futureMarketIdsForSymbols'][$symbolOrMarketId] = $marketSymbol;
+                $futureMarketIdsForSymbolsDict1 = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
+                $futureMarketIdsForSymbolsDict1[$symbolOrMarketId] = $marketSymbol;
+                $this->options['futureMarketIdsForSymbols'] = $futureMarketIdsForSymbolsDict1;
                 return $marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        $this->options['futureMarketIdsForSymbols'][$symbolOrMarketId] = $symbolOrMarketId;
+        $futureMarketIdsForSymbolsDict2 = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
+        $futureMarketIdsForSymbolsDict2[$symbolOrMarketId] = $symbolOrMarketId;
+        $this->options['futureMarketIdsForSymbols'] = $futureMarketIdsForSymbolsDict2;
         return $symbolOrMarketId;
     }
 
@@ -3425,7 +3429,9 @@ class htx extends Exchange {
                 $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
             }
             if ($uniqueChainId !== null) {
-                $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
+                $networkNamesByChainIdsDict3 = $this->safe_dict($this->options, 'networkNamesByChainIds', array());
+                $networkNamesByChainIdsDict3[$uniqueChainId] = $title;
+                $this->options['networkNamesByChainIds'] = $networkNamesByChainIdsDict3;
             }
             $networkCode = $this->network_id_to_code($uniqueChainId, $code);
             if ($networkCode !== null) {

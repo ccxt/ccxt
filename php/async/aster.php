@@ -4263,7 +4263,9 @@ class aster extends Exchange {
                     $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
                     $result[] = array( $floorValue, $maintenanceMarginPercentage );
                 }
-                $this->options['leverageBrackets'][$symbol] = $result;
+                $leverageBracketsDict = $this->safe_dict($this->options, 'leverageBrackets', array());
+                $leverageBracketsDict[$symbol] = $result;
+                $this->options['leverageBrackets'] = $leverageBracketsDict;
             }
         }
         return $this->options['leverageBrackets'];

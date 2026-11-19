@@ -1893,7 +1893,9 @@ class kraken extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
         );
-        $this->options['delistedMarketsById'][$id] = $market;
+        $delistedMarketsByIdDict = $this->safe_dict($this->options, 'delistedMarketsById', array());
+        $delistedMarketsByIdDict[$id] = $market;
+        $this->options['delistedMarketsById'] = $delistedMarketsByIdDict;
         return $market;
     }
 

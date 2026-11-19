@@ -699,14 +699,11 @@ class hyperliquid extends Exchange {
             // no filter — warm the whole outcome set so identities resolve from the cache
             Async\await($this->load_outcomes());
         }
-        $response = Async\await($this->publicPostInfo($this->extend(array( 'type' => 'allMids' ), $params)));
+        $allMidsResponse = Async\await($this->publicPostInfo($this->extend(array( 'type' => 'allMids' ), $params)));
+        $allMids = $this->info_dict($allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        $allMids = array();
-        if ((gettype($response) !== 'string') && (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-            $allMids = $response;
-        }
         $mids = $this->safe_dict($allMids, 'mids', $allMids);
         $tickers = array();
         $outcomesMap = ($this->outcomes !== null) ? $this->outcomes : array();
@@ -900,7 +897,8 @@ class hyperliquid extends Exchange {
             ),
         );
         $paramsOmitted = $this->omit($params, 'until');
-        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsOmitted)));
+        $candlesResponse = Async\await($this->publicPostInfo($this->extend($request, $paramsOmitted)));
+        $candles = $this->info_list($candlesResponse);
         //
         //     [
         //         {
@@ -917,10 +915,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
@@ -1527,12 +1521,9 @@ class hyperliquid extends Exchange {
         list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOpenOrders', $params);
         list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         $request = array( 'type' => $method, 'user' => $userAddress );
-        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsMethod)));
+        $rawOrdersResponse = Async\await($this->publicPostInfo($this->extend($request, $paramsMethod)));
+        $rawOrders = $this->info_list($rawOrdersResponse);
         $ordersWithStatus = array();
-        $rawOrders = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $rawOrders = $response;
-        }
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $rawOrders[$i];
             $ordersWithStatus[] = $this->extend($order, array( 'ccxtStatus' => 'open' ));
@@ -1566,13 +1557,10 @@ class hyperliquid extends Exchange {
          */
         list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOrders', $params);
         $request = array( 'type' => 'historicalOrders', 'user' => $userAddress );
-        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsPublicAddress)));
+        $historicalOrdersResponse = Async\await($this->publicPostInfo($this->extend($request, $paramsPublicAddress)));
+        $historicalOrders = $this->info_list($historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         $deduped = array();
-        $historicalOrders = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $historicalOrders = $response;
-        }
         for ($i = 0; $i < count($historicalOrders); $i++) {
             $raw = $historicalOrders[$i];
             $entry = $this->safe_dict($raw, 'order');
@@ -1631,11 +1619,8 @@ class hyperliquid extends Exchange {
             $isCloid = strlen($id) >= 34;
             $request['oid'] = $isCloid ? $id : $this->parse_to_numeric($id);
         }
-        $response = Async\await($this->publicPostInfo($this->extend($request, $paramsValue)));
-        $orderStatus = array();
-        if ((gettype($response) !== 'string') && (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-            $orderStatus = $response;
-        }
+        $orderStatusResponse = Async\await($this->publicPostInfo($this->extend($request, $paramsValue)));
+        $orderStatus = $this->info_dict($orderStatusResponse);
         $orderWrapper = $this->safe_dict($orderStatus, 'order', $orderStatus);
         $parsed = $this->parse_prediction_order($orderWrapper, null);
         if ($outcome !== null) {
@@ -2371,5 +2356,32 @@ class hyperliquid extends Exchange {
             }
         }
         return $this->safe_value($config, 'cost', 1);
+    }
+
+    public function info_list(mixed $response): array {
+        /**
+         * @ignore
+         * narrows an info endpoint $response for a request type that answers with a JSON array
+         * @param {object|array[]|string} $response the info endpoint $response
+         * @return {array[]} the $response array, or an empty array for any other $response
+         */
+        $result = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $result = $response;
+        }
+        return $result;
+    }
+
+    public function info_dict(mixed $response): array {
+        /**
+         * @ignore
+         * narrows an info endpoint $response for a request type that answers with a JSON object
+         * @param {object|array[]|string} $response the info endpoint $response
+         * @return {array} the $response object, or an empty object for any other $response
+         */
+        if ((gettype($response) !== 'string') && (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+            return $response;
+        }
+        return array();
     }
 }

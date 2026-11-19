@@ -1304,8 +1304,9 @@ class toobit extends Exchange {
             }
         } elseif (($since !== null) && ($limit !== null)) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            $duration = $this->parse_timeframe($timeframe) * 1000;
-            $request['endTime'] = min($this->sum($since, $duration * $limit) - 1, $this->milliseconds());
+            $durationMs = $this->parse_timeframe($timeframe) * 1000;
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            $request['endTime'] = min($since - (1 - $durationMs * $limit), $this->milliseconds());
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

@@ -1617,7 +1617,6 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $maxLimit = 2000;
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $duration = $this->parse_timeframe($timeframe) * 1000;
@@ -1628,11 +1627,11 @@ class backpack extends Exchange {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
         $defaultLimit = 100;
-        $limitResolved = $limit;
-        if ($limitResolved !== null) {
-            $limitResolved = min($limitResolved, $maxLimit);
+        $windowLimit = ($limit === null) ? $defaultLimit : min($limit, 2000);
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = $windowLimit;
         }
-        $windowLimit = ($limitResolved === null) ? $defaultLimit : $limitResolved;
         $now = $this->milliseconds();
         $startTime = $since;
         $untilValue = $until;

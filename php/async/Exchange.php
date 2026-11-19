@@ -4355,7 +4355,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $retryDelay = 0;
         list($retryDelayMaxRetriesOnFailureDelay, $paramsMaxRetriesOnFailureDelay) = $this->handle_option_integer_and_params($paramsMaxRetriesOnFailure, $path, 'maxRetriesOnFailureDelay', $retryDelay);
         $fetchDataCacheEnabled = $this->fetchHistoryCacheSize > 0;
-        for ($i = 0; $i < $retriesMaxRetriesOnFailure + 1; $i++) {
+        for ($i = 0; $i <= $retriesMaxRetriesOnFailure; $i++) {
             $fetchData = null;
             if ($fetchDataCacheEnabled) {
                 $fetchData = array( 'request' => null, 'response' => array( 'body' => null ), 'error' => null );
@@ -6161,16 +6161,18 @@ class BaseExchange extends \ccxt\BaseExchange {
         $networkKeys = is_array($fee['networks']) ? array_keys($fee['networks']) : array();
         $numNetworks = count($networkKeys);
         if ($numNetworks === 1) {
-            $fee['withdraw'] = $fee['networks'][$networkKeys[0]]['withdraw'];
-            $fee['deposit'] = $fee['networks'][$networkKeys[0]]['deposit'];
+            $networkFee = $this->safe_dict($fee['networks'], $networkKeys[0], array());
+            $fee['withdraw'] = $networkFee['withdraw'];
+            $fee['deposit'] = $networkFee['deposit'];
             return $fee;
         }
         $currencyCode = $this->safe_string($currency, 'code');
         for ($i = 0; $i < $numNetworks; $i++) {
             $network = $networkKeys[$i];
             if ($network === $currencyCode) {
-                $fee['withdraw'] = $fee['networks'][$networkKeys[$i]]['withdraw'];
-                $fee['deposit'] = $fee['networks'][$networkKeys[$i]]['deposit'];
+                $networkFee = $this->safe_dict($fee['networks'], $networkKeys[$i], array());
+                $fee['withdraw'] = $networkFee['withdraw'];
+                $fee['deposit'] = $networkFee['deposit'];
             }
         }
         return $fee;

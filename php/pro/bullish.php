@@ -119,7 +119,9 @@ class bullish extends \ccxt\async\bullish {
         $cookies = array(
             'JWT_COOKIE' => $token,
         );
-        $this->options['ws']['cookies'] = $cookies;
+        $wsDict = $this->safe_dict($this->options, 'ws', array());
+        $wsDict['cookies'] = $cookies;
+        $this->options['ws'] = $wsDict;
         $id = (string) $this->request_id();
         $message = array(
             'jsonrpc' => '2.0',

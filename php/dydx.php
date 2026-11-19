@@ -2569,6 +2569,8 @@ class dydx extends Exchange {
         // rewrite testnet parameters
         $this->options['chainName'] = 'dydx-testnet-4';
         $this->options['chainId'] = 11155111;
-        $this->options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        $feeDenomDict = $this->safe_dict($this->options, 'feeDenom', array());
+        $feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        $this->options['feeDenom'] = $feeDenomDict;
     }
 }
