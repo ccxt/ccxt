@@ -1175,7 +1175,7 @@ public partial class whitebit : ccxt.whitebit
         return authorized;
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleAuthenticate(WebSocketClient client, object message)
     {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1279,7 +1279,7 @@ public partial class whitebit : ccxt.whitebit
                     object method = this.safeValue(subscription, "method");
                     if ((method != null))
                     {
-                        DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                        this.handleAuthenticate(client, message);
                         return;
                     }
                 }

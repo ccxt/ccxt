@@ -1778,7 +1778,7 @@ public partial class phemex : ccxt.phemex
             ((IDictionary<string,object>)client.subscriptions).Remove(id);
             if (!(method is true))
             {
-                DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                this.handleAuthenticate(client, message);
                 return;
             }
         }
@@ -1826,7 +1826,7 @@ public partial class phemex : ccxt.phemex
         }
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleAuthenticate(WebSocketClient client, object message)
     {
         //
         // {
