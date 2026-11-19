@@ -2048,8 +2048,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_describe(&self) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::describe(self)
     }
-    fn super_set_sandbox_mode(&mut self, enabled: Value) {
-        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled.is_truthy()));
+    fn super_set_sandbox_mode(&mut self, enabled: bool) {
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled));
     }
     fn super_safe_market(&self, id: Option<&str>, market: Option<&crate::types::Market>, delim: Value, market_type: Value) -> crate::types::Market {
         <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, id, market, &[delim, market_type])

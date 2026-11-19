@@ -7570,6 +7570,30 @@ function lendBookSideToHandleDelta(content: string): string {
 // unit slot 050
 //
 // unit slot 051
+// `x.clone()` on a local whose every declaration in the function is bool / i64 / f64 (or Option of one) is a copy:
+// print `x`. Any untyped, pattern or closure binding of the name keeps the clone. A Value-rebound sync
+// `set_sandbox_mode` flag lends its exact bool (`Value::from(bool)` payload) to the bool-taking super shim.
+const RUST_COPY_DECL_TYPE = /^(?:bool|i64|f64|Option<(?:bool|i64|f64)>)$/;
+function copyLocalClones(content: string): string {
+    content = content.replace(/^(\s*)self\.super_set_sandbox_mode\((enabled?)(?:\.clone\(\))?\);$/gm, (line, ind, x, off) => {
+        const head = content.slice(content.lastIndexOf('fn set_sandbox_mode(', off), off);
+        const ok = head.startsWith(`fn set_sandbox_mode(&mut self, ${x}: bool)`) && head.includes(`vec![Value::from(${x})]`) && !head.slice(1).includes('fn ');
+        return ok ? `${ind}self.super_set_sandbox_mode(${x}.as_bool() == Some(true));` : line;
+    });
+    return content.replace(/(?<![\w.)\]])([A-Za-z_]\w*)\.clone\(\)/g, (m, x, off) => {
+        const fnStart = content.lastIndexOf('fn ', off);
+        if (fnStart < 0) return m;
+        const head = content.slice(fnStart, off);
+        const sigEnd = head.indexOf('{');
+        const decls: string[] = [];
+        const param = sigEnd < 0 ? null : head.slice(0, sigEnd).match(new RegExp(`[(,]\\s*(?:mut )?${x}\\s*:\\s*([^,)]+(?:<[^>]*>)?)`));
+        if (param) decls.push(param[1].trim());
+        for (const d of head.matchAll(new RegExp(`\\blet (?:mut )?${x}\\b(\\s*:\\s*([^=;]+?))?\\s*[=;]`, 'g'))) decls.push((d[2] ?? '').trim());
+        if (decls.length === 0 || !decls.every(t => RUST_COPY_DECL_TYPE.test(t))) return m;
+        const shadow = new RegExp(`(?:Some|Ok|Err)\\((?:mut )?${x}\\)|\\bfor (?:mut )?${x}\\b|\\|[^|\\n]*(?<![\\w.])${x}\\b[^|\\n]*\\||let \\([^)]*\\b${x}\\b|\\b${x} @|Value::\\w+\\(${x}\\)`);
+        return shadow.test(head) ? m : x;
+    });
+}
 //
 // unit slot 052
 //
@@ -7971,6 +7995,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 050
     //
     // pass slot 051
+    copyLocalClones,
     //
     // pass slot 052
     //
