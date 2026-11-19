@@ -7555,6 +7555,102 @@ function lendBookSideToHandleDelta(content: string): string {
 }
 //
 // unit slot 042
+// Dict literal `"info"` row `m.insert("info".to_string(), x.clone());` with x an owned local named nowhere after the
+// literal: move x. If later rows still read x, the row inserts `Value::Null` (fixing key order) and x is moved into
+// the same key right after the last row that reads it (IndexMap::insert keeps an existing key's position).
+function moveDictLiteralInfoRows(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    let fi = -1;
+    for (const m of code.matchAll(/^([ \t]*)m\.insert\("info"\.to_string\(\), ([A-Za-z_]\w*)\.clone\(\)\);$/gm)) {
+        const pos = m.index as number, name = m[2], rowEnd = pos + m[0].length;
+        if (name === 'self') continue;
+        while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
+        if (fi < 0) continue;
+        const open = code.indexOf('{', fnStarts[fi]);
+        if (open < 0 || open > pos) continue;
+        const fnClose = balancedCloseIndex(code, open + 1);
+        const head = /\{\s*let mut m = indexmap::IndexMap::new\(\);\s*(?:m\.insert\([^\n]*\);\s*)*$/.exec(code.slice(open, pos));
+        if (head === null) continue;
+        const litOpen = open + head.index;
+        const litClose = balancedCloseIndex(code, litOpen + 1);
+        if (litClose < rowEnd || litClose >= fnClose) continue;
+        const word = new RegExp(`(?<![\\w.])${name}\\b`, 'g');
+        if (word.test(code.slice(litClose, fnClose))) continue;
+        const body = code.slice(open + 1, litOpen);
+        const decl = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
+        let declAt: number, ty = '';
+        if (decl !== undefined) {
+            if (decl[1] === undefined ? decl[2] === undefined : /^&|\bimpl\b/.test(decl[1].trim())) continue;
+            declAt = (decl.index as number) + decl[0].length;
+            ty = decl[2] !== undefined ? 'Value' : decl[1].trim();
+        } else {
+            const param = new RegExp(`[(,]\\s*(?:mut )?${name}\\s*:\\s*([^,)]+)`).exec(code.slice(fnStarts[fi], open));
+            if (param === null || /^&|\bimpl\b|^\[/.test(param[1].trim())) continue;
+            declAt = 0;
+            ty = param[1].trim();
+        }
+        const after = body.slice(declAt);
+        if (new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`).test(after)) continue;
+        const stack: number[] = [];
+        let inStr = false;
+        for (let j = 0; j < after.length; j++) {
+            const c = after[j];
+            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+        }
+        const heads = stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o));
+        const stmtStart = Math.max(after.lastIndexOf(';'), after.lastIndexOf('{'), after.lastIndexOf('}'));
+        heads.push(after.slice(stmtStart + 1));
+        if (heads.some(h => /\b(?:loop|while|for)\b|\|/.test(h))) continue;
+        word.lastIndex = 0;
+        if (word.test(after.slice(stmtStart + 1))) continue;
+        // the literal's own rows before the "info" row may borrow x; they finish before the move
+        const rest = code.slice(rowEnd, litClose);
+        let lastUse = -1;
+        let owned = false;
+        const lends: number[] = [];
+        for (const u of rest.matchAll(new RegExp(`(?<![\\w.])${name}\\b`, 'g'))) {
+            lastUse = u.index as number;
+            if (rest[lastUse - 1] === '&' || rest.startsWith(`${name}.clone()`, lastUse)) continue;
+            // a by-value first argument of a self method this file also calls with a borrowed first argument
+            const callee = /self\.(\w+)\($/.exec(rest.slice(Math.max(0, lastUse - 60), lastUse));
+            if (callee !== null && rest[lastUse + name.length] === ',' && code.slice(open, fnClose).includes(`self.${callee[1]}(&${name},`)) lends.push(rowEnd + lastUse);
+            else owned = true;
+        }
+        if (owned) continue;
+        const at = pos + m[1].length + 'm.insert("info".to_string(), '.length;
+        if (lastUse < 0) { edits.push([at, at + name.length + 8, name]); continue; }
+        // end of the top-level row holding the last read: next `;` at literal depth
+        const useLine = code.lastIndexOf('\n', rowEnd + lastUse) + 1;
+        if (!/^\s*m\.insert\(/.test(code.slice(useLine, rowEnd + lastUse))) continue;
+        // the reading row must be a row of this literal, not of a nested one
+        let net = 0, q = false;
+        for (let j = rowEnd; j < useLine; j++) {
+            const c = code[j];
+            if (q) { if (c === '\\') j++; else if (c === '"') q = false; continue; }
+            if (c === '"') q = true; else if ('([{'.includes(c)) net++; else if (')]}'.includes(c)) net--;
+        }
+        if (net !== 0) continue;
+        let depth = 0, k = useLine, s = false;
+        for (; k < litClose; k++) {
+            const c = code[k];
+            if (s) { if (c === '\\') k++; else if (c === '"') s = false; continue; }
+            if (c === '"') s = true; else if ('([{'.includes(c)) depth++; else if (')]}'.includes(c)) depth--;
+            else if (c === ';' && depth === 0) break;
+        }
+        if (k >= litClose || depth !== 0) continue;
+        if (!/^(?:crate::)?Value$/.test(ty)) continue;
+        for (const l of lends) edits.push([l, l, '&']);
+        edits.push([at, at + name.length + 8, 'Value::Null']);
+        edits.push([k + 1, k + 1, `\n${m[1]}m.insert("info".to_string(), ${name});`]);
+    }
+    edits.sort((a, b) => a[0] - b[0]);
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 043
 //
@@ -8211,6 +8307,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendBookSideToHandleDelta,
     //
     // pass slot 042
+    moveDictLiteralInfoRows,
     //
     // pass slot 043
     //
