@@ -6366,6 +6366,11 @@ const RUST_TUPLE_FN_CORE = String.raw`(?:super_)?handle_(?:option_(?:bool_|strin
 const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['handle_api_key_index', 'integer_'],
     ['handle_account_index', 'integer_'],
+    ['prepare_request', ''],
+    ['get_margin_mode', ''],
+    ['prepare_orders_by_status_request', ''],
+    ['multi_order_spot_prepare_request', ''],
+    ['spot_order_prepare_request', ''],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -8253,6 +8258,42 @@ function lendTypedMarketRaw(content: string): string {
 }
 //
 // unit slot 068
+// gate prepareRequest's settle return answers `omit (params, 'settle')`: the typed omit_t gives the Dict slot of its tuple
+function typeGatePrepareRequestOmit(content: string): string {
+    if (!/\bpub struct Gate\b/.test(content)) return content;
+    return content.replace(/(\n {4}pub fn prepare_request\([^\n]*\) -> \(Value, crate::value::Dict\) \{\n[\s\S]*?)return Value::from\(vec!\[(Value::from\(&request\)), self\.omit\(&params, Value::Str\("settle"\.into\(\)\), &\[\]\)\]\);/,
+        '$1return ($2, self.omit_t(&params, &["settle"], &[]));');
+}
+// a ternary between two gate tuple helpers re-boxed as a list and read once per slot binds the tuple itself
+function typeGateTupleTernaries(content: string): string {
+    if (!/\bpub struct Gate\b/.test(content)) return content;
+    const GATE_TUPLE = /^(?:prepare_request|get_margin_mode|prepare_orders_by_status_request|multi_order_spot_prepare_request|spot_order_prepare_request)$/;
+    const head = /(\{ )?let (?:mut )?(\w+): Vec<Value> = \(if /g;
+    let out = content;
+    for (let m: RegExpExecArray | null; (m = head.exec(out)) !== null;) {
+        const open = m.index + m[0].length - 4, close = rustCloseParen(out, open + 1);
+        const tail = '.as_array().cloned().unwrap_or_default();';
+        if (close < 0 || !out.startsWith(tail, close)) continue;
+        let names = 0;
+        const expr = out.slice(open + 1, close - 1).replace(/\{ \{ let __t = ((?:self|exchange)(?:\.parent)?\.(\w+)\([\s\S]*?\));\s*Value::from\(vec!\[__t\.0, Value::Dict\(__t\.1\)\]\) \} \}/g,
+            (r, call, name) => { if (!GATE_TUPLE.test(name)) return r; names++; return `{ ${call} }`; });
+        if (names !== 2 || expr.includes('__t')) continue;
+        const n = m[2], from = close + tail.length;
+        const rest = m[1] ? out.slice(from, out.indexOf('; }', from) + 3) : rustFnRest(out, from);
+        const seen: string[] = [];
+        const body = rest.replace(new RegExp(String.raw`\b${n}\.get\(([01])\)\.cloned\(\)\.unwrap_or\(Value::Null\)(\.into_dict\(\))?`, 'g'), (_r, i, d) => {
+            seen.push(i);
+            return i === '1' ? (d ? `${n}.1` : `Value::Dict(${n}.1)`) : `${n}.0${d ?? ''}`;
+        });
+        const left = body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), '');
+        if (seen.length === 0 || new Set(seen).size !== seen.length || new RegExp(`\\b${n}\\b`).test(left)
+            || /\b(?:for|while|loop)\b/.test(body.slice(0, body.search(new RegExp(`\\b${n}\\.[01]\\b`))))) continue;
+        const bind = `${m[1] ?? ''}let ${n} = if ${expr.slice(3)};`;
+        out = out.slice(0, m.index) + bind + body + out.slice(from + rest.length);
+        head.lastIndex = m.index + bind.length;
+    }
+    return out;
+}
 //
 // unit slot 069
 //
@@ -8808,6 +8849,8 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendTypedMarketRaw,
     //
     // pass slot 068
+    typeGatePrepareRequestOmit,
+    typeGateTupleTernaries,
     //
     // pass slot 069
     //
