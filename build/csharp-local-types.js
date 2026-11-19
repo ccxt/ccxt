@@ -18328,6 +18328,42 @@ function minMaxLocalReadsAreBoxNeutral (csharp, call) {
     return ok && (reads > 0);
 }
 
+// `this.sum (a, b)` binding the Int64 twin, or an Int64 clock call (`this.milliseconds ()`): never null, Int64 box
+function int64CallOperandKind (csharp, node) {
+    const inner = stripParens (node);
+    if (inner?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    if ((integerBoxCastType (csharp, inner) === 'Int64') || (csharpTypeOfValue (csharp, inner) === 'Int64')) {
+        return 'Int64';
+    }
+    // the two-argument sum over int / Int64 / Int64? operands binds an Int64 twin
+    const callee = inner.expression;
+    const sumArgs = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && (callee.name?.text === 'sum') && (inner.arguments.length === 2);
+    return (sumArgs && inner.arguments.every ((a) => [ 'int', 'Int64', 'Int64?' ].includes (nativeArithmeticOperandKind (csharp, a)))) ? 'Int64' : undefined;
+}
+
+// Math.Min/Max text for two operands that are both Int64 at the call (Int64 local, guarded Int64? read, Int64 call)
+function minMaxBothInt64Text (csharp, call, name, parsedArg1, parsedArg2) {
+    if (typeof csharp.csharpIntegralOperand !== 'function' || !csharp.csharpMinMaxResultIsPlainValue (call)) {
+        return undefined;
+    }
+    const texts = call.arguments.map ((argument, i) => {
+        const printed = (i === 0) ? parsedArg1 : parsedArg2;
+        if (int64CallOperandKind (csharp, argument) === 'Int64') {
+            return printed;
+        }
+        const inner = stripParens (argument);
+        const kind = (inner?.kind === ts.SyntaxKind.Identifier) ? nativeArithmeticOperandKind (csharp, inner) : undefined;
+        if (kind !== 'Int64' && kind !== 'Int64?') {
+            return undefined;
+        }
+        return csharp.csharpIntegralNonNullText (call, { kind, node: inner }, printed);
+    });
+    return texts.includes (undefined) ? undefined : 'Math.' + name + '(' + texts[0] + ', ' + texts[1] + ')';
+}
+
 export function installCsharpGuardedMinMax (transpiler) {
     const csharp = transpiler?.csharpTranspiler;
     if (!csharp || typeof csharp.csharpNativeMathMinMax !== 'function' || csharp._guardedMinMaxPatched) {
@@ -18339,6 +18375,10 @@ export function installCsharpGuardedMinMax (transpiler) {
         const args = node?.arguments;
         if ((native !== undefined) || (args?.length !== 2)) {
             return native;
+        }
+        const bothInt64 = minMaxBothInt64Text (csharp, node, name, parsedArg1, parsedArg2);
+        if (bothInt64 !== undefined) {
+            return bothInt64;
         }
         if (!minMaxRequestFieldValue (node) && !minMaxLocalReadsAreBoxNeutral (csharp, node)) {
             return native;
@@ -18909,7 +18949,7 @@ function nativeComparisonGuardedKind (csharp, comparison, node) {
 function nativeComparisonOperand (csharp, node, symbol, comparison, fallback = false) {
     const guardedSymbols = fallback ? NATIVE_COMPARISON_FALLBACK_GUARDED_SYMBOLS : NATIVE_COMPARISON_GUARDED_SYMBOLS;
     const guarded = guardedSymbols.includes (symbol) ? nativeComparisonGuardedKind (csharp, comparison, node) : undefined;
-    const kind = guarded ?? nativeArithmeticOperandKind (csharp, node);
+    const kind = guarded ?? nativeArithmeticOperandKind (csharp, node) ?? int64CallOperandKind (csharp, node);
     const base = nativeArithmeticBaseKind (kind);
     const nullable = nativeArithmeticIsNullableKind (kind);
     if (kind === 'int?' || kind === 'uint?') {
@@ -23734,6 +23774,7 @@ function int64IndexGroupLocal (csharp, declaration, context) {
     return { type: 'Int64' };
 }
 
+<<<<<<< merged
 // ===== `number[]` index accumulators =====
 // A sync method declared once in ts/src, annotated `number[]`, whose every return is one `number[]` local
 // seeded `[]` and written only by `.push (<int-literal for-counter>)`: the list holds Int64 indices, so the
@@ -23835,3 +23876,5 @@ export function installCsharpIntIndexAccumulators (csharp) {
     };
     csharp._intIndexAccumulatorsPatched = true;
 }
+=======
+>>>>>>> C07
