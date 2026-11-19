@@ -2084,7 +2084,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
     }
-    fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
+    fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> (Value, crate::value::Dict) {
         <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
     }
     fn super_safe_currency_code(&self, currency_id: Value, currency: Option<&crate::types::Currency>) -> Option<String> {
