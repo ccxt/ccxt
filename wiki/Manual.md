@@ -558,7 +558,7 @@ var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 
 Some exchanges also offer separate APIs for testing purposes that allows developers to trade virtual money for free and test out their ideas. Such API can be called _"testnet", "sandbox", "demo trading" or "staging environment"_ (with virtual testing assets) as opposed to "_production environment_" (aka "_mainnet_") with real assets. Most often a sandboxed API is a clone of a production API, so, it's literally the same API, except for the URL to the exchange server.
 
-CCXT unifies that aspect and allows the user to switch to the exchange's sandbox (if supported by the underlying exchange) by calling `exchange.setSandboxMode (true)`|`exchange.set_sandbox_mode(true)` **immediately after creating the exchange before any other call**!
+CCXT unifies that aspect and allows the user to switch to the exchange's sandbox (if supported by the underlying exchange) by calling `exchange.setSandboxMode (true)`|`exchange.set_sandbox_mode(true)` **immediately after creating the exchange before any other call**! It is recommended approach instead of passing `{'sandbox': true}` when instantiating the exchange.
 
 <!-- tabs:start -->
 
@@ -597,7 +597,7 @@ exchange.setSandboxMode(true); // enable sandbox mode
 
 <!-- tabs:end -->
 
-- The `exchange.setSandboxMode (true) / exchange.set_sandbox_mode (True)` has to be your first call immediately after creating the exchange (before any other calls)
+- The `exchange.setSandboxMode (true) / exchange.set_sandbox_mode (True)` has to be your first call immediately after creating the exchange (before any other calls).
 - To obtain the [API keys](#authentication) to the sandbox the user has to register with the sandbox website of the exchange in question and create a sandbox keypair
 - **Sandbox keys are not interchangeable with production keys!**
 
