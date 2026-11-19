@@ -552,8 +552,8 @@ export default class coincheck extends Exchange {
         const priceString = this.safeString(trade, 'rate');
         const marketId = this.safeString(trade, 'pair');
         const marketResolved = this.safeMarket(marketId, market, '_');
-        const baseId = marketResolved['baseId'];
-        const quoteId = marketResolved['quoteId'];
+        const baseId = this.safeString(marketResolved, 'baseId');
+        const quoteId = this.safeString(marketResolved, 'quoteId');
         const symbol = marketResolved['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;

@@ -1201,7 +1201,7 @@ class xt(Exchange, ImplicitAPI):
         swapAndFutureMarkets = self.array_concat(self.safe_list(markets[0], 'result', []), self.safe_list(markets[1], 'result', []))
         return self.parse_markets(swapAndFutureMarkets)
 
-    def parse_markets(self, markets: object):
+    def parse_markets(self, markets: list):
         result = []
         for i in range(0, len(markets)):
             parsed = self.parse_market(self.safe_value(markets, i))
@@ -4659,7 +4659,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4832,7 +4832,7 @@ class xt(Exchange, ImplicitAPI):
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
-        symbol = market['symbol'] if (market is not None) else None
+        symbol = self.safe_string(market, 'symbol')
         return {
             'info': fee,
             'symbol': symbol,
@@ -5578,8 +5578,9 @@ class xt(Exchange, ImplicitAPI):
             jsonBody = self.json(query)
             signedBody = None if isUndefinedBody else jsonBody
             payloadString = ''
+            timestampPart = '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
             if (endpoint == 'spot') or (endpoint == 'user'):
-                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
+                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + timestampPart
                 if isUndefinedBody:
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded
@@ -5591,7 +5592,7 @@ class xt(Exchange, ImplicitAPI):
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256'
                 headersValue['xt-validate-recvwindow'] = recvWindow
             else:
-                futurePrefix = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
+                futurePrefix = 'xt-validate-appkey=' + self.apiKey + timestampPart
                 if method == 'GET':
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded

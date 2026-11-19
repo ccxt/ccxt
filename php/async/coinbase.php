@@ -1367,10 +1367,12 @@ class coinbase extends Exchange {
             $priceString = $v3Price;
         }
         if (($priceString !== null) && ($amountString !== null)) {
-            $cost = Precise::string_mul($priceString, $amountString);
+            $baseCost = Precise::string_mul($priceString, $amountString);
             $contractSize = $this->safe_string($marketResolved, 'contractSize');
             if ($contractSize !== null) {
-                $cost = Precise::string_mul($cost, $contractSize);
+                $cost = Precise::string_mul($baseCost, $contractSize);
+            } else {
+                $cost = $baseCost;
             }
         } else {
             $cost = $costString;
@@ -2557,14 +2559,14 @@ class coinbase extends Exchange {
         $totalUsdBalance = $this->safe_string($totalUsdBalanceData, 'value');
         $futuresBuyingPower = $this->safe_string($futuresBuyingPowerData, 'value');
         if (($totalUsdBalance !== null) || ($futuresBuyingPower !== null)) {
-            $total = ($totalUsdBalance !== null) ? $totalUsdBalance : $futuresBuyingPower;
-            $free = ($futuresBuyingPower !== null) ? $futuresBuyingPower : $total;
-            $used = Precise::string_sub($total, $free);
+            $usdTotal = ($totalUsdBalance !== null) ? $totalUsdBalance : $futuresBuyingPower;
+            $usdFree = ($futuresBuyingPower !== null) ? $futuresBuyingPower : $usdTotal;
+            $usdUsed = Precise::string_sub($usdTotal, $usdFree);
             $balanceResult = array( 'info' => $response );
             $balanceResult['USD'] = array(
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
+                'free' => $usdFree,
+                'used' => $usdUsed,
+                'total' => $usdTotal,
             );
             return $this->safe_balance($balanceResult);
         }
@@ -2601,17 +2603,17 @@ class coinbase extends Exchange {
                 if ($available !== null && $hold !== null) {
                     $currencyId = $this->safe_string($available, 'currency');
                     $code = $this->safe_currency_code($currencyId);
-                    $used = $this->safe_string($hold, 'value');
-                    $free = $this->safe_string($available, 'value');
-                    $total = Precise::string_add($used, $free);
+                    $v3Used = $this->safe_string($hold, 'value');
+                    $v3Free = $this->safe_string($available, 'value');
+                    $v3Total = Precise::string_add($v3Used, $v3Free);
                     $account = $this->safe_dict($result, $code);
                     if ($account === null) {
-                        $account = $this->extend($this->account(), array( 'free' => $free, 'used' => $used, 'total' => $total ));
+                        $account = $this->extend($this->account(), array( 'free' => $v3Free, 'used' => $v3Used, 'total' => $v3Total ));
                     } else {
                         $account = $this->extend($account, array(
-                            'free' => Precise::string_add($this->safe_string($account, 'free'), $free),
-                            'used' => Precise::string_add($this->safe_string($account, 'used'), $used),
-                            'total' => Precise::string_add($this->safe_string($account, 'total'), $total),
+                            'free' => Precise::string_add($this->safe_string($account, 'free'), $v3Free),
+                            'used' => Precise::string_add($this->safe_string($account, 'used'), $v3Used),
+                            'total' => Precise::string_add($this->safe_string($account, 'total'), $v3Total),
                         ));
                     }
                     if ($code !== null) {

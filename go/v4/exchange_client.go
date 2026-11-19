@@ -52,6 +52,7 @@ type ClientInterface interface {
 	GetFutures() map[string]*Future
 	FutureHas(key any) bool
 	FutureGet(key any) any
+	FutureTyped(key any) *Future
 	FutureKeys() []string
 }
 
@@ -743,6 +744,15 @@ func (this *Client) FutureGet(key any) any {
 		return future
 	}
 	return nil
+}
+
+// FutureTyped is FutureGet with a static *Future result: nil exactly when FutureGet answers nil.
+func (this *Client) FutureTyped(key any) *Future {
+	keyStr, ok := subsKey(key)
+	if !ok {
+		return nil
+	}
+	return this.GetFutures()[keyStr]
 }
 
 // FutureKeys lists the hashes of the pending futures.

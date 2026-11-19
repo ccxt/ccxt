@@ -284,6 +284,7 @@ func (e *BaseExchange) Decode(data any) string {
 // }
 
 func (e *BaseExchange) IntToBase16(number any) string {
+	// a nullable Int (SafeInteger) arrives as *int64
 	switch v := derefScalar(number).(type) {
 	case int:
 		return fmt.Sprintf("%x", int64(v))

@@ -1842,25 +1842,25 @@ class deribit extends Exchange {
         $futureFee = array();
         $optionFee = array();
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $fees[$i];
-            $instrumentType = $this->safe_string($fee, 'instrument_type');
+            $feeEntry = $fees[$i];
+            $instrumentType = $this->safe_string($feeEntry, 'instrument_type');
             if ($instrumentType === 'future') {
                 $futureFee = array(
-                    'info' => $fee,
-                    'maker' => $this->safe_number($fee, 'maker_fee'),
-                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                    'info' => $feeEntry,
+                    'maker' => $this->safe_number($feeEntry, 'maker_fee'),
+                    'taker' => $this->safe_number($feeEntry, 'taker_fee'),
                 );
             } elseif ($instrumentType === 'perpetual') {
                 $perpetualFee = array(
-                    'info' => $fee,
-                    'maker' => $this->safe_number($fee, 'maker_fee'),
-                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                    'info' => $feeEntry,
+                    'maker' => $this->safe_number($feeEntry, 'maker_fee'),
+                    'taker' => $this->safe_number($feeEntry, 'taker_fee'),
                 );
             } elseif ($instrumentType === 'option') {
                 $optionFee = array(
-                    'info' => $fee,
-                    'maker' => $this->safe_number($fee, 'maker_fee'),
-                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                    'info' => $feeEntry,
+                    'maker' => $this->safe_number($feeEntry, 'maker_fee'),
+                    'taker' => $this->safe_number($feeEntry, 'taker_fee'),
                 );
             }
         }
@@ -2320,7 +2320,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
+        $order = $this->extend($this->safe_dict($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order, $market);
     }
 
@@ -2373,7 +2373,7 @@ class deribit extends Exchange {
         }
         $response = Async\await($this->privateGetEdit($this->extend($request, $paramsOmitted)));
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
+        $order = $this->extend($this->safe_dict($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order);
     }
 
@@ -3522,7 +3522,7 @@ class deribit extends Exchange {
         return $this->filter_by_symbol_since_limit($rates, $symbol, $sinceResolved, $limit);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //   {
         //       "jsonrpc":"2.0",

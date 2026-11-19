@@ -66,8 +66,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("filled".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("remaining".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(entry.clone(), Value::Str("remaining".into()), &[]).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(entry.clone(), Value::Str("filled".into()), &[]).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(&entry, Value::Str("remaining".into()), &[]).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(&entry, Value::Str("filled".into()), &[]).clone()]);
     if !(in_op(&skippedProperties, &Value::Str("trades".into()))) {
         let mut skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -78,11 +78,10 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
         })]);
         if (entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1556: bool = true;
-                while { if !__for_first_1556 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1556 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
-                testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null), &i), symbol.clone(), now.clone(), Value::Bool(false));
+                while { if !__for_first_1556 { i += 1; } __for_first_1556 = false; (i as f64) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
+                testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null), &Value::Int(i)), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }
         }

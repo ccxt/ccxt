@@ -929,7 +929,7 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (rawCurrency, 'coin');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (rawCurrency, 'name');
-        const networkList = this.safeList (rawCurrency, 'networkList') as List;
+        const networkList: Dict[] = this.safeList (rawCurrency, 'networkList') as List;
         const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const rawNetwork = networkList[j];
@@ -1835,7 +1835,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -4097,7 +4097,6 @@ export default class bingx extends Exchange {
         //         "workingType": ""
         //     }
         //
-        const info = order;
         const newOrder = this.safeDict2 (order, 'newOrderResponse', 'orderOpenResponse');
         const orderData = (newOrder !== undefined) ? newOrder : order;
         const positionSide = this.safeString2 (orderData, 'positionSide', 'ps');
@@ -4170,7 +4169,7 @@ export default class bingx extends Exchange {
             }
         }
         return this.safeOrder ({
-            'info': info,
+            'info': order,
             'id': this.safeStringN (orderData, [ 'orderId', 'i', 'mainOrderId' ]),
             'clientOrderId': this.safeStringN (orderData, [ 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' ]),
             'symbol': this.safeSymbol (marketId, marketResolved, '-', marketType),
@@ -5645,7 +5644,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeList (this.safeDict (response, 'data'), 'data');
+        const data = this.safeList (this.safeDict (response, 'data'), 'data', []);
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
@@ -7416,9 +7415,7 @@ export default class bingx extends Exchange {
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
-        const bodyResult = requestBody;
-        const headersResult = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override nonce (): int {

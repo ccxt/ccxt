@@ -1070,10 +1070,10 @@ func (this *Coinbaseinternational) ParseCurrency(currency any) map[string]any {
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(decimals))
 	var networkFee *float64 = this.SafeNumber(currency, "network_fee")
 	var withdrawalFee *float64 = this.SafeNumber(currency, "withdrawal_fee")
-	var rawNetworks []any = SafeListTyped(currency, "coinbase_networks")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(currency, "coinbase_networks")
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < len(rawNetworks); i++ {
-		var rawNetwork any = rawNetworks[i]
+		var rawNetwork map[string]any = rawNetworks[i]
 		var networkId *string = this.SafeString(rawNetwork, "resource_name")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1201,12 +1201,12 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 		request["start_timestamp"] = this.Sum(now, ((this.ParseToInt(limitResolved) * duration) * int64(-1000)))
 		request["end_timestamp"] = now
 	} else {
-		var sinceResolved any = mathMax(*since-1, 0)
+		var sinceResolved int64 = max(*since-1, 0)
 		request["start_timestamp"] = sinceResolved
 		if limitResolved == nil {
 			request["end_timestamp"] = now
 		} else {
-			request["end_timestamp"] = this.Sum(sinceResolved, (this.ParseToInt(limitResolved)*duration)*1000)
+			request["end_timestamp"] = sinceResolved + (this.ParseToInt(limitResolved)*duration)*1000
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
@@ -2604,7 +2604,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	}
 	var transactions []any = []any{}
 	for i := 0; i < len(logs); i++ {
-		var transaction any = DerefScalar(logs[i])
+		var transaction any = logs[i]
 		var transactionType *string = this.SafeString(transaction, "type")
 		if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "withdrawal") {
 			transactions = append(transactions, transaction)
@@ -2932,9 +2932,9 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 		request["reject_post_only"] = true
 		request["time_in_force"] = "good_til_cancelled"
 	}
-	var paramsOrder any = this.Omit(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"})
+	var paramsOrder map[string]any = this.OmitDict(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"})
 	if this.IsNativeDeribitCredentials() {
-		paramsOrder = this.Omit(paramsOrder, []any{"reduceOnly", "reduce_only"})
+		paramsOrder = this.OmitDict(paramsOrder, []any{"reduceOnly", "reduce_only"})
 	}
 
 	r1 := <-this.AuthenticateV2Async()
@@ -3209,12 +3209,12 @@ func (this *Coinbaseinternational) ParseOrderType(typeVar *string) *string {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseinternational) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbaseinternational) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4226,16 +4226,16 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 		panic(AuthenticationError(this.Id + " public/auth did not return an expiry"))
 	}
 	var ratio *float64 = this.SafeNumber(this.Options, "accessTokenRefreshRatio")
-	var refreshRatio float64 = func() float64 {
-		if ratio == nil {
-			return 0.8
-		}
-		return *ratio
-	}()
+	var refreshRatio float64
+	if ratio == nil {
+		refreshRatio = 0.8
+	} else {
+		refreshRatio = *ratio
+	}
 	var tokenRefreshInMilliseconds int64 = this.ParseToInt(float64((*expiresIn * 1000)) * refreshRatio)
 	this.Token = accessToken
 	this.Options["v2AccessToken"] = DerefScalar(accessToken)
-	this.Options["v2TokenExpires"] = this.Sum(now, tokenRefreshInMilliseconds)
+	this.Options["v2TokenExpires"] = now + tokenRefreshInMilliseconds
 
 	ch <- AsyncResult[any]{Value: accessToken}
 	return nil

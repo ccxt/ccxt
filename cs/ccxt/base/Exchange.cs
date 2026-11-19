@@ -554,7 +554,7 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, Dictionary<string, object> parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, IDictionary<string, object> parameters = null)
     {
         if (!reload && this.markets != null)
         {
@@ -578,11 +578,10 @@ public partial class BaseExchange
         return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, IDictionary<string, object> parameters2 = null)
     {
         var reload = reload2 == true;
-        parameters2 ??= new dict();
-        var parameters = (dict)parameters2;
+        var parameters = parameters2 ?? new dict();
         if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)
         {
             this.reloadingMarkets = true;
@@ -596,33 +595,33 @@ public partial class BaseExchange
         return marketsLoading;
     }
 
-    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(IDictionary<string, object> parameters = null)
     {
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
-    public async Task<Currencies> FetchCurrencies(object parameters = null)
+    public async Task<Currencies> FetchCurrencies(IDictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrencies(parameters);
         return new Currencies(res);
     }
 
-    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(IDictionary<string, object> parameters = null)
     {
         return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
-    public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    public async Task<Currencies> FetchCurrenciesWs(IDictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesWs(parameters);
         return new Currencies(res);

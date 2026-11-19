@@ -1722,7 +1722,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -2013,7 +2013,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeList (response, 'data', []) as List;
+        const dataResponse: Dict[] = this.safeList (response, 'data', []) as List;
         const marketsWithoutTest: List = [];
         for (let i = 0; i < dataResponse.length; i++) {
             const data = dataResponse[i];
@@ -2105,16 +2105,15 @@ export default class okx extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        const firstChain = this.safeDict (chains, 0, {});
+        const firstChain = this.safeDict (currency, 0, {});
         const currencyId = this.safeString (firstChain, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
         const networks: Dict = {};
         let type = 'crypto';
-        const chainsLength = (chains as List).length;
+        const chainsLength = (currency as List).length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = this.safeDict (chains, j);
+            const chain = this.safeDict (currency, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             const networkId = this.safeString (chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId === '') {
@@ -2145,7 +2144,7 @@ export default class okx extends Exchange {
             }
         }
         return this.safeCurrencyStructure ({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': this.safeString (firstChain, 'name'),
@@ -2872,7 +2871,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rates: List = [];
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger (rate, 'fundingTime');
@@ -3208,8 +3207,8 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const request: Dict = {
             'instId': market['id'],
@@ -4464,7 +4463,7 @@ export default class okx extends Exchange {
         let stopLossPrice: Num = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
         let takeProfitPrice: Num = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
         // regular orders carry attached sl/tp inside attachAlgoOrds
-        const attachAlgoOrds = this.safeList (order, 'attachAlgoOrds', []);
+        const attachAlgoOrds: Dict[] = this.safeList (order, 'attachAlgoOrds', []);
         for (let i = 0; i < attachAlgoOrds.length; i++) {
             const attached = attachAlgoOrds[i];
             if (stopLossPrice === undefined) {
@@ -6934,7 +6933,7 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -8349,7 +8348,7 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
         const maxLimit = 100;
-        let effectiveLimit = this.parseToInt (100);
+        let effectiveLimit = 100;
         if ((limit !== undefined) && (100 > limit)) {
             effectiveLimit = this.parseToInt (limit);
         }

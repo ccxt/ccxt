@@ -574,8 +574,7 @@ class mercado(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
                 amountString = self.number_to_string(amount)
                 priceString = self.number_to_string(price)
-                cost = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
-                request['cost'] = self.price_to_precision(market['symbol'], cost)
+                request['cost'] = self.price_to_precision(market['symbol'], self.parse_to_numeric(Precise.string_mul(amountString, priceString)))
                 response = await self.privatePostPlaceMarketBuyOrder(self.extend(request, params))
             else:
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
@@ -583,7 +582,7 @@ class mercado(Exchange, ImplicitAPI):
         # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({
             'info': response,
-            'id': self.safe_string(self.safe_value(self.safe_value(response, 'response_data'), 'order'), 'order_id'),
+            'id': self.safe_string(self.safe_dict(self.safe_dict(response, 'response_data'), 'order'), 'order_id'),
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -942,7 +941,7 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: list[Order]) -> list[Trade]:
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_list(self.safe_value(orders, i), 'trades', [])
+            trades = self.safe_list(self.safe_dict(orders, i), 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result
@@ -996,7 +995,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         #     {"status":503,"message":"Maintenancing, try again later","result":null}
         #
-        errorMessage = self.safe_value(response, 'error_message')
+        errorMessage = self.safe_string(response, 'error_message')
         if errorMessage is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return None

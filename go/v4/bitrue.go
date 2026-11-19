@@ -903,10 +903,10 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var name *string = this.SafeString(rawCurrency, "coinFulName")
 	var code *string = this.SafeCurrencyCode(id)
-	var networkDetails []any = SafeListTyped(rawCurrency, "chainDetail")
+	var networkDetails []map[string]any = this.SafeListMapsTyped(rawCurrency, "chainDetail")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(networkDetails); j++ {
-		var entry any = networkDetails[j]
+		var entry map[string]any = networkDetails[j]
 		var networkId *string = this.SafeString(entry, "chain")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1366,7 +1366,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			"contractName": market["id"],
 		}
 		if limit != nil {
-			request["limit"] = mathMin(limit, 100) // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+			request["limit"] = min(*limit, 100) // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
 		}
 		if *this.SafeBool(market, "linear", false) {
 
@@ -1388,7 +1388,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			"symbol": market["id"],
 		}
 		if limit != nil {
-			request["limit"] = mathMin(limit, 1000) // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+			request["limit"] = min(*limit, 1000) // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
 		}
 
 		r3 := <-this.SpotV1PublicGetDepth(this.Extend(request, params))
@@ -2417,9 +2417,9 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		request["contractName"] = market["id"]
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var isMarketBuyWithPrice bool = isMarket && (side == "buy") && createMarketBuyOrderRequiresPrice
-		var paramsNoCost any = paramsRequiresPrice
+		var paramsNoCost map[string]any = paramsRequiresPrice
 		if isMarketBuyWithPrice {
-			paramsNoCost = this.Omit(paramsRequiresPrice, "cost")
+			paramsNoCost = this.OmitDict(paramsRequiresPrice, "cost")
 		}
 		if isMarketBuyWithPrice {
 			var cost *string = this.SafeString(paramsRequiresPrice, "cost")
@@ -2450,7 +2450,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}()
 		var leverage *string = this.SafeString(paramsNoCost, "leverage", "1")
 		request["leverage"] = this.ParseToNumeric(leverage)
-		var paramsSwap any = this.Omit(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
+		var paramsSwap map[string]any = this.OmitDict(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
 		if *this.SafeBool(market, "linear", false) {
 
 			r1 := <-this.FapiV2PrivatePostOrder(this.Extend(request, paramsSwap))
@@ -2875,12 +2875,12 @@ func (this *Bitrue) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitrue) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitrue) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitrue) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4037,19 +4037,19 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var recvWindow *int64 = this.SafeInteger(this.Options, "recvWindow", 5000)
 		if (typeVar == "spot") || (typeVar == "open") {
-			var query string = this.Urlencode(this.Extend(map[string]any{
+			var unsignedQuery string = this.Urlencode(this.Extend(map[string]any{
 				"timestamp":  this.Nonce(),
 				"recvWindow": recvWindow,
 			}, paramsOmitted))
-			var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
-			query += "&" + "signature=" + signature
+			var signature string = this.Hmac(this.Encode(unsignedQuery), this.Encode(this.Secret), sha256)
+			var signedQuery string = unsignedQuery + "&" + "signature=" + signature
 			if (method == "GET") || (method == "DELETE") {
-				url += "?" + query
+				url += "?" + signedQuery
 				requestHeaders = map[string]any{
 					"X-MBX-APIKEY": this.ApiKey,
 				}
 			} else {
-				requestBody = query
+				requestBody = signedQuery
 				requestHeaders = map[string]any{
 					"X-MBX-APIKEY": this.ApiKey,
 					"Content-Type": "application/x-www-form-urlencoded",
@@ -4076,7 +4076,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 				}
 				url += "?" + this.Urlencode(paramsOmitted)
 			} else {
-				var query any = this.Extend(map[string]any{
+				var query map[string]any = this.Extend(map[string]any{
 					"recvWindow": recvWindow,
 				}, paramsOmitted)
 				requestBody = this.Json(query)

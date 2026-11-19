@@ -1,8 +1,8 @@
 ```rust
-// CCXT Rust CLI — mirrors `cli.go` / `cli.cs`, built on the TYPED crate.
-// `ccxt::from_id(id, config)` builds a boxed `TypedExchange`; the method name
-// is dispatched dynamically through `TypedExchange::call_raw` (the typed crate's
-// runtime escape hatch), so this file needs no per-method signatures.
+// CCXT Rust CLI — mirrors `cli.go` / `cli.cs`, built on the `ccxt` crate.
+// `ccxt::exchanges::with_exchange(id, config, visitor)` builds the venue and hands
+// it to a generic visitor; the method name is dispatched dynamically through
+// `TypedExchange::call` (the runtime escape hatch), so no per-method signatures.
 //
 //   npm run cli.rs -- binance fetchTicker BTC/USDT
 //   npm run cli.rs -- bybit  fetchOHLCV  BTC/USDT 1h
@@ -211,8 +211,8 @@ async fn main() {
     let no_keys = flags.iter().any(|f| f == "--no-keys");
 
     // Build the settings map `<Exchange>::new` takes: credentials + proxies +
-    // verbose all go in here so the typed wrapper (whose Core is private) is
-    // configured entirely at construction.
+    // verbose all go in here so the exchange is configured entirely at
+    // construction.
     let mut config: HashMap<String, Value> = HashMap::new();
     if !no_keys {
         for (k, v) in load_credentials(&id) { config.insert(k, Value::Str(v.into())); }
@@ -257,21 +257,36 @@ async fn main() {
     }
 }
 
-// One-shot REST dispatch on the typed `ccxt` crate (the original CLI path).
-async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, config: HashMap<String, Value>) {
-    use ccxt::TypedExchange;
-    let result = panic::AssertUnwindSafe(async move {
-        let mut ex: Box<dyn TypedExchange> = match ccxt::from_id(id, Some(Value::Map(config))) {
-            Some(e) => e,
-            None => panic!("{RED}exchange not compiled in: {id} (build with --features all-venues){RESET}"),
-        };
+// The CLI call on whichever venue `with_exchange` picked.
+struct RestCall<'a> {
+    m: &'a str,
+    args: Vec<Value>,
+    testnet: bool,
+    demo: bool,
+}
+
+impl ccxt::ExchangeVisitor for RestCall<'_> {
+    type Output = ccxt::Result<Value>;
+    async fn visit<E: ccxt::TypedExchange + 'static>(self, mut ex: E) -> ccxt::Result<Value> {
+        let RestCall { m, args, testnet, demo } = self;
         // --testnet / --demo route through the runtime dispatch, same as any method.
-        if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
-        if demo { let _ = ex.call_raw("enable_demo_trading", vec![Value::Bool(true)]).await; }
+        if testnet { let _ = ex.call::<Value>("set_sandbox_mode", vec![Value::Bool(true)]).await; }
+        if demo { let _ = ex.call::<Value>("enable_demo_trading", vec![Value::Bool(true)]).await; }
         // Most unified methods need markets loaded first.
         let skip_load = ["load_markets", "fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m);
-        if !skip_load { let _ = ex.load_markets(false).await; }
-        ex.call_raw(m, args).await
+        if !skip_load { let _ = ex.load_markets(false, ()).await; }
+        ex.call::<Value>(m, args).await
+    }
+}
+
+// One-shot REST dispatch on the typed `ccxt` crate (the original CLI path).
+async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, config: HashMap<String, Value>) {
+    let result = panic::AssertUnwindSafe(async move {
+        let call = RestCall { m, args, testnet, demo };
+        match ccxt::exchanges::with_exchange(id, Some(Value::Map(config)), call).await {
+            Some(r) => r,
+            None => panic!("{RED}exchange not compiled in: {id} (build with --features all-venues){RESET}"),
+        }
     }).catch_unwind().await;
 
     match result {
@@ -292,28 +307,41 @@ async fn run_rest(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool
 // in a loop, printing each update until Ctrl-C (or the first error).
 #[cfg(feature = "ws")]
 async fn run_ws(id: &str, m: &str, args: Vec<Value>, testnet: bool, demo: bool, config: HashMap<String, Value>) {
-    use ccxt_pro::TypedExchange;
-    let mut ex: Box<dyn TypedExchange> = match ccxt_pro::from_id(id, Some(Value::Map(config))) {
-        Some(e) => e,
-        None => {
-            eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue compiled in for exchange: {id} (build with --features ws,all-venues)");
-            std::process::exit(1);
-        }
-    };
-    if testnet { let _ = ex.call_raw("set_sandbox_mode", vec![Value::Bool(true)]).await; }
-    if demo { let _ = ex.call_raw("enable_demo_trading", vec![Value::Bool(true)]).await; }
-    let _ = ex.load_markets(false).await;
-    println!("{YELLOW}streaming {m} — press Ctrl-C to stop{RESET}");
+    let stream = WsStream { m, args, testnet, demo };
+    if ccxt_pro::with_exchange(id, Some(Value::Map(config)), stream).await.is_none() {
+        eprintln!("\n{RED}error:{RESET} no WebSocket (pro) venue compiled in for exchange: {id} (build with --features ws,all-venues)");
+        std::process::exit(1);
+    }
+}
 
-    let mut i: u64 = 0;
-    loop {
-        // The pro wrappers surface their panic-based errors as `Result`, so a
-        // plain match suffices — no per-iteration unwind guard needed.
-        match ex.call_raw(m, args.clone()).await {
-            Ok(v) => println!("\n{GREEN}[{i}]{RESET} {}", pretty(&materialize_book(&v), 0)),
-            Err(e) => { eprintln!("\n{RED}error:{RESET} {e}"); std::process::exit(1); }
+#[cfg(feature = "ws")]
+struct WsStream<'a> {
+    m: &'a str,
+    args: Vec<Value>,
+    testnet: bool,
+    demo: bool,
+}
+
+#[cfg(feature = "ws")]
+impl ccxt_pro::ExchangeVisitor for WsStream<'_> {
+    type Output = ();
+    async fn visit<E: ccxt_pro::TypedExchange + 'static>(self, mut ex: E) {
+        let WsStream { m, args, testnet, demo } = self;
+        if testnet { let _ = ex.call::<Value>("set_sandbox_mode", vec![Value::Bool(true)]).await; }
+        if demo { let _ = ex.call::<Value>("enable_demo_trading", vec![Value::Bool(true)]).await; }
+        let _ = ex.load_markets(false, ()).await;
+        println!("{YELLOW}streaming {m} — press Ctrl-C to stop{RESET}");
+
+        let mut i: u64 = 0;
+        loop {
+            // The pro exchanges surface their panic-based errors as `Result`, so a
+            // plain match suffices — no per-iteration unwind guard needed.
+            match ex.call::<Value>(m, args.clone()).await {
+                Ok(v) => println!("\n{GREEN}[{i}]{RESET} {}", pretty(&materialize_book(&v), 0)),
+                Err(e) => { eprintln!("\n{RED}error:{RESET} {e}"); std::process::exit(1); }
+            }
+            i += 1;
         }
-        i += 1;
     }
 }
 

@@ -348,17 +348,9 @@ class backpack extends \ccxt\async\backpack {
                     }
                 }
             } elseif (mb_strpos($messageHash, 'positions') !== false) {
+                // the positions cache is one ArrayCacheBySymbolById: dropping it forgets every symbol
                 if ($messageHash === 'unsubscribe:positions') {
-                    $keys = is_array($this->positions) ? array_keys($this->positions) : array();
-                    for ($j = 0; $j < count($keys); $j++) {
-                        $symbol = $keys[$j];
-                        unset($this->positions[$symbol]);
-                    }
-                } else {
-                    $symbol = str_replace('unsubscribe:positions:', '', $messageHash);
-                    if (is_array($this->positions) && array_key_exists($symbol ?? '', $this->positions)) {
-                        unset($this->positions[$symbol]);
-                    }
+                    $this->positions = null;
                 }
             }
         }

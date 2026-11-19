@@ -569,7 +569,7 @@ public class Bit2me extends Bit2meApi
                 put( "includeTestnet", ((Boolean.TRUE.equals(includeTestnet))) ? "true" : "false" );
             }};
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetV2CurrencyAssets(this.extend(request, query)), this.publicGetV1WalletSettingsAssets(query)));
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             //
             // assets
             //
@@ -608,18 +608,18 @@ public class Bit2me extends Bit2meApi
             //         }
             //     ]
             //
-            Map<String, Object> assets = (Map<String, Object>) this.safeDict(responses, 0, new HashMap<String, Object>() {{}});
-            List<Object> settings = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> assets = this.safeDict(responses, 0, new HashMap<String, Object>() {{}});
+            List<Object> settings = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> settingsById = this.indexBy(settings, "symbol");
             List<String> ids = new ArrayList<String>(assets.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, id, new HashMap<String, Object>() {{}});
-                Map<String, Object> assetSettings = (Map<String, Object>) this.safeDict(settingsById, id, new HashMap<String, Object>() {{}});
+                Map<String, Object> asset = this.safeDict(assets, id, new HashMap<String, Object>() {{}});
+                Map<String, Object> assetSettings = this.safeDict(settingsById, id, new HashMap<String, Object>() {{}});
                 // an operation that is not listed for an asset is not available for it
-                List<Object> actions = (List<Object>) this.safeList(assetSettings, "actions", new ArrayList<Object>(Arrays.asList()));
+                List<Object> actions = this.safeList(assetSettings, "actions", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> currency = (Map<String, Object>) this.parseCurrency(this.extend(asset, new HashMap<String, Object>() {{
                     put( "actions", actions );
                 }}));
@@ -639,7 +639,7 @@ public class Bit2me extends Bit2meApi
         Boolean enabled = (Boolean) this.safeBool(rawCurrency, "enabled", false);
         String removedAt = this.safeString(rawCurrency, "removedAt");
         Boolean active = Boolean.TRUE.equals(enabled) && (java.util.Objects.equals(removedAt, null));
-        List<Object> actions = (List<Object>) this.safeList(rawCurrency, "actions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> actions = this.safeList(rawCurrency, "actions", new ArrayList<Object>(Arrays.asList()));
         boolean deposit = this.inArray("deposit", actions);
         boolean withdraw = this.inArray("withdrawal", actions);
         // the exponent is only published for a handful of assets, fall back to the usual decimals
@@ -776,7 +776,7 @@ public class Bit2me extends Bit2meApi
             //         }
             //     ]
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -896,7 +896,7 @@ public class Bit2me extends Bit2meApi
             //
             // the exchange returns the newest trades first, reverse them so that trades sharing a timestamp keep their execution order
             List<Object> reversed = new ArrayList<Object>(Arrays.asList());
-            Integer length = ((List<?>)response).size();
+            Integer length = response.size();
             for (var i = 0; (length != null && i < length); i++)
             {
                 ((List<Object>)reversed).add((response == null || ((int) ((((long) length) - 1L) - ((long) i))) < 0 || ((int) ((((long) length) - 1L) - ((long) i))) >= response.size() ? null : response.get(((int) ((((long) length) - 1L) - ((long) i))))));
@@ -1172,7 +1172,7 @@ public class Bit2me extends Bit2meApi
             //
             if ((response instanceof List))
             {
-                Map<String, Object> takeProfitLeg = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> takeProfitLeg = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 Map<String, Object> ocoOrder = (Map<String, Object>) this.parseOrder(takeProfitLeg, market);
                 ocoOrder.put("info", response);
                 return ocoOrder;
@@ -1452,12 +1452,12 @@ public class Bit2me extends Bit2meApi
                 Map<String, Object> requestByClientId = new HashMap<String, Object>();
                 requestByClientId.put("clientOrderId", clientOrderId);
                 List<Object> orders = (this.privateGetV1TradingOrder(this.extend(requestByClientId, query))).join();
-                Integer numOrders = ((List<?>)orders).size();
+                Integer numOrders = orders.size();
                 if (java.util.Objects.equals(numOrders, 0))
                 {
                     throw new OrderNotFound(((this.id + " fetchOrder() could not find an order with clientOrderId ") + clientOrderId)) ;
                 }
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> first = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
                 return this.parseOrder(first, market);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1532,7 +1532,7 @@ public class Bit2me extends Bit2meApi
             // startTime and endTime must always be sent together
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
             {
-                Object start = (((!java.util.Objects.equals(since, null)))) ? since : 0;
+                Long start = (((!java.util.Objects.equals(since, null)))) ? since : 0;
                 Object end = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
                 request.put("startTime", this.iso8601(start));
                 request.put("endTime", this.iso8601(end));
@@ -1796,7 +1796,7 @@ public class Bit2me extends Bit2meApi
             // startTime and endTime must always be sent together
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
             {
-                Object start = (((!java.util.Objects.equals(since, null)))) ? since : 0;
+                Long start = (((!java.util.Objects.equals(since, null)))) ? since : 0;
                 Object end = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
                 request.put("startTime", this.iso8601(start));
                 request.put("endTime", this.iso8601(end));
@@ -1828,7 +1828,7 @@ public class Bit2me extends Bit2meApi
             //         "total": 12
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1911,7 +1911,7 @@ public class Bit2me extends Bit2meApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2042,7 +2042,7 @@ public class Bit2me extends Bit2meApi
         //
         String currencyId = this.safeString(transfer, "currency");
         String movementType = this.safeString(transfer, "movementType");
-        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String fromAccount = null;
         String toAccount = null;
         String id = null;
@@ -2174,8 +2174,8 @@ public class Bit2me extends Bit2meApi
         //     {"statusCode":412,"error":"Precondition Failed","message":"...","errorPayload":{"code":"ORDER_AMOUNT_LOWER_MARKET_MIN"}}
         //
         String errorCode = this.safeString2(response, "code", "statusCode");
-        List<Object> errorsList = (List<Object>) this.safeList(response, "errors", (Object) null);
-        Map<String, Object> errorPayload = (Map<String, Object>) this.safeDict(response, "errorPayload", new HashMap<String, Object>() {{}});
+        List<Object> errorsList = this.safeList(response, "errors", null);
+        Map<String, Object> errorPayload = this.safeDict(response, "errorPayload", new HashMap<String, Object>() {{}});
         String payloadCode = this.safeString(errorPayload, "code");
         if ((!java.util.Objects.equals(errorCode, null)) || (!java.util.Objects.equals(errorsList, null)) || (!java.util.Objects.equals(payloadCode, null)))
         {

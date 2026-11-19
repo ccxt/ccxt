@@ -366,9 +366,9 @@ func (this *Coinbase) CreateWSAuth(name string, productIds any) map[string]any {
 	var timestamp *string = this.NumberToString(this.Seconds())
 	this.CheckRequiredCredentials()
 	var isCloudAPiKey bool = (strings.Index(this.ApiKey, "organizations/") >= 0) || (strings.HasPrefix(this.Secret, "-----BEGIN"))
-	var isV2CloudAPiKey any = this.IsEddsaApiKey()
+	var isV2CloudAPiKey bool = this.IsEddsaApiKey()
 	var auth string = *timestamp + name + ccxt.Join(productIds, ",")
-	if !isCloudAPiKey && !(isV2CloudAPiKey == true) {
+	if !isCloudAPiKey && !isV2CloudAPiKey {
 		subscribe["api_key"] = this.ApiKey
 		subscribe["timestamp"] = timestamp
 		subscribe["signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
@@ -659,7 +659,7 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 		var tickersObj map[string]any = ccxt.SafeMapTyped(events, i)
 		var tickers []any = ccxt.SafeListTyped(tickersObj, "tickers")
 		for j := 0; j < len(tickers); j++ {
-			var ticker any = ccxt.DerefScalar(tickers[j])
+			var ticker any = tickers[j]
 			var wsMarketId *string = this.SafeString(ticker, "product_id")
 			if wsMarketId == nil {
 				continue
@@ -806,13 +806,13 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 	//         ]
 	//     }
 	//
-	var events []any = ccxt.SafeListTyped(message, "events")
+	var events []map[string]any = this.SafeListMapsTyped(message, "events")
 	var timeframe string = "5m"
 	for i := 0; i < len(events); i++ {
-		var event map[string]any = ccxt.MapTyped(events[i])
-		var candles []any = ccxt.SafeListTyped(event, "candles")
+		var event map[string]any = events[i]
+		var candles []map[string]any = this.SafeListMapsTyped(event, "candles")
 		for j := 0; j < len(candles); j++ {
-			var candle map[string]any = ccxt.MapTyped(ccxt.DerefScalar(candles[j]))
+			var candle map[string]any = candles[j]
 			var marketId *string = this.SafeString(candle, "product_id")
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -820,9 +820,9 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 			if symbol != nil && this.Ohlcvs[*symbol] == nil {
 				this.Ohlcvs[*symbol] = map[string]any{}
 			}
-			var stored any
+			var stored ccxt.WsArrayCache
 			if symbol != nil {
-				stored = this.Ohlcvs[*symbol][timeframe]
+				stored, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
 			}
 			if stored == nil {
 				var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -831,7 +831,7 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 					this.Ohlcvs[*symbol][timeframe] = stored
 				}
 			}
-			stored.(ccxt.Appender).Append(parsed)
+			stored.Append(parsed)
 			var messageHash string = "candles::" + *symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 			this.TryResolveUsdc(client, messageHash, stored)
@@ -1326,7 +1326,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 			continue
 		}
 		for j := 0; j < len(responseOrders); j++ {
-			var responseOrder any = ccxt.DerefScalar(responseOrders[j])
+			var responseOrder any = responseOrders[j]
 			var parsed map[string]any = this.ParseWsOrder(responseOrder)
 			var cachedOrders ccxt.WsArrayCache = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")

@@ -2290,7 +2290,7 @@ class gate extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //    {
         //        "name": "BTC_USDT",
@@ -3009,7 +3009,7 @@ class gate extends Exchange {
         if ($this->safe_bool($market, 'option', false)) {
             $optionMarketId = $this->safe_string($market, 'id');
             for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+                $entry = $this->safe_dict($response, $i);
                 $entryName = $this->safe_string($entry, 'name');
                 if ($entryName === $optionMarketId) {
                     $ticker = $entry;
@@ -7094,7 +7094,6 @@ class gate extends Exchange {
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }
-        $response = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $paramsUntil, 'cross');
         if ($isUnifiedAccount) {
             $response = $this->privateUnifiedGetInterestRecords($this->extend($requestUntil, $paramsMarginMode));
@@ -7103,8 +7102,8 @@ class gate extends Exchange {
                 $requestUntil['currency_pair'] = $market['id'];
             }
             $response = $this->privateMarginGetUniInterestRecords($this->extend($requestUntil, $paramsMarginMode));
-        } elseif ($marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        } else {
+            // cross: deprecated and not present in the exchange's docs but still works
             $response = $this->privateMarginGetCrossInterestRecords($this->extend($requestUntil, $paramsMarginMode));
         }
         $interest = $this->parse_borrow_interests($response, $market);

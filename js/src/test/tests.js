@@ -254,7 +254,7 @@ class testMainClass {
         }
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && (exchange.has[methodName] !== undefined) && (exchange.has[methodName] !== false);
-        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && (exchange.inArray(methodName, this.onlySpecificTests) !== true))) {
+        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && !exchange.inArray(methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         }
         else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {

@@ -2136,16 +2136,15 @@ class okx extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $chains = $currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        $firstChain = $this->safe_dict($chains, 0, array());
+        $firstChain = $this->safe_dict($currency, 0, array());
         $currencyId = $this->safe_string($firstChain, 'ccy');
         $code = $this->safe_currency_code($currencyId);
         $networks = array();
         $type = 'crypto';
-        $chainsLength = count($chains);
+        $chainsLength = count($currency);
         for ($j = 0; $j < $chainsLength; $j++) {
-            $chain = $this->safe_dict($chains, $j);
+            $chain = $this->safe_dict($currency, $j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if ($networkId === '') {
@@ -2176,7 +2175,7 @@ class okx extends Exchange {
             }
         }
         return $this->safe_currency_structure(array(
-            'info' => $chains,
+            'info' => $currency,
             'code' => $code,
             'id' => $currencyId,
             'name' => $this->safe_string($firstChain, 'name'),
@@ -3285,8 +3284,8 @@ class okx extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
-        $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        $stopLossPrice = $this->safe_string_2($params, 'stopLossPrice', 'slTriggerPx');
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $request = array(
             'instId' => $market['id'],
@@ -7113,7 +7112,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -8611,7 +8610,7 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = $this->parse_to_int(100);
+        $effectiveLimit = 100;
         if (($limit !== null) && (100 > $limit)) {
             $effectiveLimit = $this->parse_to_int($limit);
         }

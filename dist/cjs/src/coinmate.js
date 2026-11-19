@@ -580,7 +580,7 @@ class coinmate extends coinmate$1["default"] {
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const market = this.market(keys[i]);
-            const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
+            const ticker = this.parseTicker(this.safeDict(data, keys[i], {}), market);
             result[market['symbol']] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);

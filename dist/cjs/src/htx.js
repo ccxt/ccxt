@@ -2921,9 +2921,9 @@ class htx extends htx$1["default"] {
         //         "ts": 1781066959396
         //     }
         //
-        let trades = this.safeValue(response, 'data');
-        if (!Array.isArray(trades)) {
-            trades = this.safeList(trades, 'trades');
+        let trades = this.safeList(response, 'data');
+        if (trades === undefined) {
+            trades = this.safeList(this.safeDict(response, 'data'), 'trades', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -3961,8 +3961,10 @@ class htx extends htx$1["default"] {
         //         "ts": 1780967407144
         //     }
         //
-        const rawOrder = this.safeValue(response, 'data');
-        const order = Array.isArray(rawOrder) ? this.safeDict(rawOrder, 0) : rawOrder;
+        let order = this.safeDict(response, 'data');
+        if (order === undefined) {
+            order = this.safeDict(this.safeList(response, 'data', []), 0, {});
+        }
         return this.parseOrder(order, market);
     }
     parseMarginBalanceHelper(balance, code, result) {
@@ -4226,8 +4228,10 @@ class htx extends htx$1["default"] {
                 }
             }
         }
-        const rawOrders = this.safeValue(response, 'data');
-        const orders = Array.isArray(rawOrders) ? rawOrders : this.safeList(rawOrders, 'orders', []);
+        let orders = this.safeList(response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList(this.safeDict(response, 'data'), 'orders', []);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedContractOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4788,8 +4792,10 @@ class htx extends htx$1["default"] {
         //         "ts": 1780739390596
         //     }
         //
-        const rawOrders = this.safeValue(response, 'data');
-        const orders = Array.isArray(rawOrders) ? rawOrders : this.safeList(rawOrders, 'orders', []);
+        let orders = this.safeList(response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList(this.safeDict(response, 'data'), 'orders', []);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -5088,7 +5094,7 @@ class htx extends htx$1["default"] {
             };
         }
         const average = this.safeString(order, 'trade_avg_price');
-        const trades = this.safeValue(order, 'trades');
+        const trades = this.safeList(order, 'trades');
         let reduceOnly = undefined;
         if (isLinearOrder) {
             reduceOnly = this.safeBool(order, 'reduce_only');
@@ -5893,8 +5899,8 @@ class htx extends htx$1["default"] {
             result = this.safeList(response, 'data', []);
         }
         else {
-            const data = this.safeValue(response, 'data');
-            if (Array.isArray(data)) {
+            const data = this.safeList(response, 'data');
+            if (data !== undefined) {
                 result = data;
             }
             else {
@@ -7698,7 +7704,7 @@ class htx extends htx$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const interest = this.parseBorrowInterests(data, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }

@@ -32,6 +32,30 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 			return byUrl[fragment]
 		}
 	}
+	// Go urlencodes a map[string]any in random key order, while the fixtures spell
+	// fragments in TS insertion order: match a query fragment as a set of k=v pairs
+	queryPairs := map[string]bool{}
+	if q := strings.IndexByte(urlStr, '?'); q >= 0 {
+		for _, pair := range strings.Split(urlStr[q+1:], "&") {
+			queryPairs[pair] = true
+		}
+	}
+	for _, fragment := range fragments {
+		pairs := strings.Split(fragment, "&")
+		if len(pairs) < 2 {
+			continue
+		}
+		matched := true
+		for _, pair := range pairs {
+			if !queryPairs[pair] {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			return byUrl[fragment]
+		}
+	}
 	if len(fragments) > 0 {
 		return byUrl[fragments[0]]
 	}
@@ -57,14 +81,14 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		// sign() may return a typed nil pointer (*string) as body; unwrap it, otherwise `body != nil` is true and a literal "null" body is sent (rejected with 403 by cloudfront on GET)
 		body = derefScalar(body)
 
-		// Convert url to string
-		urlStr, ok := url.(string)
+		// Convert url to string: a venue sign() may build the url as a *string local
+		urlStr, ok := derefScalar(url).(string)
 		if !ok {
 			panic("url must be a string")
 		}
 
 		// Convert method to string
-		methodStr, ok := method.(string)
+		methodStr, ok := derefScalar(method).(string)
 		if !ok {
 			panic("method must be a string")
 		}

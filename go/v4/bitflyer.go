@@ -298,7 +298,7 @@ func (this *Bitflyer) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bitflyer) ParseExpiryDate(expiry string) any {
+func (this *Bitflyer) ParseExpiryDate(expiry string) *int64 {
 	var day string = expiry[0:min(2, len(expiry))]
 	var monthName string = expiry[2:min(5, len(expiry))]
 	var expiryYear string = expiry[5:min(9, len(expiry))]
@@ -405,7 +405,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = DerefScalar(markets[i])
+		var market any = markets[i]
 		var id *string = this.SafeString(market, "product_code")
 		var currencies []string = strings.Split(*id, "_")
 		var marketType *string = this.SafeString(market, "market_type")
@@ -416,7 +416,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var settle *string = nil
 		var baseId any = nil
 		var quoteId any = nil
-		var expiry any = nil
+		var expiry *int64 = nil
 		if spot {
 			if derefPtr := this.SafeString(currencies, 0); derefPtr != nil {
 				baseId = *derefPtr
@@ -493,7 +493,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				}
 				expiry = this.ParseExpiryDate(*expiryDate)
 			}
-			if IsEqual(expiry, nil) {
+			if expiry == nil {
 				continue
 			}
 			typeVar = "future"
@@ -1014,12 +1014,12 @@ func (this *Bitflyer) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitflyer) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitflyer) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitflyer) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitflyer) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -2087,16 +2087,15 @@ class okx(Exchange, ImplicitAPI):
         return self.parse_currencies(currencies)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        chains = currency
         # currencies are grouped by chain entries, so there is at least one entry
-        firstChain = self.safe_dict(chains, 0, {})
+        firstChain = self.safe_dict(currency, 0, {})
         currencyId = self.safe_string(firstChain, 'ccy')
         code = self.safe_currency_code(currencyId)
         networks = {}
         type = 'crypto'
-        chainsLength = len(chains)
+        chainsLength = len(currency)
         for j in range(0, chainsLength):
-            chain = self.safe_dict(chains, j)
+            chain = self.safe_dict(currency, j)
             # allow empty string for rare fiat-currencies, e.g. TRY
             networkId = self.safe_string(chain, 'chain', '')  # USDT-BEP20, USDT-Avalance-C, etc
             if networkId == '':
@@ -2124,7 +2123,7 @@ class okx(Exchange, ImplicitAPI):
                     'info': chain,
                 }
         return self.safe_currency_structure({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': self.safe_string(firstChain, 'name'),
@@ -3112,8 +3111,8 @@ class okx(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
-        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        stopLossPrice = self.safe_string_2(params, 'stopLossPrice', 'slTriggerPx')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         request = {
             'instId': market['id'],
@@ -6548,7 +6547,7 @@ class okx(Exchange, ImplicitAPI):
         requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -7858,7 +7857,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: the request and the remaining params
         """
         maxLimit = 100
-        effectiveLimit = self.parse_to_int(100)
+        effectiveLimit = 100
         if (limit is not None) and (100 > limit):
             effectiveLimit = self.parse_to_int(limit)
         if limit is not None:

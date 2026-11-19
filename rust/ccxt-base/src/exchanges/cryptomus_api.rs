@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::cryptomus::CryptomusCore;
+use super::cryptomus::Cryptomus;
 use crate::exchange::ExchangeRuntime;
 
-impl CryptomusCore {
+impl Cryptomus {
     /// Auto-generated wrapper for the `publicGetV2UserApiExchangeMarkets` implicit endpoint.
     pub async fn public_get_v2_user_api_exchange_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v2_user_api_exchange_markets".into()), optional_args).await

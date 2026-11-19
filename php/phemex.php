@@ -1340,21 +1340,21 @@ class phemex extends Exchange {
         return (string) $precise;
     }
 
-    public function from_ep(mixed $ep, ?array $market = null) {
+    public function from_ep(?string $ep, ?array $market = null): ?string {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev(mixed $ev, ?array $market = null) {
+    public function from_ev(?string $ev, ?array $market = null): ?string {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er(mixed $er, ?array $market = null) {
+    public function from_er(?string $er, ?array $market = null): ?string {
         if (($er === null) || ($market === null)) {
             return $er;
         }
@@ -4374,7 +4374,7 @@ class phemex extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "askEp": 2332500,
@@ -4422,16 +4422,16 @@ class phemex extends Exchange {
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->safe_number($contract, 'markPriceRp', $markEp),
-            'indexPrice' => $this->safe_number($contract, 'indexPriceRp', $indexEp),
+            'markPrice' => $this->safe_number($contract, 'markPriceRp', $this->parse_number($markEp)),
+            'indexPrice' => $this->safe_number($contract, 'indexPriceRp', $this->parse_number($indexEp)),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->safe_number($contract, 'fundingRateRr', $fundingRateEr),
+            'fundingRate' => $this->safe_number($contract, 'fundingRateRr', $this->parse_number($fundingRateEr)),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $this->safe_number($contract, 'predFundingRateRr', $nextFundingRateEr),
+            'nextFundingRate' => $this->safe_number($contract, 'predFundingRateRr', $this->parse_number($nextFundingRateEr)),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
@@ -4848,7 +4848,7 @@ class phemex extends Exchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        $scaledAmmount = $this->to_ev($amount, $currency);
+        $scaledAmmount = $this->to_en($amount, $this->safe_integer($currency, 'valueScale'));
         $direction = null;
         $transfer = null;
         if ($fromId === 'spot' && $toId === 'future') {
@@ -5019,7 +5019,7 @@ class phemex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
-            'amount' => $amountTransfered,
+            'amount' => $this->parse_number($amountTransfered),
             'fromAccount' => $fromId,
             'toAccount' => $toId,
             'status' => $this->parse_transfer_status($status),

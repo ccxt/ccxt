@@ -18,7 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites, resetJavaVenueIndexes, javaVenueTupleCoreProven, javaVenueFileAsyncReturns } from './java-local-types.js';
 import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { nativeJavaTypedArithmetic } from './java-local-types.js';
@@ -32,11 +32,51 @@ import { installJavaMapLocalTypes } from './java-local-types.js';
 import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
+import { installJavaJ8CopyLocals } from './java-local-types.js';
+import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals } from './java-local-types.js';
+import { installJavaR84j2ContainerLocals } from './java-local-types.js';
+import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
+import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
+import { installJavaR84j8Locals } from './java-local-types.js';
+import { installJavaR87j2WsLocals } from './java-local-types.js';
+import { installJavaR87j2UrlLocals } from './java-local-types.js';
+import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
+import { installJavaR90j3NativeSumLocals } from './java-local-types.js';
+import { installJavaR90j3CounterLoops } from './java-local-types.js';
+import { installJavaR87j4SplitLists } from './java-local-types.js';
+import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
+import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
+import { installJavaR90j2ElementListLocals } from './java-local-types.js';
+import { installJavaR90j2PromiseAllLocals } from './java-local-types.js';
+import { installJavaR90j2ElementMapLocals } from './java-local-types.js';
+import { installJavaR90j6StringListReaders } from './java-local-types.js';
+import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
+import { installJavaR90j6PairLocals } from './java-local-types.js';
+import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
+import { installJavaR90j7MapDelete } from './java-local-types.js';
+import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
+import { installJavaR92j3LongFixedParams } from './java-local-types.js';
+import { installJavaR92j3ParseToIntCompare } from './java-local-types.js';
+import { installJavaR92j3SafeIntegerOperands } from './java-local-types.js';
+import { installJavaR92j3HexStringCalls } from './java-local-types.js';
+import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
+import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
+import { installJavaR92j1StringRowLocals } from './java-local-types.js';
+import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from './java-local-types.js';
+import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
+import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
+import { installJavaR93j2ListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
+import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
+import { installJ6ReaderLocals } from './java-local-types.js';
+import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
+import { installJ84j6StringListLocals } from './java-local-types.js';
+import { javaCoreBaseTierSpellings } from './java-local-types.js';
+import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
-import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
+import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
@@ -1472,10 +1512,13 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
 }
 
 // venue-local async cores (java-local-types section 12) join the unified table; base names never collide
-function withVenueAsyncReturns (table: Map<string, any>): Map<string, any> {
+function withVenueAsyncReturns (table: Map<string, any>, tsPath?: string): Map<string, any> {
     const merged = new Map(table);
+    for (const [name, info] of (tsPath === undefined ? new Map() : javaVenueFileAsyncReturns(tsPath))) {
+        if (!merged.has(name)) merged.set(name, info);
+    }
     for (const [name, javaReturnType] of javaVenueAsyncReturnTable()) {
-        if (!merged.has(name)) merged.set(name, { name, javaReturnType, isArray: false });
+        if (!merged.has(name)) merged.set(name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven(name) });
     }
     return merged;
 }
@@ -1693,10 +1736,11 @@ function javaRepoMethodUsesIndex (): any {
                 }
                 continue;
             }
-            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts') || /\.nooverloads\.\d+\.ts$/.test (entry.name)) {
+            const text = isTsIndexSource (entry.name) && !/\.nooverloads\.\d+\.ts$/.test (entry.name) ? readTsIndexSource (full) : undefined;
+            if (text === undefined) {
                 continue;
             }
-            const source: any = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'));
+            const source: any = ts.createSourceFile (full, text);
             const visit = (n: any) => {
                 if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
                     declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
@@ -1785,11 +1829,23 @@ export function installJavaOwnerStores (transpiler: any): void {
     printer.javaOwnerStoreHandoffs = handoffs;
     // plain caches: `public Map<String, Object> <name> = new HashMap<>();` that the base only ever
     // reassigns to a fresh HashMap (a put of a null value stores it, exactly like the helper)
-    const source = fs.readFileSync (path.join (__dirname, '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'BaseExchange.java'), 'utf8');
+    // the transpiled half of BaseExchange.java is printed from the base methods of ts/src/base/Exchange.ts
+    // (`{}` and createSafeDictionary print a fresh HashMap), so its writes are read there
+    let tsBase = '';
+    try {
+        tsBase = fs.readFileSync (path.join (__dirname, '..', 'ts', 'src', 'base', 'Exchange.ts'), 'utf8');
+    } catch (e) {
+        return;
+    }
+    const tsDelimiter = tsBase.indexOf ('METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT');
+    const tsExchange = tsBase.indexOf ('export default class Exchange extends BaseExchange');
+    const tsMethods = (tsDelimiter >= 0 && tsExchange > tsDelimiter) ? tsBase.slice (tsDelimiter, tsExchange) : tsBase;
     const caches = new Set<string> ();
     for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*=\s*new\s+HashMap<>\s*\(\s*\)\s*;/gm)) {
-        const assigns = [ ...source.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
-        if (assigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
+        const handAssigns = [ ...header.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
+        const tsAssigns = [ ...tsMethods.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
+        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))
+            && tsAssigns.every ((x) => /^(?:\{\s*\}|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
             caches.add (m[1]);
         }
     }
@@ -2111,6 +2167,7 @@ class NewTranspiler {
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
     // are reused across every stage instead of paying a cold pool per call
     piscina: Piscina | undefined;
+    javaCoreHanded: Record<string, Record<string, string[]>> | undefined;
     // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62
     // trading methods), reused by both the Exchange.java injection and the
     // PredictionExchange.java convenience-method injection.
@@ -2477,6 +2534,46 @@ class NewTranspiler {
         installJavaScalarLocals(this.transpiler);
         installJavaParamTypesPreScan(this.transpiler);
         installJavaStringReturns(this.transpiler);
+        installJavaR77j2ConditionalLocals(this.transpiler);
+        installJ6ReaderLocals(this.transpiler);
+        installJavaJ8CopyLocals(this.transpiler);
+        installJavaR84j1StringElementLocals(this.transpiler);
+        installJavaR84j1BoxElementLocals(this.transpiler);
+        installJavaR84j2ContainerLocals(this.transpiler);
+        installJavaR84j2GuardedListLocals(this.transpiler);
+        installJavaR84j2MapConditionalLocals(this.transpiler);
+        installJ84j6TrueOnlyLocals(this.transpiler);
+        installJ84j6StringListLocals(this.transpiler);
+        installJavaR84j8Locals(this.transpiler);
+        installJavaR87j2WsLocals(this.transpiler);
+        installJavaR87j2UrlLocals(this.transpiler);
+        installJavaR87j3SumCounterLocals(this.transpiler);
+        installJavaR87j4SplitLists(this.transpiler);
+        installJavaR87j5CalleeStringArgs(this.transpiler);
+        installJavaR87j8CopyStringResolver(this.transpiler);
+        installJavaR90j2ElementListLocals(this.transpiler);
+        installJavaR90j2PromiseAllLocals(this.transpiler);
+        installJavaR90j2ElementMapLocals(this.transpiler);
+        installJavaR90j3NativeSumLocals(this.transpiler);
+        installJavaR90j3CounterLoops(this.transpiler);
+        installJavaR90j6StringListReaders(this.transpiler);
+        installJavaR90j6AsStringListReaders(this.transpiler);
+        installJavaR90j6PairLocals(this.transpiler);
+        installJavaR90j6ListCopyLocals(this.transpiler);
+        installJavaR90j7MapDelete(this.transpiler);
+        installJavaR92j3LongDefaultParams(this.transpiler);
+        installJavaR92j3LongFixedParams(this.transpiler);
+        installJavaR92j3ParseToIntCompare(this.transpiler);
+        installJavaR92j3SafeIntegerOperands(this.transpiler);
+        installJavaR92j3HexStringCalls(this.transpiler);
+        installJavaR90j8OmitParamLocals(this.transpiler);
+        installJavaR92j1AssertedStringLocals(this.transpiler);
+        installJavaR92j1StringRowLocals(this.transpiler);
+        installJavaR92j2MarketTypeParams(this.transpiler);
+        installJavaTypedDefaultReaders(this.transpiler);
+        installJavaR92j2MapSlotHandOff(this.transpiler);
+        installJavaR92j2StringSlotLocals(this.transpiler);
+        installJavaR93j2ListLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -3268,6 +3365,8 @@ class NewTranspiler {
         }
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
+        // the base-tier returns just printed here are handed to the venue workers with each task
+        this.javaCoreHanded = javaCoreBaseTierSpellings ((this.transpiler as any).javaTranspiler, [ 'predictionBase', 'exchange', 'base' ]);
         let baseClass = baseFile.content as any;
         // qualified-this inside anonymous-class initializers names the lexically enclosing class,
         // which for these methods is PredictionExchange (not Exchange/BaseExchange).
@@ -3484,6 +3583,8 @@ class NewTranspiler {
         }
         const piscina = this.piscina;
         const configKey = JSON.stringify(parserConfig);
+        const handed = this.javaCoreHanded;
+        const handedKey = handed === undefined ? '' : JSON.stringify (handed);
 
         // One file per task (load-balances; a slow file can't stall others). `roots` is
         // the FULL stage list on every task so each worker builds ONE sticky ts.Program
@@ -3491,7 +3592,7 @@ class NewTranspiler {
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file] }));
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file], handed, handedKey }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
@@ -4893,7 +4994,7 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
+        javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest'), tsPath))
         javaSource = nativeJavaMapLocalsRetype(javaSource)
         javaSource = nativeJavaCoreArgIdentities(javaSource)
         javaSource = nativeJavaNumberParamCompare(javaSource)
@@ -5813,20 +5914,309 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest(), javaR92j4NullSeedConsumerSelfTest(), javaR92j8LocalsSelfTest(), javaR93j2ListLocalsSelfTest(), javaR93j8LocalsSelfTest());
+}
+
+// ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
+// a byte[] local handed to a typed slot, an Integer local in a ternary arm and a redeclared producer keep Object
+function javaBaseProducerLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz77j5selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zz77j5selftest${process.pid} extends Exchange {`,
+        "    sink (m: any, k: string): string { return k; }",
+        "    typed (m: string): string { return m; }",
+        "    pos (d: any, t: any, p: any) { const enc = this.ethEncodeStructuredData (d, t, p); const bin = this.encode ('x'); const n = this.binaryLength (bin); const r = this.randNumber (6); const q = this.precisionFromString ('0.01'); return [ this.sink (enc, 'k'), this.hash (bin, undefined, 'hex'), this.numberToString (n), this.numberToString (r), q ]; }",
+        "    str (x: string) { const pp = this.parsePrecision (x); return { 'p': pp }; }",
+        "    neg (d: any, t: any, p: any) { const enc2 = this.ethEncodeStructuredData (d, t, p); const r2 = this.randNumber (6); const u = (d === undefined) ? r2 : 0; return [ this.typed (enc2 as any), u ]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/byte\[\] enc = this\.ethEncodeStructuredData\(/.test(out)) problems.push("base producers: 'enc' (ethEncodeStructuredData into an Object slot) must print byte[]");
+        if (!/byte\[\] bin = this\.encode\(/.test(out)) problems.push("base producers: 'bin' (encode into hash/binaryLength) must print byte[]");
+        for (const name of [ 'n', 'r', 'q' ]) {
+            if (!new RegExp(`Integer ${name} = this\\.`).test(out)) problems.push(`base producers: '${name}' (int producer) must print Integer`);
+        }
+        if (!/\bObject enc2 = /.test(out)) problems.push("base producers: 'enc2' feeds a typed String slot and must stay Object");
+        if (!/\bObject r2 = /.test(out)) problems.push("base producers: 'r2' is a ternary arm and must stay Object");
+        // base-tier `: Str` methods printed below the transpile delimiter: a String-returning, never redeclared one prints String
+        if (!/String pp = this\.parsePrecision\(/.test(out)) problems.push("base producers: 'pp' (base-tier String method) must print String with no checkcast");
+    } catch (e: any) {
+        problems.push(`base producers self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-84j5: base `: Str` callees whose every return prints String (networkCodeToId) print `public String`,
+// so the caller's local is String and its `.toUpperCase ()` is native (no `((String)x)` receiver cast)
+function javaR84j5CalleeReturnsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz84j5selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Strings, Dict } from './base/types.js';",
+        `export default class zz84j5selftest${process.pid} extends Exchange {`,
+        "    net (code: string, networkCode: string) { const request: any = {}; const nid = this.networkCodeToId (networkCode, code); if (nid !== undefined) { request['chain'] = nid.toUpperCase (); } return request; }",
+        "    syms (symbols: Strings = undefined) { const sn: Strings = this.marketSymbols (symbols, undefined, false); const out = []; for (let i = 0; i < (sn as string[]).length; i++) { out.push (this.market ((sn as string[])[i])); } return out; }",
+        "    urlOf (g: string) { const bu = this.urls['api'] as Dict; return this.safeString (bu, g, bu['public']); }",
+        "    urlOnly (g: string) { const bu2 = this.urls['api'] as Dict; return this.safeString (bu2, g); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String nid = this\.networkCodeToId\(/.test(out)) problems.push("ral-84j5: 'nid' (networkCodeToId, every return String) must print String");
+        if (!/nid\.toUpperCase\(\)/.test(out) || /\(\(String\)nid\)/.test(out)) problems.push("ral-84j5: 'nid.toUpperCase ()' must print natively with no (String) receiver cast");
+        // `x as string[]` uses of a marketSymbols local: the List<String> local takes them as the identity
+        if (!/List<String> sn = this\.marketSymbols\(/.test(out)) problems.push("ral-84j5: 'sn' (marketSymbols, used through `as string[]`) must print List<String>");
+        if (/<\?>\)\(List<String>\)\(sn\)/.test(out)) problems.push("ral-84j5: '(sn as string[]).length' must print without the List<String> assertion cast");
+        // `this.urls['api']` locals read by a string key: Map local, native `.get`; with no element read they stay Object
+        if (!/(java\.util\.)?Map<String, Object> bu = \((java\.util\.)?Map<String, Object>\) this\.urls\.get\("api"\);/.test(out) || !/bu\.get\("public"\)/.test(out)) problems.push("ral-84j5: 'bu' (this.urls['api'] read by key) must print Map<String, Object> with a native .get");
+        if (!/Object bu2 = /.test(out)) problems.push("ral-84j5: 'bu2' (no element read) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-84j5 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j5: venue / base callees whose every return proves the type print it, so their result locals use it natively
+function javaR87j5CalleeReturnsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zz87j5selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from '../binance.js';",
+        "import type { Str, Dict, Int } from '../base/types.js';",
+        `export default class zz87j5selftest${process.pid} extends Exchange {`,
+        "    getSettlementCurrencies (type: string, method: string): string[] { return this.safeList (this.options, type, [ 'usdt' ]) as string[]; }",
+        "    useSc () { const sc = this.getSettlementCurrencies ('swap', 'fetchMarkets'); let n = 0; for (let c = 0; c < sc.length; c++) { n += 1; } return n; }",
+        "    useMh (client: any) { const mh = this.findMessageHashes (client, 'positions::'); for (let j = 0; j < mh.length; j++) { client.resolve ([], mh[j]); } }",
+        "    getStockWsUrl (streamType: Str = 'market'): string { const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}); const baseUrl = wsUrls['stock']; if (streamType === 'combined') { return baseUrl.replace ('/ws', '/stream'); } return baseUrl; }",
+        "    requestId (url: string): Int { return this.sum (url.length, 1); }",
+        "    useSu () { const su = this.getStockWsUrl ('user'); return this.requestId (su); }",
+        "    useOh (trades: any[]) { const oh = this.buildOHLCVC (trades, '1m', 0, 10); return oh.length; }",
+        "    findOutcomeInMarket (market: Dict, hint: Str = undefined): Dict { return this.safeDict (this.safeList (market, 'outcomes', []), 0, {}); }",
+        "    useFo (market: Dict) { const fo = this.findOutcomeInMarket (market); return Object.keys (fo).length > 0; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/(java\.util\.)?List<Object> getSettlementCurrencies\(/.test(out)) problems.push("ral-87j5: venue getSettlementCurrencies (: string[]) must print List<Object>");
+        if (!/(java\.util\.)?List<Object> sc = this\.getSettlementCurrencies\(/.test(out) || !/c < sc\.size\(\)/.test(out)) problems.push("ral-87j5: 'sc' must print List<Object> with a native .size()");
+        if (!/(java\.util\.)?List<Object> mh = this\.findMessageHashes\(/.test(out) || /\(List<\?>\)mh/.test(out)) problems.push("ral-87j5: 'mh' (base findMessageHashes) must print List<Object> with native list reads");
+        // a const String result of a venue-typed callee passes a String parameter bare (no `(String) (su)` checkcast)
+        if (!/String su = this\.getStockWsUrl\(/.test(out) || !/this\.requestId\(su\)/.test(out)) problems.push("ral-87j5: 'su' (String venue callee result) must be passed to a String parameter with no checkcast");
+        if (!/(java\.util\.)?List<Object> oh = this\.buildOHLCVC\(/.test(out)) problems.push("ral-87j5: 'oh' (base buildOHLCVC: OHLCVC[]) must print List<Object>");
+        if (!/(java\.util\.)?Map<String, Object> fo = this\.findOutcomeInMarket\(/.test(out) || /\(\(Map<String, Object>\)fo\)/.test(out)) problems.push("ral-87j5: 'fo' (venue findOutcomeInMarket: Dict) must print Map<String, Object> with a native use");
+    } catch (e) {
+        problems.push(`ral-87j5 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
 function mapLocalsSelfTest (): string[] {
     const problems: string[] = [];
+    // ral-77j3: `url = <string> + url` keeps a non-null String local String (its own read anchors the native concat)
+    const selfAnchored = path.join(process.cwd(), 'ts', 'src', `zz77j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(selfAnchored, [
+            "import Exchange from './abstract/binance.js';",
+            'export default class zz77j3selftest extends Exchange {',
+            "    pos (path: string, host: string) { let url = '/'; url += path; url = host + url; return url; }",
+            "    neg (path: string, host: any) { let other = '/'; other += path; other = host + other; return other; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(selfAnchored).content as string;
+        if (!/String url = "\/";/.test(out) || !/url = \(host \+ url\);/.test(out)) problems.push("ral-77j3: 'url' (every write a non-null String, `host + url` self-anchored) must print String with a native concat");
+        if (!/Object other = "\/";/.test(out)) problems.push("ral-77j3: 'other' (an `any` left operand) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-77j3 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(selfAnchored, { force: true });
+    }
+    // ral-84j3: base encoder writes, const String copies and `<number>.toString ()` keep a non-null String local String
+    const r84j3 = path.join(process.cwd(), 'ts', 'src', `zz84j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r84j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz84j3selftest extends Exchange {',
+            "    enc (q: Dict, p: string) { let body = ''; if (p === 'a') { body = this.urlencode (q); } const base = p + '/'; let auth = ''; auth = base; auth = body + '|' + base; return auth + body; }",
+            "    num (m: string) { let nonce = ''; nonce = this.milliseconds ().toString (); let a = ''; a = nonce + m; return a; }",
+            "    neg (q: any, p: string) { let other = ''; other = this.implodeParams (p, q); return other; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r84j3).content as string;
+        if (!/String body = "";/.test(out) || !/String auth = "";/.test(out)) problems.push("ral-84j3: 'body' (urlencode write) and 'auth' (const String copy) must print String");
+        if (!/String nonce = "";/.test(out)) problems.push("ral-84j3: 'nonce' (`this.milliseconds ().toString ()` write) must print String");
+        if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (implodeParams is declared Object) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-84j3 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(r84j3, { force: true });
+    }
+    // ral-87j3 R1: JSON.stringify / toUpperCase / replaceAll-of-self / remove0xPrefix writes keep a non-null String local String
+    const r87j3 = path.join(process.cwd(), 'ts', 'src', `zz87j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict, Str } from './base/types.js';",
+            'export default class zz87j3selftest extends Exchange {',
+            "    js (q: Dict, p: string) { let body = ''; if (p === 'a') { body = JSON.stringify (q); } let auth = ''; auth = p + '?'; auth += body; return auth; }",
+            "    up (p: string, k: string) { let s = ''; s = p.toUpperCase (); s = s.replaceAll (k, '-'); const parts = s.split ('-'); return parts; }",
+            "    hex (p: string) { let h = ''; h = this.remove0xPrefix (p); return h + '00'; }",
+            "    neg (p: Str, k: string) { let t = ''; t = p.replaceAll (k, '-'); return t + k; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3).content as string;
+        if (!/String body = "";/.test(out) || !/auth = \(auth \+ body\)/.test(out)) problems.push("ral-87j3: 'body' (JSON.stringify write) must print String and `auth += body` a native concat");
+        if (!/String s = "";/.test(out) || !/\(s\.split\(/.test(out)) problems.push("ral-87j3: 's' (toUpperCase / replaceAll-of-self writes) must print String with a bare split receiver");
+        if (!/String h = "";/.test(out)) problems.push("ral-87j3: 'h' (remove0xPrefix write) must print String");
+        if (!/Object t = "";/.test(out)) problems.push("ral-87j3: 't' (replaceAll of a nullable Str receiver) must stay Object");
+    } catch (e) {
+        problems.push(`ral-87j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r87j3, { force: true });
+    }
+    // ral-87j3 R2: an int-literal counter written only by base this.sum of integral operands prints Long and compares natively
+    const r87j3b = path.join(process.cwd(), 'ts', 'src', `zz87j3bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j3b, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz87j3bselftest extends Exchange {',
+            "    walk (xs: any[], step: number) { const n = xs.length; let i = 0; while (i < n) { i = this.sum (i, 1); } return i; }",
+            "    neg (xs: any[], p: Dict) { const n = xs.length; let j = 0; while (j < n) { j = this.sum (j, this.safeValue (p, 'k')); } return j; }",
+            "    arg (p: Dict) { let k = 0; k = this.sum (k, 1); return this.safeValue (p, k); }",
+            "    cap (xs: any[], p: Dict) { const n = xs.length; const a = this.safeInteger (p, 'a', 1); let e = this.sum (a, 2); if (e > n) { e = n; } return e; }",
+            "    left (s: string) { let d = 0; if (s.length < 5) { d = 5 - s.length; } return d > 2; }",
+            "    async step (xs: any[]) { let r = 0; for (let q = 0; q < xs.length; q++) { try { await this.loadMarkets (); } catch (e) { r = r + 1; } } return r; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3b).content as string;
+        // ral-90j3 loosened: a counter's sum of two proven longs now prints the native add `i = (i + 1L)`
+        if (!/Long i = 0L;/.test(out) || !/i = (?:\(Long\) this\.sum\(i, 1\)|\(i \+ 1L\))/.test(out)) problems.push("ral-87j3: 'i' (sum-of-integral counter) must print Long with a checkcast or native sum write");
+        if (!/Object j = 0;/.test(out)) problems.push("ral-87j3: 'j' (sum with an Object operand) must stay Object");
+        if (!/Object k = 0;/.test(out)) problems.push("ral-87j3: 'k' (no comparison / arithmetic use) must stay Object");
+        if (!/Long e = (?:\(Long\) this\.sum\(a, 2\)|\(a \+ 2L\));/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
+        if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
+        if (!/Long r = 0L;/.test(out) || !/r = \(r \+ 1L\);/.test(out)) problems.push("ral-87j3 R4: 'r' (self step write) must print Long with a native add");
+    } catch (e) {
+        problems.push(`ral-87j3 R2 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r87j3b, { force: true });
+    }
+    // ral-90j3: base this.sum of two proven non-null longs prints the native long add (no `(Long)` checkcast)
+    const r90j3 = path.join(process.cwd(), 'ts', 'src', `zz90j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r90j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz90j3selftest extends Exchange {',
+            "    rid () { const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1); this.options['requestId'] = requestId; return requestId; }",
+            "    exp () { const expiry = this.sum (this.milliseconds (), 5000); return expiry > 3; }",
+            "    walk (xs: any[]) { const n = xs.length; let i = 0; while (i < n) { i = this.sum (i, 1); } return i; }",
+            "    neg (p: Dict) { const a = this.sum (this.safeInteger (p, 'a'), 1); return a; }",
+            "    neg2 (p: Dict) { const b = this.sum (this.safeValue (p, 'b'), 1); return b; }",
+            "    cut (s: string, p: Dict) { const a = this.safeInteger (p, 'a', 0); const e = this.sum (a, 2); return s.slice (a, e); }",
+            "    put (p: Dict) { const a = this.safeInteger (p, 'a', 0); const f = this.sum (a, 2); p['f'] = f; return p; }",
+            "    loop (xs: any[]) { const n = xs.length; const out = []; let s = 0; while (s < n) { let t = this.sum (s, 2); if (t > n) { t = n; } for (let k = s; k < t; k++) { out.push (xs[k]); } s = this.sum (s, 2); } return out; }",
+            "    loop2 (xs: any[]) { const n = xs.length; let s = 0; while (s < n) { let t = this.sum (s, 2); if (t > n) { t = n; } for (let m = s; m < t; m++) { m = m + 1; } s = this.sum (s, 2); } return s; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j3).content as string;
+        if (!/Long requestId = \(this\.safeInteger\(this\.options, "requestId", 0\) \+ 1L\);/.test(out)) problems.push("ral-90j3: 'requestId' (safeInteger with int default + 1) must print the native long add");
+        if (!/Long expiry = \(this\.milliseconds\(\) \+ 5000L\);/.test(out)) problems.push("ral-90j3: 'expiry' (milliseconds + literal) must print the native long add");
+        if (!/i = \(i \+ 1L\);/.test(out)) problems.push("ral-90j3: counter sum write must print the native long add");
+        if (!/Long a = \(Long\) this\.sum\(/.test(out) && !/Object a = this\.sum\(/.test(out)) problems.push("ral-90j3: 'a' (safeInteger without default) must keep this.sum");
+        if (!/Object b = this\.sum\(/.test(out)) problems.push("ral-90j3: 'b' (Object operand) must stay Object");
+        if (!/Long e = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'e' (const-local sum feeding a slice bound) must print the native long add");
+        if (/Long f = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'f' (const-local sum only put into a map) must not be retyped by R2");
+        if (!/for \(long k = s; k < t; k\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'k' (loop between two Long counters) must print a native long header");
+        if (/for \(long m = s; m < t; m\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'm' (loop variable written in the body) must keep the helper header");
+    } catch (e) {
+        problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r90j3, { force: true });
+    }
+    // integer-literal defaulted number slots (buildOHLCVC since / limit) print Long, so call sites pass NL
+    const r92j3 = path.join(process.cwd(), 'ts', 'src', `zz92j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Int, Dict, Trade } from './base/types.js';",
+            'export default class zz92j3selftest extends Exchange {',
+            "    candles (trades: Trade[]) { const c = this.buildOHLCVC (trades, '1m', 0, 100); return c; }",
+            "    insertMissingCandles (candles: number[][], distanceInMs: number, since: Int, limit: number): number[] { const out: number[] = []; let n: Int = 0; while (n < limit) { out.push (n); n = this.sum (n, 1); } return out; }",
+            "    fill (xs: number[][]) { return this.insertMissingCandles (xs, 1000, undefined, 5); }",
+            "    within (xs: string[], p: Dict) { const end = this.safeInteger (p, 'end'); return this.parseToInt (xs[0]) > end; }",
+            "    deadline () { const d = this.seconds () + this.safeInteger (this.options, 'expiry', 600); return d; }",
+            "    grow (p: Dict, n: Int = 1) { const have = this.safeInteger (p, 'have', 0); const next = have + n; return next > 10; }",
+            "    sig (o: Dict) { const s = this.remove0xPrefix (this.safeString (o, 'r')) + this.intToBase16 (o['v']); return '0x' + s; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j3).content as string;
+        if (!/this\.buildOHLCVC\([^\n]*, 0L, 100L\)/.test(out)) problems.push("r92j3 R1: buildOHLCVC since / limit must take Long arguments");
+        if (!/this\.insertMissingCandles\(xs, 1000, \(Object\) null, 5L\)|this\.insertMissingCandles\(xs, 1000, null, 5L\)/.test(out)) problems.push("r92j3 R2: a fixed whole-number slot must take its int literal as NL");
+        if (!/List<Object> insertMissingCandles\([^)]*Long limit\)/.test(out)) problems.push("r92j3 R2: insertMissingCandles limit must print Long");
+        if (!/this\.parseToInt\([^\n]*\) > end\)/.test(out) || /\}\)\.test\(this\.parseToInt\(/.test(out)) problems.push("r92j3 R3: a parseToInt compare operand must print the native compare");
+        if (!/= \(this\.seconds\(\) \+ this\.safeInteger\(this\.options, "expiry", 600\)\);/.test(out)) problems.push("r92j3 R4: a defaulted safeInteger operand must print the native long add");
+        if (!/Long next = \(have \+ java\.util\.Objects\.requireNonNullElse\(n, 1L\)\);/.test(out)) problems.push("r92j3 R4: 'next' (sum of a defaulted safeInteger local and a Long slot) must be a native Long");
+        if (!/String s = \(this\.remove0xPrefix\(this\.safeString\(o, "r"\)\) \+ this\.intToBase16\(/.test(out)) problems.push("r92j3 R5: remove0xPrefix + intToBase16 must print the native concat");
+    } catch (e) {
+        problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j3, { force: true });
+    }
+    // String / Long temps of inlined helper blobs and literal seeds
+    const r93j3 = path.join(process.cwd(), 'ts', 'src', `zz93j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz93j3selftest extends Exchange {',
+            "    formatNumber (data: string): string { const parts = data.split ('.'); let joined = this.safeString (parts, 0, '') + this.safeString (parts, 1, ''); while (joined.startsWith ('0')) { joined = joined.slice (1); } return joined; }",
+            "    pair (xs: string[]) { let out = ''; if (xs.length > 1) { out = this.formatNumber (xs[0]) + this.formatNumber (xs[1]); } return out; }",
+            "    capped (p: Dict) { const left = this.parseToInt (this.safeString (p, 'l')); let digits = 0; if (left > 2) { digits = 5 - left; } return Math.min (left, digits); }",
+            "    diff (p: Dict, s: string) { const sz = this.parseToInt (this.safeString (p, 'sz')); const most = 8 - sz; let left = 0; if (s.length <= 5) { left = 5 - (s.length); } const capped = (most < left) ? most : left; let z = ''; for (let i = 1; i < capped; i++) { z = z + '0'; } return z; }",
+            "    scale (p: Dict) { let f = 1; for (let i = 0; i < 3; i++) { f = this.parseToInt (f * 256); } return f; }",
+            "    pad (p: string) { const n = parseInt (p); let s = '1'; for (let i = 0; i < -1 - n; i++) { s = s + '0'; } return s; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j3).content as string;
+        if (!/public String formatNumber\(/.test(out)) problems.push("r93j3 R1: formatNumber must print String");
+        if (!/out = \(this\.formatNumber\([^\n]*\) \+ this\.formatNumber\(/.test(out)) problems.push("r93j3 R1: formatNumber + formatNumber must print the native concat");
+        if (!/String joined = /.test(out)) problems.push("r93j3 R2: a concat of literal-defaulted safeString reads, sliced by itself, must be a String local");
+        if (!/Long digits = 0L;/.test(out)) problems.push("r93j3 R3: an int counter fed to Math.min with a long must print Long");
+        if (!/Long most = \(8L - sz\);/.test(out)) problems.push("r93j3 R4: int literal minus a parseToInt const must print Long");
+        if (!/Long f = 1L;/.test(out)) problems.push("r93j3 R5: an int counter written by parseToInt must print Long");
+        if (!/i < \(-1 - n\); i\+\+/.test(out)) problems.push("r93j3 R6: a negated int literal minus a Long must print the native compare");
+    } catch (e) {
+        problems.push(`r93j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j3, { force: true });
+    }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
-        "import Exchange from './abstract/binance.js';",
+        "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';",
         'export default class zzmaplocalsselftest extends Exchange {',
         "    nestedIntKey (response: any, params = {}) { let data = this.extend (params, {}); if (Array.isArray (response)) { data = this.safeDict (response, 0, {}); } return this.omit (data, 'a'); }",
         "    nestedStrKey (ticker: any, params = {}) { let raw = this.extend (params, {}); if (ticker !== undefined) { if (ticker['x'] !== undefined) { raw = this.safeDict (ticker, 'market', {}); } } return this.omit (raw, 'a'); }",
         "    closure (params = {}) { let p = this.extend (params, {}); const f = () => { p = this.safeValue (params, 'q'); }; f (); return this.omit (p, 'a'); }",
         "    positive (params = {}) { let q = this.extend (params, {}); if (params['z'] !== undefined) { q = this.extend (q, {}); } return this.omit (q, 'a'); }",
+        "    async accReturnAsync (params = {}) { let r = undefined; try { r = await this.zzAccHelper (params); } catch (e) { r = await this.zzAccHelper (params); } return r; }",
+        "    async accReturnTernary (params = {}) { let s = undefined; try { s = await this.zzAccHelper (params); } catch (e) { s = await this.zzAccHelper (params); } return (params['z'] !== undefined) ? s : undefined; }",
+        "    async zzAccHelper (params = {}): Promise<Dict> {", "        return {};", "    }",
         '}',
     ].join('\n');
     try {
@@ -5838,10 +6228,217 @@ function mapLocalsSelfTest (): string[] {
             if (!new RegExp(`\\bObject ${name} = `).test(out) && !new RegExp(`\\b${name} = \\(java\\.util\\.Map<String, Object>\\) this\\.safeDict\\(`).test(out)) problems.push(`map locals: '${name}' safeDict write needs Object or a checkcast`);
         }
         if (!/Map<String, Object> q = /.test(out)) problems.push("map locals: 'q' (every write a Map) must print Map<String, Object>");
+        // a null accumulator returned whole from an async method (its supplyAsync lambda) joins its writes; a ternary-arm return keeps Object
+        if (!/Map<String, Object> r = null;/.test(out)) problems.push("null accumulator: 'r' returned from an async method must print java.util.Map<String, Object>");
+        if (!/\bObject s = null;/.test(out)) problems.push("null accumulator: 's' returned through a ternary arm must stay Object");
     } catch (e: any) {
         problems.push(`map locals self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
+    }
+    // ral-87j7: a prediction venue's parsePredictionOrder (returns this.safePredictionOrder ({..})) is a
+    // fresh map through base/PredictionExchange.ts: its result local prints Map and the write a native put;
+    // parsePredictionPositions / parsePredictionTrades results print List<Object> read by size()/get
+    const r87j7 = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz87j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j7, [
+            "import Exchange from '../abstract/prediction/kalshi.js';",
+            "import type { Dict, Market, PredictionOrder, Str } from '../base/types.js';",
+            'export default class zz87j7selftest extends Exchange {',
+            "    zzCancel (response: Dict, id: string) { const order = this.parsePredictionOrder (response); order['id'] = id; return order; }",
+            "    zzPositions (rows: any[]) { const parsed = this.parsePredictionPositions (rows); let n = 0; for (let i = 0; i < parsed.length; i++) { n += 1; } return n; }",
+            "    zzPosition (raw: Dict) { const position = this.parsePredictionPosition (raw); return position['outcome']; }",
+            "    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder { return this.safePredictionOrder ({ 'id': this.safeString (order, 'id') }, market); }",
+            "    async zzRawRows (params: Dict = {}): Promise<Dict[]> {",
+            "        const out: Dict[] = [];",
+            "        return out;",
+            "    }",
+            "    async zzUseRows () { const rows = await this.zzRawRows (); return rows.length; }",
+            "    async zzRawIds (): Promise<Str[]> {",
+            "        const ids: Str[] = [];",
+            "        return ids;",
+            "    }",
+            "    async zzUseIds () { const ids = await this.zzRawIds (); return ids.length; }",
+            '}',
+        ].join('\n'));
+        resetJavaVenueIndexes();
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j7).content as string;
+        if (!/Map<String, ?Object> order = this\.parsePredictionOrder\(/.test(out) || !/order\.put\("id", id\);/.test(out)) problems.push("ral-87j7: a prediction-order result local must print Map with a native put");
+        if (!/List<Object> parsed = this\.parsePredictionPositions\(/.test(out) || !/i < parsed\.size\(\)/.test(out)) problems.push("ral-87j7: a parsePredictionPositions result must print List<Object> read by size()");
+        if (!/List<Object> rows = \(this\.zzRawRows\(/.test(out) || !/rows\.size\(\)/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Dict[]> core (returns a local) must give a List<Object> local read by size()");
+        if (!/Map<String, ?Object> position = this\.parsePredictionPosition\(/.test(out) || !/position\.get\("outcome"\)/.test(out)) problems.push("ral-90j7: a parsePredictionPosition result must print Map<String, Object> read by get()");
+        if (!/List<Object> ids = \(this\.zzRawIds\(/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Str[]> core (returns a local) must give a List<Object> local");
+    } catch (e) {
+        problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r87j7, { force: true });
+    }
+    // ral-90j7 R1: a Map-typed callee result with a `delete x[k]` use prints Map<String, Object> and a bare remove
+    const r90j7 = path.join(process.cwd(), 'ts', 'src', `zz90j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r90j7, [
+            "import Exchange from './paradex.js';",
+            "import type { Dict, Num, OrderSide, OrderType, Str } from './base/types.js';",
+            'export default class zz90j7selftest extends Exchange {',
+            "    createOrderRequest (symbol: Str, type: Str, side: Str, amount: number, price: number = undefined, params: Dict = {}): Dict { return { 'instId': symbol }; }",
+            "    zzWs (symbol: string, code: number) { const args = this.createOrderRequest (symbol, 'limit', 'buy', 1, undefined, {}); delete args['instId']; args['instIdCode'] = code; return args; }",
+            "    async zzEdit (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) { await this.loadMarkets (); let request = this.createOrderRequest (symbol, type, side, amount, price, params); request = this.omit (request, [ 'instruction', 'client_id' ]); request['order_id'] = id; request = await this.signOrderRequest (request, true); return request; }",
+            "    zzWsTrades (rows: any[]) { const trades = this.parseWsTrades (rows); let n = 0; for (let j = 0; j < trades.length; j++) { n += 1; } return n; }",
+            "    setMarkets (markets: any, currencies: any = undefined) { const result = super.setMarkets (markets, currencies); const symbols = Object.keys (result); return result; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j7).content as string;
+        if (!/Map<String, ?Object> args = this\.createOrderRequest\(/.test(out) || !/\bargs\.remove\("instId"\);/.test(out)) problems.push("ral-90j7: a Map callee result with a delete must print Map<String, Object> and a bare remove");
+        if (!/Map<String, ?Object> request = this\.createOrderRequest\(/.test(out) || !/\brequest\.put\("order_id", id\);/.test(out)) problems.push("ral-90j7: a Map callee result rewritten by this.omit (self, ..) must stay Map<String, Object> with a native put");
+        if (!/List<Object> trades = this\.parseWsTrades\(/.test(out) || !/j < trades\.size\(\)/.test(out)) problems.push("ral-90j7: a parseWsTrades result must print List<Object> read by size()");
+        if (!/Map<String, ?Object> result = super\.setMarkets\(/.test(out) || !/result\.keySet\(\)/.test(out)) problems.push("ral-90j7: a super.setMarkets result must print Map<String, Object> read by keySet()");
+    } catch (e) {
+        problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r90j7, { force: true });
+    }
+    // a parse* result typed Map from its declaration (returns this.safePosition ({..})) is read natively
+    const r92j7 = path.join(process.cwd(), 'ts', 'src', `zz92j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7, [
+            "import Exchange from './abstract/kucoin.js';",
+            "import type { Dict, Market } from './base/types.js';",
+            'export default class zz92j7selftest extends Exchange {',
+            "    parseWsUtaPosition (position: Dict, market: Market = undefined): Dict { return this.safePosition ({ 'info': position, 'symbol': undefined }); }",
+            "    zzUta (data: Dict) { const newPosition = this.parseWsUtaPosition (data); const keys = Object.keys (newPosition); for (let i = 0; i < keys.length; i++) { const key = keys[i]; if (newPosition[key] === undefined) { delete newPosition[key]; } } return newPosition; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7).content as string;
+        if (!/Map<String, ?Object> newPosition = this\.parseWsUtaPosition\(/.test(out) || !/newPosition\.remove\(key\);/.test(out)) problems.push("ral-92j7: a parseWsUtaPosition result must print Map<String, Object> with a bare remove");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7, { force: true });
+    }
+    // okx parseTradingBalance (returns this.safeBalance (..)) prints Map: its result keys are read natively
+    const r92j7b = path.join(process.cwd(), 'ts', 'src', `zz92j7bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7b, [
+            "import Exchange from './okx.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7bselftest extends Exchange {',
+            "    zzBalance (message: Dict) { const balance = this.parseTradingBalance (message); const keys = Object.keys (balance); return keys.length; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7b).content as string;
+        if (!/Map<String, ?Object> balance = this\.parseTradingBalance\(/.test(out) || !/\(balance\.keySet\(\)\)/.test(out)) problems.push("ral-92j7: a parseTradingBalance result must print Map<String, Object> read by keySet()");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7b, { force: true });
+    }
+    // parsePositions / parseDepositAddresses print List<Object>: a result read as a list goes native, a pass-through stays Object
+    const r92j7c = path.join(process.cwd(), 'ts', 'src', `zz92j7cselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7c, [
+            "import Exchange from './abstract/htx.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7cselftest extends Exchange {',
+            "    zzAddr (data: Dict[], code: string) { const allAddresses: Dict[] = this.parseDepositAddresses (data, [ code ], false); let n = 0; for (let i = 0; i < allAddresses.length; i++) { n += 1; } return n; }",
+            "    zzPos (raw: Dict[]) { const positions = this.parsePositions (raw); const positionsLength = positions.length; return positionsLength; }",
+            "    zzPass (raw: Dict[]) { const passed = this.parsePositions (raw); return this.filterBySinceLimit (passed, undefined, undefined); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7c).content as string;
+        if (!/List<Object> allAddresses = this\.parseDepositAddresses\(/.test(out) || !/i < allAddresses\.size\(\)/.test(out)) problems.push("ral-92j7: a parseDepositAddresses result read by length must print List<Object> with a native size()");
+        if (!/List<Object> positions = this\.parsePositions\(/.test(out) || !/= positions\.size\(\);/.test(out)) problems.push("ral-92j7: a parsePositions result read by length must print List<Object> with a native size()");
+        if (!/\bObject passed = this\.parsePositions\(/.test(out)) problems.push("ral-92j7: a pass-through parsePositions result must stay Object");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7c, { force: true });
+    }
+    // parseTickers prints Map (filterByArrayTickers -> indexBy): a result handed to a Map parameter needs no cast
+    const r92j7d = path.join(process.cwd(), 'ts', 'src', `zz92j7dselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7d, [
+            "import Exchange from './abstract/gemini.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7dselftest extends Exchange {',
+            "    zzTickers (response: Dict[], keys: string[]): Dict { const result = this.parseTickers (response); return this.removeKeysFromDict (result, keys); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7d).content as string;
+        if (!/Map<String, ?Object> result = this\.parseTickers\(/.test(out) || !/removeKeysFromDict\(result, keys\)/.test(out)) problems.push("ral-92j7: a parseTickers result handed to a Map parameter must print Map<String, Object> with no cast");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7d, { force: true });
+    }
+    // bitfinex parseOrderFlags prints List<Object> (safeList with a list default): its result is read natively
+    const r93j7a = path.join(process.cwd(), 'ts', 'src', `zz93j7aselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7a, [
+            "import Exchange from './bitfinex.js';",
+            'export default class zz93j7aselftest extends Exchange {',
+            "    zzFlags (raw: string) { const flags = this.parseOrderFlags (raw); let n = 0; for (let i = 0; i < flags.length; i++) { n += 1; } return n; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7a).content as string;
+        if (!/List<Object> flags = this\.parseOrderFlags\(/.test(out) || !/i < flags\.size\(\)/.test(out)) problems.push("ral-93j7: a parseOrderFlags result must print List<Object> with a native size()");
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7a, { force: true });
+    }
+    // parseSettlements is List<Object> on every declaration: its result local takes no declaration cast
+    const r93j7b = path.join(process.cwd(), 'ts', 'src', `zz93j7bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7b, [
+            "import Exchange from './binance.js';",
+            "import type { Dict, Market } from './base/types.js';",
+            'export default class zz93j7bselftest extends Exchange {',
+            "    zzSettle (response: Dict[], market: Market) { const settlements = this.parseSettlements (response, market); return settlements.length; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7b).content as string;
+        if (!/List<Object> settlements = this\.parseSettlements\(/.test(out) || !/= settlements\.size\(\)|return settlements\.size\(\)/.test(out)) problems.push("ral-93j7: a parseSettlements result must print List<Object> without a cast and a native size()\n" + out.split('\n').filter((l) => l.includes('settlements')).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7b, { force: true });
+    }
+    // an awaited List<Object> venue fetch rewritten by a List<Object> venue filter stays List: its length is native
+    const r93j7c = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz93j7cselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7c, [
+            "import Exchange from './sxbet.js';",
+            "import type { Dict } from '../base/types.js';",
+            'export default class zz93j7cselftest extends Exchange {',
+            "    zzFixture (raw: Dict[], id: string): Dict[] { const result: Dict[] = []; for (let i = 0; i < raw.length; i++) { if (this.safeString (raw[i], 'sportXeventId') === id) { result.push (raw[i]); } } return result; }",
+            "    async zzRaw (id: string, params: Dict = {}) { let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined); rawMarkets = this.zzFixture (rawMarkets, id); const rawMarketsLength = rawMarkets.length; return rawMarketsLength; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7c).content as string;
+        if (!/List<Object> rawMarkets = \(this\.fetchRawMarketsPaged\(/.test(out) || !/= rawMarkets\.size\(\);/.test(out)) problems.push("ral-93j7: a venue List fetch rewritten by a venue List filter must print List<Object> with a native size()\n" + out.split('\n').filter((l) => /rawMarkets|zzFixture/.test(l)).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7c, { force: true });
+    }
+    // prediction parseEvent (returns this.extend (..)) prints Map: its result is read and written natively
+    const r93j7d = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz93j7dselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7d, [
+            "import Exchange from './myriad.js';",
+            "import type { Dict, PredictionEvent } from '../base/types.js';",
+            'export default class zz93j7dselftest extends Exchange {',
+            "    zzEv (raw: Dict) { const ev = this.parseEvent (raw); ev['markets'] = []; return ev; }",
+            "    parseEvent (rawEvent: Dict): PredictionEvent { if (rawEvent === undefined) { return this.extend ({ 'id': undefined }) as PredictionEvent; } return this.extend ({ 'id': this.safeString (rawEvent, 'id'), 'info': rawEvent }); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7d).content as string;
+        if (!/Map<String, ?Object> ev = this\.parseEvent\(/.test(out) || !/\bev\.put\("markets"/.test(out)) problems.push("ral-93j7: a parseEvent result must print Map<String, Object> with a native put\n" + out.split('\n').filter((l) => /\bev\b/.test(l)).join('\n'));
+        if ((out.match(/return \(\((java\.util\.)?Map<String, ?Object>\) this\.extend\(/g) ?? []).length !== 2) problems.push("ral-93j7: a parseEvent `return this.extend ({..})` must print the ((Map) call) form the literal hoist accepts\n" + out.split('\n').filter((l) => /return|mapLiteral/.test(l)).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7d, { force: true });
     }
     return problems;
 }
@@ -5864,7 +6461,9 @@ function javaFreshObjectMapWritesSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (/Helpers\.addElementToObject\(a, /.test(out)) problems.push("fresh local 'a' must put natively");
         for (const name of [ 'c', 'd' ]) {
-            if (!new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`'${name}' is unproven and must keep the helper`);
+            // 84j8 declares the self-merged literal 'c' Map<String, Object>: its literal-key put is then native
+            const declaredMap = name === 'c' && /Map<String, Object> c = /.test(out) && /\bc\.put\("free", /.test(out);
+            if (!declaredMap && !new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`'${name}' is unproven and must keep the helper`);
         }
         // the Map-locals pass declares 'b' a Map; only the declared-Map non-null put may fire, never the cast put
         if (/\(\(java\.util\.Map<String, Object>\)b\)\.put\(/.test(out)) problems.push("'b' is unproven and must not take the cast put");
@@ -6724,7 +7323,7 @@ function javaMapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> a = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object> with a checkcast");
+        if (!/Map<String, Object> a = (\(java\.util\.Map<String, Object>\) )?this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object>");
         if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("'b' (fresh-map method) must print Map<String, Object>");
         if (!/Map<String, Object> c = /.test(out)) problems.push("'c' (safeDict + Map copy) must print Map<String, Object>");
         if (/Helpers\.addElementToObject\(a, /.test(out) || /Helpers\.GetValue\(a, /.test(out)) problems.push("'a' put/get must go native");
@@ -6840,7 +7439,7 @@ function javaListLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> a = /.test(out)) problems.push("'a' ([] + arrayConcat) must print List<Object>");
         if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("'a' arrayConcat write needs a checkcast");
-        if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object> with a checkcast");
+        if (!/List<Object> b = (\(java\.util\.List<Object>\) )?this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object>");
         if (!/List<Object> c = /.test(out)) problems.push("'c' (Object.keys) must print List<Object>");
         if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("'a'/'b' length/get must go native");
         // shapes no earlier section types: toArray / fresh-list method writes, a List<Object> core + sortBy
@@ -6849,10 +7448,46 @@ function javaListLocalsSelfTest (): string[] {
         if (/Helpers\.getArrayLength\([mo]\)/.test(out) || /Helpers\.GetValue\(o, /.test(out)) problems.push("'m'/'o' length/get must go native");
         if (/List<Object> q = /.test(out)) problems.push("'q' (as string[] prints a List<String> cast) must not print List<Object>");
         if (/List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/.test(out)) problems.push("'s' (as any prints ((Object)v)) needs the List checkcast");
-        for (const name of [ 'e', 'f', 'k' ]) {
+        for (const name of [ 'e', 'f' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
+        // 'k': safeList with a [] default plus a write guarded by Array.isArray (k's source) is a List on every path (77j8)
+        if (!/\bObject k = /.test(out) && !/k = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'k' guarded write must take the List checkcast");
         if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r77j2: conditional initialisers whose arms prove one box print it; an Integer-only or unproven arm keeps Object
+function javaR77j2ConditionalLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr77j2selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Int, Dict } from './base/types.js';",
+        'export default class zzr77j2selftest extends Exchange {',
+        "    async all (ps: any[]) { const a = await Promise.all (ps); return a.length; }",
+        "    lim (limit: Int = undefined) { const b = (limit === undefined) ? 93 : limit; return b * 2; }",
+        "    exp (e: string) { const c = (e === '') ? undefined : this.convertExpireDate (e); return c; }",
+        "    nd (r: Dict, k: string) { let d = (k === undefined) ? undefined : this.safeDict (r, k); if (d === undefined) { d = this.safeDict (r, 'x'); } return d; }",
+        "    ints (x: boolean) { const f = x ? 1 : 2; return f; }",
+        "    anyArm (x: boolean, r: any) { const g = x ? r : 1; return g; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = /.test(out)) problems.push("'a' (await Promise.all of a list) must print List<Object>");
+        if (!/Long b = /.test(out)) problems.push("'b' (int literal : Long param) must print Long");
+        if (!/String c = \(String\) \(/.test(out)) problems.push("'c' (null : convertExpireDate) must print String with a checkcast");
+        if (!/Map<String, Object> d = \(java\.util\.Map<String, Object>\) \(/.test(out)) problems.push("'d' (null : safeDict, safeDict write) must print Map with a checkcast");
+        if (/\bLong f = |\bObject f = (?!.*\? 1 : 2)/.test(out)) problems.push("'f' (int : int) is not this family's");
+        if (!/\bObject g = /.test(out)) problems.push("'g' (any : int) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
@@ -6887,6 +7522,75 @@ function javaScalarLocalsSelfTest (): string[] {
         for (const name of [ 'e', 'g' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default/arm and must stay Object`);
         }
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r77-j4: `let x = undefined` seeds joined over copy / sync-core writes print the written box
+function javaNullSeedJoinSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj4nullseed${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzj4nullseed extends Exchange {',
+        "    action (p: Dict): Dict { return { 'a': this.safeString (p, 'a') }; }",
+        "    sign2 (p: Dict, flag: boolean) { let sig = undefined; if (flag) { sig = this.action (p); } else { sig = this.action ({}); } const r = sig['r']; return [ r ]; }",
+        "    copy (p: Dict, flag: boolean) { const a = this.safeString (p, 'a'); const b = this.safeString (p, 'b'); let c = undefined; if (flag) { c = a; } else { c = flag ? a : b; } return { 'c': c }; }",
+        "    signed (action: any, nonce: any, vault: string = undefined): Dict { return { 'r': action, 'n': nonce, 'v': vault }; }",
+        "    built (payload: any): Dict { return { 'r': payload }; }",
+        "    send (p: Dict, flag: boolean) { let sent: Dict; if (flag) { sent = this.signed (p, 1); } else { sent = this.built (p); } return { 'signature': sent }; }",
+        "    netw (p: Dict, flag: boolean) { let net = undefined; if (flag) { net = this.networkIdToCode (this.safeString (p, 'n')); } return { 'net': net }; }",
+        "    mixed (p: Dict, flag: boolean) { const a = this.safeString (p, 'a'); let m = undefined; if (flag) { m = a; } else { m = p; } return { 'm': m }; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> sent = null/.test(out)) problems.push("'sent' (sync cores returning Map on every write) must print Map<String, Object>");
+        if (!/String net = null/.test(out)) problems.push("'net' (base core printed String) must print String");
+        if (!/String c = null/.test(out)) problems.push("'c' (copies of String locals) must print String");
+        if (!/\bObject m = null/.test(out)) problems.push("'m' (String and Map writes) must stay Object");
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 77j8: copies of a default-valued scalar parameter print its box; `[]` locals written only inside an
+// `Array.isArray (v)` branch print List<Object>; an unproven write keeps Object
+function javaJ8CopyLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Int } from './base/types.js';",
+        'export default class zzj8selftest extends Exchange {',
+        "    since (symbol: string, since: Int = undefined, p = {}) { let a: Int = since; if (a === undefined) { a = this.milliseconds () - 30 * 24 * 60 * 60 * 1000; } return { 'a': a }; }",
+        "    lit (symbol: string, limit: Int = undefined, p = {}) { let b: Int = limit; if (b === undefined) { b = 200; } return { 'b': b }; }",
+        "    mixed (symbol: string, since: Int = undefined, p = {}) { let c: Int = since; c = this.sum (c, 1); return { 'c': c }; }",
+        "    guarded (response: any) { let d = []; if (Array.isArray (response)) { d = response; } return d.length; }",
+        "    unguarded (response: any) { let e = []; e = response; return e.length; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Long a = since;/.test(out)) problems.push("'a' (copy of a Long default parameter) must print Long");
+        // the write is a Long checkcast or native long arithmetic of a Long reader and long literals
+        if (!/a = \(Long\) /.test(out) && !/a = \(this\.milliseconds\(\) - \(+30L \* 24L\)/.test(out)) problems.push("'a' Long-arithmetic write needs a Long checkcast or native long arithmetic");
+        if (!/Long b = limit;/.test(out) || !/b = 200L;/.test(out)) problems.push("'b' (Long copy + int literal write) must print Long and a 200L write");
+        if (!/List<Object> d = /.test(out) || !/d = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'d' (Array.isArray-guarded write) must print List<Object> with a checkcast");
+        for (const name of [ 'c', 'e' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write and must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
     } finally {
@@ -8285,7 +8989,7 @@ export function nativeJavaPaginationCursorPuts (content: string): string {
         while (to < lines.length && !/^    (?:public|private|protected)\b/.test (lines[to])) to++;
         const member = lines.slice (from, to).join ('\n');
         const data = /\b(?:List<Object>|java\.util\.List<Object>|Object) (data)\b/.exec (member)?.[1];
-        const lenMatch = /Integer (\w+) = \(\(List<\?>\)data\)\.size\(\);/.exec (member);
+        const lenMatch = /Integer (\w+) = (?:\(\(List<\?>\)data\)|data)\.size\(\);/.exec (member); // ral-84j7: bare data.size() on a declared List
         if (data === undefined || lenMatch === null) continue;
         const len = lenMatch[1];
         if ((member.match (/\bInteger \w+ = /g) ?? []).length !== 1 || !new RegExp (`${len} != null && ${len} > 0`).test (member)) continue;
@@ -8328,6 +9032,7 @@ export function javaPaginationCursorSelfTest (): string[] {
     const cases: [string, string, string, string | undefined][] = [
         [ 'elem put and set', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n' + guard + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', '((Map<String, Object>)first).put("k", cursor);\n            data.set(0, first);' ],
         [ 'Object data last', 'String cursor, Object data', guard.replace ('Integer dataLength', 'Integer dataLength') + '            Helpers.addElementToObject(data, (((long) dataLength) - 1L), data);\n        }', '((List<Object>) data).set((int) (((long) dataLength) - 1L), data);' ],
+        [ 'bare size on declared List (ral-84j7)', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n' + guard.replace ('((List<?>)data).size()', 'data.size()') + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', '((Map<String, Object>)first).put("k", cursor);\n            data.set(0, first);' ],
         [ 'unguarded cursor keeps helper', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n        Integer dataLength = ((List<?>)data).size();\n        if (dataLength != null && dataLength > 0)\n        {\n' + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', 'data.set(0, first)' ],
     ];
     for (const [ name, sig, body, expect ] of cases) {
@@ -9403,7 +10108,7 @@ function x21SelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("'a' (currencyToPrecision + literal write) must print String with a checkcast");
-        if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
+        if (!/String b = (\(String\) )?this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
         if (!/Map<String, Object> d = /.test(out)) problems.push("'d' (venue omit-of-Map-param callee) must print Map");
         if (!/Map<String, Object> e = /.test(out)) problems.push("'e' (venue omit-of-handle-element-1 callee) must print Map");
         // a venue method's proven Dict return is typed, so a local off zzxLoose is a Map too
@@ -9509,3 +10214,984 @@ function x22SelfTest (): string[] {
     return problems;
 }
 
+
+// 77j6: a base safeDict / safeList local whose default argument is a proven Map / List prints the box
+function j6ReaderLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj6readerselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';",
+        'export default class zzj6readerselftest extends Exchange {',
+        "    dictParam (ticker: Dict) { const stats = this.safeDict (ticker, 'stats', ticker); return this.safeString (stats, 'a'); }",
+        "    listParam (response: Dict[]) { const rows = this.safeList (response, 'rows', response); return rows.length; }",
+        "    safeDictionary () { const opts = this.safeDict (this.options, 'requestId', this.createSafeDictionary ()); return this.safeInteger (opts, 'x'); }",
+        "    anyParam (ticker: any) { const inner = this.safeDict (ticker, 'stats', ticker); return this.safeString (inner, 'a'); }",
+        "    joined (response: Dict[]) { const ids = this.safeList (response, 'ids', response); return ids.join (','); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> stats = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'stats' (Dict default) must print Map<String, Object> with a checkcast");
+        if (!/List<Object> rows = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("j6 reader: 'rows' (Dict[] default) must print List<Object> with a checkcast");
+        if (!/Map<String, Object> opts = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'opts' (createSafeDictionary default) must print Map<String, Object>");
+        if (!/\bObject inner = /.test(out)) problems.push("j6 reader: 'inner' (any default) must stay Object");
+        if (!/\bObject ids = /.test(out)) problems.push("j6 reader: 'ids' (.join receiver) must stay Object");
+    } catch (e: any) {
+        problems.push(`j6 reader self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-84j1: string elements of a String-only list (Object.keys copy, ecdsa r/s) print String, and their
+// String-method / delete-key / String-argument uses lose the checkcast; an any element or a list of
+// unproven elements stays Object
+function javaR84j1StringElementLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, OrderRequest, OrderType, Ticker, Trade } from './base/types.js';", "import { ArrayCache } from './base/ws/Cache.js';", "import Client from './base/ws/Client.js';",
+        'export default class zzr84j1selftest extends Exchange {',
+        "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
+        "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
+        "    box (m: Dict) { const rows: Dict[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < rows.length; i++) { const row = rows[i]; row['seen'] = true; out.push (this.safeString (row, 'id')); const ro = rows[i]; out.push (this.safeString (ro, 'id')); } return out; }",
+        "    resolved (m: Dict, xs: string[], f: boolean) { let syms: string[] = Object.keys (m); if (f) { syms = this.marketSymbols (xs, undefined, false); } const out: Dict = {}; for (let i = 0; i < syms.length; i++) { const sym = syms[i]; out[sym] = 1; } return out; }",
+        "    sib (m: any, f: boolean) { const out: Dict = {}; if (f) { const cs = Object.keys (m); for (let i = 0; i < cs.length; i++) { const c = cs[i]; out[c] = 1; } } else { const ds = Object.keys (out); for (let i = 0; i < ds.length; i++) { const c = ds[i]; out[c] = 2; } } return out; }",
+        "    lit (response: Dict) { const out: Dict = {}; const currencyIds = Object.keys (response); for (let i = 0; i < currencyIds.length; i++) { const entry = currencyIds[i]; const splitEntry = entry.split (' '); const head = splitEntry[0]; const code = this.safeCurrencyCode (head); out[code] = 1; } return out; }",
+        "    sibbox (m: Dict, f: boolean) { const out: Dict = {}; if (f) { const rs: Dict[] = this.safeList (m, 'a', []); for (let i = 0; i < rs.length; i++) { const e = rs[i]; e['x'] = 1; out['a'] = e; } } else { const qs: Dict[] = this.safeList (m, 'b', []); for (let i = 0; i < qs.length; i++) { const e = qs[i]; e['y'] = 2; out['b'] = e; } } const ls: Dict[] = this.safeList (m, 'c', []); const first = ls[0]; first['z'] = 3; return out; }",
+        "    unified (m: Dict, trades: Trade[], cache: ArrayCache) { const out: Dict = {}; for (let i = 0; i < trades.length; i++) { const trade = trades[i]; cache.append (trade); out[trade['id']] = 1; } return out; }",
+        "    pairs (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const st = sts[i]; const sy = st[0]; out.push (sy.toUpperCase ()); } return out; }",
+        "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
+        "    asserted (m: Dict) { const out: Dict = {}; const tf = this.safeValue (m, 'tf') as string; out[tf] = 1; return tf.toUpperCase (); }",
+        "    url92 (client: Client) { const url = client.url; if (url.indexOf ('v2') >= 0) { return 1; } return 0; }",
+        "    zzFlags92 (bits: number, zzNames92: string[]) { const out = []; for (let i = 0; i < zzNames92.length; i++) { out.push (zzNames92[i]); } return out; }",
+        "    zzFlagsCaller92 () { return this.zzFlags92 (1, [ 'a', 'b' ]); }",
+        "    rows92 (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const row = sts[i]; out.push (this.market (row[0])); out.push (row[1]); } return out; }",
+        "    hex93 (hex: string) { const digits = '0123456789abcdef'; const lower93 = hex.toLowerCase (); const out = []; for (let i = 0; i < lower93.length; i++) { const ch93 = lower93[i]; out.push (digits.indexOf (ch93)); } return out; }",
+        "    pclone93 (ps: Dict[], cache: ArrayCache) { for (let i = 0; i < ps.length; i++) { const pc93 = ps[i]; if (pc93['side'] === undefined) { pc93['side'] = 'long'; const sh93 = this.clone (pc93); cache.append (sh93); } cache.append (pc93); } }",
+        "    ord93 (orders: OrderRequest[]) { const out = []; for (let i = 0; i < orders.length; i++) { const raw93 = orders[i]; const ot93: OrderType = raw93['type']; out.push (this.amountToPrecision (ot93, 1)); out.push (ot93.toUpperCase ()); } return out; }",
+        "    async pos93 () { const fs = [ this.fetchPositions (undefined, {}), this.fetchPositions (undefined, {}) ]; const ps = await Promise.all (fs); const out = []; for (let i = 0; i < ps.length; i++) { const pp93 = ps[i]; for (let ii = 0; ii < pp93.length; ii++) { out.push (pp93[ii]); } } return out; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String k = \(String\) \(ks == null \|\| i < 0/.test(out)) problems.push("84j1: 'k' (Object.keys element) must print String with one checkcast");
+        if (!/\bk\.startsWith\(/.test(out) || /\(\(String\)k\)/.test(out) || /\(String\)k\b/.test(out)) problems.push("84j1: 'k' uses must print with no (String) cast");
+        if (!/Map<String, Object> row = \(java\.util\.Map<String, Object>\) \(rows == null/.test(out) || !/\brow\.put\("seen"/.test(out)) problems.push("84j1: 'row' (Dict element with an element write) must print Map<String, Object> and a native put");
+        if (!/String symbol = \(String\) [^;]*\.get\("symbol"\)/.test(out) || /\(\(String\)symbol\)/.test(out)) problems.push("84j1: 'symbol' (Str structure field) must print String and its `as string` key no cast");
+        if (!/String sym = (\(String\) )?\(syms == null/.test(out) || !/out\.put\(sym, /.test(out)) problems.push("87j1 r4 (stack-87j): 'sym' (element of a list re-bound only by Object.keys / marketSymbols, backpack fetchTickers shape) must print String with a native put key");
+        if ((out.match(/String c = (\(String\) )?\((cs|ds) == null/g) || []).length !== 2 || /put\(\(String\)c,/.test(out)) problems.push("87j1 r5: both sibling 'c' bindings (const element reads of String-only lists) must print String with a native put key");
+        if (!/String head = \(String\) (\(splitEntry == null \|\| 0 >= |Helpers\.GetValue\(splitEntry, 0\))/.test(out) || /safeCurrencyCode\(\(String\) \(head\)/.test(out)) problems.push("87j1 r6: 'head' (literal-index read of a split list) must print String with no core-argument cast");
+        if ((out.match(/Map<String, Object> e = \(java\.util\.Map<String, Object>\) \((rs|qs) == null/g) || []).length !== 2 || /Helpers\.addElementToObject\(e,/.test(out)) problems.push("90j1 r2: both sibling 'e' bindings (const Dict[] element reads) must print Map<String, Object> with a native put");
+        if (!/Map<String, Object> first = \(java\.util\.Map<String, Object>\) \(ls == null \|\| 0 >= /.test(out) || !/\bfirst\.put\("z"/.test(out)) problems.push("90j1 r2: 'first' (literal-index read of a Dict[] list) must print Map<String, Object> with a native put");
+        if (!/Map<String, Object> trade = \(java\.util\.Map<String, Object>\) \(trades == null/.test(out) || !/\btrade\.get\("id"\)/.test(out)) problems.push("90j1 r3: 'trade' (element of a Trade[] list, appended to a ws cache) must print Map<String, Object> with a native get");
+        if (!/String sy = \(String\) \(st == null \|\| 0 >= /.test(out) || !/\bsy\.toUpperCase\(/.test(out)) problems.push("90j1 r4: 'sy' (literal-index read of a row of an unwritten `string[][]` parameter) must print String with a native toUpperCase");
+        if (!/String tf = \(\(String\)/.test(out) || !/\bout\.put\(tf, /.test(out) || !/\btf\.toUpperCase\(/.test(out)) problems.push("92j1 r2: 'tf' (a const `x as string` local) must print String with a native put key and toUpperCase");
+        if (!/zzFlags92\(Object bits, (java\.util\.)?List<Object> zzNames92\)/.test(out) || !/\bi < zzNames92\.size\(\)/.test(out)) problems.push("92j1 r1: venue-only `string[]` parameter 'zzNames92' (element / length uses, literal callers) must print List<Object> with a native size");
+        if (!/String url = client\.url;/.test(out) || !/\burl\.indexOf\("v2"\)/.test(out)) problems.push("92j1 r3: 'url' (ws Client url field) must print String with a native indexOf");
+        if (!/List<\?> row = \(java\.util\.List<\?>\) \(sts == null/.test(out) || !/\(row == null \|\| 0 >= row\.size\(\) \? null : row\.get\(0\)\)/.test(out)) problems.push("92j1 r4: 'row' (counter row of an unwritten `string[][]` parameter) must print List<?> with native literal reads");
+        if (!/String ch93 = \(String\) (\(lower93 == null|Helpers\.GetValue\(lower93, i\))/.test(out) || !/\.indexOf\(ch93\)/.test(out)) problems.push("93j1 r2: 'ch93' (counter read of a plain string local) must print String with a native indexOf argument");
+        if (!/Map<String, Object> pc93 = \(java\.util\.Map<String, Object>\) /.test(out) || !/\bpc93\.put\("side", "long"\)/.test(out)) problems.push("93j1 r5: 'pc93' (Dict[] element also handed to base clone) must print Map<String, Object> with a native put");
+        if (!/String ot93 = /.test(out) || !/\bot93\.toUpperCase\(/.test(out)) problems.push("93j1 r6: 'ot93' (OrderRequest type field) must print String with a native toUpperCase");
+        if (!/List<\?> pp93 = \(java\.util\.List<\?>\) /.test(out) || !/\bii < pp93\.size\(\)/.test(out) || /\(\(List<\?>\)pp93\)/.test(out)) problems.push("93j1 r3: 'pp93' (array row of an awaited Promise.all list) must print List<?> with native size / get");
+        if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
+        for (const name of [ 'a', 'ro' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`84j1 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84j2: element-read locals used at once as a List (push) / Map (string-key write) print the box with one checkcast
+function javaR84j2ContainerLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j2selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzr84j2selftest extends Exchange {',
+        "    push (m: Dict, k: string, v: any) { const a = m[k]; a.push (v); return m; }",
+        "    put (m: Dict, k: string) { const b = m[k]; b['id'] = 'x'; return m; }",
+        "    nul (m: Dict, k: string, v: any) { const c = m[k]; c['id'] = v; return m; }",
+        "    late (m: Dict, k: string, v: any) { const d = m[k]; const e = 1; d.push (v); return e; }",
+        "    arg (m: Dict, k: string, v: any) { const f = m[k]; f.push (v); return this.safeString (f, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = \(java\.util\.List<Object>\) \(/.test(out) || !/\ba\.add\(v\)/.test(out)) problems.push("'a' (m[k] then a.push) must print List<Object> with a native add");
+        if (!/Map<String, Object> b = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bb\.put\("id", "x"\)/.test(out)) problems.push("'b' (m[k] then b['id'] = string) must print Map with a native put");
+        for (const name of [ 'c', 'd', 'f' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (nullable put value / late first use / call argument) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84j2 R2: List conditionals whose Object arm an Array.isArray guard or a T[] parameter proves print List<Object>
+function javaR84j2GuardedListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j2listselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Strings } from './base/types.js';",
+        'export default class zzr84j2listselftest extends Exchange {',
+        "    guarded (r: any) { const isArr = Array.isArray (r); const a = isArr ? r : this.safeList (r, 'data', []); let n = 0; for (let i = 0; i < 2; i++) { n = n + (a[i] === undefined ? 0 : 1); } return n; }",
+        "    param (o: Strings = undefined) { const b = (o === undefined) ? [] : o; let s = ''; for (let i = 0; i < 2; i++) { s = b[i]; } return s; }",
+        "    unguarded (r: any, f: boolean) { const c = f ? r : []; let n = 0; for (let i = 0; i < 2; i++) { n = n + (c[i] === undefined ? 0 : 1); } return n; }",
+        "    noread (r: any) { const isArr = Array.isArray (r); const d = isArr ? r : []; return this.safeValue (d, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = \(java\.util\.List<Object>\) \(/.test(out)) problems.push("'a' (isArray-guarded r : safeList) must print List<Object> with a checkcast");
+        if (!/List<Object> b = \(java\.util\.List<Object>\) \(/.test(out)) problems.push("'b' ([] : Strings param) must print List<Object> with a checkcast");
+        for (const name of [ 'c', 'd' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (unguarded any arm / no element read) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84j2 R3: Map conditionals over base Map fields / Dict parameters print Map<String, Object> when a use is native
+function javaR84j2MapConditionalLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j2mapselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzr84j2mapselftest extends Exchange {',
+        "    keysOf (t: Dict = undefined) { const a = (t === undefined) ? this.timeframes : t; return Object.keys (a); }",
+        "    argOnly (t: Dict = undefined) { const b = (t === undefined) ? this.timeframes : t; return this.safeString (b, 'x'); }",
+        "    anyArm (t: any, f: boolean) { const c = f ? t : {}; return Object.keys (c); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> a = /.test(out)) problems.push("'a' (this.timeframes : Dict param, Object.keys use) must print Map<String, Object>");
+        for (const name of [ 'b', 'c' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (no native use / unproven any arm) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84-j4: null seeds written from native String producers (literal-bound slice, toLowerCase, join) print
+// String when a use hands them to a fixed String core parameter; the same writes with only Object-slot
+// uses keep Object
+function javaR84j4NullSeedSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j4seed${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzr84j4seed extends Exchange {',
+        "    ids (id: string, flag: boolean) { let baseId = undefined; if (flag) { baseId = id.slice (0, 3); } else { baseId = id.toLowerCase (); } const base = this.safeCurrencyCode (baseId); return { 'base': base }; }",
+        "    joined (parts: string[]) { let quoteId = undefined; quoteId = parts.join ('-'); return this.safeCurrencyCode (quoteId); }",
+        "    slot (id: string) { let k = undefined; k = id.toLowerCase (); return { 'k': k }; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String baseId = null/.test(out) || !/safeCurrencyCode\(baseId[,)]/.test(out)) problems.push("'baseId' (slice / toLowerCase writes, String core argument) must print String with no argument cast");
+        if (!/String quoteId = null/.test(out)) problems.push("'quoteId' (join write, String core argument) must print String");
+        if (!/\bObject k = null/.test(out)) problems.push("'k' (only an Object-slot use) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-84j6: a reader / handleOption local compared only against `true` prints `boolean x = Boolean.TRUE.equals(..)`
+// and native `x` / `!x` tests; a local with any other use or a write keeps Object
+function j84j6TrueOnlyLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz84j6selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import type { Strings } from './base/types.js';",
+        `export default class zz84j6selftest${process.pid} extends Exchange {`,
+        "    pos (params = {}) { const qq = this.handleOption ('createOrder', 'quoteOrderQty', true); const ff = this.safeValue (params, 'f'); const r = {}; if (qq === true) { r['x'] = 1; } if (true !== ff) { r['y'] = 1; } return r; }",
+        "    def (params = {}) { const dd = this.safeValue (params, 'd'); const r = {}; if (dd !== undefined) { r['x'] = 1; } if (undefined === dd) { r['y'] = 1; } const mm = this.safeValue (params, 'm'); if (mm === undefined || mm === true) { r['z'] = 1; } return r; }",
+        "    ann (params = {}) { const aa: boolean = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true); const md: any[] = this.safeValue (params, 'md'); const r = {}; if (aa === true) { r['x'] = 1; } if (md !== undefined) { r['y'] = 1; } return r; }",
+        "    sl (params = {}) { const r = {}; const ss: Strings = this.safeList2 (params, 'a', 'b'); if (ss !== undefined) { r['s'] = ss.join (','); } const bb: Strings = this.safeList (params, 'c', []); if (bb !== undefined) { r['b'] = bb.join (','); } return r; }",
+        "    neg (params = {}) { const nn = this.handleOption ('createOrder', 'x', false); let ww = this.handleOption ('createOrder', 'w', false); const r = {}; if (nn === true) { r['n'] = nn; } if (ww === true) { ww = false; } return [ r, ww ]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/boolean qq = Boolean\.TRUE\.equals\(this\.handleOption\(/.test(out) || !/if \(qq\)/.test(out)) problems.push("ral-84j6: 'qq' (handleOption compared only to true) must print boolean with a native test");
+        if (!/boolean ff = Boolean\.TRUE\.equals\(this\.safeValue\(/.test(out) || !/if \(!ff\)/.test(out)) problems.push("ral-84j6: 'ff' (`true !== ff`) must print boolean with a native negated test");
+        if (!/boolean dd = \(this\.safeValue\(parameters, "d"\)\) != null;/.test(out) || !/if \(dd\)/.test(out) || !/if \(!dd\)/.test(out)) problems.push("ral-84j6: 'dd' (compared only to undefined) must print `boolean dd = (..) != null` with native tests");
+        if (!/\bObject mm = /.test(out)) problems.push("ral-84j6: 'mm' mixes an undefined and a true compare and must stay Object");
+        if (!/boolean aa = Boolean\.TRUE\.equals\(this\.handleOption\(/.test(out) || !/if \(aa\)/.test(out)) problems.push("ral-84j6: 'aa' (a `boolean`-annotated handleOption result compared only to true) must print boolean");
+        if (!/\bObject md = /.test(out)) problems.push("ral-84j6: 'md' (a list-annotated local) must stay Object");
+        if (!/java\.util\.List<String> ss = \(java\.util\.List<String>\) this\.safeList2\(/.test(out) || !/String\.join\(",", ss\)/.test(out)) problems.push("ral-84j6: 'ss' (Strings reader, nullish tests + join) must print List<String> with a cast-free String.join");
+        if (!/\bObject bb = /.test(out)) problems.push("ral-84j6: 'bb' (non-null list default) must stay Object");
+        if (!/\bObject nn = /.test(out)) problems.push("ral-84j6: 'nn' has a value use and must stay Object");
+        if (!/\bObject ww = /.test(out)) problems.push("ral-84j6: 'ww' is written and must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-84j6 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 84j8: balance-map literals merged into themselves and per-binding Object.keys lists
+function javaR84j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Int } from './base/types.js';",
+        'export default class zzr84j8selftest extends Exchange {',
+        "    bal (response: any, code: string) { let result: Dict = { 'info': response }; result[code] = this.account (); result = this.mergeBalanceAccount (result, code, this.account ()); return this.safeBalance (result); }",
+        "    other (response: any, code: string, x: Dict) { let r: Dict = { 'info': response }; r = this.mergeBalanceAccount (x, code, this.account ()); return r; }",
+        "    later (response: any, stock: boolean) { let xs: Dict[] = []; if (stock) { const rows = this.safeList (response, 'rows', []); xs = rows; } return xs.length; }",
+        "    laterBad (response: any, stock: boolean) { let ys: Dict[] = []; if (stock) { const rows = this.safeValue (response, 'rows'); ys = rows; } return ys.length; }",
+        "    asserted (s: string) { let zs: any[] = []; const parsed = this.parseJson (s); if (parsed !== undefined) { zs = parsed as any[]; } return zs.length; }",
+        "    until (since: Int = undefined, params = {}) { let request: Dict = {}; if (since !== undefined) { request['startTime'] = since; } let paramsUntil: Dict = {}; [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params); if (since === undefined) { request = this.omit (request, 'count'); } request['x'] = 1; return this.extend (request, paramsUntil); }",
+        "    splitJoin (s: string, v: string) { const parts = s.split ('-'); let more = v.split (','); const w: string = more.join (''); more = w.split (' '); return parts.join ('') + this.safeString (more, 0); }",
+        "    keys2 (a: Dict, b: Dict, f: boolean) { if (f) { const keys = Object.keys (a); throw new Error ('one of ' + keys.join (', ')); } else { const keys = Object.keys (b); throw new Error ('one of ' + keys.join (', ')); } }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> result = /.test(out)) problems.push("'result' (self-merged balance literal) must print Map<String, Object>");
+        if (!/result = \(java\.util\.Map<String, Object>\) this\.mergeBalanceAccount\(result, /.test(out)) problems.push("'result' merge write needs one checkcast and a bare Map argument");
+        if (!/\bObject r = /.test(out)) problems.push("'r' (merge of a foreign map) must stay Object");
+        if ((out.match(/List<String> keys = new java\.util\.ArrayList<String>\(/g) ?? []).length !== 2) problems.push("both sibling 'keys' bindings must print List<String>");
+        // (the `.size()` read goes native in the file post-pass, which this raw printer probe does not run)
+        if (!/List<Object> xs = /.test(out) || !/\bxs = rows;/.test(out)) problems.push("'xs' (copy of a later safeList const) must print List<Object> and copy rows without a cast");
+        if (!/List<Object> zs = /.test(out) || !/\bzs = \(java\.util\.List<Object>\)\(parsed\);/.test(out)) problems.push("'zs' (as any[] write) must print List<Object> with only the assertion's own cast");
+        if (!/Map<String, Object> request = /.test(out)) problems.push("'request' (handleUntilOption Pair slot 0) must print Map<String, Object>");
+        if (!/List<String> parts = new java\.util\.ArrayList<String>\(/.test(out) || !/String\.join\("", parts\)/.test(out)) problems.push("'parts' (native split joined) must print List<String> and join without a checkcast");
+        if (!/List<String> more = /.test(out) || !/more = new java\.util\.ArrayList<String>\(/.test(out)) problems.push("'more' (split write) must print List<String> with a List<String> write");
+        if (!/\bObject ys = /.test(out)) problems.push("'ys' (copy of a safeValue const) must stay Object");
+        if (/\(java\.util\.List<String>\)keys\)/.test(out) || !/String\.join\(", ", keys\)/.test(out)) problems.push("'keys' join must read the declared List<String> without a checkcast");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R1: a ws order-book side read off a WsOrderBook local, and a guarded ws cache read, print the
+// hand-written ws class with one checkcast and a native store / append; a side with no store keeps Object
+function javaR87j2WsLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr87j2ws${process.pid}.ts`);
+    const body = [
+        "import binanceRest from '../binance.js';",
+        "import { ArrayCache } from '../base/ws/Cache.js';",
+        `export default class zzr87j2ws${process.pid} extends binanceRest {`,
+        "    sides (symbol: string, bid: boolean, price: number, amount: number) { const orderbook = this.safeValue (this.orderbooks, symbol); const s = bid ? orderbook['bids'] : orderbook['asks']; s.store (price, amount); const t = orderbook['asks']; return t; }",
+        "    cache (symbol: string, trade: any) { let arr = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol); if (arr === undefined) { arr = new ArrayCache (10); } arr.append (trade); return arr; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/io\.github\.ccxt\.ws\.OrderBookSide s = \(io\.github\.ccxt\.ws\.OrderBookSide\) /.test(out) || !/\bs\.store\(price, amount\)/.test(out)) problems.push("ral-87j2: 's' (WsOrderBook bids/asks conditional, store use) must print OrderBookSide with a native store");
+        if (!/io\.github\.ccxt\.ws\.ArrayCache arr = \(io\.github\.ccxt\.ws\.ArrayCache\) /.test(out) || !/\barr\.append\(trade\)/.test(out)) problems.push("ral-87j2: 'arr' (guarded this.trades read, append use) must print ArrayCache with a native append");
+        if (!/\bObject t = /.test(out)) problems.push("ral-87j2: 't' (no store use) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R3: an Array.isArray-guarded List conditional whose only native use is `x.length` prints List<Object>
+// with a native size(); the same local with only call-argument uses keeps Object
+function javaR87j2LengthListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2len${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zzr87j2len${process.pid} extends Exchange {`,
+        "    rowsOf (response: any) { const isArr = Array.isArray (response); const rows = isArr ? response : this.safeList (response, 'data', []); const out = []; for (let i = 0; i < rows.length; i++) { out.push (this.safeDict (rows, i)); } return out; }",
+        "    argOnly (response: any) { const isArr = Array.isArray (response); const other = isArr ? response : this.safeList (response, 'data', []); return this.safeDict (other, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> rows = \(java\.util\.List<Object>\) /.test(out) || !/< rows\.size\(\)/.test(out)) problems.push("ral-87j2: 'rows' (isArray-guarded, .length use) must print List<Object> with a native size()");
+        if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (only a safe* argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R4: a conditional of describe() urls string leaves handed to a String core parameter prints String with
+// one checkcast and a bare argument; the same conditional with a non-string leaf keeps Object
+function javaR87j2UrlLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2url${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zzr87j2url${process.pid} extends Exchange {`,
+        "    describe () { return this.deepExtend (super.describe (), { 'urls': { 'api': { 'ws': { 'spot': 'wss://a', 'swap': 'wss://b', 'odd': { 'x': 1 } } } } }); }",
+        "    open (u: string) { return u.length; }",
+        "    pick (isSpot: boolean) { const url = isSpot ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap']; return this.open (url); }",
+        "    odd (isSpot: boolean) { const other = isSpot ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['odd']; return this.open (other); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String url = \(String\) /.test(out)) problems.push("ral-87j2: 'url' (urls string leaves, String slot use) must print String");
+        if (!/this\.open\(url\)/.test(out) || /this\.open\(\(String\) ?\(?url\)?\)/.test(out)) problems.push("ral-87j2 R4: 'url' must reach the String parameter as a bare `this.open(url)` (no checkcast)");
+        if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (a non-string urls leaf) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r87-j4: a null seed written from a literal-index read of a const native split prints String (the split
+// local goes List<String>) when it reaches a String core parameter; a seed with only Object-slot uses stays Object
+function javaR87j4SplitSeedSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j4seed${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import Precise from './base/Precise.js';", "import type { Str } from './base/types.js';",
+        'export default class zzr87j4seed extends Exchange {',
+        "    one (s: string) { let currencyId = undefined; const currencyParts = s.split ('-'); currencyId = currencyParts[0]; return this.safeCurrencyCode (currencyId); }",
+        "    obj (s: string) { let k = undefined; const ps = s.split ('-'); k = ps[0]; return { 'k': k }; }",
+        "    cost (a: string, p: string, params = {}) { const c = this.safeString (params, 'c'); let orderCost: Str = undefined; if (c !== undefined) { orderCost = c; } else { const q = Precise.stringMul (a, p); orderCost = q; } if (c === 'x') { const q = Precise.stringAdd (a, p); return q; } return this.getAmount2 (orderCost); }",
+        "    getAmount2 (x: string) { return x; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String currencyId = null/.test(out) || !/safeCurrencyCode\(currencyId[,)]/.test(out)) problems.push("r87-j4: 'currencyId' (split element write, String core argument) must print String with no argument cast");
+        if (!/java\.util\.List<String> currencyParts = /.test(out)) problems.push("r87-j4: 'currencyParts' must print List<String>");
+        if (!/\bObject k = null/.test(out)) problems.push("r87-j4: 'k' (only an Object-slot use) must stay Object");
+        if (!/String orderCost = null/.test(out) || !/getAmount2\(orderCost\)/.test(out)) problems.push("r87-j4 R2: 'orderCost' (copy of a later-declared Precise const, String core argument) must print String");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`r87-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 90j4: null seeds written from a typed handle*AndParams Pair slot, native String uses (ws tier, where
+// the earlier sections leave such a seed Object)
+function javaR90j4NullSeedSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr90j4seed${process.pid}.ts`);
+    const body = [
+        "import Exchange from '../binance.js';", "import type { Str, Dict, Trade } from '../base/types.js';",
+        'export default class zzr90j4seed extends Exchange {',
+        "    async a1 (flag: boolean, params: Dict = {}) { let subType: Str = undefined; let paramsSubType: Dict = {}; if (flag) { subType = 'linear'; } else { const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('a1', undefined, params); [ subType, paramsSubType ] = this.handleOptionStringAndParams (paramsMarketType, 'a1', 'subType', subType); } return await this.ws2 ('c', subType, paramsSubType); }",
+        "    async a3 (flag: boolean, params: Dict = {}) { let k = undefined; let p2: Dict = {}; if (flag) { k = params['k']; } else { [ k, p2 ] = this.handleOptionStringAndParams (params, 'a3', 'k'); } return await this.ws2 ('c', k, p2); }",
+        "    async ws2 (c: string, s: string, params: Dict = {}) { return [ c, s, params ]; }",
+        "    h3 (raw: Dict, flag: boolean) { let parsed = undefined; if (flag) { parsed = this.parseWsTrade (raw); } else { parsed = this.parseTrade (raw); } const symbol = parsed['symbol']; return symbol; }",
+        "    h4 (raw: Dict, flag: boolean) { let parsed = undefined; if (flag) { parsed = this.parseWsTrade (raw); } else { parsed = this.parseTrade (raw); } return [ parsed ]; }",
+        "    parseWsTrade (trade: Dict, market = undefined): Trade { return this.parseTrade (trade, market); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String subType = null/.test(out) || !/ws2\("c", subType, /.test(out) || /toStringArg\(subType\)/.test(out)) problems.push("r90-j4: 'subType' (literal + Pair slot 0 writes, String core argument) must print String with no argument cast");
+        if (!/\bObject k = null/.test(out)) problems.push("r90-j4: 'k' (an unproven element-read write beside the Pair slot) must stay Object");
+        if (!/Map<String, Object> parsed = null;[^]*?String symbol = \(String\) parsed\.get\("symbol"\)/.test(out)) problems.push("r90-j4 R2: 'parsed' (Trade core writes, string-key read) must print Map<String, Object> with an uncast get");
+        if (!/public Object h4\([^]*?\bObject parsed = null/.test(out)) problems.push("r90-j4 R2: 'parsed' with no native use must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`r90-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 87j8: String accumulators whose pushed String locals are declared after the list
+function javaR87j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzr87j8selftest extends Exchange {',
+        "    acc (rows: Dict[]) { const out = []; for (let i = 0; i < rows.length; i++) { const a = this.safeString (rows[i], 'a', ''); const b = this.safeString (rows[i], 'b', ''); out.push (a + ': ' + b); } return out.join (', '); }",
+        "    twice (rows: Dict[], a: string, b: string) { let k: string = a.toLowerCase (); k = k + b; const keys = []; for (let i = 0; i < rows.length; i++) { let k: string = a.toLowerCase (); k = k + b; keys.push (k); } return keys.join (','); }",
+        "    sliced (order: Dict) { const code = this.safeString (order, 'b'); let base = code; if ((base !== undefined) && base.startsWith ('EQ_')) { base = base.slice (3); } return this.safeCurrencyCode (base); }",
+        "    chunks (rows: Dict[]) { const ids: string[] = []; for (let i = 0; i < rows.length; i++) { ids.push (this.safeString (rows[i], 'id', '')); } let chunk: string[] = []; const out = []; for (let i = 0; i < ids.length; i++) { chunk.push (ids[i]); const chunkLength = chunk.length; if (chunkLength >= 10) { out.push (chunk.join (',')); chunk = []; } } return out; }",
+        "    gen2Id (market: Dict): string { return this.safeString (market, 'baseId', '') + '-' + this.safeString (market, 'quoteId', ''); }",
+        "    viaInternal (rows: Dict[]) { const ids = []; for (let i = 0; i < rows.length; i++) { ids.push (this.gen2Id (rows[i])); } return ids.join (','); }",
+        "    accAny (rows: Dict[]) { const bad = []; for (let i = 0; i < rows.length; i++) { const v = rows[i]['v']; bad.push (v); } return bad.join (','); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(/.test(out)) problems.push("'out' (pushes of a String concat of later String locals) must print List<String> with a bare add");
+        if (!/\bObject bad = /.test(out)) problems.push("'bad' (push of an Object element read) must stay Object");
+        if (!/\bString base = code;/.test(out)) problems.push("'base' (String copy written from a native literal slice of itself) must print String");
+        if (/\(String\) \(base\)/.test(out)) problems.push("'base' must reach the String core argument without a checkcast");
+        if (!/List<String> chunk = new java\.util\.ArrayList<String>\(/.test(out) || !/\bchunk\.add\(/.test(out)) problems.push("'chunk' (reassigned list fed by reads of a List<String> local) must print List<String> with a bare add");
+        if (!/public String gen2Id\(/.test(out) || !/List<String> ids = new java\.util\.ArrayList<String>\(java\.util\.Arrays\.asList\(\)\);\s*for[^]*?ids\.add\(this\.gen2Id\(/.test(out)) problems.push("'ids' (pushes of an internal method the printer declares String) must print List<String> with a bare add");
+        if (!/\bObject keys = /.test(out)) problems.push("'keys' (push of a local with a same-named sibling binding) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j2 R1: an element-read List local is decided per checker binding, so a same-named sibling never refuses it
+function javaR90j2ElementListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j2el${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        `export default class zzr90j2el${process.pid} extends Exchange {`,
+        "    twice (m: Dict, keys: string[], v: any) { for (let i = 0; i < keys.length; i++) { const g = m[keys[i]]; g.push (v); m[keys[i]] = g; } let n = 0; for (let i = 0; i < keys.length; i++) { const g = m[keys[i]] as any[]; n = n + g.length; } return n; }",
+        "    argOnly (m: Dict, k: string) { const h = m[k] as any[]; return this.safeDict (h, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> g = \(java\.util\.List<Object>\) \(/.test(out) || !/\bg\.add\(v\)/.test(out)) problems.push("ral-90j2 R1: the first 'g' (m[k] then g.push) must print List<Object> with a native add");
+        if (!/List<Object> g = \(java\.util\.List<Object>\)\(/.test(out) || !/g\.size\(\)/.test(out)) problems.push("ral-90j2 R1: the second 'g' (m[k] as any[] then g.length) must print List<Object> with a native size()");
+        if (!/\bObject h = /.test(out)) problems.push("ral-90j2 R1: 'h' (only a safe* argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j2 R2: `await Promise.all (xs)` in two sibling branches: each binding read by `.length` prints List<Object>
+function javaR90j2PromiseAllLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j2pa${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zzr90j2pa${process.pid} extends Exchange {`,
+        "    async both (f: boolean, ps: any[]) { if (f) { const rs = await Promise.all (ps); const n = rs.length; return n; } else { const rs = await Promise.all (ps); return this.safeDict (rs, 0); } }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> rs = /.test(out) || !/= rs\.size\(\)/.test(out)) problems.push("ral-90j2 R2: the first 'rs' (.length use) must print List<Object> with a native size()");
+        if (!/\bObject rs = /.test(out)) problems.push("ral-90j2 R2: the second 'rs' (only a safe* argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j2 R3: an element-read Map-structure local read by a literal key in the next statement prints Map with one checkcast
+function javaR90j2ElementMapLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j2em${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Ticker } from './base/types.js';",
+        `export default class zzr90j2em${process.pid} extends Exchange {`,
+        "    read (ts: Record<string, Ticker>, s: string) { const t = ts[s]; return this.parseTicker (t['info']); }",
+        "    argOnly (ts: Record<string, Ticker>, s: string) { const u = ts[s]; return this.parseTicker (u); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> t = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bt\.get\("info"\)/.test(out)) problems.push("ral-90j2 R3: 't' (ts[s] then t['info']) must print Map with a native get");
+        if (!/\bObject u = /.test(out)) problems.push("ral-90j2 R3: 'u' (only a call argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j2 R4: an element-read Map-structure local handed first to a Map<String, Object> core slot prints Map, and the argument binds bare
+function javaR90j2ElementMapSlotSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j2ms${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Market } from './base/types.js';",
+        `export default class zzr90j2ms${process.pid} extends Exchange {`,
+        "    slot (rs: Record<string, Dict>, id: string, market: Market) { const p = rs[id]; return this.parsePosition (p, market); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> p = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/parsePosition\(p, /.test(out)) problems.push("ral-90j2 R4: 'p' (rs[id] handed to parsePosition's Map slot) must print Map and bind bare");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-90j6: reader results with native uses: R1 safeList* used by length/join -> List<String>; R2 `as string[]`
+// safeList read by length/index -> List<String>; R4 safeList* re-written from a const list literal -> List<Object>. Written / value-used locals keep Object.
+function javaR90j6ReaderLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz90j6selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zz90j6selftest${process.pid} extends Exchange {`,
+        "    r1 (params = {}) { const tt = this.safeList (params, 'tags', []); const r = {}; if (tt.length > 0) { r['t'] = tt.join (','); } return r; }",
+        "    r2 (params = {}) { const ok: string[] = this.safeList (params, 'success', []) as string[]; const r = []; for (let i = 0; i < ok.length; i++) { r.push (ok[i]); } return r; }",
+        "    r4 (params = {}) { let ll = this.safeList (params, 'list', []); const acc = []; for (let i = 0; i < ll.length; i++) { acc.push (ll[i]); } ll = acc; return ll; }",
+        "    neg (params = {}) { let ww = this.safeList (params, 'w', []); if (ww.length > 0) { ww = this.safeValue (params, 'x'); } return ww.join (','); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/java\.util\.List<String> tt = \(java\.util\.List<String>\) this\.safeList\(/.test(out) || !/tt\.size\(\) > 0/.test(out) || !/String\.join\(",", tt\)/.test(out)) problems.push("ral-90j6 R1: 'tt' (safeList read by length + join) must print List<String> with native size()/String.join");
+        if (!/java\.util\.List<String> ok = \(java\.util\.List<String>\)\(this\.safeList\(/.test(out) || !/i < ok\.size\(\)/.test(out)) problems.push("ral-90j6 R2: 'ok' (as string[] reader read by length/index) must print List<String> with a native size()");
+        if (!/java\.util\.List<Object> ll = \(java\.util\.List<Object>\) this\.safeList\(/.test(out) || !/i < ll\.size\(\)/.test(out)) problems.push("ral-90j6 R4: 'll' (safeList re-written from a const list) must print List<Object> with a native size()");
+        if (!/\bObject ww = /.test(out)) problems.push("ral-90j6: 'ww' (re-written from safeValue) must stay Object");
+    } catch (e) {
+        problems.push(`ral-90j6 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 90j8: lane rules for copies / omit results / literals
+function javaR90j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr90j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzr90j8selftest extends Exchange {',
+        "    async zzr90j8Pages (params: Dict = {}): Promise<Dict[]> {",
+        "        const out: Dict[] = [];",
+        "        out.push (params);",
+        "        return out;",
+        "    }",
+        "    async zzr90j8Raw (params: Dict = {}): Promise<Dict[]> {",
+        "        const response = await this.publicGetPing (params);",
+        "        return response;",
+        "    }",
+        "    strs (rows: number[]) { const parsed: string[] = []; for (let i = 0; i < rows.length; i++) { const id = this.safeString (rows, i, ''); const sid = id.toString (); parsed.push (sid); } return parsed.join (','); }",
+        "    ids (symbols: string[]) { const out: string[] = []; for (let i = 0; i < symbols.length; i++) { const market = this.market (symbols[i]); const marketId = market['id']; out.push (marketId); } return out.join (','); }",
+        "    async zzr90j8Use (q: string, params: Dict = {}) { let rows: Dict[] = []; if (q !== undefined) { rows = await this.zzr90j8Pages (params); } let raw: Dict[] = []; raw = await this.zzr90j8Raw (params); return [ rows.length, raw ]; }",
+        "    sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict { const headers = undefined; const body = undefined; const query = this.omit (params, this.extractParams (path)); const n = Object.keys (query).length; let url = '/' + path; if (n > 0) { url += '?' + this.urlencode (query); } const later = this.omit (params, 'a'); if (method === 'GET') { url += Object.keys (later).length; } return { 'url': url, 'method': method, 'body': body, 'headers': headers }; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        resetJavaVenueIndexes();
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> query = \(java\.util\.Map<String, Object>\) this\.omit\(/.test(out) || !/\bquery\.size\(\)/.test(out)) problems.push("'query' (omit of an Object param whose first use is Object.keys) must print a Map with a native size()");
+        if (!/\bObject later = /.test(out)) problems.push("'later' (first use under an if) must stay Object");
+        if (!/List<Object> rows = /.test(out) || !/\brows\.size\(\)/.test(out)) problems.push("'rows' (let x: Dict[] = [] written from a fresh-list Promise<Dict[]> venue method) must print List<Object> with a native size()");
+        if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(marketId\)/.test(out)) problems.push("'out' (pushes of a market['id'] structure-key String local) must print List<String> with a bare add");
+        if (!/List<String> parsed = new java\.util\.ArrayList<String>\(/.test(out) || !/\bparsed\.add\(sid\)/.test(out)) problems.push("'parsed' (pushes of a const x.toString () local) must print List<String> with a bare add");
+        if (!/\bObject raw = /.test(out)) problems.push("'raw' (written from a venue method that returns an awaited response) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R1: a read-only `marketType: MarketType` slot of the base parse* family prints String,
+// so its `x === undefined ? 'swap' : x` local and the safeMarket hand-off print native
+function javaR92j2MarketTypeParamsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2mt${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { MarketType, Strings, Str, Leverages } from './base/types.js';",
+        `export default class zzr92j2mt${process.pid} extends Exchange {`,
+        "    parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): Leverages {",
+        "        const leverageStructures = {};",
+        "        const marketTypeResolved: MarketType = (marketType === undefined) ? 'swap' : marketType;",
+        "        for (let i = 0; i < response.length; i++) {",
+        "            const info = response[i];",
+        "            const market = this.safeMarket (this.safeString (info, symbolKey), undefined, undefined, marketTypeResolved);",
+        "            leverageStructures[market['symbol']] = this.parseLeverage (info, market);",
+        "        }",
+        "        return leverageStructures as Leverages;",
+        "    }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/parseLeverages\(Object response, (java\.util\.)?List<String> symbols, String symbolKey, String marketType\)/.test(out)) problems.push("92j2 R1: the MarketType slot of parseLeverages must print String");
+        if (!/\bString marketTypeResolved = /.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must print String");
+        if (!/this\.safeMarket\([^;]*, marketTypeResolved\)/.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must reach safeMarket bare");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R2: a conditional / element-read local handed once, in the next statement, to a fixed
+// Map parameter takes the slot's checkcast on its declaration and passes bare
+function javaR92j2SlotHandOffSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2so${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Balances } from './base/types.js';",
+        `export default class zzr92j2so${process.pid} extends Exchange {`,
+        "    zzBal (response: Dict): Balances { return this.safeBalance (response); }",
+        "    async a (params: Dict = {}) { const response = await this.publicGetPing (params); const balanceResponse = (response === undefined) ? {} : response; const r = this.zzBal (balanceResponse); return r; }",
+        "    b (groups: Dict, k: string) { const g = groups[k]; const r = this.zzBal (g); return r; }",
+        "    async d (params: Dict = {}) { const response = await this.publicGetPing (params); const later = (response === undefined) ? {} : response; const x = 1; return this.zzBal (later); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> balanceResponse = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/this\.zzBal\(balanceResponse\)/.test(out)) problems.push("92j2 R2: 'balanceResponse' (conditional handed to a Dict slot next) must print Map and pass bare");
+        if (!/Map<String, Object> g = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/this\.zzBal\(g\)/.test(out)) problems.push("92j2 R2: 'g' (element read handed to a Dict slot next) must print Map and pass bare");
+        if (!/\bObject later = /.test(out)) problems.push("92j2 R2: 'later' (hand-off not in the next statement) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R3: an element-read Map local whose later literal-key writes the printer already prints as Map puts
+function javaR92j2ElementMapWritesSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2mw${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        `export default class zzr92j2mw${process.pid} extends Exchange {`,
+        "    fees (rows: Dict[], code: string) { const all: Dict = {}; for (let i = 0; i < rows.length; i++) { const entry = rows[i]; const fee: Dict = all[code]; const info = fee['info']; info.push (entry); const result: Dict = { 'fee': this.safeNumber (entry, 'f') }; fee['withdraw'] = result; } return all; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> fee = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bfee\.put\("withdraw", result\)/.test(out)) problems.push("92j2 R3: 'fee' (element read, literal-key read next, Map put later) must print Map with a native put");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R4: a Str conditional whose every use is a printed String slot takes that slot's conversion once
+function javaR92j2StringSlotLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2ss${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Currency, Dict, Market, Str, Int } from './base/types.js';",
+        `export default class zzr92j2ss${process.pid} extends Exchange {`,
+        "    zzFixed (s: Str, n: Int) { return [ s, n ]; }",
+        "    a (rows: Dict[], currency: Currency = undefined) { const code = (currency !== undefined) ? currency['code'] : undefined; return this.filterByCurrencySinceLimit (rows, code, undefined, undefined); }",
+        "    b (market: Market = undefined) { const sym = (market !== undefined) ? market['symbol'] : undefined; return this.zzFixed (sym, 1); }",
+        "    c (rows: Dict[], currency: Currency = undefined) { const both = (currency !== undefined) ? currency['code'] : undefined; this.zzFixed (both, 1); return this.filterByCurrencySinceLimit (rows, both, undefined, undefined); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String code = java\.util\.Objects\.toString\(/.test(out) || !/filterByCurrencySinceLimit\(rows, code,/.test(out)) problems.push("92j2 R4: 'code' (only a defaulted core String slot) must print String and pass bare");
+        if (!/String sym = \(String\) \(/.test(out) || !/this\.zzFixed\(sym,/.test(out)) problems.push("92j2 R4: 'sym' (only a fixed String slot) must print String and pass bare");
+        if (!/\bObject both = /.test(out)) problems.push("92j2 R4: 'both' (core and fixed slots) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// a read-only array conditional / element read takes one List<?> checkcast and reads natively; a literal
+// index only (tuple cast kept) stays Object
+function javaR93j2ListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr93j2ls${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        `export default class zzr93j2ls${process.pid} extends Exchange {`,
+        "    a (chart: Dict) {",
+        "        const list = this.safeList (chart, 'prices', this.safeValue (chart, 'data'));",
+        "        const points: Dict[] = (list !== undefined) ? list : [];",
+        "        let n = 0;",
+        "        for (let i = 0; i < points.length; i++) { n = n + this.safeInteger (points[i], 'x', 0); }",
+        "        return n;",
+        "    }",
+        "    b (grouped: Dict, k: string) {",
+        "        const rows: Dict[] = (k !== undefined) ? this.safeList (grouped, k, this.safeValue (grouped, 'z')) : undefined;",
+        "        return this.safeString (rows[0], 'id');",
+        "    }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<\?> points = \((java\.util\.)?List<\?>\) \(/.test(out) || !/i < points\.size\(\)/.test(out)) problems.push("93j2 R1: 'points' (array conditional read by length / index) must print List<?> and read natively");
+        if (!/\bObject rows = /.test(out)) problems.push("93j2 R1: 'rows' (literal index only) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// null seeds handed to a typed core slot: a Map seed written from a later `this.market (..)` const reaches a Map
+// parameter, and two String seeds written from each other reach String parameters, with no argument checkcast
+function javaR92j4NullSeedConsumerSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr92j4seed${process.pid}.ts`);
+    const body = [
+        "import Exchange from '../nado.js';", "import type { Str, Strings, Dict, Market } from '../base/types.js';",
+        `export default class zzr92j4seed${process.pid} extends Exchange {`,
+        "    async wp (t: string, market: Market, h: string, params: Dict = {}) { return [ t, market, h, params ]; }",
+        "    async sp (c: Str, h: Str, params: Dict = {}) { return [ c, h, params ]; }",
+        "    async m1 (symbols: Strings = undefined, params: Dict = {}) {",
+        "        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);",
+        "        let market: Market = undefined;",
+        "        let messageHash = 'ticker';",
+        "        if (symbolsNormalized !== undefined) {",
+        "            const symbolMarket = this.market (symbolsNormalized[0]);",
+        "            market = symbolMarket;",
+        "            messageHash = 'ticker:' + this.safeString (symbolMarket, 'symbol', '');",
+        "        }",
+        "        const ticker = await this.wp ('x', market, messageHash, params);",
+        "        return ticker;",
+        "    }",
+        "    async m2 (f: boolean, mode: string) {",
+        "        let hash: Str = undefined;",
+        "        let channel: Str = undefined;",
+        "        if (f) { channel = 'acc.' + mode; hash = channel; } else { hash = 'account'; channel = hash; }",
+        "        return await this.sp (channel, hash);",
+        "    }",
+        "    async m4 (f: boolean, a: string, b: string) { let url: Str = undefined; if (f) { url = a.toLowerCase (); } else { url = b.trim (); } return await this.watch (url as string, 'h'); }",
+        "    exp (parts: string[], f: boolean) { let expiry = undefined; if (f) { expiry = this.safeString (parts, 1); } else { expiry = this.convertMarketIdExpireDate (this.safeString (parts, 1)); } return this.convertExpireDate (expiry); }",
+        "    bal (sym: string, parts: string[], f: boolean) { let baseId = undefined; if (f) { baseId = this.safeString (parts, 0); } else { const baseLength = sym.length - 3; if (baseLength > 0) { baseId = sym.slice (0, baseLength); } } return this.safeCurrencyCode (baseId); }",
+        "    async m3 (f: boolean, raw: Dict) { let other: Str = undefined; let mixed: Str = undefined; if (f) { other = 'a'; mixed = other; } else { mixed = raw['k']; } return await this.sp (mixed, other); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> market = null/.test(out) || !/this\.wp\("x", market, messageHash, /.test(out)) problems.push("r92-j4: 'market' (written from a later market() const, passed to a Map slot) must print Map with a bare argument");
+        if (!/String hash = null/.test(out) || !/String channel = null/.test(out) || !/this\.sp\(channel, hash/.test(out)) problems.push("r92-j4: 'hash' / 'channel' (String writes of each other, String slots) must print String with bare arguments");
+        if (!/String url = null/.test(out) || !/this\.watch\(url, /.test(out)) problems.push("r92-j4: 'url' (String writes, `url as string` into watch) must print String with the identity cast dropped");
+        if (!/String expiry = null/.test(out) || !/this\.convertExpireDate\(expiry\)/.test(out)) problems.push("r92-j4: 'expiry' (safeString / convertMarketIdExpireDate writes, String slot) must print String with a bare argument");
+        if (!/String baseId = null/.test(out) || !/this\.safeCurrencyCode\(baseId, /.test(out)) problems.push("r92-j4: 'baseId' (safeString / integral-bound slice writes, String slot) must print String with a bare argument");
+        if (!/\bObject mixed = null/.test(out)) problems.push("r92-j4: 'mixed' (one Object element write) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// venue list fetchers: `let x: List = []` targets and fetchers returning another proven fetcher's awaited result
+function javaR92j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, List } from './base/types.js';",
+        'export default class zzr92j8selftest extends Exchange {',
+        "    async zzr92j8Inner (params: Dict = {}): Promise<Dict[]> {",
+        "        const out: Dict[] = [];",
+        "        out.push (params);",
+        "        return out;",
+        "    }",
+        "    async zzr92j8Outer (params: Dict = {}): Promise<Dict[]> {",
+        "        return await this.zzr92j8Inner (params);",
+        "    }",
+        "    omitPerBinding (a: Dict, flag: boolean) { if (flag) { let tickers = [ 1 ]; tickers = [ 2 ]; return tickers; } const data = this.safeDict (a, 'data', {}); const tickers = this.omit (data, 'date'); return Object.keys (tickers).length; }",
+        "    signedCopy (params: Dict, post: boolean) { const sorted: Dict = this.keysort (this.omit (params, 'a')); let signed: Dict = sorted; if (post) { signed = this.keysort (sorted); } return Object.keys (signed).length; }",
+        "    async zzr92j8Use (q: string, params: Dict = {}) { const first = await this.zzr92j8Inner (params); let rows: List = []; if (q !== undefined) { rows = await this.zzr92j8Outer (params); } return [ first.length, rows.length ]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        resetJavaVenueIndexes();
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> rows = /.test(out) || !/\brows\.size\(\)/.test(out)) problems.push("'rows' (let x: List = [] written from a list fetcher) must print List<Object> with a native size()");
+        if (!/Map<String, Object> signed = sorted;/.test(out) || !/\bsigned\.size\(\)/.test(out)) problems.push("'signed' (copy of a keysort Map local, published as Map<String,Object>) must print Map<String, Object> with a native size()");
+        if (!/Map<String, Object> tickers = this\.omit\(/.test(out)) problems.push("'tickers' (omit of a Map, a same-named sibling binding written elsewhere) must print Map<String, Object>");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+function javaR93j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr93j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Str } from './base/types.js';",
+        'export default class zzr93j8selftest extends Exchange {',
+        "    chunked (symbols: string[]) {",
+        "        const tickers: string[] = [];",
+        "        for (let i = 0; i < symbols.length; i++) {",
+        "            const s = symbols[i];",
+        "            let base: Str = s;",
+        "            if (s.endsWith ('-NO')) {",
+        "                base = s.slice (0, -3);",
+        "            }",
+        "            tickers.push (base);",
+        "        }",
+        "        const n = tickers.length;",
+        "        let chunk: string[] = [];",
+        "        const out: Dict[] = [];",
+        "        for (let ti = 0; ti < n; ti++) {",
+        "            chunk.push (tickers[ti]);",
+        "            const chunkLength = chunk.length;",
+        "            if (chunkLength < 10) {",
+        "                continue;",
+        "            }",
+        "            out.push ({ 'tickers': chunk.join (',') });",
+        "            chunk = [];",
+        "        }",
+        "        return out;",
+        "    }",
+        "    pushedIds (symbols: string[]) {",
+        "        const ids: string[] = [];",
+        "        for (let i = 0; i < symbols.length; i++) {",
+        "            const id = this.market (symbols[i])['id'] as string;",
+        "            ids.push (id);",
+        "        }",
+        "        return ids.join (',');",
+        "    }",
+        "    tail (ids: string[]) {",
+        "        const first = this.safeString (ids, 0, '');",
+        "        const n = first.length;",
+        "        let suffix = first;",
+        "        if (n > 6) {",
+        "            suffix = first.slice (n - 6);",
+        "        }",
+        "        return suffix.toUpperCase ();",
+        "    }",
+        "    keyedAll (symbols: string[]) {",
+        "        let all: string[] = Object.keys (this.markets as Dict);",
+        "        if (symbols !== undefined) {",
+        "            all = this.marketSymbols (symbols);",
+        "        }",
+        "        return all.length;",
+        "    }",
+        "    keyed (symbols: string[], byId: Dict) {",
+        "        let ids: string[] = [];",
+        "        if (symbols.length === 0) {",
+        "            const m: Dict = this.safeDict (byId, 'a', {});",
+        "            ids = Object.keys (m);",
+        "        } else {",
+        "            ids = this.marketIds (symbols);",
+        "        }",
+        "        const out: Dict = {};",
+        "        for (let i = 0; i < ids.length; i++) {",
+        "            out[ids[i]] = true;",
+        "        }",
+        "        return out;",
+        "    }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        resetJavaVenueIndexes();
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<String> ids = /.test(out) || !/ids = new java\.util\.ArrayList<String>\(m\.keySet\(\)\);/.test(out) || !/\bids\.size\(\)/.test(out)) problems.push("'ids' (String list written from Object.keys of a Map local and marketIds) must print List<String> with a native size()");
+        if (!/List<String> ids = new java\.util\.ArrayList<String>/.test(out) || !/String id = /.test(out) || !/\bids\.add\(id\)/.test(out)) problems.push("'ids' / 'id' (String list fed by an `as string` local) must print List<String> / String with a native add");
+        if (!/String suffix = first;/.test(out) || !/suffix\.toUpperCase\(\)/.test(out)) problems.push("'suffix' (String copy written by a non-literal slice) must print String with a native toUpperCase()");
+        if (!/List<String> all = new java\.util\.ArrayList<String>\(\(\(java\.util\.Map<String, Object>\)this\.markets\)\.keySet\(\)\);/.test(out) || !/\ball\.size\(\)/.test(out)) problems.push("'all' (String list from Object.keys (this.markets as Dict) and marketSymbols) must print List<String> with a native size()");
+        if (!/List<String> chunk = /.test(out) || !/\bchunk\.size\(\)/.test(out)) problems.push("'chunk' (String list fed by elements of a list of String copy locals) must print List<String> with a native size()");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}

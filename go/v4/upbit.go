@@ -904,8 +904,8 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 			ids = SafeStringPtr(Join(this.Ids, ","))
 		}
 	} else {
-		var marketIds any = this.MarketIds(symbols)
-		ids = SafeStringPtr(Join(marketIds, ","))
+		var marketIds []string = this.MarketIdsStrings(symbols)
+		ids = SafeStringPtr(strings.Join(marketIds, ","))
 	}
 	var request map[string]any = map[string]any{
 		"markets": ids,
@@ -1332,12 +1332,12 @@ func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 200
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 200
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"count":  limitResolved,
@@ -1573,12 +1573,12 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var market map[string]any = this.Market(symbol)
 	var timeframePeriod int64 = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 200
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 200
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
 		"timeframe": timeframeValue,
@@ -1587,7 +1587,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var response []any = nil
 	if since != nil {
 		// convert `since` to `to` value
-		request["to"] = this.Iso8601(this.Sum(since, ((timeframePeriod * limitResolved) * 1000)))
+		request["to"] = this.Iso8601(this.Sum(since, (timeframePeriod*limitResolved)*1000))
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)
@@ -1845,12 +1845,12 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Upbit) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Upbit) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Upbit) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Upbit) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2504,7 +2504,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var typeVar *string = this.SafeString(order, "ord_type")
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
-	var lastTradeTimestamp any = nil
+	var lastTradeTimestamp *int64 = nil
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "volume")
 	var remaining *string = this.SafeString(order, "remaining_volume")
@@ -2528,7 +2528,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	if numTrades > 0 {
 		// the timestamp in fetchOrder trades is missing
 		var lastTrade map[string]any = SafeMapTyped(trades, numTrades-1)
-		lastTradeTimestamp = lastTrade["timestamp"]
+		lastTradeTimestamp = this.SafeInteger(lastTrade, "timestamp")
 		var getFeesFromTrades bool = false
 		if feeCost == nil {
 			getFeesFromTrades = true
@@ -3253,17 +3253,16 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headers["Authorization"] = "Bearer " + token
 	}
-	var requestHeaders any = func() any {
-		if apiName == "private" {
-			return headers
-		}
-		return nil
-	}()
 	return map[string]any{
-		"url":     url,
-		"method":  method,
-		"body":    requestBody,
-		"headers": requestHeaders,
+		"url":    url,
+		"method": method,
+		"body":   requestBody,
+		"headers": func() any {
+			if apiName == "private" {
+				return headers
+			}
+			return nil
+		}(),
 	}
 }
 func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

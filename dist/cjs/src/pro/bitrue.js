@@ -441,7 +441,7 @@ class bitrue extends bitrue$1["default"] {
                 throw new errors.ExchangeError(this.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId');
             }
             if (baseId + quoteId === wsBaseQuote) {
-                return candidate;
+                return this.market(symbolId);
             }
         }
         return undefined;
