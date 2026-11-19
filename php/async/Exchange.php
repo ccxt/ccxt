@@ -6321,7 +6321,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, null, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($i + 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
+                        $backwardMessage = 'Dynamic pagination call ' . ($i . (string) 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
                         if ($paginationTimestamp !== null) {
                             $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6348,7 +6348,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, $paginationTimestamp, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($i + 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
+                        $forwardMessage = 'Dynamic pagination call ' . ($i . (string) 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
                         if ($paginationTimestamp !== null) {
                             $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6604,8 +6604,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $iteration = ($i + 1);
-                    $incrementalMessage = 'Incremental pagination call ' . (string) $iteration . ' method ' . $method . ' response length ' . (string) $responseLength;
+                    $incrementalMessage = 'Incremental pagination call ' . ($i . (string) 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
                     $this->log($incrementalMessage);
                 }
                 if ($responseLength === 0) {

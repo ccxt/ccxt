@@ -1118,7 +1118,7 @@ class binance extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $market = $this->market($outcomeObj['market']);
+            $market = $this->market($this->safe_string($outcomeObj, 'market'));
             $request['marketId'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1375,7 +1375,7 @@ class binance extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $market = $this->market($outcomeObj['market']);
+            $market = $this->market($this->safe_string($outcomeObj, 'market'));
             $request['marketTopicId'] = $market['info']['marketTopicId'];
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));

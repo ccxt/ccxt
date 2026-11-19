@@ -12648,8 +12648,7 @@ class binance extends Exchange {
         }
         Async\await($this->load_leverage_brackets(false, $params));
         $request = array();
-        $defaultType = 'swap';
-        $defaultType = $this->safe_string($this->options, 'defaultType', $defaultType);
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
         $type = $this->safe_string($params, 'type', $defaultType);
         $subType = null;
         $paramsSubType = null;

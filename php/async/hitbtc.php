@@ -1550,11 +1550,11 @@ class hitbtc extends Exchange {
         ), $marketResolved);
     }
 
-    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params): PromiseInterface {
+    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($types, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params) {
+    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

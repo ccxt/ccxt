@@ -1773,7 +1773,7 @@ class bitget extends \ccxt\async\bitget {
             $messageHash = 'triggerOrder';
         }
         $subscriptionHash = 'order:trades';
-        $symbolResolved = null;
+        $symbolResolved = $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
@@ -2311,7 +2311,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $market = null;
         $messageHash = 'myTrades';
-        $symbolResolved = null;
+        $symbolResolved = $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');

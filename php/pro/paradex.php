@@ -161,7 +161,7 @@ class paradex extends \ccxt\async\paradex {
          * @param {string} [$subscribeHash] the $subscription the $request opens, the $request id when null
          * @return {array} the reply
          */
-        $requestHash = 'request:' . $this->safe_string($request, 'id');
+        $requestHash = 'request:' . $this->safe_string($request, 'id', '');
         $subscription = array(
             'id' => $request['id'],
             'messageHashes' => array( $requestHash ),
@@ -1073,7 +1073,7 @@ class paradex extends \ccxt\async\paradex {
         // the whole connection
         $unsubscribe = $this->unsubscribe_request($channel);
         $subscribe = $this->subscribe_request($channel);
-        $unsubscribeHash = 'request:' . $this->safe_string($unsubscribe, 'id');
+        $unsubscribeHash = 'request:' . $this->safe_string($unsubscribe, 'id', '');
         $client->subscriptions[$unsubscribeHash] = array(
             'id' => $unsubscribe['id'],
             'messageHashes' => array(),

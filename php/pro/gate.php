@@ -2476,20 +2476,21 @@ class gate extends \ccxt\async\gate {
     }
 
     public function get_market_type_by_url(string $url): string {
-        $findBy = array(
-            'op-' => 'option',
-            '/ws/options/' => 'option',
-            'delivery' => 'future',
-            'fx' => 'swap',
-            '/ws/futures/' => 'swap',
-        );
-        $keys = is_array($findBy) ? array_keys($findBy) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $value = $findBy[$key];
-            if (mb_strpos($url, $key) !== false) {
-                return $value;
-            }
+        // same order as the url table: delivery urls also contain 'fx'
+        if (mb_strpos($url, 'op-') !== false) {
+            return 'option';
+        }
+        if (mb_strpos($url, '/ws/options/') !== false) {
+            return 'option';
+        }
+        if (mb_strpos($url, 'delivery') !== false) {
+            return 'future';
+        }
+        if (mb_strpos($url, 'fx') !== false) {
+            return 'swap';
+        }
+        if (mb_strpos($url, '/ws/futures/') !== false) {
+            return 'swap';
         }
         return 'spot';
     }

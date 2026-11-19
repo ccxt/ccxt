@@ -1503,7 +1503,7 @@ class hitbtc extends Exchange {
         ), $marketResolved);
     }
 
-    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params): array {
+    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

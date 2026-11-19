@@ -1719,7 +1719,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function edit_order_request(?string $id, string $symbol, ?float $amount, ?float $price = null, $params = array()): array {
+    public function edit_order_request(?string $id, string $symbol, ?float $amount = null, ?float $price = null, $params = array()): array {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;
