@@ -579,7 +579,7 @@ impl Bittrade {
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("limit".to_string(), Value::from(limitValue));
                 m.insert("params".to_string(), params.clone());
-                m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
+                m.insert("method".to_string(), Value::Str("handleOrderBookSubscription".into()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -675,7 +675,7 @@ impl Bittrade {
                     m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                     m.insert("limit".to_string(), Value::from(limit));
                     m.insert("params".to_string(), Value::Map(params));
-                    m.insert("method".to_string(), Value::Str("handle_order_book_snapshot".into()).clone());
+                    m.insert("method".to_string(), Value::Str("handleOrderBookSnapshot".into()));
                 m
             });
             let mut orderbook: Value = self.watch(url.as_str(), &(Value::Str(format!("{}", requestId).into())), Value::Map(request), &(Value::Str(format!("{}", requestId).into())), Value::Map(snapshotSubscription)).await;
@@ -824,9 +824,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null));
         if (subscription.is_some()) {
-            let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
-            if (method.is_some()) {
-                return self.dispatch_ws_handler(&method, &[client, message.clone(), subscription.map_or(Value::Null, Value::Dict)]);
+            let mut method: Option<String> = self.safe_string_k_opt(&subscription, "method", &[]);
+            if (method.as_deref() == Some("handleOrderBookSnapshot")) {
+                self.handle_order_book_snapshot(&client, message.clone(), subscription.clone().map_or(Value::Null, Value::Dict));
+                return Value::Null;
+            }  else if (method.as_deref() == Some("handleOrderBookSubscription")) {
+                self.handle_order_book_subscription(client, message.clone(), subscription.map_or(Value::Null, Value::Dict));
+                return Value::Null;
             }
             // clean up
             if (__ch.has_subscription(id.as_deref())) {

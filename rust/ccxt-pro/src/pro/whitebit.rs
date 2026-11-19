@@ -1530,7 +1530,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value, mut id: Value) {
+    pub fn handle_subscription_status(&self, mut client: Value, mut message: Value, mut id: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         // not every method stores its subscription
         // as an object so we can't do indeById here
@@ -1544,9 +1544,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let mut subId: Option<i64> = self.safe_integer_k(&subscription, "id", &[]).as_i64();
                 if (subId.is_some()) && ((Value::from(subId).as_f64() == id.as_f64())) {
-                    let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
-                    if (method.is_some()) {
-                        self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
+                    let method: bool = self.safe_value_k(&subscription, "method", &[]) != Value::Null;
+                    if (method) {
+                        self.handle_authenticate(&client, message.clone());
                         return;
                     }
                 }

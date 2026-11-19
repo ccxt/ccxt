@@ -2075,7 +2075,7 @@ impl Phemex {
             let mut method: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(id.clone()), &[]);
             __ch.remove_subscription(id.as_str());
             if !(match &(method) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
+                self.handle_authenticate(&client, message.clone());
                 return;
             }
         }
