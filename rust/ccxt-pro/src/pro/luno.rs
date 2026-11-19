@@ -289,8 +289,8 @@ impl Luno {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (rawTrades.len() as i64) } {
             let mut rawTrade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_trade(self, &rawTrade, Some(&market)).into_dict();
             stored.append(Value::Dict(trade));
@@ -453,8 +453,8 @@ impl Luno {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (bidasksValue.len() as i64) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (bidasksValue.len() as i64) } {
             result.push(self.custom_parse_bid_ask(bidasksValue.get(i as usize).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
@@ -532,8 +532,8 @@ impl Luno {
         let mut tradeUpdates: crate::value::List = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (tradeUpdates.len() as i64) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (tradeUpdates.len() as i64) } {
             let mut tradeUpdate: crate::value::Dict = tradeUpdates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut makerOrderId: Option<String> = self.safe_string_k_opt(&tradeUpdate, "maker_order_id", &[]);
             let mut tradedAmount: Option<String> = self.safe_string_k_opt(&tradeUpdate, "base", &[]);
@@ -582,8 +582,8 @@ impl Luno {
         let mut sideLength: i64 = orderSide.length().as_i64().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < sideLength } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < sideLength } {
             let mut order: Value = orderSide.level(&Value::Int(i));
             let mut entryId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(2), &[]);
             if ((entryId.as_deref() == orderId.as_str())) {
@@ -674,8 +674,8 @@ impl Luno {
         let mut handlers: crate::value::List = std::sync::Arc::new(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { j += 1; } __for_first_489 = false; j < (handlers.len() as i64) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { j += 1; } __for_first_490 = false; j < (handlers.len() as i64) } {
             let mut handler: Option<String> = handlers.get(j as usize).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.get(0).cloned().unwrap_or(Value::Null)]);
         }

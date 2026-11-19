@@ -341,8 +341,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (cache.len() as i64) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (cache.len() as i64) } {
             let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(i), &[]).into_dict();
             let mut deltaNonce: Option<i64> = self.safe_integer2(&delta, Value::Str("i".into()), Value::Str("u".into()), &[]).as_i64();
             if (deltaNonce.is_some()) && (nonce.is_some()) && ((deltaNonce.is_some() && nonce.is_some() && deltaNonce >= nonce)) {
@@ -363,8 +363,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (obBids.len() as i64) } {
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (obBids.len() as i64) } {
             let mut bid: crate::value::List = self.safe_list(&obBids, Value::Int(i), &[]).into_list();
             let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
             let mut quantity: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
@@ -373,8 +373,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (obAsks.len() as i64) } {
+            let mut __for_first_739: bool = true;
+            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (obAsks.len() as i64) } {
             let mut ask: crate::value::List = self.safe_list(&obAsks, Value::Int(i), &[]).into_list();
             let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
             let mut quantity: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
@@ -1246,8 +1246,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (positions.len() as i64) } {
+            let mut __for_first_740: bool = true;
+            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (positions.len() as i64) } {
             let mut position: Option<&crate::types::Position> = positions.get(i as usize);
             let mut contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[Value::Int(0)]).as_f64();
             if (contracts.is_some()) && (contracts > Some(0.0)) {
@@ -1308,8 +1308,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("position::contract".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_741: bool = true;
+            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1491,8 +1491,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut newTickers: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_740: bool = true;
-            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (data.len() as i64) } {
+            let mut __for_first_742: bool = true;
+            while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (data.len() as i64) } {
             let mut tickerData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tickerData), None).into_dict();
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
@@ -1506,8 +1506,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", messageHashStart, "::").into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_741: bool = true;
-            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_743: bool = true;
+            while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(2).and_then(Value::as_str).map(str::to_owned);
@@ -1765,8 +1765,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_742: bool = true;
-                    while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let mut __for_first_744: bool = true;
+                    while { if !__for_first_744 { i += 1; } __for_first_744 = false; i < (obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                     let mut ask: crate::value::List = self.safe_list(&obAsks, Value::Int(i), &[]).into_list();
                     let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
                     let mut quantity: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
@@ -1778,8 +1778,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut bids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_743: bool = true;
-                    while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (obBids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let mut __for_first_745: bool = true;
+                    while { if !__for_first_745 { i += 1; } __for_first_745 = false; i < (obBids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                     let mut bid: crate::value::List = self.safe_list(&obBids, Value::Int(i), &[]).into_list();
                     let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
                     let mut quantity: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
@@ -2227,8 +2227,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHashes: crate::value::List = __pro_message.get("subMessageHashes").cloned().unwrap_or_default().into_list();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_744: bool = true;
-            while { if !__for_first_744 { j += 1; } __for_first_744 = false; j < (messageHashes.len() as i64) } {
+            let mut __for_first_746: bool = true;
+            while { if !__for_first_746 { j += 1; } __for_first_746 = false; j < (messageHashes.len() as i64) } {
             let mut unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subHash: Option<String> = subMessageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
             self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);

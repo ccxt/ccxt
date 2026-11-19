@@ -1189,8 +1189,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_289: bool = true;
-            while { if !__for_first_289 { i += 1; } __for_first_289 = false; i < (entries.len() as i64) } {
+            let mut __for_first_290: bool = true;
+            while { if !__for_first_290 { i += 1; } __for_first_290 = false; i < (entries.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&entries, Value::Int(i), &[]).into_dict();
             let mut entryData: crate::value::Dict = self.safe_dict_k(&entry, "d", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1220,8 +1220,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut cachedMessages: crate::value::List = orderbook.cache_items();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_290: bool = true;
-            while { if !__for_first_290 { j += 1; } __for_first_290 = false; j < (cachedMessages.len() as i64) } {
+            let mut __for_first_291: bool = true;
+            while { if !__for_first_291 { j += 1; } __for_first_291 = false; j < (cachedMessages.len() as i64) } {
             let mut cachedMessage: Value = cachedMessages.get(j as usize).cloned().unwrap_or(Value::Null);
             self.handle_order_book_message(client.clone(), cachedMessage, Value::from(&orderbook));
         }
@@ -1593,8 +1593,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_291: bool = true;
-                while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_292: bool = true;
+                while { if !__for_first_292 { i += 1; } __for_first_292 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbol.as_deref().unwrap_or("null"));
                 messageHashes.push(Value::from(symbolMessageHash));
