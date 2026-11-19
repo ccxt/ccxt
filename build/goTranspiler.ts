@@ -12010,7 +12010,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListTypedDefaultReads (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content)))))))))))));
+    content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (goMapTypedOfMapLocal (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListTypedDefaultReads (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))))))));
     content = goTypedGvMapReads (content);
     content = path.endsWith ('.go') ? goHashmapRowReads (content) : content;
     content = goTypedNativeDerefs (path, content);
@@ -15718,7 +15718,7 @@ async function runMain () {
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
-            goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
+            goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go map typed of map local: ', goMapTypedOfMapLocalSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -16523,6 +16523,26 @@ function goHashmapRowReadsSelfTest (ok: SelfTestOk): void {
         f ('c any', '\tvar s string = \"a\"\n\tvar o map[string]any = ccxt.SafeMapTyped(c.(*ccxt.ArrayCacheByTimestamp).Hashmap, s)\n') ];
     keep.forEach ((b, i) => ok (goHashmapRowReads (b) === b, 'negative ' + i));
     ok (goHashmapRowReads (str) === str, 'idempotent');
+}
+
+// `MapTyped(x)` of a name bound exactly once in its func, as `var x map[string]any` or a
+// `x map[string]any` parameter, is x itself: MapTyped hands a map (nil included) back unchanged
+function goMapTypedOfMapLocal (content: string): string {
+    return content.split (/\n(?=func )/).map ((fn) => fn.replace (/(?<![\w.])(?:ccxt\.)?MapTyped\((\w+)\)/g, (all: string, x: string) => {
+        const typed = (fn.match (new RegExp ('\\bvar ' + x + ' map\\[string\\]any\\b|[(,] ?' + x + ' map\\[string\\]any[,)]', 'g')) ?? []).length;
+        const binds = (fn.match (new RegExp ('\\bvar ' + x + '\\b|(?<![\\w.])' + x + '(?:, \\w+)* :=|(?<![\\w.])\\w+, ' + x + ' :=|[(,] ?' + x + ' [\\w*[\\]{}.]+[,)]|range ' + x + '\\b', 'g')) ?? []).length;
+        return ((typed === 1) && (binds === 1)) ? x : all;
+    })).join ('\n');
+}
+
+function goMapTypedOfMapLocalSelfTest (ok: SelfTestOk): void {
+    const f = (sig: string, body: string) => 'func (this *X) F(' + sig + ') map[string]any {\n' + body + '}\n';
+    const pos = f ('r map[string]any', '\treturn MapTyped(r)\n') + f ('p any', '\tvar q map[string]any = nil\n\treturn ccxt.MapTyped(q)\n');
+    ok (goMapTypedOfMapLocal (pos) === f ('r map[string]any', '\treturn r\n') + f ('p any', '\tvar q map[string]any = nil\n\treturn q\n'), 'map local unwrapped: ' + goMapTypedOfMapLocal (pos));
+    const keep = [ f ('r any', '\treturn MapTyped(r)\n'), f ('r map[string]any', '\tif true {\n\t\tr := 1\n\t\t_ = r\n\t}\n\treturn MapTyped(r)\n'),
+        f ('p any', '\tvar q map[string]any = nil\n\tg := func(q any) any { return q }\n\t_ = g\n\treturn MapTyped(q)\n'), f ('r map[string]any', '\treturn MapTyped(r.x)\n') ];
+    keep.forEach ((b, i) => ok (goMapTypedOfMapLocal (b) === b, 'negative ' + i));
+    ok (goMapTypedOfMapLocal (goMapTypedOfMapLocal (pos)) === goMapTypedOfMapLocal (pos), 'idempotent');
 }
 
 // `ListTyped([]any{..})` of a balanced literal is that literal: ListTyped hands a non-nil []any back as is
@@ -20318,7 +20338,7 @@ function goBaseNativePasses (content: string): string {
     content = goTypedLenNative (goNativeStringAdds (goIntegralBoxComparisons (goGuardedDivide (goFloatFieldComparisons (goTupleTruthyComparisons (goNativeCompare (goInt64RetypeArith (content))))))));
     content = nativeGuardedListElementReads (content);  // the guard literals in the base files too
     content = goTypedFieldNilFold (content);  // RateLimit/Id are never nil
-    return gb09CredentialStrings (content);  // the credential fields are plain strings
+    return goMapTypedOfMapLocal (gb09CredentialStrings (content));  // the credential fields are plain strings
 }
 
 function goBaseNativePassesSelfTest (ok: SelfTestOk): void {
