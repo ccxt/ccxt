@@ -239,8 +239,6 @@ function helperTestProperties () {
     assert (exchange.features === undefined, 'features should be undefined');
     assert (testSharedMethods.exchangeProp (exchange, 'minFundingAddressLength') >= 1, 'minFundingAddressLength should be >= 1');
     assert (testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled') === false, 'isSandboxModeEnabled should be false');
-    // assert (testSharedMethods.exchangeProp (exchange, 'sandbox') === false, 'sandbox should be false');
-    // assert (testSharedMethods.exchangeProp (exchange, 'testnet') === false, 'testnet should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'enableRateLimit') === true, 'enableRateLimit should be true');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimiterAlgorithm') === 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimit') === 2000, 'rateLimit should be 2000');
