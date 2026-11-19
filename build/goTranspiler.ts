@@ -7209,6 +7209,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'fetchMarginMode': [ 0 ], 'setMargin': [ 0 ],
     // required `string` params whose callers pass a Go string: bitfinex currency code, withdraw address
     'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
+    // prediction `method: string` / `eventIdOrSlug: string`: callers pass literals only (none for getEvent)
+    'ethRpc': [ 1 ], 'getEvent': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
