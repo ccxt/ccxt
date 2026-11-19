@@ -30,7 +30,7 @@
         "BorrowMargin": "MarginLoan",
         "Bullish.LoadAccount": "*string",
         "Bullish.SafeDeterministicCall": "[]any",
-        "Bybit.GetUrlByMarketType": "*string",
+        "Bybit.GetUrlByMarketType": "string",
         "CancelAllContractOrders": "[]Order",
         "CancelAllOrders": "[]Order",
         "CancelAllOrdersAfter": "map[string]any",

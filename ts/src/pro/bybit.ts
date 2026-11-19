@@ -225,8 +225,8 @@ export default class bybit extends bybitRest {
                 url = accessibilityUrls['option'];
             }
         }
-        url = this.implodeHostname (url);
-        return url;
+        const urlResolved: string = this.implodeHostname (url);
+        return urlResolved;
     }
 
     cleanParams (params: Dict): Dict {

@@ -13007,6 +13007,7 @@ class NewTranspiler {
                 "omitTupleMapMethods": goTypedMaplistTupleMethods (),
                 "asyncMapRowListCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '[]map[string]any').map (([ name ]) => name),
                 "asyncTickerMapCallees": [ ...goChan3Table () ].filter (([ name, type ]) => (type === 'map[string]Ticker') && !name.includes ('.')).map (([ name ]) => name),
+                "asyncStringCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === 'string').map (([ name ]) => name),
                 // ===== end RF-go-6-C =====
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
                 "stringPointerTupleCalls": GO_STRING_POINTER_TUPLE_CALLS,
