@@ -5292,8 +5292,8 @@ const RUST_DICT_BUILDER_FNS: string[] = [
 // `editOrderRequest` / `postActionRequest` return a fresh map on every path in every venue (`extend` of a request, the
 // request map itself), so they return `Dict`; any other return throws. `.into_dict()` drops, `.as_map()` copies unwrap,
 // any other use (dispatch arms, `Value` locals) boxes it.
-function rustTypedRequestBuilders (content: string): string {
-    for (const fn of RUST_DICT_BUILDER_FNS) {
+function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BUILDER_FNS): string {
+    for (const fn of fns) {
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -6832,6 +6832,79 @@ function rustOnlyCloneMentions(stmt: string, name: string): boolean {
 // unit slot 073
 //
 // unit slot 074
+// [builder, venue] whose venue declaration returns a dict on every path (a list-returning venue has no row);
+// `prediction/` prefixes a prediction venue. The pro file of the venue types its `self.parent.` callers.
+const RUST_DICT_BUILDER_VENUE_FNS: Array<[string, string]> = [
+    [ 'create_order_request', 'aster' ],
+    [ 'create_order_request', 'backpack' ],
+    [ 'create_order_request', 'binance' ],
+    [ 'create_order_request', 'bingx' ],
+    [ 'create_order_request', 'bit2me' ],
+    [ 'create_order_request', 'bitfinex' ],
+    [ 'create_order_request', 'bitget' ],
+    [ 'create_order_request', 'bithumb' ],
+    [ 'create_order_request', 'bitvavo' ],
+    [ 'create_order_request', 'blofin' ],
+    [ 'create_order_request', 'bybit' ],
+    [ 'create_order_request', 'cryptocom' ],
+    [ 'create_order_request', 'digifinex' ],
+    [ 'create_order_request', 'gate' ],
+    [ 'create_order_request', 'hibachi' ],
+    [ 'create_order_request', 'hyperliquid' ],
+    [ 'create_order_request', 'krakenfutures' ],
+    [ 'create_order_request', 'modetrade' ],
+    [ 'create_order_request', 'nado' ],
+    [ 'create_order_request', 'okx' ],
+    [ 'create_order_request', 'paradex' ],
+    [ 'create_order_request', 'woofipro' ],
+];
+// hyperliquid signing: `signHash` returns the `{r, s, v}` literal, `signMessage` returns `signHash (..)`, `signL1Action`
+// returns that dict (a Dict local or `signMessage (..)`), so all three return `Dict`; any other return throws.
+const RUST_SIGNING_DICT_VENUES: string[] = [ 'hyperliquid', 'prediction/hyperliquid' ];
+function rustTypedVenueBuilders (content: string, venue: string): string {
+    const fns = RUST_DICT_BUILDER_VENUE_FNS.filter (([ , v ]) => v === venue).map (([ f ]) => f);
+    if (fns.length > 0) content = rustTypedRequestBuilders (content, fns);
+    if (!RUST_SIGNING_DICT_VENUES.includes (venue)) return content;
+    const typed = new Set<string> ();
+    for (const fn of [ 'sign_hash', 'sign_message', 'sign_l1_action' ]) {
+        const decl = new RegExp ('\\n    pub fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n').exec (content);
+        if (!decl) continue;
+        const open = decl.index + decl[0].length, tail = '\n\n    Value::Null\n}', end = content.indexOf (tail, open);
+        if (end < 0) throw new Error (venue + ' ' + fn + ': declaration without the Value::Null tail');
+        const body = content.slice (open, end).replace (/^( *return )([^\n]*)$/gm, (_l, r: string, e: string) => {
+            if (e === 'Value::Map({') return r + 'std::sync::Arc::new({';
+            const call = /^self\.(\w+)\(/.exec (e);
+            if (call && typed.has (call[1]) && e.endsWith (');') && balancedCloseIndex (e, call[0].length) === e.length - 2) return r + e;
+            const m = /^Value::Dict\((\w+)\);$/.exec (e);
+            if (m && new RegExp ('\\blet mut ' + m[1] + ': crate::value::Dict = ').test (content.slice (open, end))) return r + m[1] + ';';
+            throw new Error (venue + ' ' + fn + ': unproven return ' + e.slice (0, 80));
+        });
+        content = content.slice (0, decl.index) + decl[0].replace (') -> Value {', ') -> crate::value::Dict {') + body + '\n\n    Default::default()\n}' + content.slice (end + tail.length);
+        typed.add (fn);
+    }
+    for (const fn of typed) {
+        const head = new RegExp ('(?<![\\w.])self\\.' + fn + '\\(', 'g'), starts: number[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) starts.push (m.index);
+        for (const s of starts.reverse ()) {
+            const close = balancedCloseIndex (content, s + m0len (fn));
+            if (close >= content.length) continue;
+            const before = content.slice (content.lastIndexOf ('\n', s) + 1, s);
+            if (/^ *return $/.test (before) && typedReturnOwner (content, s, typed)) continue;
+            const rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+        }
+    }
+    return content;
+}
+const m0len = (fn: string) => 'self.'.length + fn.length + 1;
+// the fn holding position `at` is one of the typed signing fns (its `return self.x(..)` already answers Dict)
+function typedReturnOwner (content: string, at: number, typed: Set<string>): boolean {
+    const h = content.lastIndexOf ('\n    pub fn ', at);
+    const name = /^\n    pub fn (\w+)\(/.exec (content.slice (h, h + 80));
+    return !!name && typed.has (name[1]) && content.slice (h, at).includes (') -> crate::value::Dict {');
+}
 //
 // unit slot 075
 //
@@ -12967,6 +13040,7 @@ impl std::ops::DerefMut for ${coreName} {
             rustContent = rustTypedParseTicker(rustContent);
             rustContent = rustTypedParsePositionFamilies(rustContent);
             rustContent = rustTypedRequestBuilders(rustContent);
+            rustContent = rustTypedVenueBuilders(rustContent, (isPrediction ? 'prediction/' : '') + exchangeName);
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
