@@ -8389,6 +8389,8 @@ function goSliceIndexSelfTest (ok: SelfTestOk): void {
     const via = (body: string) => nativeLoopBoundedSliceReads (h (body) + 'func (this *X) f(b any, s []any) {\n\tfor i := 0; i < len(s); i++ {\n\t\tthis.H(b, GetValue(s, i))\n\t}\n}\n');
     ok (via ('\tvar p *float64 = this.SafeFloat(d, 0)\n\tthis.Use(b, p)\n').indexOf ('this.H(b, s[i])') >= 0, 'a same-file method reading its param only through Safe* goes native');
     ok (via ('\tvar p *float64 = this.SafeFloat(d, 0)\n\tthis.Use(d, p)\n').indexOf ('GetValue(s, i)') >= 0, 'a param used raw keeps GetValue');
+    ok (via ('\tvar a []any = this.ParseOrderBookBidAsk(d, 0, 1)\n\tthis.Use(b, a)\n').indexOf ('this.H(b, s[i])') >= 0, 'a param read only by ParseOrderBookBidAsk goes native');
+    ok (via ('\tvar a []any = this.ParseOrderBookBidAsk(d, 0, 1)\n\ta = append(a, d)\n').indexOf ('GetValue(s, i)') >= 0, 'a param also appended raw keeps GetValue');
     ok (nativeLoopBoundedSliceReads (al.replace ('\t', 'func (this *X) SafeFloat(a any, k any) any {\n\treturn a\n}\nfunc (this *X) f(p any) any {\n\t') + '\tfor i := 0; i < len(s); i++ {\n\t\tr = this.SafeFloat(GetValue(s, i), 0)\n\t}\n\treturn nil\n}\n').indexOf ('GetValue(s, i)') >= 0, 'an overridden accessor keeps GetValue');
 }
 
@@ -9880,7 +9882,8 @@ function goLoopReadDerefConsumer (maskedLines: string[], before: string, after: 
     const reads = defs[0][2].match (new RegExp ('\\bthis\\.(?:' + safe.join ('|') + ')\\(' + param[1] + ', ', 'g')) ?? [];
     return (uses.length > 0) && (uses.length === reads.length);
 }
-const GO_LOOP_READ_SAFE_ACCESSORS = [ 'SafeString', 'SafeString2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeInteger', 'SafeInteger2', 'SafeValue', 'SafeValue2' ];
+// ParseOrderBookBidAsk (base, kraken, mexc) reads its bidask only as a Safe* object
+const GO_LOOP_READ_SAFE_ACCESSORS = [ 'SafeString', 'SafeString2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeInteger', 'SafeInteger2', 'SafeValue', 'SafeValue2', 'ParseOrderBookBidAsk' ];
 
 // Bounds-guard func literal around a typed element read: the `if i >= 0 && i < len(list)` closure goes when the index
 // is provably in range (enclosing `for`/`if` bound), and the DerefScalar wrap goes when the slice is a SafeList unbox
