@@ -2616,10 +2616,10 @@ public partial class sxbet : PredictionExchange
             return;
         }
         // rows arrive either shaped like one object or like an array of objects - normalize to a list
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
             rows = new List<object>() {data};
@@ -2759,7 +2759,7 @@ public partial class sxbet : PredictionExchange
         return refreshed;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object rows)
+    public virtual void handleOrderBook(WebSocketClient client, IList<object> rows)
     {
         //
         //     {
@@ -2769,10 +2769,10 @@ public partial class sxbet : PredictionExchange
         //         "outcomeTwo": []
         //     }
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            List<object> refreshed = this.applySxbetWsSnapshot(getValue(rows, i));
+            List<object> refreshed = this.applySxbetWsSnapshot((rows != null && i < rows.Count ? rows[i] : null));
             int refreshedLength = (refreshed?.Count ?? 0);
             for (int j = 0; j < refreshedLength; j++)
             {
@@ -2833,7 +2833,7 @@ public partial class sxbet : PredictionExchange
         return ccxt.BaseExchange.ToTicker(tickerResult);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object rows)
+    public virtual void handleTicker(WebSocketClient client, IList<object> rows)
     {
         //
         //     {
@@ -2844,7 +2844,7 @@ public partial class sxbet : PredictionExchange
         //
         IDictionary<string, object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers", new Dictionary<string, object>() {});
         List<object> watchedSyms = new List<object>(watchedTickers.Keys);
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
             IDictionary<string, object> entry = this.safeDict(rows, i);
@@ -2952,17 +2952,17 @@ public partial class sxbet : PredictionExchange
         });
     }
 
-    public virtual void handleTrades(WebSocketClient client, object rows)
+    public virtual void handleTrades(WebSocketClient client, IList<object> rows)
     {
         //
         //     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
         //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
         //                  "betTime": "2026-07-31T18:22:41.000Z", ... } }
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            object rawRow = getValue(rows, i);
+            object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "trade", rawRow);
             IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseSxbetV3PublicTrade(row));
             string? sym = this.safeString(trade, "outcome");
@@ -3016,15 +3016,15 @@ public partial class sxbet : PredictionExchange
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object rows)
+    public virtual void handleMyTrade(WebSocketClient client, IList<object> rows)
     {
         //
         //     FillV3 rows - identical to GET /fills-v3
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            object rawRow = getValue(rows, i);
+            object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "fill", rawRow);
             IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseSxbetV3Fill(row));
             string? sym = this.safeString(trade, "outcome");
@@ -3075,15 +3075,15 @@ public partial class sxbet : PredictionExchange
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limit, "timestamp", true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object rows)
+    public virtual void handleOrder(WebSocketClient client, IList<object> rows)
     {
         //
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = rows?.Count ?? 0;
         for (int i = 0; i < rowsLength; i++)
         {
-            object rawRow = getValue(rows, i);
+            object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "order", rawRow);
             Dictionary<string, object> order = this.parsePredictionOrder(row);
             if ((this.orders == null))

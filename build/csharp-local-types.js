@@ -13308,7 +13308,7 @@ function arrayIsArrayGuardedFirstWrite (node) {
         && test.arguments[0].kind === ts.SyntaxKind.Identifier && test.arguments[0].text === node.text;
 }
 
-function arrayGuardedListLocalHasNativeUse (csharp, declaration) {
+function arrayGuardedListLocalHasNativeUse (csharp, declaration, argumentUse = false) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
         return false;
@@ -13322,14 +13322,37 @@ function arrayGuardedListLocalHasNativeUse (csharp, declaration) {
                 && (parent.name?.text === 'length' || (parent.name?.text === 'push' && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent))) {
             return true;
         }
+        if (argumentUse && declaration.type === undefined && arrayGuardedListArgumentOfListParameter (csharp, n)) {
+            return true;
+        }
     }
     return false;
+}
+
+// `this.m (…, x, …)` where every declaration of m the checker binds annotates that position as an
+// array: the callee's list-parameter proof reads the argument's declared List<object>
+function arrayGuardedListArgumentOfListParameter (csharp, use) {
+    const call = use.parent;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const position = call.arguments.indexOf (use);
+    let declarations;
+    try {
+        declarations = (csharp.getChecker ().getSymbolAtLocation (call.expression.name)?.declarations ?? []).map ((handle) => handle.resolve ());
+    } catch (e) {
+        return false;
+    }
+    return position >= 0 && declarations.length > 0 && declarations.every ((declaration) => declaration.kind === ts.SyntaxKind.MethodDeclaration
+        && declaration.parameters[position] !== undefined && declaration.parameters[position].dotDotDotToken === undefined
+        && [ 'any[]', 'List' ].includes (declaration.parameters[position].type?.getText?.()));
 }
 
 function arrayGuardedListWriteType (csharp, declaration, node) {
     if (declaration.initializer?.kind !== ts.SyntaxKind.ArrayLiteralExpression || declaration.parent?.declarations?.length !== 1
             || !arrayIsArrayGuardedFirstWrite (node) || node.parent.left.text !== declaration.name?.text
-            || !arrayGuardedListLocalHasNativeUse (csharp, declaration)) {
+            || !arrayGuardedListLocalHasNativeUse (csharp, declaration, true)) {
         return undefined;
     }
     arrayGuardedListWrites.add (node);
