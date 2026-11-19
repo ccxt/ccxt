@@ -929,12 +929,12 @@ impl Exchange {
     pub fn safe_list2_or_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> Option<crate::value::List> { match (self.safe_list2_o(obj, k1, k2), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
     pub fn safe_list2_or(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> crate::value::List { self.safe_list2_or_o(obj, k1, k2, d).unwrap_or_default() }
 
-    pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges
         // that signal end-of-pagination with `cursor: ""` loop forever
         // because `is_equal(&Value::Str(""), &Value::Null)` is false.
-        let v = obj.read(&Value::Str(key_str(&key).into()));
+        let v = obj.read(&Value::Str(key_str(&scalar_key(&key)).into()));
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
             arg_default(optional_args)
@@ -943,7 +943,7 @@ impl Exchange {
         }
     }
 
-    pub fn safe_value2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_value2(&self, obj: impl crate::value::KeyRead, k1: impl crate::value::ScalarArg, k2: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_value(&obj, k1, &[]);
         if !v.is_null() {
             return v;
@@ -1833,7 +1833,7 @@ impl Exchange {
         })
     }
 
-    pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
+    pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
         let v = self.safe_value(obj, key, &[]);
         match v {
             Value::Int(_) => v,
