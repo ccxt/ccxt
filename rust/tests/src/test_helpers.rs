@@ -543,7 +543,7 @@ fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut BaseCore) -> R {
 }
 
 pub trait ExchangeOps {
-    fn safe_value(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_value(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_string(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_bool(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_dict(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
@@ -572,7 +572,7 @@ pub trait ExchangeOps {
     fn check_required_credentials(&self, optional_args: &[Value]) -> Value;
     fn parse_number(&self, n: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_number(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_integer(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_integer(&self, d: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Value;
     /// `Option<String>` twins of `safe_string` / `safe_string_n` (the base `_opt` readers: same lookup and
     /// default rules, `None` where the boxed reader yields `Null`).
@@ -599,7 +599,7 @@ pub trait ExchangeOps {
 }
 
 impl ExchangeOps for Value {
-    fn safe_value(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
+    fn safe_value(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
     fn safe_string(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
     fn safe_bool(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_bool(d, key, o)) }
     fn safe_dict(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_dict(d, key, o)) }
@@ -654,7 +654,7 @@ impl ExchangeOps for Value {
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
     fn parse_number(&self, n: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
     fn safe_number(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
-    fn safe_integer(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
+    fn safe_integer(&self, d: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
     fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[&dyn ccxt::value::ScalarArg]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_n_opt(d, keys, o)) }
