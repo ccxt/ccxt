@@ -48,7 +48,7 @@ impl Aster {
 }
 
 impl crate::exchange::DerivedExchange for Aster {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         // fetchTicker & fetchTickers: both SPOT & PERP has similar format
@@ -109,7 +109,7 @@ impl crate::exchange::DerivedExchange for Aster {
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -134,11 +134,11 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades
@@ -218,7 +218,7 @@ impl crate::exchange::DerivedExchange for Aster {
         if (isBuyerMaker.is_some()) {
             side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
@@ -241,7 +241,7 @@ impl crate::exchange::DerivedExchange for Aster {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -1061,9 +1061,9 @@ impl crate::exchange_generated::ExchangeBase for Aster {
                 "capitalize_keys" => self.capitalize_keys(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_account_positions" => self.fetch_account_positions(&args[..]).await,
+                "fetch_account_positions" => self.fetch_account_positions(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_bids_asks" => crate::types::IntoRaw::into_raw(self.fetch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
@@ -1100,9 +1100,9 @@ impl crate::exchange_generated::ExchangeBase for Aster {
                 "is_linear" => self.is_linear(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "load_leverage_brackets" => self.load_leverage_brackets(&args[..]).await,
                 "load_markets_and_sign_in" => self.load_markets_and_sign_in().await,
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "parse_account_position" => self.parse_account_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_account_positions" => self.parse_account_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_account_positions" => self.parse_account_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1117,8 +1117,8 @@ impl crate::exchange_generated::ExchangeBase for Aster {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position_risk" => self.parse_position_risk(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2971,7 +2971,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3045,7 +3045,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3174,7 +3174,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3243,7 +3243,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3260,7 +3260,7 @@ impl Aster {
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
             response = self.sapi_public_get_v3_ticker24hr(&[&__ws_arg_13]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3288,7 +3288,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
@@ -3329,7 +3329,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
@@ -3400,7 +3400,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
@@ -3443,7 +3443,7 @@ impl Aster {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRate() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3479,7 +3479,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -3510,7 +3510,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -3545,7 +3545,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4107,7 +4107,7 @@ impl Aster {
 }));
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
+        let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[&price, &params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             response = self.call_method_o("fapi_private_post_v3_order", &[&Value::from(&request)]).await;
@@ -4159,7 +4159,7 @@ impl Aster {
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[&Value::from(price), &Value::Dict(orderParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -4180,7 +4180,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4706,13 +4706,13 @@ impl Aster {
         //     ]
         //
         let mut modifications: crate::value::List = self.parse_margin_modifications(self.to_array(&response), &[]).into_list();
-        return self.filter_by_symbol_since_limit(&modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&modifications, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
 
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, mut addOrReduce: Value, optional_args: &[Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, mut addOrReduce: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4762,7 +4762,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(2), &[params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(2), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4789,7 +4789,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(1), &[params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(1), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -5205,7 +5205,7 @@ impl Aster {
         if (defaultMethod.as_deref() == Some("positionRisk")) {
             return crate::types::IntoRaw::into_raw(self.fetch_positions_risk(symbols.to_opt_str_vec(), Value::from(&paramsMethod)).await);
         }  else if (defaultMethod.as_deref() == Some("account")) {
-            return self.fetch_account_positions(&[symbols, Value::Dict(paramsMethod)]).await;
+            return self.fetch_account_positions(&[&symbols, &Value::Dict(paramsMethod)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"").into()), defaultMethod.as_deref().unwrap_or("null")).into()), "\" is invalid, please choose between \"account\" and \"positionRisk\"")));
         }
@@ -5213,7 +5213,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn parse_account_positions(&self, account: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_account_positions(&self, account: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut account: Value = account.into();
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
@@ -5467,7 +5467,7 @@ impl Aster {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on account positions
  */
-    pub async fn fetch_account_positions(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_account_positions(&mut self, optional_args: &[&Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5482,7 +5482,7 @@ impl Aster {
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
         let mut response: crate::value::Dict = self.call_method_t("fapi_private_get_v4_account", &[&params]).await;
         let mut filterClosed: Option<bool> = (self.handle_option_bool_and_params(params, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)])).0;
-        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed.map_or(Value::Null, Value::Bool)]).into_list();
+        let mut result: crate::value::List = self.parse_account_positions(&response, &[&filterClosed.map_or(Value::Null, Value::Bool)]).into_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 

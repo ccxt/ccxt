@@ -20,7 +20,7 @@ pub async fn testFetchFundingRateHistory(mut exchange: Value, mut skippedPropert
         testFundingRateHistory(exchange.clone(), skippedProperties.clone(), method.clone(), fundingRatesHistory.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), fundingRatesHistory.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, fundingRatesHistory]);
     return Value::Bool(true);
 
     Value::Null

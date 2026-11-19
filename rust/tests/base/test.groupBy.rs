@@ -71,5 +71,5 @@ pub fn testGroupBy() {
 })]));
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testGroupBy".into()).clone(), currentValue.clone(), storedValue.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testGroupBy".into()).clone(), currentValue, storedValue]);
 }

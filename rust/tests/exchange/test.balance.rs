@@ -30,7 +30,7 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
 }));
         m
     });
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     //
     let mut codesTotal: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null));
@@ -38,7 +38,7 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     let mut codesUsed: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null));
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesTotal.clone(), Value::Str("total".into()).clone()]);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesFree.clone(), Value::Str("free".into()).clone()]);
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".into()).clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method, codesUsed.clone(), Value::Str("used".into()).clone()]);
     let mut allCodes: Value = exchange.array_concat(codesTotal.clone(), codesFree.clone());
     allCodes = exchange.array_concat(allCodes, codesUsed.clone());
     let mut codesLength: i64 = codesTotal.len() as i64;

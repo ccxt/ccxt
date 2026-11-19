@@ -30,6 +30,6 @@ pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut met
         m
     });
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("tierBased".into()), Value::Str("percentage".into()), Value::Str("symbol".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("symbol".into()).clone(), symbol.clone()]);
 }

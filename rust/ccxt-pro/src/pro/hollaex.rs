@@ -206,7 +206,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -294,7 +294,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -306,7 +306,7 @@ impl Hollaex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -380,7 +380,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "usertrade".to_string();
@@ -396,7 +396,7 @@ impl Hollaex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -449,7 +449,7 @@ impl Hollaex {
             let mut __for_first_384: bool = true;
             while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (rawTrades.len() as i64) } {
             let mut trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut parsed: crate::value::Dict = self.parse_trade(Value::from(&trade), None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_trade(Value::from(&trade), None);
             stored.append(Value::Dict(parsed));
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -499,7 +499,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "order".to_string();
@@ -515,7 +515,7 @@ impl Hollaex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -894,7 +894,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut method: Option<String> = self.safe_value(&methods, topic.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (method.is_some()) {
-            self.dispatch_ws_handler(&method, &[client, message.clone()]);
+            self.dispatch_ws_handler(&method, &[client, message]);
         }
 }
 
@@ -917,11 +917,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn on_error(&mut self, mut client: Value, mut error: Value) {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
-        self.parent.on_error(&[client, error.clone()]);
+        self.parent.on_error(&[client, error]);
 }
 
     pub fn on_close(&mut self, mut client: Value, mut error: Value) {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
-        self.parent.on_close(&[client, error.clone()]);
+        self.parent.on_close(&[client, error]);
 }
 }

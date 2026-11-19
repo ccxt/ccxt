@@ -28,7 +28,7 @@ pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value,
 async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Value, mut argSymbols: Value, optional_args: &[Value]) -> Value {
     let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
     let mut method: Value = Value::Str("fetchTickers".into());
-    let mut response: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_tickers", vec![argSymbols.clone(), argParams.clone()]).await;
+    let mut response: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_tickers", vec![argSymbols.clone(), argParams]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), exchange.json(argSymbols.clone()).clone()]);
     let mut values: Value = object_values(&response);
     let mut checkedSymbol: Value = Value::Null;
@@ -51,7 +51,7 @@ if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
             if (tickerSymbol.is_some()) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
                 ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.map(Value::from).unwrap_or(Value::Null), Value::Str("1d".into()), Value::Null, Value::Int(5)]).await;
             }
-            crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone(), ohlcv.clone());
+            crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker, ohlcv);
         }
     }
     }

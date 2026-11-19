@@ -57,7 +57,7 @@ impl crate::exchange::DerivedExchange for Latoken {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         //    {
@@ -90,7 +90,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
-            if (self.markets != Value::Null) && (matches!((&self.markets, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
@@ -106,7 +106,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         if (askVolume.is_some()) && crate::precise::Precise::stringLt(&askVolume, &Value::Str("0".into())).as_bool() == Some(true) {
             askVolume = None;
         }
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -129,11 +129,11 @@ impl crate::exchange::DerivedExchange for Latoken {
         m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "volume24h", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), marketResolved.as_ref());
+}), marketResolved.as_ref()));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades (public)
@@ -194,7 +194,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
-            if (self.markets != Value::Null) && (matches!((&self.markets, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
         }
@@ -210,7 +210,7 @@ impl crate::exchange::DerivedExchange for Latoken {
                 m
             }));
         }
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -228,7 +228,7 @@ impl crate::exchange::DerivedExchange for Latoken {
     m
 }), marketResolved.as_ref()));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -285,7 +285,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
-        let mut symbolKnown: bool = (symbol.is_some()) && (self.markets != Value::Null) && (matches!((&self.markets, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k)));
+        let mut symbolKnown: bool = (symbol.is_some()) && (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k)));
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if symbolKnown {
             marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -641,8 +641,8 @@ impl crate::exchange_generated::ExchangeBase for Latoken {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_private_trading_fee" => self.fetch_private_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "fetch_public_trading_fee" => self.fetch_public_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_private_trading_fee" => self.fetch_private_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_public_trading_fee" => self.fetch_public_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -655,8 +655,8 @@ impl crate::exchange_generated::ExchangeBase for Latoken {
                 "nonce" => self.nonce(),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -1499,7 +1499,7 @@ impl Latoken {
     m
 }));
                         m.insert("created".to_string(), self.safe_integer_k(&market, "created", &[]));
-                        m.insert("info".to_string(), market.clone().map_or(Value::Null, Value::Dict));
+                        m.insert("info".to_string(), market.map_or(Value::Null, Value::Dict));
                     m
                 }));
             }
@@ -1630,7 +1630,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut defaultType: String = self.safe_string2(&self.options, Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
@@ -1722,7 +1722,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1819,7 +1819,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1831,7 +1831,7 @@ impl Latoken {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_ticker_base_quote", &[&__ws_arg_1]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1856,7 +1856,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::List = self.public_get_ticker(&[&params]).await.unwrap_or_default();
@@ -1890,7 +1890,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1936,9 +1936,9 @@ impl Latoken {
         let mut method: Option<String> = self.safe_string_k_opt(&params, "method", &[Value::from(defaultMethod)]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);
         if (method.as_deref() == Some("fetchPrivateTradingFee")) {
-            return self.fetch_private_trading_fee(symbol.as_str().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
+            return self.fetch_private_trading_fee(symbol.as_str().unwrap_or_default(), &[&Value::from(&paramsOmitted)]).await;
         }  else if (method.as_deref() == Some("fetchPublicTradingFee")) {
-            return self.fetch_public_trading_fee(symbol.as_str().unwrap_or_default(), &[Value::Dict(paramsOmitted)]).await;
+            return self.fetch_public_trading_fee(symbol.as_str().unwrap_or_default(), &[&Value::Dict(paramsOmitted)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " not support this method")));
         }
@@ -1946,12 +1946,12 @@ impl Latoken {
         }).await?))
     }
 
-    pub async fn fetch_public_trading_fee(&mut self, symbol: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_public_trading_fee(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1977,12 +1977,12 @@ impl Latoken {
     Value::Null
 }
 
-    pub async fn fetch_private_trading_fee(&mut self, symbol: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_private_trading_fee(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2033,7 +2033,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2122,7 +2122,7 @@ impl Latoken {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Option<crate::value::List> = None;
@@ -2176,7 +2176,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2239,7 +2239,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2296,7 +2296,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2357,7 +2357,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2402,7 +2402,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2467,7 +2467,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2561,7 +2561,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -2631,7 +2631,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());

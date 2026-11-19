@@ -196,7 +196,7 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -233,7 +233,7 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -296,7 +296,7 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -330,7 +330,7 @@ impl Mudrex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -418,7 +418,7 @@ impl Mudrex {
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut timestamp: i64 = self.milliseconds();
             let mut last: Option<f64> = self.safe_number_k(&t, "p", &[]).as_f64();
-            let mut result: Value = self.safe_ticker(Value::Map({
+            let mut result: Value = Value::Dict(self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -427,7 +427,7 @@ impl Mudrex {
                     m.insert("close".to_string(), Value::from(last));
                     m.insert("info".to_string(), Value::Dict(t));
                 m
-            }), None);
+            }), None));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
             let mut messageHash: String = format!("{}{}", "ticker:", symbol);
             client.resolve(result.clone(), messageHash.as_str());

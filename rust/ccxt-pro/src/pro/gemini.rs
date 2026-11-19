@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription" => self.handle_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -191,7 +191,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -222,7 +222,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -251,14 +251,14 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Option<crate::pro::cache::Cache> = self.helper_for_watch_multiple_construct("trades", &[symbols, params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.helper_for_watch_multiple_construct("trades", &[&symbols, &params]).await.into();
         let mut first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -482,7 +482,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -509,7 +509,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -600,7 +600,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -715,7 +715,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.helper_for_watch_multiple_construct("orderbook", &[symbols, params]).await.into();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.helper_for_watch_multiple_construct("orderbook", &[&symbols, &params]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -741,7 +741,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.helper_for_watch_multiple_construct("bidsasks", &[symbols, params]).await;
+        return self.helper_for_watch_multiple_construct("bidsasks", &[&symbols, &params]).await;
         Value::Null
         }).await?))
     }
@@ -791,10 +791,10 @@ impl Gemini {
     m
 }), &[cachedBidAsk]);
         }  else {
-            let __ws_arg_0 = self.parse_ticker(Value::Map({
+            let __ws_arg_0 = Value::Dict(self.parse_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), None);
+}), None));
             currentBidAsk = self.extend_t(__ws_arg_0, &[]);
             std::sync::Arc::make_mut(&mut currentBidAsk).insert("symbol".to_string(), Value::from(symbol.clone()));
         }
@@ -832,13 +832,13 @@ impl Gemini {
         client.resolve(Value::Map(bidsAsksDict), messageHash.as_str());
 }
 
-    pub async fn helper_for_watch_multiple_construct(&mut self, itemHashName: &str, optional_args: &[Value]) -> Value {
+    pub async fn helper_for_watch_multiple_construct(&mut self, itemHashName: &str, optional_args: &[&Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols == Value::Null) {
@@ -1003,7 +1003,7 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchOrders() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut authParams: indexmap::IndexMap<String, Value> = ({
@@ -1023,7 +1023,7 @@ impl Gemini {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

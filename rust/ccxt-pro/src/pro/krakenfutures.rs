@@ -72,11 +72,11 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "prune_stale_balance_keys" => self.prune_stale_balance_keys(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscription_exists_for_hash" => self.subscription_exists_for_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_multi_helper" => self.watch_multi_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "watch_multi_helper" => self.watch_multi_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -277,11 +277,11 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Value = self.watch_multi_helper("orderbook", "book", &[symbols, Value::Map({
+        let mut orderbook: Value = self.watch_multi_helper("orderbook", "book", &[&symbols, &Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), limit);
     m
-}), params]).await;
+}), &params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -296,12 +296,12 @@ impl Krakenfutures {
  * @param {object} [params] extra parameters specific to the krakenfutures api
  * @returns {object} data from the websocket stream
  */
-    pub async fn subscribe_public(&mut self, name: &str, mut symbols: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public(&mut self, name: &str, mut symbols: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -348,7 +348,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
@@ -388,7 +388,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -418,11 +418,11 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
-        let mut ticker: Value = self.watch_multi_helper("ticker", "ticker", &[Value::Arr(symbolsNormalized.clone()), Value::Null, params]).await;
+        let mut ticker: Value = self.watch_multi_helper("ticker", "ticker", &[&Value::Arr(symbolsNormalized.clone()), &Value::Null, &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -459,7 +459,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut ticker: Value = self.watch_multi_helper("bidask", "ticker_lite", &[symbols.clone(), Value::Null, params]).await;
+        let mut ticker: Value = self.watch_multi_helper("bidask", "ticker_lite", &[&symbols, &Value::Null, &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -529,14 +529,14 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.watch_multi_helper("trade", "trade", &[symbols, Value::Null, params]).await;
+        let mut trades: Value = self.watch_multi_helper("trade", "trade", &[&symbols, &Value::Null, &params]).await;
         let mut first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -592,7 +592,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "".to_string();
@@ -605,7 +605,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -767,7 +767,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let verboseparamsVerboseVariable = self.handle_option_bool_and_params(params, Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]);
@@ -796,7 +796,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -825,7 +825,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "fills".to_string();
@@ -839,7 +839,7 @@ impl Krakenfutures {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -863,7 +863,7 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "balances".to_string();
@@ -926,7 +926,7 @@ impl Krakenfutures {
         if (marketId.is_some()) {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbol: String = (market).symbol.clone();
-            let mut messageHash: Option<String> = self.get_message_hash("trade", &[Value::Null, Value::from(symbol.as_str())]);
+            let mut messageHash: Option<String> = self.get_message_hash("trade", &[&Value::Null, &Value::from(symbol.as_str())]);
             // safeValue, not safeList: the values are ArrayCache instances, and
             // the typed accessor casts them to a plain list in c#, which throws
             let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -1379,12 +1379,12 @@ impl Krakenfutures {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut cachedIds: Vec<Value> = Value::Array(ordersById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut cachedIds: Vec<&str> = ordersById.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_443: bool = true;
                 while { if !__for_first_443 { j += 1; } __for_first_443 = false; j < (cachedIds.len() as i64) } {
-                let mut cachedId: Option<&str> = cachedIds.get(j as usize).and_then(Value::as_str);
+                let mut cachedId: Option<&str> = cachedIds.get(j as usize).copied();
                 if !(matches!(cachedId.as_deref(), Some(__k) if snapshotIds.contains_key(__k))) {
                     let mut cachedOrder: Value = self.safe_dict(&ordersById, Value::from(cachedId.as_deref()), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -1551,7 +1551,7 @@ impl Krakenfutures {
             if (symbol.is_some()) {
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
-            let mut messageHash: Option<String> = self.get_message_hash("ticker", &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
+            let mut messageHash: Option<String> = self.get_message_hash("ticker", &[&Value::Null, &symbol.map(Value::from).unwrap_or(Value::Null)]);
             client.resolve(Value::Dict(ticker), messageHash.as_deref());
         }
 }
@@ -1582,7 +1582,7 @@ impl Krakenfutures {
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
-            let mut messageHash: Option<String> = self.get_message_hash("bidask", &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
+            let mut messageHash: Option<String> = self.get_message_hash("bidask", &[&Value::Null, &symbol.map(Value::from).unwrap_or(Value::Null)]);
             client.resolve(Value::Dict(ticker), messageHash.as_deref());
         }
 }
@@ -1641,7 +1641,7 @@ impl Krakenfutures {
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&ticker, "lastTime", &[]));
         let mut last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1666,7 +1666,7 @@ impl Krakenfutures {
         m.insert("markPrice".to_string(), self.safe_string_k(&ticker, "markPrice", &[]));
         m.insert("indexPrice".to_string(), self.safe_string_k(ticker, "index", &[]));
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -1706,7 +1706,7 @@ impl Krakenfutures {
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[Value::Null, Value::from(symbol.as_deref())]);
+        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::Null, &Value::from(symbol.as_deref())]);
         let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.as_deref()));
         let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer_k(&message, "timestamp", &[]).as_i64();
@@ -1746,7 +1746,7 @@ impl Krakenfutures {
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[Value::Null, Value::from(symbol.as_deref())]);
+        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::Null, &Value::from(symbol.as_deref())]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut side: Option<String> = (match __pro_message.get("side").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut price: Option<f64> = (match __pro_message.get("price") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
@@ -2197,14 +2197,14 @@ impl Krakenfutures {
     Value::Null
 }
 
-    pub async fn watch_multi_helper(&mut self, unifiedName: &str, channelName: &str, optional_args: &[Value]) -> Value {
+    pub async fn watch_multi_helper(&mut self, unifiedName: &str, channelName: &str, optional_args: &[&Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut subscriptionArgs = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -2216,7 +2216,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut messageHash: Value = self.get_message_hash(unifiedName, &[Value::Null, Value::from(self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)))]).map(Value::from).unwrap_or(Value::Null);
+            let mut messageHash: Value = self.get_message_hash(unifiedName, &[&Value::Null, &Value::from(self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)))]).map(Value::from).unwrap_or(Value::Null);
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.as_deref().unwrap_or_default(), messageHash.as_str().unwrap_or_default()).as_bool() == Some(true)) {
@@ -2251,7 +2251,7 @@ impl Krakenfutures {
     Value::Null
 }
 
-    pub fn get_message_hash(&self, unifiedElementName: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn get_message_hash(&self, unifiedElementName: &str, optional_args: &[&Value]) -> Option<String> {
         let mut subChannelName = get_arg(optional_args, 0, Value::Null);
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...

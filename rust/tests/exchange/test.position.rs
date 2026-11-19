@@ -66,8 +66,8 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
         m
     });
     let mut emptyotAllowedFor: Value = Value::from(vec![Value::Str("positionMargin".into()), Value::Str("liquidationPrice".into()), Value::Str("initialMargin".into()), Value::Str("initialMarginPercentage".into()), Value::Str("maintenanceMargin".into()), Value::Str("maintenanceMarginPercentage".into()), Value::Str("marginRatio".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyotAllowedFor.clone()]);
-    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyotAllowedFor]);
+    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("long".into()), Value::Str("short".into())]).clone()]);
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".into()).clone(), Value::from(vec![Value::Str("cross".into()), Value::Str("isolated".into())]).clone()]);
@@ -102,7 +102,7 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             if (side.as_deref() == Some("long")) {
                 crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
             }  else if (side.as_deref() == Some("short")) {
-                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
+                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
             }
         }
         let mut marginString: Value = exchange.safe_string(&entry, Value::Str("positionMargin".into()), &[]);

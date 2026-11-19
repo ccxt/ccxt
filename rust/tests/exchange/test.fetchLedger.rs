@@ -21,7 +21,7 @@ pub async fn testFetchLedger(mut exchange: Value, mut skippedProperties: Value, 
         testLedgerEntry(exchange.clone(), skippedProperties.clone(), method.clone(), items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone(), now.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), items.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code, items]);
     return Value::Bool(true);
 
     Value::Null

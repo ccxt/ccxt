@@ -54,7 +54,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result1: Value = Value::Dict(exchange.index_by(input1, Value::Str("id".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result1.clone(), expected1.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result1, expected1]);
     // Test 2: Skip elements with None/undefined values
     let mut input2: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -84,7 +84,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result2: Value = Value::Dict(exchange.index_by(input2, Value::Str("id".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result2.clone(), expected2.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result2, expected2]);
     // Test 3: Skip elements missing the key
     let mut input3: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -118,7 +118,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result3: Value = Value::Dict(exchange.index_by(input3, Value::Str("id".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result3.clone(), expected3.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result3, expected3]);
     // Test 4: Empty array
     let mut input4: Value = Value::from(vec![]);
     let mut expected4: Value = Value::Map({
@@ -126,7 +126,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result4: Value = Value::Dict(exchange.index_by(input4, Value::Str("id".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result4.clone(), expected4.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result4, expected4]);
     // Test 5: Duplicate keys (last one wins)
     let mut input5: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -155,7 +155,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result5: Value = Value::Dict(exchange.index_by(input5, Value::Str("id".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result5.clone(), expected5.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result5, expected5]);
     // Test 6: Numeric key values
     let mut input6: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -196,7 +196,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result6: Value = Value::Dict(exchange.index_by(input6, Value::Str("code".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result6.clone(), expected6.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result6, expected6]);
     // Test 7: List of arrays with integer key
     let mut input7: Value = Value::from(vec![Value::from(vec![Value::Str("a".into()), Value::Int(1)]), Value::from(vec![Value::Str("b".into()), Value::Int(2)]), Value::from(vec![Value::Str("c".into()), Value::Int(3)])]);
     let mut expected7: Value = Value::Map({
@@ -207,7 +207,7 @@ pub fn testIndexBy() {
         m
     });
     let mut result7: Value = Value::Dict(exchange.index_by(input7, Value::Int(0)));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result7.clone(), expected7.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result7, expected7]);
     // Test 8: Single element
     let mut input8: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -226,5 +226,5 @@ pub fn testIndexBy() {
         m
     });
     let mut result8: Value = Value::Dict(exchange.index_by(input8, Value::Str("id".into())));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result8.clone(), expected8.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testIndexBy".into()).clone(), result8, expected8]);
 }

@@ -67,9 +67,9 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
-                "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "subscribe_multiple" => self.subscribe_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -109,7 +109,7 @@ impl Grvt {
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "request_id" => crate::Value::from(self.request_id()),
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
@@ -262,7 +262,7 @@ impl Grvt {
         }
 }
 
-    pub async fn subscribe_multiple(&mut self, mut messageHashes: Value, mut request: Value, mut rawHashes: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_multiple(&mut self, mut messageHashes: Value, mut request: Value, mut rawHashes: Value, optional_args: &[&Value]) -> Value {
         let publicOrPrivate: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -310,7 +310,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -354,7 +354,7 @@ impl Grvt {
         let intervalOptionparamsIntervalVariable = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchTickers".into()), Value::Str("interval".into()), &[Value::Int(500)]);
         let mut intervalOption: Value = Value::from(intervalOptionparamsIntervalVariable.0);
         let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.1;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -486,7 +486,7 @@ impl Grvt {
 
     pub fn parse_ws_ticker(&self, message: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut message: Value = message.into();
-        return self.parse_ticker(message, market);
+        return Value::Dict(self.parse_ticker(message, market));
 
     Value::Null
 }
@@ -545,7 +545,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -576,7 +576,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -616,17 +616,17 @@ impl Grvt {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
-        let mut parsed: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
+        let mut parsed: crate::value::Dict = self.parse_ws_trade(&data, None);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         stored.append(Value::Dict(parsed));
         client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "trade::", symbol).into())));
 }
 
-    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut trade: Value = trade.into();
         return self.parse_trade(trade, market);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -655,7 +655,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -691,7 +691,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut rawHashes: Vec<Value> = Vec::new();
@@ -724,7 +724,7 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_deref(), limit.as_i64());
         }
-        let mut filtered: crate::value::List = self.filter_by_since_limit(&stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        let mut filtered: crate::value::List = self.filter_by_since_limit(&stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol.map(Value::from).unwrap_or(Value::Null), timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
@@ -807,7 +807,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -839,7 +839,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let channelparamsChannelVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("channel".into()), &[Value::Str("v1.book.d".into())]);
@@ -1030,7 +1030,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
@@ -1052,12 +1052,12 @@ impl Grvt {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(Value::Arr(messageHashes.clone()), __ws_arg_7, Value::Arr(messageHashes), &[Value::Bool(false)]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(Value::Arr(messageHashes.clone()), __ws_arg_7, Value::Arr(messageHashes), &[&Value::Bool(false)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1113,7 +1113,7 @@ impl Grvt {
 
     pub fn parse_ws_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut trade: Value = trade.into();
-        return self.parse_trade(trade, market);
+        return Value::Dict(self.parse_trade(trade, market));
 
     Value::Null
 }
@@ -1143,7 +1143,7 @@ impl Grvt {
     m
 }));
         self.authenticate(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subAccountId: Option<String> = self.parent.get_sub_account_id(params.clone());
@@ -1172,11 +1172,11 @@ impl Grvt {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut newPositions: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_8, Value::from(rawHashes), &[Value::Bool(false)]).await;
+        let mut newPositions: Value = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_8, Value::from(rawHashes), &[&Value::Bool(false)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1255,7 +1255,7 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
@@ -1277,12 +1277,12 @@ impl Grvt {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_9, Value::from(rawHashes), &[Value::Bool(false)]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(Value::from(messageHashes), __ws_arg_9, Value::from(rawHashes), &[&Value::Bool(false)]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

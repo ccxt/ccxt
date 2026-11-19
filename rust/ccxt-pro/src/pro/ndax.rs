@@ -165,7 +165,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -226,7 +226,7 @@ impl Ndax {
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(payload), None).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(payload), None);
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (symbol.is_some()) {
@@ -263,7 +263,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -297,7 +297,7 @@ impl Ndax {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -334,7 +334,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_523: bool = true;
             while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (payload.len() as i64) } {
-            let mut trade: crate::value::Dict = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+            let mut trade: crate::value::Dict = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), None);
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             let mut tradesArray: Option<crate::pro::cache::Cache> = (if (symbol.is_none()) { None } else { self.trades.lookup(&symbol) });
             if (tradesArray.is_none()) {
@@ -392,7 +392,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -427,7 +427,7 @@ impl Ndax {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -589,7 +589,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -789,9 +789,9 @@ impl Ndax {
         let mut id: Option<i64> = (match __pro_message.get("i") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, id);
         if (subscription.is_some()) {
-            let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
-            if (method.is_some()) {
-                self.dispatch_ws_handler(&method, &[client, message, subscription.map_or(Value::Null, Value::Dict)]);
+            let method: bool = self.safe_value_k(&subscription, "method", &[]) != Value::Null;
+            if (method) {
+                self.handle_order_book_subscription(client, message, subscription.map_or(Value::Null, Value::Dict));
             }
         }
 }

@@ -222,7 +222,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if sliceEnd > Some(resultLength) {
                 sliceEnd = Some(resultLength);
             }
-            result = self.array_slice(result, Value::Int(0), &[Value::from(sliceEnd)]);
+            result = Value::Arr(self.array_slice(result, Value::Int(0), &[Value::from(sliceEnd)]));
         }
         return result;
 
@@ -281,15 +281,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let mut __for_first_190: bool = true;
                 while { if !__for_first_190 { qi += 1; } __for_first_190 = false; qi < queriesLength } {
                 let mut q: String = self.safe_string(&queries, Value::Int(qi), &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
-                if (false) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " filterEventsBySearchIn() missing title")));
-                }
                 if checkTitle && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), Some(q.as_str())) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
                     break;
-                }
-                if (false) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " filterEventsBySearchIn() missing description")));
                 }
                 if checkDescription && (((if let (Some(__h), Some(__n)) = (Some(description.as_str()), Some(q.as_str())) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
@@ -894,15 +888,15 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             return;
         }
-        let mut marketKeys: Vec<Value> = Value::Array(self.markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut marketKeys: Vec<Value> = Value::Array(self.markets.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_206: bool = true;
             while { if !__for_first_206 { i += 1; } __for_first_206 = false; i < (marketKeys.len() as i64) } {
-            self.index_market_outcomes(self.markets.as_map().and_then(|__m| marketKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+            self.index_market_outcomes(self.markets.as_deref().and_then(|__m| marketKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -913,8 +907,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
         // such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // BadSymbols because the outcome was never cached
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         let mut markets: crate::value::List = self.safe_list_k_t(event, "markets");
         let mut marketsLength: i64 = markets.len() as i64;
@@ -925,7 +919,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut m: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketHandle: Option<String> = self.safe_string2_opt(&m, Value::Str("market".into()), Value::Str("symbol".into()), &[]);
             if (marketHandle.is_some()) {
-                if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), m); }
+                if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), m); }
             }
         }
         }
@@ -1042,7 +1036,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if !wasWarm && (self.markets != Value::Null) && !(self.is_empty(self.markets.clone()).as_bool() == Some(true)) {
+            if !wasWarm && (self.markets.is_some()) && !(self.is_empty(Value::from(&self.markets)).as_bool() == Some(true)) {
                 self.populate_outcomes();
                 if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
                     return self.safe_outcome(outcomeSymbol.clone(), None);
@@ -2356,7 +2350,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         results = self.sort_by2(Value::Arr(results), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
         let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
-        return self.filter_by_value_since_limit(&results, Value::Str("outcome".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(false)]);
+        return Value::Arr(self.filter_by_value_since_limit(&results, Value::Str("outcome".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(false)]));
 
     Value::Null
 }
@@ -2437,7 +2431,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("outcome".into()), outcome, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]);
+        return Value::Arr(self.filter_by_value_since_limit(array, Value::Str("outcome".into()), outcome, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]));
 
     Value::Null
 }
@@ -2448,7 +2442,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
         let mut result: crate::value::List = self.filter_by_array(array, Value::Str("outcome".into()), outcomes, &[Value::Bool(false)]).into_list();
-        return self.filter_by_since_limit(&result, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]);
+        return Value::Arr(self.filter_by_since_limit(&result, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]));
 
     Value::Null
 }

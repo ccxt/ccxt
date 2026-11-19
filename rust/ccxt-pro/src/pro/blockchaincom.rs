@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Blockchaincom {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_updated_ticker" => self.parse_ws_updated_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_ws_updated_ticker" => self.parse_ws_updated_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -96,7 +96,7 @@ impl Blockchaincom {
             "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_updated_ticker" => self.parse_ws_updated_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_ws_updated_ticker" => self.parse_ws_updated_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
@@ -309,7 +309,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -331,7 +331,7 @@ impl Blockchaincom {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -404,7 +404,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -463,17 +463,17 @@ impl Blockchaincom {
         if (event.as_deref() == Some("subscribed")) {
             return;
         }  else if (event.as_deref() == Some("snapshot")) {
-            ticker = self.parse_ticker(message.clone(), Some(&market));
+            ticker = Value::Dict(self.parse_ticker(message.clone(), Some(&market)));
         }  else if (event.as_deref() == Some("updated")) {
             let mut lastTicker: Value = self.tickers.get(symbol.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Null);
-            ticker = self.parse_ws_updated_ticker(message, &[lastTicker, crate::Value::from(&market)]);
+            ticker = self.parse_ws_updated_ticker(message, &[&lastTicker, &crate::Value::from(&market)]);
         }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol);
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
         client.resolve(ticker, messageHash.as_str());
 }
 
-    pub fn parse_ws_updated_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_updated_ticker(&self, mut ticker: Value, optional_args: &[&Value]) -> Value {
         let mut lastTicker = get_arg(optional_args, 0, Value::Null);
         let mut market = get_arg(optional_args, 1, Value::Null);
         let __lastTicker_empty = indexmap::IndexMap::new();
@@ -490,7 +490,7 @@ impl Blockchaincom {
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k_opt(&ticker, "mark_price", &[]);
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
@@ -516,7 +516,7 @@ impl Blockchaincom {
     m
 }) }), &[ticker]));
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
 
     Value::Null
 }
@@ -545,7 +545,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -561,7 +561,7 @@ impl Blockchaincom {
         });
         let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], &request).await.into();
-        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -672,7 +672,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
@@ -695,7 +695,7 @@ impl Blockchaincom {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -925,7 +925,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

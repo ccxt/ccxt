@@ -37,5 +37,5 @@ pub fn testSort() {
     // immutability - original array should not be modified
     let mut original: Value = Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]);
     exchange.sort(original.clone(), &[]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), original.clone(), Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), original, Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]).clone()]);
 }

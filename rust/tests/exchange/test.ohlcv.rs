@@ -12,8 +12,8 @@ use super::*;
 pub fn testOHLCV(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value) {
     let mut format: Value = Value::from(vec![Value::Int(1638230400000), exchange.parse_number(Value::Str("0.123".into()), &[]), exchange.parse_number(Value::Str("0.125".into()), &[]), exchange.parse_number(Value::Str("0.121".into()), &[]), exchange.parse_number(Value::Str("0.122".into()), &[]), exchange.parse_number(Value::Str("123.456".into()), &[])]);
     let mut emptyNotAllowedFor: Value = Value::from(vec![Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyNotAllowedFor.clone()]);
-    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone(), Value::Int(0).clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyNotAllowedFor]);
+    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now, Value::Int(0).clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     //
     assert!(ccxt::runtime::is_true(&((Value::Int(entry.len() as i64).as_f64().unwrap_or(f64::NAN) >= Value::Int(6).as_f64().unwrap_or(f64::NAN)))));
@@ -28,6 +28,6 @@ pub fn testOHLCV(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("1".into()).clone(), Value::from(high.as_deref()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("1".into()).clone(), Value::from(low.as_deref()).clone()]);
     crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("4".into()).clone(), high.map(Value::from).unwrap_or(Value::Null).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("4".into()).clone(), low.map(Value::from).unwrap_or(Value::Null).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("4".into()).clone(), low.map(Value::from).unwrap_or(Value::Null).clone()]);
     assert!(ccxt::runtime::is_true(&(((symbol == Value::Null) || (matches!(&symbol, Value::Str(_))))))); // todo: check with standard symbol check
 }

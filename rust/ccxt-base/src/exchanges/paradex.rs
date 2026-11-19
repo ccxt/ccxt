@@ -48,7 +48,7 @@ impl Paradex {
 }
 
 impl crate::exchange::DerivedExchange for Paradex {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         //     {
@@ -76,7 +76,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "created_at", &[]).as_i64();
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -100,11 +100,11 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("markPrice".to_string(), self.safe_string_k(&ticker, "mark_price", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades (public)
@@ -152,7 +152,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(&trade, "fee_currency", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -176,7 +176,7 @@ impl crate::exchange::DerivedExchange for Paradex {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -1103,13 +1103,13 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
     {
         Box::pin(async move {
             match method {
-                "authenticate_rest" => self.authenticate_rest(&args[..]).await,
+                "authenticate_rest" => self.authenticate_rest(&args[..].iter().collect::<Vec<_>>()).await,
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -1161,12 +1161,12 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "prepare_paradex_domain" => self.prepare_paradex_domain(&args[..]).await,
+                "prepare_paradex_domain" => self.prepare_paradex_domain(&args[..].iter().collect::<Vec<_>>()).await,
                 "retrieve_account" => self.retrieve_account().await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -2427,7 +2427,7 @@ impl Paradex {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTradingFee() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2482,7 +2482,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.call_method_t("public_get_markets", &[&params]).await;
@@ -2552,7 +2552,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2631,7 +2631,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -2689,7 +2689,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2723,7 +2723,7 @@ impl Paradex {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "results");
         let mut ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2749,7 +2749,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -2797,7 +2797,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2834,7 +2834,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2901,7 +2901,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -2978,7 +2978,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3053,7 +3053,7 @@ impl Paradex {
     Value::Null
 }
 
-    pub async fn prepare_paradex_domain(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn prepare_paradex_domain(&mut self, optional_args: &[&Value]) -> Value {
         let l1: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut systemConfig: crate::value::Dict = self.get_system_config().await.into_dict();
         if l1 {
@@ -3082,7 +3082,7 @@ impl Paradex {
         if (self.safe_dict_k(&self.options, "paradexAccount", &[]) == Value::Null) {
             self.check_required_credentials(&[]);
             let mut systemConfig: crate::value::Dict = self.get_system_config().await.into_dict();
-            let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[Value::Bool(true)]).await.into_dict();
+            let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[&Value::Bool(true)]).await.into_dict();
             let mut messageTypes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Constant".to_string(), Value::from(vec![Value::Map({
@@ -3144,7 +3144,7 @@ impl Paradex {
     Value::Null
 }
 
-    pub async fn authenticate_rest(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn authenticate_rest(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3288,7 +3288,7 @@ impl Paradex {
         return instruction;
 }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3515,11 +3515,11 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]);
+        let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[&price, &params]);
         request = self.sign_order_request(request, &[]).await;
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[&request]).await;
         //
@@ -3598,14 +3598,14 @@ impl Paradex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires a price argument for limit orders")));
         }
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]);
+        let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[&price, &params]);
         request = self.omit(request, &["instruction", "client_id", "flags", "recv_window"], &[]);
-        add_element_to_object(&mut request, &Value::Str("order_id".into()), id.clone());
-        add_element_to_object(&mut request, &Value::Str("id".into()), id);
+        if let Value::Dict(__rda) = &mut request { std::sync::Arc::make_mut(__rda).insert("order_id".to_string(), id.clone()); }
+        if let Value::Dict(__rda) = &mut request { std::sync::Arc::make_mut(__rda).insert("id".to_string(), id); }
         request = self.sign_order_request(request, &[Value::Bool(true)]).await;
         let mut response: crate::value::Dict = self.call_method_t("private_put_orders_order_id", &[&request]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
@@ -3634,7 +3634,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
@@ -3650,7 +3650,7 @@ impl Paradex {
             let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let mut extendedParams: crate::value::Dict = self.extend_t(params.clone(), &[&orderParams]);
-            let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(extendedParams)]);
+            let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[&Value::from(price), &Value::Dict(extendedParams)]);
             orderRequest = self.sign_order_request(orderRequest, &[]).await;
             ordersRequests.push(orderRequest);
         }
@@ -3732,7 +3732,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3779,7 +3779,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderIds: Option<crate::value::List> = self.safe_list_n(&params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]).into_opt_list();
@@ -3883,7 +3883,7 @@ impl Paradex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument")));
         }
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3928,7 +3928,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3980,7 +3980,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -4081,7 +4081,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4152,7 +4152,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.call_method_t("private_get_balance", &[]).await;
@@ -4226,7 +4226,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -4312,7 +4312,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4359,7 +4359,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -4438,7 +4438,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4503,7 +4503,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -4518,7 +4518,7 @@ impl Paradex {
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), Value::Null, __ws_arg_18, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "DEPOSIT").into_list();
-            return self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
+            return Value::Arr(self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]));
         }
         let mut allKinds: bool = self.safe_bool_k_opt(&paramsPaginate, "allKinds", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("allKinds".into()), &[]);
@@ -4611,7 +4611,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -4626,7 +4626,7 @@ impl Paradex {
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), Value::Null, __ws_arg_20, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "WITHDRAWAL").into_list();
-            return self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
+            return Value::Arr(self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]));
         }
         let mut allKinds: bool = self.safe_bool_k_opt(&paramsPaginate, "allKinds", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("allKinds".into()), &[]);
@@ -4719,7 +4719,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -4837,7 +4837,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4892,7 +4892,7 @@ impl Paradex {
 }));
         self.check_required_argument(Value::Str("setMarginMode".into()), symbol.clone(), Value::Str("symbol".into()), &[]);
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4942,7 +4942,7 @@ impl Paradex {
     m
 }));
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5007,7 +5007,7 @@ impl Paradex {
 }));
         self.check_required_argument(Value::Str("setLeverage".into()), symbol.clone(), Value::Str("symbol".into()), &[]);
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5047,7 +5047,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5119,7 +5119,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
@@ -5202,7 +5202,7 @@ impl Paradex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingHistory() requires a symbol argument")));
         }
         self.authenticate_rest(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -5291,7 +5291,7 @@ impl Paradex {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5356,7 +5356,7 @@ impl Paradex {
         }
         }
         let mut sorted: crate::value::List = self.sort_by_t(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }

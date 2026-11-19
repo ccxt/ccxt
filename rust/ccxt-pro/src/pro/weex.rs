@@ -75,7 +75,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..]).await,
-                "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -298,7 +298,7 @@ impl Weex {
         return requestId;
 }
 
-    pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[&Value]) -> Value {
         let isContract: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -454,7 +454,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -485,7 +485,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
@@ -507,7 +507,7 @@ impl Weex {
             channels.push(Value::from(channelName));
         }
         }
-        let mut newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(isContract), params]).await;
+        let mut newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -571,7 +571,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
@@ -605,7 +605,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(isContract), params, Value::Map(subscription)]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &params, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -679,7 +679,7 @@ impl Weex {
         }  else {
             symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -704,7 +704,7 @@ impl Weex {
         m.insert("indexPrice".to_string(), self.safe_string_k(&ticker, "i", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -764,7 +764,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
@@ -786,14 +786,14 @@ impl Weex {
             channels.push(Value::from(channelName));
         }
         }
-        let mut trades: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(isContract), params]).await;
+        let mut trades: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &params]).await;
         let mut first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -845,7 +845,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
@@ -879,7 +879,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("trades".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(isContract), params, Value::Map(subscription)]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &params, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1050,7 +1050,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut callerMethodName: String = self.safe_string_k(&params, "callerMethodName", &[Value::Str("watchOHLCVForSymbols".into())]).as_str().unwrap_or("watchOHLCVForSymbols").to_string();
@@ -1086,7 +1086,7 @@ impl Weex {
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let mut symboltimeframestoredVariable = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(isContract), paramsPriceType]).await;
+        let mut symboltimeframestoredVariable = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &paramsPriceType]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -1094,7 +1094,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
@@ -1150,7 +1150,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut callerMethodName: String = self.safe_string_k(&params, "callerMethodName", &[Value::Str("unWatchOHLCVForSymbols".into())]).as_str().unwrap_or("unWatchOHLCVForSymbols").to_string();
@@ -1198,7 +1198,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(isContract), paramsPriceType, Value::Map(subscription)]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &paramsPriceType, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1327,7 +1327,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
@@ -1359,7 +1359,7 @@ impl Weex {
                 m.insert("limit".to_string(), limit);
             m
         });
-        let mut orderbook: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(isContract), Value::Dict(paramsDepth), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &Value::Dict(paramsDepth), &Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1417,7 +1417,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
@@ -1456,7 +1456,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(isContract), Value::Dict(paramsDepth), Value::Map(subscription)]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &Value::Dict(paramsDepth), &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1544,7 +1544,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
@@ -1567,7 +1567,7 @@ impl Weex {
             channels.push(Value::from(channelName));
         }
         }
-        let mut newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(false), params]).await;
+        let mut newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(false), &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1604,7 +1604,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
@@ -1639,7 +1639,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("bidsasks".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(false), params, Value::Map(subscription)]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(false), &params, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1678,7 +1678,7 @@ impl Weex {
         }  else {
             symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1689,7 +1689,7 @@ impl Weex {
         m.insert("bidVolume".to_string(), self.safe_string_k(&message, "B", &[]));
         m.insert("info".to_string(), message);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1720,7 +1720,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -1746,7 +1746,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1984,7 +1984,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2010,7 +2010,7 @@ impl Weex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2333,7 +2333,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]);
@@ -2528,7 +2528,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: String = format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("contract".into()), &[Value::Str("".into())]), Value::Str("/private".into()));
@@ -2546,13 +2546,13 @@ impl Weex {
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (self.positions.is_none()) {
             let mut snapshot: Option<crate::pro::cache::Cache> = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await.into();
-            return self.filter_by_symbols_since_limit(&snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+            return Value::Arr(self.filter_by_symbols_since_limit(&snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         }
         let mut newPositions: Value = self.subscribe_private(Value::from(messageHash), subscriptionHash.as_str(), Some(channel.as_str()), &[Value::Bool(true), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

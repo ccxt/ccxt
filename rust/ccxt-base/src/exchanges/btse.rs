@@ -53,7 +53,7 @@ impl crate::exchange::DerivedExchange for Btse {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
@@ -72,7 +72,7 @@ impl crate::exchange::DerivedExchange for Btse {
             }
         }
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&ticker, "closeTime", &[]).as_i64();
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -97,11 +97,11 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("indexPrice".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades
@@ -186,7 +186,7 @@ impl crate::exchange::DerivedExchange for Btse {
                 m
             }));
         }
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -204,7 +204,7 @@ impl crate::exchange::DerivedExchange for Btse {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -435,10 +435,10 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), (if isSpot { Value::Null } else { quote.clone().map(Value::from).unwrap_or(Value::Null) }));
+        m.insert("settle".to_string(), (if isSpot { Value::Null } else { quote.map(Value::from).unwrap_or(Value::Null) }));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), (if isSpot { Value::Null } else { quoteId.clone().map(Value::from).unwrap_or(Value::Null) }));
+        m.insert("settleId".to_string(), (if isSpot { Value::Null } else { quoteId.map(Value::from).unwrap_or(Value::Null) }));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), (if isSpot { Value::Bool(false) } else { Value::Null }));
@@ -687,7 +687,7 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&item, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_number2(item, Value::Str("fees".into()), Value::Str("fee".into()), &[]));
     m
 }));
@@ -788,7 +788,7 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("comment".to_string(), self.safe_string_k(&transaction, "description", &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_number2(transaction, Value::Str("fees".into()), Value::Str("fee".into()), &[]));
     m
 }));
@@ -989,10 +989,12 @@ impl crate::exchange_generated::ExchangeBase for Btse {
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_contract_order" => self.create_contract_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_contract_order" => self.create_contract_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_spot_order" => self.create_spot_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_spot_order" => self.create_spot_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -1039,10 +1041,11 @@ impl crate::exchange_generated::ExchangeBase for Btse {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "request_wallet_history_rows" => self.request_wallet_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64), &args[5.min(args.len())..]).await,
+                "request_wallet_history_rows" => self.request_wallet_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64),
+                    &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -2632,7 +2635,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
     m
 })])]).into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3136,9 +3139,9 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
-            return self.create_spot_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), params.clone()]).await;
+            return self.create_spot_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[&price, &params]).await;
         }  else {
-            return self.create_contract_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await;
+            return self.create_contract_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &params]).await;
         }
         Value::Null
         }).await?))
@@ -3171,7 +3174,7 @@ impl Btse {
  * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_spot_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_spot_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3389,7 +3392,7 @@ impl Btse {
  * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_contract_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_contract_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4127,7 +4130,7 @@ impl Btse {
         }).await?))
     }
 
-    pub async fn request_wallet_history_rows(&mut self, methodName: &str, mut historyTypes: Value, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn request_wallet_history_rows(&mut self, methodName: &str, mut historyTypes: Value, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4258,7 +4261,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.request_wallet_history_rows("fetchDepositsWithdrawals", Value::from(vec![Value::Str("DEPOSIT".into()), Value::Str("WITHDRAW".into())]), code.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
+        return self.request_wallet_history_rows("fetchDepositsWithdrawals", Value::from(vec![Value::Str("DEPOSIT".into()), Value::Str("WITHDRAW".into())]), code.as_str(), since.as_i64(), limit.as_i64(), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4289,7 +4292,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.request_wallet_history_rows("fetchDeposits", Value::from(vec![Value::Str("DEPOSIT".into())]), code.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
+        return self.request_wallet_history_rows("fetchDeposits", Value::from(vec![Value::Str("DEPOSIT".into())]), code.as_str(), since.as_i64(), limit.as_i64(), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4320,7 +4323,7 @@ impl Btse {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.request_wallet_history_rows("fetchWithdrawals", Value::from(vec![Value::Str("WITHDRAW".into())]), code.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
+        return self.request_wallet_history_rows("fetchWithdrawals", Value::from(vec![Value::Str("WITHDRAW".into())]), code.as_str(), since.as_i64(), limit.as_i64(), &[&params]).await;
         Value::Null
         }).await?))
     }

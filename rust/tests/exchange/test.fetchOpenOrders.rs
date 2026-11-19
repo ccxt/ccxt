@@ -20,10 +20,10 @@ pub async fn testFetchOpenOrders(mut exchange: Value, mut skippedProperties: Val
         while { if !__for_first_1591 { i += 1; } __for_first_1591 = false; i < (orders.len() as i64) } {
         let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), order.clone(), symbol.clone(), now.clone());
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("open".into())]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order, Value::Str("status".into()).clone(), Value::from(vec![Value::Str("open".into())]).clone()]);
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), orders.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, orders]);
     return Value::Bool(true);
 
     Value::Null

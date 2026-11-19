@@ -423,10 +423,10 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_orders_helper" => self.fetch_orders_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await,
+                "fetch_orders_helper" => self.fetch_orders_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_topics_by_queries" => self.fetch_raw_topics_by_queries(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_raw_topics_by_queries" => self.fetch_raw_topics_by_queries(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
@@ -454,14 +454,14 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_wallet_events" => self.un_watch_wallet_events(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "un_watch_wallet_events" => self.un_watch_wallet_events(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "wallet_event_message_hashes" => self.wallet_event_message_hashes(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "wallet_event_outcome" => self.wallet_event_outcome(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "wallet_events_topic" => self.wallet_events_topic().await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_wallet_events" => self.watch_wallet_events(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "watch_wallet_events" => self.watch_wallet_events(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -994,8 +994,8 @@ impl Predictfun {
         }
         let mut slug: Option<String> = self.safe_string2_opt(&paramsValue, Value::Str("slug".into()), Value::Str("eventId".into()), &[]);
         let mut rest: crate::value::Dict = self.omit_t(&paramsValue, &["status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"], &[]);
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         let mut rawTopics: crate::value::List = std::sync::Arc::new(Vec::new());
         if (slug.is_some()) {
@@ -1011,7 +1011,7 @@ impl Predictfun {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[Value::from(&paramsValue)]).await.into_list();
+            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[&Value::from(&paramsValue)]).await.into_list();
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1205,7 +1205,7 @@ impl Predictfun {
                 topicsLength = rawTopics.len() as i64;
             }
             if (fetchCap.is_some() && Some(topicsLength) > fetchCap) {
-                rawTopics = self.array_slice(Value::Arr(rawTopics), Value::Int(0), &[Value::from(fetchCap)]).into_list();
+                rawTopics = self.array_slice(Value::Arr(rawTopics), Value::Int(0), &[Value::from(fetchCap)]);
             }
         }
         let mut rawTopicsLength: i64 = rawTopics.len() as i64;
@@ -1226,7 +1226,7 @@ impl Predictfun {
                 // prediction market rows are keyed by the unified 'market' handle
                 let mut handle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
                 if (handle.is_some()) {
-                    if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(handle.as_deref().unwrap_or("null").to_string(), Value::Dict(m)); }
+                    if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(handle.as_deref().unwrap_or("null").to_string(), Value::Dict(m)); }
                 }
             }
             }
@@ -1269,7 +1269,7 @@ impl Predictfun {
  * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
  * @returns {object[]} an array of raw market topics, each with a nested markets list
  */
-    pub async fn fetch_raw_topics_by_queries(&mut self, mut queries: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_raw_topics_by_queries(&mut self, mut queries: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1725,7 +1725,7 @@ impl Predictfun {
  * @param {int} [marketCount] how many markets the topic carries
  * @returns {string} the title to append, or the slug itself when the topic holds a single market
  */
-    pub fn title_for_market_symbol(&self, topicSlug: Option<&str>, title: Option<&str>, optional_args: &[Value]) -> Option<String> {
+    pub fn title_for_market_symbol(&self, topicSlug: Option<&str>, title: Option<&str>, optional_args: &[&Value]) -> Option<String> {
         let mut marketCount = get_arg(optional_args, 0, Value::Null);
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
@@ -1846,7 +1846,7 @@ impl Predictfun {
         let mut title: Option<String> = self.safe_string_k_opt(&rawMarket, "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut topicMarkets: crate::value::List = rawTopic.key_list("markets");
         let mut marketCount: i64 = topicMarkets.len() as i64;
-        let mut symbolTitle: Option<String> = self.title_for_market_symbol(topicSlug.as_deref(), title.as_deref(), &[Value::from(marketCount)]);
+        let mut symbolTitle: Option<String> = self.title_for_market_symbol(topicSlug.as_deref(), title.as_deref(), &[&Value::from(marketCount)]);
         let mut marketSymbol: Option<String> = self.slug_to_market_symbol(topicSlug.map(Value::from).unwrap_or(Value::Null), symbolTitle.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut tradingStatus: Option<String> = self.safe_string_k_opt(&rawMarket, "tradingStatus", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(&rawMarket, "status", &[]);
@@ -1897,7 +1897,7 @@ impl Predictfun {
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("outcomeId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("outcomeId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), Value::from(outcomeHandle));
                     m.insert("market".to_string(), marketSymbol.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("event".to_string(), Value::from(eventHandle.as_deref()));
@@ -2885,7 +2885,7 @@ impl Predictfun {
         // row - signing with the wrong pair places the order under a different verifying contract
         // and the venue answers create_order_hash_mismatch
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
-        let mut marketObj: crate::value::Dict = self.safe_dict_t(self.markets.clone(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
+        let mut marketObj: crate::value::Dict = self.safe_dict_t(&self.markets, marketSymbol.map(Value::from).unwrap_or(Value::Null));
         let mut marketRow: crate::value::Dict = self.safe_dict_k_t(&marketObj, "info");
         let mut marketFeeRateBps: String = self.safe_string_k(&marketRow, "feeRateBps", &[Value::Str("200".into())]).as_str().unwrap_or("200").to_string(); // should be at least 200
         let mut feeRateBps: Option<String> = self.safe_string_k_opt(&paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", &[Value::from(marketFeeRateBps)]);
@@ -3189,7 +3189,7 @@ impl Predictfun {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " cancelOrder() could not remove ").into()), id)));
         }
@@ -3401,7 +3401,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        return self.fetch_orders_helper(outcome.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_14]).await;
+        return self.fetch_orders_helper(outcome.as_str(), since.as_i64(), limit.as_i64(), &[&__ws_arg_14]).await;
         Value::Null
         }).await?))
     }
@@ -3439,7 +3439,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        return self.fetch_orders_helper(outcome.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_15]).await;
+        return self.fetch_orders_helper(outcome.as_str(), since.as_i64(), limit.as_i64(), &[&__ws_arg_15]).await;
         Value::Null
         }).await?))
     }
@@ -3458,7 +3458,7 @@ impl Predictfun {
  * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    pub async fn fetch_orders_helper(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_helper(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3716,7 +3716,7 @@ impl Predictfun {
             self.load_outcome(Value::from(outcome), &[]).await;
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(Value::from(outcome));
             let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
-            let mut marketObj: crate::value::Dict = self.safe_dict_t(self.markets.clone(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
+            let mut marketObj: crate::value::Dict = self.safe_dict_t(&self.markets, marketSymbol.map(Value::from).unwrap_or(Value::Null));
             let mut marketRow: crate::value::Dict = self.safe_dict_k_t(&marketObj, "info");
             isNegRisk = self.safe_bool_k(&marketRow, "isNegRisk", &[Value::Bool(false)]).as_bool() == Some(true);
             isYieldBearing = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true);
@@ -4101,7 +4101,7 @@ impl Predictfun {
             // without a request once the cache is warm
             self.load_outcomes(&[]).await;
         }
-        let mut orders: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[params]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[&params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -4147,7 +4147,7 @@ impl Predictfun {
             // a synchronous handler, so the cache is warmed here rather than on the first event
             self.load_outcomes(&[]).await;
         }
-        let mut trades: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[&params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -4177,7 +4177,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_wallet_events("orders", &[params]).await;
+        return self.un_watch_wallet_events("orders", &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4202,7 +4202,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_wallet_events("myTrades", &[params]).await;
+        return self.un_watch_wallet_events("myTrades", &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -4236,7 +4236,7 @@ impl Predictfun {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} whatever the channel resolves with
  */
-    pub async fn watch_wallet_events(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn watch_wallet_events(&mut self, messageHash: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4311,7 +4311,7 @@ impl Predictfun {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-    pub async fn un_watch_wallet_events(&mut self, channel: &str, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_wallet_events(&mut self, channel: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

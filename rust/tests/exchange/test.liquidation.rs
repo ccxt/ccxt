@@ -28,7 +28,7 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("quoteValue".into()), Value::Str("baseValue".into()), Value::Str("previousClose".into()), Value::Str("price".into()), Value::Str("contractSize".into()), Value::Str("contracts".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()).clone(), Value::Str("0".into()).clone()]);

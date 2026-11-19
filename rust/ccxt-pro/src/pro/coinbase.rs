@@ -66,9 +66,9 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "un_subscribe_multiple" => self.un_subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "subscribe_multiple" => self.subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "un_subscribe_multiple" => self.un_subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -220,7 +220,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -259,10 +259,10 @@ impl Coinbase {
  * @param {string} [symbol] unified market symbol
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn un_subscribe(&mut self, topic: &str, name: &str, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe(&mut self, topic: &str, name: &str, optional_args: &[&Value]) -> Value {
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbol = get_arg(optional_args, 1, Value::Null);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if matches!(self.safe_bool_k(&self.options, "unSubscriptionPending", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -321,14 +321,14 @@ impl Coinbase {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn subscribe_multiple(&mut self, name: &str, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_multiple(&mut self, name: &str, optional_args: &[&Value]) -> Value {
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbols = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut productIds: Vec<Value> = Vec::new();
@@ -374,7 +374,7 @@ impl Coinbase {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-    pub async fn un_subscribe_multiple(&mut self, topic: &str, name: &str, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_multiple(&mut self, topic: &str, name: &str, optional_args: &[&Value]) -> Value {
         let isPrivate: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut symbols = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -385,7 +385,7 @@ impl Coinbase {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")));
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(true)); }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut productIds: Vec<Value> = Vec::new();
@@ -458,7 +458,7 @@ impl Coinbase {
             let mut tokenExpiry: Option<i64> = (if let Some(__l) = tokenTimestamp { Some(__l + 90) } else { None });
             if (currentToken.is_none()) || (tokenExpiry.is_some() && tokenExpiry < Some(seconds)) {
                 // we should generate new token
-                let mut token: Option<String> = self.parent.create_auth_token(Value::from(seconds), "", None, &[self.parent.is_eddsa_api_key()]).as_str().map(str::to_owned);
+                let mut token: Option<String> = self.parent.create_auth_token(Value::from(seconds), "", None, &[&self.parent.is_eddsa_api_key()]).as_str().map(str::to_owned);
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsToken".into(), token.map(Value::from).unwrap_or(Value::Null)); }
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), Value::from(seconds)); }
             }
@@ -489,7 +489,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
@@ -518,11 +518,11 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
-        return self.un_subscribe("ticker", name.as_str(), &[Value::Bool(false), symbol]).await;
+        return self.un_subscribe("ticker", name.as_str(), &[&Value::Bool(false), &symbol]).await;
         Value::Null
         }).await?))
     }
@@ -547,7 +547,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsResolved: Option<crate::value::List> = symbols.clone().into_opt_list();
@@ -555,7 +555,7 @@ impl Coinbase {
             symbolsResolved = Value::Arr(self.symbols.clone()).into_opt_list();
         }
         let mut name: String = "ticker_batch".to_string();
-        let mut ticker: crate::value::Dict = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved.map_or(Value::Null, Value::Arr), params]).await.into_dict();
+        let mut ticker: crate::value::Dict = self.subscribe_multiple(name.as_str(), &[&Value::Bool(false), &symbolsResolved.map_or(Value::Null, Value::Arr), &params]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -590,13 +590,13 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols == Value::Null) {
-            return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), Value::Arr(self.symbols.clone())]).await;
+            return self.un_subscribe_multiple("ticker", "ticker_batch", &[&Value::Bool(false), &Value::Arr(self.symbols.clone())]).await;
         }
-        return self.un_subscribe_multiple("ticker", "ticker_batch", &[Value::Bool(false), symbols]).await;
+        return self.un_subscribe_multiple("ticker", "ticker_batch", &[&Value::Bool(false), &symbols]).await;
         Value::Null
         }).await?))
     }
@@ -754,7 +754,7 @@ impl Coinbase {
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
         let mut timestamp: Option<String> = None;
         let mut last: Option<f64> = self.safe_number_k(&ticker, "price", &[]).as_f64();
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]));
@@ -777,7 +777,7 @@ impl Coinbase {
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "volume_24_h", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -811,7 +811,7 @@ impl Coinbase {
         if (timeframe.as_str() != Some("5m")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCV() only supports the 5m timeframe")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -821,7 +821,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -908,7 +908,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -918,7 +918,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -943,11 +943,11 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "market_trades".to_string();
-        return self.un_subscribe("trades", name.as_str(), &[Value::Bool(false), symbol]).await;
+        return self.un_subscribe("trades", name.as_str(), &[&Value::Bool(false), &symbol]).await;
         Value::Null
         }).await?))
     }
@@ -976,18 +976,18 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "market_trades".to_string();
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbols, params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[&Value::Bool(false), &symbols, &params]).await.into();
         let mut first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1012,11 +1012,11 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "market_trades".to_string();
-        return self.un_subscribe_multiple("trades", name.as_str(), &[Value::Bool(false), symbols, params]).await;
+        return self.un_subscribe_multiple("trades", name.as_str(), &[&Value::Bool(false), &symbols, &params]).await;
         Value::Null
         }).await?))
     }
@@ -1045,7 +1045,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "user".to_string();
@@ -1054,7 +1054,7 @@ impl Coinbase {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1079,11 +1079,11 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "user".to_string();
-        return self.un_subscribe("orders", name.as_str(), &[Value::Bool(true), Value::from(self.symbol(symbol))]).await;
+        return self.un_subscribe("orders", name.as_str(), &[&Value::Bool(true), &Value::from(self.symbol(symbol))]).await;
         Value::Null
         }).await?))
     }
@@ -1110,7 +1110,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "level2".to_string();
@@ -1142,12 +1142,12 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
         let mut name: String = "level2".to_string();
-        return self.un_subscribe("orderbook", name.as_str(), &[Value::Bool(false), Value::from(symbolValue)]).await;
+        return self.un_subscribe("orderbook", name.as_str(), &[&Value::Bool(false), &Value::from(symbolValue)]).await;
         Value::Null
         }).await?))
     }
@@ -1174,11 +1174,11 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "level2".to_string();
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbols, params]).await.into();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_multiple(name.as_str(), &[&Value::Bool(false), &symbols, &params]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1242,7 +1242,7 @@ impl Coinbase {
                 let mut __for_first_233: bool = true;
                 while { if !__for_first_233 { j += 1; } __for_first_233 = false; j < tradesLength } {
                 let mut item: crate::value::Dict = currentTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(((tradesLength - j) - 1) as usize).cloned().unwrap_or(Value::Null).into_dict();
-                tradesArray.append(self.parse_trade(Value::Dict(item), None));
+                tradesArray.append(Value::Dict(self.parse_trade(Value::Dict(item), None)));
             }
             }
         }

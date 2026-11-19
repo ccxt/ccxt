@@ -36,8 +36,8 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
         m
     });
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("referenceId".into()), Value::Str("referenceAccount".into()), Value::Str("id".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
+    crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("direction".into()).clone(), Value::from(vec![Value::Str("in".into()), Value::Str("out".into())]).clone()]);
@@ -46,5 +46,5 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
     // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("before".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("after".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("after".into()).clone(), Value::Str("0".into()).clone()]);
 }

@@ -53,7 +53,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         // generation 1: fetchTicker, fetchTickers
@@ -156,7 +156,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
         if (close.is_some()) && (low.is_some()) && crate::precise::Precise::stringLt(&close, &low).as_bool() == Some(true) {
             low = close.clone();
         }
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -179,11 +179,11 @@ impl crate::exchange::DerivedExchange for Bithumb {
         m.insert("quoteVolume".to_string(), self.safe_string2(&ticker, Value::Str("acc_trade_value_24H".into()), Value::Str("acc_trade_price_24h".into()), &[]));
         m.insert("info".to_string(), ticker);
     m
-}), market);
+}), market));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // generation 1: fetchTrades (public)
@@ -297,7 +297,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 m
             }));
         }
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
@@ -315,7 +315,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -854,14 +854,15 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_twap_order" => crate::types::IntoRaw::into_raw(self.create_twap_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
+                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -874,8 +875,8 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
-                "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..]).await,
+                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_gen2_market_id" => crate::Value::from(self.get_gen2_market_id(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref())),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
@@ -885,8 +886,8 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -1999,7 +2000,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchBalance".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2046,7 +2047,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2173,7 +2174,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchTickers".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2314,7 +2315,7 @@ impl Bithumb {
                     if (symbol.is_none()) {
                         continue;
                     }
-                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &entry, Some(&market)));
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict));
                 }
                 }
             }
@@ -2382,7 +2383,7 @@ impl Bithumb {
                     let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
                     let mut market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
                     add_element_to_object(&mut ticker, &Value::Str("date".into()), Value::from(timestamp));
-                    result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, ticker, Some(&market)));
+                    result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, ticker, Some(&market)).map_or(Value::Null, Value::Dict));
                 }
                 }
             }
@@ -2415,7 +2416,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchTicker".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2493,7 +2494,7 @@ impl Bithumb {
             //
             data = self.safe_dict_k_t(&response, "data");
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2532,7 +2533,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2693,7 +2694,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchTrades".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2779,7 +2780,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("createOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2815,7 +2816,7 @@ impl Bithumb {
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[price, Value::Dict(orderParams)]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[&price, &Value::Dict(orderParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -2848,7 +2849,7 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2976,7 +2977,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("createOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -2989,7 +2990,7 @@ impl Bithumb {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2)) {
-            request = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
+            request = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[&price, &Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
             response = self.call_method_o("private_post_v2_orders", &[&Value::Map(request.clone())]).await;
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
@@ -3021,7 +3022,7 @@ impl Bithumb {
         let __ws_arg_20 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_20, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
         m.insert("side".to_string(), side);
@@ -3055,7 +3056,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("createMarketBuyOrderWithCost".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3103,7 +3104,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("createTwapOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3166,7 +3167,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3355,7 +3356,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3376,7 +3377,7 @@ impl Bithumb {
     m
 })]);
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_26).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
+            return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]));
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
@@ -3426,7 +3427,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3551,7 +3552,7 @@ impl Bithumb {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("done".into())); }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -3586,7 +3587,7 @@ impl Bithumb {
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("cancel".into())); }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -3618,7 +3619,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("cancelOrder".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3719,7 +3720,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3825,7 +3826,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("withdraw".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3959,12 +3960,12 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list response from the exchange
  */
-    pub async fn fetch_withdrawal_whitelist(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawal_whitelist(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawalWhitelist".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -3991,12 +3992,12 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawal(&mut self, id: &str, code: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_withdrawal(&mut self, id: &str, code: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawal".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -4055,7 +4056,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -4102,12 +4103,12 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchDeposit".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -4166,7 +4167,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -4223,7 +4224,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("createDepositAddress".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -4273,7 +4274,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchDepositAddress".into()), Value::Str("generation".into()), &[Value::Int(2)]);
@@ -4322,7 +4323,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchDepositAddresses".into()), Value::Str("generation".into()), &[Value::Int(2)]);

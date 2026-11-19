@@ -82,9 +82,9 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
-                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -320,13 +320,13 @@ impl Hitbtc {
  * @param {string[]} [symbols] unified CCXT symbol(s)
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-    pub async fn subscribe_public(&mut self, name: &str, messageHashPrefix: &str, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public(&mut self, name: &str, messageHashPrefix: &str, optional_args: &[&Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -377,7 +377,7 @@ impl Hitbtc {
  * @param {object} [params] extra parameters specific to the hitbtc api
  * @returns {boolean} true once the exchange acknowledges the unsubscribe
  */
-    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, subscription: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -434,7 +434,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate().await;
@@ -470,12 +470,12 @@ impl Hitbtc {
  * @param {string} name websocket endpoint name
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-    pub async fn trade_request(&mut self, name: &str, optional_args: &[Value]) -> Value {
+    pub async fn trade_request(&mut self, name: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate().await;
@@ -545,7 +545,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(name.as_deref().unwrap_or_default(), "orderbooks", &[Value::from(vec![symbol]), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut orderbook: Value = self.subscribe_public(name.as_deref().unwrap_or_default(), "orderbooks", &[&Value::from(vec![symbol]), &self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -711,7 +711,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -752,7 +752,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name.as_str(), "tickers", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name.as_str(), "tickers", &[&symbolsNormalized.clone().map_or(Value::Null, Value::Arr), &self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -868,7 +868,7 @@ impl Hitbtc {
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "t", &[]).as_i64();
         let mut symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k_opt(&ticker, "c", &[]);
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -891,7 +891,7 @@ impl Hitbtc {
         m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "q", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -918,7 +918,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
@@ -942,7 +942,7 @@ impl Hitbtc {
 }));
             m
         });
-        let mut newTickers: Value = self.subscribe_public(name.as_str(), "bidask", &[Value::Arr(symbolsNormalized.clone()), self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut newTickers: Value = self.subscribe_public(name.as_str(), "bidask", &[&Value::Arr(symbolsNormalized.clone()), &self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if !(matches!(&newTickers, Value::Arr(_))) {
                 let mut tickers: indexmap::IndexMap<String, Value> = ({
@@ -1008,7 +1008,7 @@ impl Hitbtc {
         if (market.is_some()) {
             bidAskSymbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), bidAskSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1019,7 +1019,7 @@ impl Hitbtc {
         m.insert("bidVolume".to_string(), self.safe_string_k(&ticker, "B", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -1048,7 +1048,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1065,12 +1065,12 @@ impl Hitbtc {
             request.insert("limit".into(), limit.clone());
         }
         let mut name: String = "trades".to_string();
-        let mut trades: Value = self.subscribe_public(name.as_str(), "trades", &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut trades: Value = self.subscribe_public(name.as_str(), "trades", &[&Value::from(vec![symbol.clone()]), &self.deep_extend(Value::Map(request), &[params])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into())]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into())]));
         Value::Null
         }).await?))
     }
@@ -1103,7 +1103,7 @@ impl Hitbtc {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from((market).symbol.clone())]));
             m
         });
-        return self.un_subscribe_public("trades", "trades", Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public("trades", "trades", Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1201,7 +1201,7 @@ impl Hitbtc {
         }
         result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
         let mut symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-        return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]));
 
     Value::Null
 }
@@ -1281,12 +1281,12 @@ impl Hitbtc {
                 m.insert("params".to_string(), Value::Map(subscribeParams));
             m
         });
-        let mut ohlcv: Value = self.subscribe_public(name.as_str(), name.as_str(), &[Value::from(vec![symbol.clone()]), self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut ohlcv: Value = self.subscribe_public(name.as_str(), name.as_str(), &[&Value::from(vec![symbol.clone()]), &self.deep_extend(Value::Map(request), &[params])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0)]);
+        return Value::Arr(self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0)]));
         Value::Null
         }).await?))
     }
@@ -1323,7 +1323,7 @@ impl Hitbtc {
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
             m
         });
-        return self.un_subscribe_public(name.as_str(), name.as_str(), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(name.as_str(), name.as_str(), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1438,7 +1438,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -1461,7 +1461,7 @@ impl Hitbtc {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into())]);
+        return Value::Arr(self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into())]));
         Value::Null
         }).await?))
     }
@@ -1727,7 +1727,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]);
@@ -1788,7 +1788,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1798,16 +1798,16 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsMarketType)]);
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
-        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
+        let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &marginMode.clone().map(Value::from).unwrap_or(Value::Null), &Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
         let mut orderRequest: crate::value::Dict = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = orderRequestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: crate::value::Dict = self.extend_t(orderRequest, &[&paramsValue]);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request("futures_new_order", &[Value::from(&request)]).await;
+            return self.trade_request("futures_new_order", &[&Value::from(&request)]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request("margin_new_order", &[Value::from(&request)]).await;
+            return self.trade_request("margin_new_order", &[&Value::from(&request)]).await;
         }  else {
-            return self.trade_request("spot_new_order", &[Value::Dict(request)]).await;
+            return self.trade_request("spot_new_order", &[&Value::Dict(request)]).await;
         }
         Value::Null
         }).await?))
@@ -1839,7 +1839,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -1859,11 +1859,11 @@ impl Hitbtc {
         let mut query: crate::value::Dict = marginModequeryVariable.1;
         request = self.extend_t(request, &[&query]);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request("futures_cancel_order", &[Value::from(&request)]).await;
+            return self.trade_request("futures_cancel_order", &[&Value::from(&request)]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request("margin_cancel_order", &[Value::from(&request)]).await;
+            return self.trade_request("margin_cancel_order", &[&Value::from(&request)]).await;
         }  else {
-            return self.trade_request("spot_cancel_order", &[Value::Dict(request)]).await;
+            return self.trade_request("spot_cancel_order", &[&Value::Dict(request)]).await;
         }
         Value::Null
         }).await?))
@@ -1892,7 +1892,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -1906,11 +1906,11 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request("futures_cancel_orders", &[Value::from(&paramsMarginMode)]).await;
+            return self.trade_request("futures_cancel_orders", &[&Value::from(&paramsMarginMode)]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelAllOrdersWs is not supported for margin orders")));
         }  else {
-            return self.trade_request("spot_cancel_orders", &[Value::Dict(paramsMarginMode)]).await;
+            return self.trade_request("spot_cancel_orders", &[&Value::Dict(paramsMarginMode)]).await;
         }
         Value::Null
         }).await?))
@@ -1944,7 +1944,7 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -1962,11 +1962,11 @@ impl Hitbtc {
         let marginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrdersWs".into()), &[Value::from(&paramsMarketType)]);
         let mut marginMode: Option<String> = marginModeVariable.0.as_str().map(str::to_owned);
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request("futures_get_orders", &[Value::Map(request.clone())]).await;
+            return self.trade_request("futures_get_orders", &[&Value::Map(request.clone())]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request("margin_get_orders", &[Value::Map(request.clone())]).await;
+            return self.trade_request("margin_get_orders", &[&Value::Map(request.clone())]).await;
         }  else {
-            return self.trade_request("spot_get_orders", &[Value::Map(request)]).await;
+            return self.trade_request("spot_get_orders", &[&Value::Map(request)]).await;
         }
         Value::Null
         }).await?))

@@ -20,7 +20,7 @@ pub async fn testFetchTransfers(mut exchange: Value, mut skippedProperties: Valu
         testTransfer(exchange.clone(), skippedProperties.clone(), method.clone(), transfers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), transfers.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code, transfers]);
     return Value::Bool(true);
 
     Value::Null

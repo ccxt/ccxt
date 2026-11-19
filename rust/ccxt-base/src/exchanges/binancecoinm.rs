@@ -58,8 +58,8 @@ impl crate::exchange_generated::ExchangeBase for Binancecoinm {
     {
         Box::pin(async move {
             match method {
-                "transfer_in" => self.transfer_in(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "transfer_out" => self.transfer_out(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "transfer_in" => self.transfer_in(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "transfer_out" => self.transfer_out(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -116,7 +116,7 @@ impl Binancecoinm {
     Value::Null
 }
 
-    pub async fn transfer_in(&mut self, code: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn transfer_in(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -126,7 +126,7 @@ impl Binancecoinm {
     Value::Null
 }
 
-    pub async fn transfer_out(&mut self, code: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn transfer_out(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

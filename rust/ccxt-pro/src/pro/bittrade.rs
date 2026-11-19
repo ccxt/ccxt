@@ -200,7 +200,7 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -269,7 +269,7 @@ impl Bittrade {
         let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = ch.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tick), Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tick), Some(&market));
         let mut timestamp: Option<i64> = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         std::sync::Arc::make_mut(&mut ticker).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut ticker).insert("datetime".into(), self.iso8601(timestamp));
@@ -304,7 +304,7 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -346,7 +346,7 @@ impl Bittrade {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -394,7 +394,7 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_146: bool = true;
             while { if !__for_first_146 { i += 1; } __for_first_146 = false; i < (data.len() as i64) } {
-            let mut trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
+            let mut trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
             tradesCache.append(Value::Dict(trade));
         }
         }
@@ -429,7 +429,7 @@ impl Bittrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -472,7 +472,7 @@ impl Bittrade {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -543,7 +543,7 @@ impl Bittrade {
         if (limit != Value::Null) && (limit.as_f64() != Some(150.0)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchOrderBook accepts limit = 150 only")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

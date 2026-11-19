@@ -53,7 +53,7 @@ impl crate::exchange::DerivedExchange for Ndax {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         // fetchTicker
@@ -114,7 +114,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         let mut open: Option<String> = self.safe_string_k_opt(&ticker, "SessionOpen", &[]);
         let mut baseVolume: Option<String> = self.safe_string2_opt(&ticker, Value::Str("Rolling24HrVolume".into()), Value::Str("base_volume".into()), &[]);
         let mut quoteVolume: Option<String> = self.safe_string2_opt(&ticker, Value::Str("Rolling24HrNotional".into()), Value::Str("quote_volume".into()), &[]);
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -137,11 +137,11 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades (public)
@@ -302,7 +302,7 @@ impl crate::exchange::DerivedExchange for Ndax {
             }
         }
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -320,7 +320,7 @@ impl crate::exchange::DerivedExchange for Ndax {
     m
 }), market));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -994,8 +994,8 @@ impl crate::exchange_generated::ExchangeBase for Ndax {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order_book" => Value::Dict(self.parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_in" => self.sign_in(&args[..]).await,
@@ -2076,7 +2076,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2116,7 +2116,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -2147,7 +2147,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2159,7 +2159,7 @@ impl Ndax {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_get_level1", &[&__ws_arg_5]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2192,7 +2192,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2261,7 +2261,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2387,7 +2387,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2454,7 +2454,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2548,7 +2548,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2630,7 +2630,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2695,7 +2695,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2747,7 +2747,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2799,7 +2799,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2860,7 +2860,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2909,7 +2909,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -2963,7 +2963,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -3015,7 +3015,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -3111,7 +3111,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -3190,7 +3190,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -3270,7 +3270,7 @@ impl Ndax {
     m
 }));
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
@@ -3395,7 +3395,7 @@ impl Ndax {
         }
         self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;

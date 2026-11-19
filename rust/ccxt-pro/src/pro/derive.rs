@@ -265,7 +265,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(10);
@@ -357,7 +357,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -405,7 +405,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -452,7 +452,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
@@ -549,11 +549,11 @@ impl Derive {
         let mut parts: crate::value::List = crate::value::List::new(topic.split(".").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market));
         let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (tickerSymbol.is_some()) {
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-            let mut bidAsk: Value = self.safe_ticker(Value::Map({
+            let mut bidAsk: Value = Value::Dict(self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(tickerSymbol.as_deref()));
                     m.insert("timestamp".to_string(), self.safe_integer_k(&ticker, "timestamp", &[]));
@@ -564,7 +564,7 @@ impl Derive {
                     m.insert("askVolume".to_string(), self.safe_number_k(&ticker, "askVolume", &[]));
                     m.insert("info".to_string(), Value::Dict(data));
                 m
-            }), Some(&market));
+            }), Some(&market)));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }
             client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask:", tickerSymbol.as_deref().unwrap_or("null")).into())));
         }
@@ -596,7 +596,7 @@ impl Derive {
 }));
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut limitRaw: Option<i64> = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -644,7 +644,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -811,7 +811,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -839,7 +839,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -868,7 +868,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (data.len() as i64) } {
-            let mut trade: crate::value::Dict = self.parse_trade(get_value(&data, &Value::Int(i)), None).into_dict();
+            let mut trade: crate::value::Dict = self.parse_trade(get_value(&data, &Value::Int(i)), None);
             tradesArray.append(Value::Dict(trade));
         }
         }
@@ -967,7 +967,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchOrders", params).as_array().cloned().unwrap_or_default();
@@ -1003,7 +1003,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1070,7 +1070,7 @@ impl Derive {
                 }
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
                 let mut orders: crate::value::Dict = self.safe_dict_t(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+                let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { None } else { self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null)) });
                 if (order.is_some()) {
                     let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
                     if (fee.is_some()) {
@@ -1116,7 +1116,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("unWatchOrders", params).as_array().cloned().unwrap_or_default();
@@ -1171,7 +1171,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchMyTrades", params).as_array().cloned().unwrap_or_default();
@@ -1207,7 +1207,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1230,7 +1230,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_306: bool = true;
             while { if !__for_first_306 { i += 1; } __for_first_306 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+            let mut trade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
             myTrades.append(Value::from(&trade));
             client.resolve(Value::from(&myTrades), topic.as_deref());
             if (topic.is_some()) {
@@ -1262,7 +1262,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("unWatchMyTrades", params).as_array().cloned().unwrap_or_default();
@@ -1312,7 +1312,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let fetchSnapshotparamsSnapshotVariable = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
@@ -1398,7 +1398,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
@@ -1465,7 +1465,7 @@ impl Derive {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(Value::from(self.positionsByType.lookup(&subaccountIdKey)), &symbolsResolved, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(Value::from(self.positionsByType.lookup(&subaccountIdKey)), &symbolsResolved, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

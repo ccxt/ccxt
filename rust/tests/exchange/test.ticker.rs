@@ -61,7 +61,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         append_to_array(&mut emptyAllowedFor, Value::Str("bid".into()));
         append_to_array(&mut emptyAllowedFor, Value::Str("ask".into()));
     }
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     // check market
@@ -305,5 +305,5 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // else {
     //    assert!(ccxt::runtime::is_true(&((askString === undefined) && (bidString === undefined))));
     // }
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry, Value::Str("symbol".into()).clone(), symbol.clone()]);
 }

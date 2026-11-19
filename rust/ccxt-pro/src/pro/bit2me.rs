@@ -69,7 +69,7 @@ impl crate::exchange_generated::ExchangeBase for Bit2me {
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -108,7 +108,7 @@ impl Bit2me {
             "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "settle_request" => { self.settle_request(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]); crate::Value::Null },
+            "settle_request" => { self.settle_request(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()); crate::Value::Null },
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
             "subscribe_public" => { crate::exchange_stubs::enqueue_spawn("subscribe_public", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
@@ -187,7 +187,7 @@ impl Bit2me {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the resolved value of the subscription
  */
-    pub async fn subscribe_public(&mut self, name: &str, symbol: &str, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_public(&mut self, name: &str, symbol: &str, messageHash: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -265,7 +265,7 @@ impl Bit2me {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", "orderbook:", Value::from((market).symbol.clone()));
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_public("order-book", symbol.as_str().unwrap_or_default(), messageHash.as_str(), &[params]).await.into();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_public("order-book", symbol.as_str().unwrap_or_default(), messageHash.as_str(), &[&params]).await.into();
         return orderbook.limit();
 
     Value::Null
@@ -327,12 +327,12 @@ impl Bit2me {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", "trades:", Value::from((market).symbol.clone()));
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public("public-trades", symbol.as_str().unwrap_or_default(), messageHash.as_str(), &[params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public("public-trades", symbol.as_str().unwrap_or_default(), messageHash.as_str(), &[&params]).await.into();
         let mut finalLimit: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             finalLimit = Value::from(trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64()));
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), finalLimit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), finalLimit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
 
     Value::Null
 }
@@ -473,7 +473,7 @@ impl Bit2me {
         if self.newUpdates.as_bool() == Some(true) {
             finalLimit = Value::from(orders.get_limit(unifiedSymbol.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(&orders, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]));
 
     Value::Null
 }
@@ -620,7 +620,7 @@ impl Bit2me {
         if self.newUpdates.as_bool() == Some(true) {
             finalLimit = Value::from(trades.get_limit(unifiedSymbol.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(&trades, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]));
 
     Value::Null
 }
@@ -724,7 +724,7 @@ impl Bit2me {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut restRequest: crate::value::Dict = self.parent.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
+        let mut restRequest: crate::value::Dict = self.parent.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &params]).into_dict();
         let mut orderType: Option<String> = self.safe_string_k_opt(&restRequest, "orderType", &[]);
         if (orderType.as_deref() == Some("oco")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrderWs() does not support oco orders, use createOrder() instead")));
@@ -759,7 +759,7 @@ impl Bit2me {
  * @param {object} result the value to resolve with
  * @param {object} [error] when set the command is rejected with it instead
  */
-    pub fn settle_request(&self, client: &Value, mut messageHash: Value, result: impl Into<crate::Value>, optional_args: &[Value]) {
+    pub fn settle_request(&self, client: &Value, mut messageHash: Value, result: impl Into<crate::Value>, optional_args: &[&Value]) {
         let mut result: Value = result.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut error = get_arg(optional_args, 0, Value::Null);
@@ -1135,19 +1135,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (clientOrderIds.len() as i64) } {
                 let mut clientOrderId: Option<&str> = clientOrderIds.get(i as usize).and_then(Value::as_str);
                 if is_equal(&pending.get(clientOrderId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &marketId.clone().map(Value::from).unwrap_or(Value::Null)) {
-                    self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), Value::Null, &[exception.clone()]);
+                    self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), Value::Null, &[&exception]);
                     { let __be_tmp = self.omit(self.options.get("pendingWsOrders").cloned().unwrap_or(Value::Null), Value::from(clientOrderId.as_deref()), &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
                 }
             }
             }
         }  else if (event.as_deref() == Some("canceled-order")) {
             self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-order:".into()), (match __pro_message.get("orderId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()),
-                _ => Value::Null })).into()), Value::Null, &[exception.clone()]);
+                _ => Value::Null })).into()), Value::Null, &[&exception]);
         }  else if (event.as_deref() == Some("canceled-orders")) {
-            self.settle_request(client, Value::Str("canceled-orders".into()), Value::Null, &[exception.clone()]);
+            self.settle_request(client, Value::Str("canceled-orders".into()), Value::Null, &[&exception]);
         }  else if (event.as_deref() == Some("canceled-all-orders")) {
             let __ws_arg_5 = self.safe_string_k(&message, "symbol", &[]);
-            self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-all-orders:".into()), __ws_arg_5).into()), Value::Null, &[exception.clone()]);
+            self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-all-orders:".into()), __ws_arg_5).into()), Value::Null, &[&exception]);
         }  else if (event.as_deref() == Some("subscribe")) {
             // a refused subscription names the channel and the symbol it was asked for
             let mut subscription: crate::value::Dict = __pro_message.key_dict("subscription");

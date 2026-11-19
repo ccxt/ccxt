@@ -293,11 +293,11 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
         Box::pin(async move {
             match method {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_api_key" => self.create_api_key(&args[..]).await,
+                "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "delete_api_key" => self.delete_api_key(&args[..]).await,
-                "fetch_api_key" => self.fetch_api_key(&args[..]).await,
+                "delete_api_key" => self.delete_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_api_key" => self.fetch_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -716,7 +716,7 @@ impl Opinion {
         self.set_events(Value::from(eventsList));
         let mut flatMarketsLength: i64 = flatMarkets.len() as i64;
         if (userLimit.is_some()) && ((userLimit.is_some() && Some(flatMarketsLength) > userLimit)) {
-            return self.array_slice(Value::from(flatMarkets), Value::Int(0), &[Value::from(userLimit)]);
+            return Value::Arr(self.array_slice(Value::from(flatMarkets), Value::Int(0), &[Value::from(userLimit)]));
         }
         return Value::from(flatMarkets);
         Value::Null
@@ -1007,8 +1007,8 @@ impl Opinion {
         }
         let mut rawEventsLength: i64 = rawEvents.len() as i64;
         let mut parsedEvents: Vec<Value> = Vec::new();
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         {
                         let mut i: i64 = 0;
@@ -1267,7 +1267,7 @@ impl Opinion {
 }), &[&params]);
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.opinion_public_get_token_latest_price(&[&__ws_arg_12]).await, self.opinion_public_get_token_orderbook(&[&self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("token_id".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[params])]).await]);
         let priceResponsebookResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
@@ -1551,7 +1551,7 @@ impl Opinion {
         }
         }
         let mut sorted: crate::value::List = self.sort_by_t(Value::from(candles), Value::Int(0), &[]);
-        return self.filter_by_since_limit(&sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
+        return Value::Arr(self.filter_by_since_limit(&sorted, since.as_i64(), limit.as_i64(), &[Value::Int(0)]));
         Value::Null
         }).await?))
     }
@@ -2224,11 +2224,11 @@ impl Opinion {
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " loadTradeMarket() could not parse market ").into()), idStr)));
         }
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         let mut marketHandle: String = self.safe_string_k(&market, "market", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.to_string(), Value::from(&market)); }
+        if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.to_string(), Value::from(&market)); }
         self.index_market_outcomes(Value::from(&market));
         cached.insert(idStr, Value::from(&market));
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(cacheKey.to_string(), Value::Map(cached)); }
@@ -2468,7 +2468,7 @@ impl Opinion {
  * @param {object} [params] extra parameters
  * @returns {object} the api credentials { apiKey, walletAddress }
  */
-    pub async fn create_api_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2488,7 +2488,7 @@ impl Opinion {
  * @param {object} [params] extra parameters
  * @returns {object} the api credentials { apiKey, walletAddress }
  */
-    pub async fn fetch_api_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_api_key(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2508,7 +2508,7 @@ impl Opinion {
  * @param {object} [params] extra parameters
  * @returns {object} raw response, result.deleted confirms revocation
  */
-    pub async fn delete_api_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn delete_api_key(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2670,16 +2670,16 @@ if _try_result.is_err() {
     pub fn opinion_outcome_by_market_id_side(&self, marketId: Option<i64>, outcomeSide: Option<i64>) -> Value {
         let mut marketId: Value = marketId.into();
         let mut outcomeSide: Value = outcomeSide.into();
-        if (marketId == Value::Null) || (self.markets == Value::Null) {
+        if (marketId == Value::Null) || (self.markets.is_none()) {
             return Value::Null;
         }
-        let mut marketKeys: Vec<Value> = Value::Array(self.markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut marketKeys: Vec<Value> = Value::Array(self.markets.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut marketKeysLength: i64 = marketKeys.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1406: bool = true;
             while { if !__for_first_1406 { i += 1; } __for_first_1406 = false; i < marketKeysLength } {
-            let mut market: crate::value::Dict = self.safe_dict_t(self.markets.clone(), marketKeys.get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: crate::value::Dict = self.safe_dict_t(&self.markets, marketKeys.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut info: crate::value::Dict = self.safe_dict_k_t(&market, "info");
             if (self.safe_integer_k(&info, "marketId", &[]).as_f64() == marketId.as_f64()) {
                 let mut outcomes: crate::value::List = self.safe_list_k_t(&market, "outcomes");
@@ -2895,7 +2895,7 @@ if _try_result.is_err() {
         let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "trades::", sym.as_deref().unwrap_or("null"));
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_opinion_channel(messageHash.as_str(), "market.last.trade", marketId).await.into();
-        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2986,7 +2986,7 @@ if _try_result.is_err() {
         let mut messageHash: String = "orders".to_string();
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_opinion_channel(messageHash.as_str(), "trade.order.update", marketId).await.into();
         let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]).as_str().map(str::to_owned);
-        return self.filter_by_value_since_limit(&orders, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_value_since_limit(&orders, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -3127,7 +3127,7 @@ if _try_result.is_err() {
         let mut messageHash: String = "myTrades".to_string();
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_opinion_channel(messageHash.as_str(), "trade.record.new", marketId).await.into();
         let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]).as_str().map(str::to_owned);
-        return self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

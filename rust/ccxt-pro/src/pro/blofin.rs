@@ -68,17 +68,17 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "unsubscribe_multiple_wrapper" => self.unsubscribe_multiple_wrapper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "unsubscribe_multiple_wrapper" => self.unsubscribe_multiple_wrapper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_funding_rate" => crate::types::IntoRaw::into_raw(self.watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_multiple_wrapper" => self.watch_multiple_wrapper(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "watch_multiple_wrapper" => self.watch_multiple_wrapper(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -122,7 +122,7 @@ impl Blofin {
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv_for_symbols" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv_for_symbols", args.to_vec()); crate::Value::Null },
@@ -305,17 +305,17 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trades: Value = self.watch_multiple_wrapper(true, "trades", "watchTradesForSymbols", &[symbols, params]).await;
+        let mut trades: Value = self.watch_multiple_wrapper(true, "trades", "watchTradesForSymbols", &[&symbols, &params]).await;
         let mut firstMarket: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let mut firstSymbol: Option<String> = self.safe_string_k_opt(&firstMarket, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(firstSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: crate::value::List = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]).into_list();
+        let mut result: crate::value::List = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
@@ -367,7 +367,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.unsubscribe_multiple_wrapper("trades", "unWatchTradesForSymbols", symbols, &[params]).await;
+        return self.unsubscribe_multiple_wrapper("trades", "unWatchTradesForSymbols", symbols, &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -398,7 +398,7 @@ impl Blofin {
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
-            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, None).into_dict();
+            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let mut symbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (stored.is_none()) {
@@ -415,11 +415,11 @@ impl Blofin {
         }
 }
 
-    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut trade: Value = trade.into();
         return self.parse_trade(trade, market);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -473,7 +473,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let callerMethodNameparamsCallerMethodNameVariable = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchOrderBookForSymbols".into())]);
@@ -487,7 +487,7 @@ impl Blofin {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), callerMethodName.map(Value::from).unwrap_or(Value::Null)).into()), "() at this moment ").into()),
                 channelName.map(Value::from).unwrap_or(Value::Null)).into()), " is not supported, coming soon")));
         }
-        let mut orderbook: Value = self.watch_multiple_wrapper(true, channelName.as_deref().unwrap_or_default(), callerMethodName.as_deref().unwrap_or_default(), &[symbols, Value::Dict(paramsChannel)]).await;
+        let mut orderbook: Value = self.watch_multiple_wrapper(true, channelName.as_deref().unwrap_or_default(), callerMethodName.as_deref().unwrap_or_default(), &[&symbols, &Value::Dict(paramsChannel)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -595,7 +595,7 @@ impl Blofin {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTickers() requires a list of symbols")));
         }
-        let mut ticker: Value = self.watch_multiple_wrapper(true, "tickers", "watchTickers", &[symbols.clone(), params]).await;
+        let mut ticker: Value = self.watch_multiple_wrapper(true, "tickers", "watchTickers", &[&symbols, &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -651,7 +651,7 @@ impl Blofin {
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
-        return self.parse_ticker(ticker, market);
+        return Value::Dict(self.parse_ticker(ticker, market));
 
     Value::Null
 }
@@ -676,7 +676,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsList: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
@@ -747,7 +747,7 @@ impl Blofin {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[]).as_i64();
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -758,7 +758,7 @@ impl Blofin {
         m.insert("bidVolume".to_string(), self.safe_string_k(&ticker, "bidSize", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -824,10 +824,10 @@ impl Blofin {
         if (symbolsLength == 0) || (self.safe_list(&symbolsAndTimeframes, Value::Int(0), &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut result: Value = self.watch_multiple_wrapper(true, "candle", "watchOHLCVForSymbols", &[symbolsAndTimeframes, params]).await;
+        let mut result: Value = self.watch_multiple_wrapper(true, "candle", "watchOHLCVForSymbols", &[&symbolsAndTimeframes, &params]).await;
         let mut symbol: String = self.safe_string(&result, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut timeframe: String = self.safe_string(&result, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut candles: Value = self.safe_value(&result, Value::Int(2), &[]);
@@ -835,7 +835,7 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(Some(symbol.as_str()), limit.as_i64());
         }
-        let mut filtered: crate::value::List = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        let mut filtered: crate::value::List = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(Value::from(symbol), Value::from(timeframe), Value::Arr(filtered));
         Value::Null
         }).await?))
@@ -893,7 +893,7 @@ impl Blofin {
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
         }
-        return self.unsubscribe_multiple_wrapper("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, &[params]).await;
+        return self.unsubscribe_multiple_wrapper("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -961,7 +961,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
@@ -1095,7 +1095,7 @@ impl Blofin {
     m
 }));
         self.authenticate(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut trigger: Option<bool> = self.safe_bool2_opt(&params, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
@@ -1104,14 +1104,14 @@ impl Blofin {
         if (trigger == Some(true)) {
             channel = "orders-algo".to_string();
         }
-        let mut orders: Value = self.watch_multiple_wrapper(false, channel.as_str(), "watchOrdersForSymbols", &[symbols, Value::Dict(paramsOmitted)]).await;
+        let mut orders: Value = self.watch_multiple_wrapper(false, channel.as_str(), "watchOrdersForSymbols", &[&symbols, &Value::Dict(paramsOmitted)]).await;
         let mut first: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1185,14 +1185,14 @@ impl Blofin {
     m
 }));
         self.authenticate(&[]).await;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut newPositions: Value = self.watch_multiple_wrapper(false, "positions", "watchPositions", &[symbols.clone(), params]).await;
+        let mut newPositions: Value = self.watch_multiple_wrapper(false, "positions", "watchPositions", &[&symbols, &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(&self.positions, symbols, since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&self.positions, symbols, since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -1259,7 +1259,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1309,14 +1309,14 @@ impl Blofin {
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
-    pub async fn watch_multiple_wrapper(&mut self, isPublic: bool, channelName: &str, callerMethodName: &str, optional_args: &[Value]) -> Value {
+    pub async fn watch_multiple_wrapper(&mut self, isPublic: bool, channelName: &str, callerMethodName: &str, optional_args: &[&Value]) -> Value {
         let mut symbolsArray = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         // underlier method for all watch-multiple symbols
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let callerMethodNameOptionparamsCallerMethodNameVariable = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::from(callerMethodName)]);
@@ -1394,13 +1394,13 @@ impl Blofin {
     Value::Null
 }
 
-    pub async fn unsubscribe_multiple_wrapper(&mut self, channelName: &str, callerMethodName: &str, mut symbolsArray: Value, optional_args: &[Value]) -> Value {
+    pub async fn unsubscribe_multiple_wrapper(&mut self, channelName: &str, callerMethodName: &str, mut symbolsArray: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let callerMethodNameOptionparamsCallerMethodNameVariable = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::from(callerMethodName)]);

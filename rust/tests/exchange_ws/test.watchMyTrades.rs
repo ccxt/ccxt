@@ -37,7 +37,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }
-            crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), response.clone()]);
+            crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), response]);
         }
     }
     return Value::Bool(true);

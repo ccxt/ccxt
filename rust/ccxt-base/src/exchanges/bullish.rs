@@ -48,7 +48,7 @@ impl Bullish {
 }
 
 impl crate::exchange::DerivedExchange for Bullish {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         //     {
@@ -91,7 +91,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "createdAtTimestamp", &[]).as_i64();
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -115,11 +115,11 @@ impl crate::exchange::DerivedExchange for Bullish {
         m.insert("markPrice".to_string(), self.safe_string_k(&ticker, "markPrice", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades
@@ -197,7 +197,7 @@ impl crate::exchange::DerivedExchange for Bullish {
             takerOrMaker = Some("maker".to_string());
         }
         let mut orderId: Option<String> = self.safe_string_k_opt(&trade, "orderId", &[]);
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -215,7 +215,7 @@ impl crate::exchange::DerivedExchange for Bullish {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -1162,7 +1162,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_borrow_rate_history" => self.fetch_borrow_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await,
+                "fetch_borrow_rate_history" => self.fetch_borrow_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1188,9 +1188,9 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "get_timestamp" => self.get_timestamp(),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "handle_pagination_params" => self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..]),
-                "handle_since_and_until" => self.handle_since_and_until(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..]),
-                "handle_token" => self.handle_token(&args[..]).await,
+                "handle_pagination_params" => self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "handle_since_and_until" => self.handle_since_and_until(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "handle_token" => self.handle_token(&args[..].iter().collect::<Vec<_>>()).await,
                 "load_account" => self.load_account(&args[..].iter().collect::<Vec<_>>()).await,
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance_for_single_currency" => self.parse_balance_for_single_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -1203,8 +1203,8 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "safe_deterministic_call" => self.safe_deterministic_call(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -2143,7 +2143,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2206,7 +2206,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut maxLimit: i64 = 100;
@@ -2214,7 +2214,7 @@ impl Bullish {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTrades", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTrades", since.as_i64(), &[&Value::from(&paramsPaginate)]).into_dict();
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2223,7 +2223,7 @@ impl Bullish {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[&Value::from(&paramsPaginate)]).into_dict();
         if (limit != Value::Null) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
@@ -2284,10 +2284,10 @@ impl Bullish {
             let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
             let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
             if paginate {
-                let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+                let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since.as_i64(), &[&Value::from(&paramsPaginate)]).into_dict();
                 return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol, since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
             }
-            let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[&Value::from(&paramsPaginate)]).into_dict();
             if (limit != Value::Null) {
                 request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
             }
@@ -2346,7 +2346,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
@@ -2384,7 +2384,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2395,7 +2395,7 @@ impl Bullish {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_v1_markets_symbol_tick", &[&__ws_arg_5]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2477,7 +2477,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2553,7 +2553,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut maxLimit: i64 = 100;
@@ -2561,7 +2561,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchFundingRateHistory", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchFundingRateHistory", since.as_i64(), &[&Value::from(&paramsPaginate)]).into_dict();
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2576,7 +2576,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (limit != Value::Null) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
-        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[Value::from(&paramsPaginate), Value::Str("updatedAtDatetime[gte]".into()), Value::Str("updatedAtDatetime[lte]".into())]).into_dict();
+        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[&Value::from(&paramsPaginate), &Value::Str("updatedAtDatetime[gte]".into()), &Value::Str("updatedAtDatetime[lte]".into())]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsSinceAndUntil]);
         let mut response: crate::value::List = self.public_get_v1_history_markets_symbol_funding_rate(&[&__ws_arg_7]).await.unwrap_or_default();
         //
@@ -2610,7 +2610,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }));
         }
         }
-        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -2650,7 +2650,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut paginate: bool = self.safe_bool_k_opt(&params, "paginate", &[Value::Bool(false)]).unwrap_or(false);
         if paginate {
-            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since.as_i64(), &[params.clone()]).into_dict();
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since.as_i64(), &[&params]).into_dict();
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2663,7 +2663,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[params]).into_dict();
+        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[&params]).into_dict();
         if (limit != Value::Null) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
@@ -2714,7 +2714,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     }
 
-    pub fn handle_pagination_params(&self, method: &str, since: Option<i64>, optional_args: &[Value]) -> Value {
+    pub fn handle_pagination_params(&self, method: &str, since: Option<i64>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2744,7 +2744,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_since_and_until(&self, since: Option<i64>, optional_args: &[Value]) -> Value {
+    pub fn handle_since_and_until(&self, since: Option<i64>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3386,9 +3386,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
             m
         });
-        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.1;
         if (networkCode.is_some()) {
             request.insert("network".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         }  else {
@@ -3529,8 +3529,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut networkAndParams: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkParam: Option<String> = networkAndParams.get(0).and_then(Value::as_str).map(str::to_owned);
+        let networkAndParams = self.handle_network_code_and_params(params);
+        let mut networkParam: Option<String> = networkAndParams.0.as_str().map(str::to_owned);
         let mut networkDefinedByUser: bool = networkParam.is_some();
         let mut network: Option<String> = networkParam;
         if (length > 1) || (networkDefinedByUser) {
@@ -3737,7 +3737,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTransfers", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTransfers", since.as_i64(), &[&Value::from(&paramsPaginate)]).into_dict();
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3762,7 +3762,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }
-        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[paramsUntil]).into_dict();
+        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[&paramsUntil]).into_dict();
         if (limit != Value::Null) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
@@ -3859,7 +3859,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {string} params.tradingAccountId the trading account id
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-    pub async fn fetch_borrow_rate_history(&mut self, code: &str, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_borrow_rate_history(&mut self, code: &str, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3922,7 +3922,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3973,7 +3973,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn handle_token(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn handle_token(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

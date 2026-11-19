@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
-                "un_watch_balance" => self.un_watch_balance(&args[..]).await,
+                "un_watch_balance" => self.un_watch_balance(&args[..].iter().collect::<Vec<_>>()).await,
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -291,11 +291,11 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let mut ordersRequest: crate::value::Dict = self.parent.create_orders_request(orders, &[params]).into_dict();
+        let mut ordersRequest: crate::value::Dict = self.parent.create_orders_request(orders, &[&params]).into_dict();
         let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&ordersRequest).into_dict();
         let mut request: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
@@ -343,10 +343,10 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let orderglobalParamsVariable: Vec<Value> = self.parent.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
+        let orderglobalParamsVariable: Vec<Value> = self.parent.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orders: Vec<crate::types::Order> = (match self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -399,15 +399,15 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let orderglobalParamsVariable: Vec<Value> = self.parent.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
+        let orderglobalParamsVariable: Vec<Value> = self.parent.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut postRequest: crate::value::Dict = self.parent.edit_orders_request(Value::from(vec![order]), &[Value::Dict(globalParams)]).into_dict();
+        let mut postRequest: crate::value::Dict = self.parent.edit_orders_request(Value::from(vec![order]), &[&Value::Dict(globalParams)]).into_dict();
         let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&postRequest).into_dict();
         let mut request: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
         let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
@@ -448,10 +448,10 @@ impl Hyperliquid {
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&params]).into_dict();
         let mut url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
         let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&request).into_dict();
         let mut wsRequest: crate::value::Dict = self.safe_dict_k_t(&wrapped, "request");
@@ -531,7 +531,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -577,7 +577,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -677,7 +677,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -726,7 +726,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -772,7 +772,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
@@ -839,7 +839,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
@@ -889,7 +889,7 @@ impl Hyperliquid {
 }));
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchMyTrades", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict_or(self.parent.handle_public_address("watchMyTrades", params.clone()), Value::Int(1), params);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
@@ -921,7 +921,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -983,7 +983,7 @@ impl Hyperliquid {
 }));
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict_or(self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()), Value::Int(1), params);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
@@ -1022,7 +1022,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
-        return self.filter_by_symbols_since_limit(&self.myLiquidations, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&self.myLiquidations, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1048,7 +1048,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {
@@ -1167,7 +1167,7 @@ impl Hyperliquid {
 
     pub fn parse_ws_ticker(&self, rawTicker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut rawTicker: Value = rawTicker.into();
-        return self.parse_ticker(rawTicker, market);
+        return Value::Dict(self.parse_ticker(rawTicker, market));
 
     Value::Null
 }
@@ -1333,7 +1333,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1358,7 +1358,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1383,7 +1383,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1556,7 +1556,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1582,7 +1582,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1609,7 +1609,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1713,7 +1713,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchBalance", params.clone()), Value::Int(0), &[]);
@@ -1721,7 +1721,7 @@ impl Hyperliquid {
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[paramsValue]);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
-        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
+        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await.into_list();
         let mut isUnifiedEnabled: bool = self.safe_bool_opt(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsValue2: crate::value::Dict = self.safe_dict_or(&unifiedResult, Value::Int(1), Value::Dict(paramsMarketType));
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
@@ -1771,12 +1771,12 @@ impl Hyperliquid {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} status of the unwatch request
  */
-    pub async fn un_watch_balance(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_balance(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
@@ -1785,7 +1785,7 @@ impl Hyperliquid {
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), None, &[paramsValue]);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
-        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
+        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await.into_list();
         let mut isUnifiedEnabled: bool = self.safe_bool_opt(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsValue2: crate::value::Dict = self.safe_dict_or(&unifiedResult, Value::Int(1), Value::Dict(paramsMarketType));
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
@@ -2003,7 +2003,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchPositions", params.clone()), Value::Int(0), &[]);
@@ -2025,7 +2025,7 @@ impl Hyperliquid {
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Option<String> = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        let mut dexName: Option<String> = self.parent.get_dex_from_symbols("watchPositions", &[&symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName.is_some()) {
             subscription.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
@@ -2047,7 +2047,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(&cache, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&cache, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2123,7 +2123,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols != Value::Null) && !(self.is_empty(symbols).as_bool() == Some(true)) {
@@ -2175,7 +2175,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchOrders", params.clone()), Value::Int(0), &[]);
@@ -2217,7 +2217,7 @@ impl Hyperliquid {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2243,7 +2243,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {

@@ -393,7 +393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&isSync()) {
             callMethodSync(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone());
         }  else {
-            callMethod(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args).await;
+            callMethod(self.testFiles.clone(), methodName.clone(), exchange, skippedPropertiesForMethod, args).await;
         }
         dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".into()), Value::Int(25)), name, methodName.clone()]);
         // add to the list of successed tests
@@ -781,7 +781,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             Value::Str("USDC/EUR".into()), Value::Str("BTC/ETH".into()), Value::Str("ETH/BTC".into())]);
         let mut swapSymbols: Value = Value::from(vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("BTC/USD:USDT".into()), Value::Str("BTC/USDC:USDC".into()), Value::Str("BTC/USD:USDC".into()), Value::Str("BTC/USD:USD".into()), Value::Str("ETH/USDT:USDT".into()), Value::Str("ETH/USD:USDT".into()), Value::Str("ETH/USDC:USDC".into()),
             Value::Str("ETH/USD:USDC".into()), Value::Str("ETH/USD:USD".into()), Value::Str("BTC/USD:BTC".into()), Value::Str("ETH/USD:ETH".into())]);
-        let mut targetSymbols: Value = (if spot.as_bool() == Some(true) { spotSymbols.clone() } else { swapSymbols.clone() });
+        let mut targetSymbols: Value = (if spot.as_bool() == Some(true) { spotSymbols } else { swapSymbols });
         let mut symbol: Value = self.get_test_symbol(exchange.clone(), spot.clone(), targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (symbol == Value::Null) {
@@ -919,7 +919,7 @@ if _try_result.is_err() {
                             let mut m = indexmap::IndexMap::new();
                             m
                         });
-                        entry.insert("symbol".into(), tickerSymbol.clone());
+                        entry.insert("symbol".into(), tickerSymbol);
                         entry.insert("volume".into(), volume.clone());
                         append_to_array(&mut candidates, Value::Map(entry));
                     }
@@ -1204,7 +1204,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // limit must bound the number of events returned (applied by applyEventFetchParams)
                     let mut limited: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("query".to_string(), eventQuery.clone());
+        m.insert("query".to_string(), eventQuery);
         m.insert("limit".to_string(), Value::Int(1));
     m
 })])).await;
@@ -1732,7 +1732,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut exchangeName: Option<String> = (if let Some(__s) = file.as_deref() { Some(__s.replace(".json", "")) } else { None });
             let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file.as_deref().unwrap_or("null")).into()), &[]);
-            result.insert(exchangeName.as_deref().unwrap_or("null").to_string(), content.clone());
+            result.insert(exchangeName.as_deref().unwrap_or("null").to_string(), content);
         }
         }
         return Value::Map(result);
@@ -2523,14 +2523,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // worker could execute it inline on the blocked stack and the
                 // rejection loop would then wait on the very watch side it is
                 // buried on top of
-                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), self.watch_and_assert_sequence(exchange.clone(), url.clone(), method.clone(), input.clone(), skipKeys.clone(), expectedResults.clone()).await]);
+                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), self.watch_and_assert_sequence(exchange.clone(), url.clone(), method.clone(), input.clone(), skipKeys.clone(), expectedResults).await]);
                 promise_all(&promises).await;
                 self.assert_ws_sent_messages(exchange.clone(), url.clone(), data.clone());
             }  else {
                 // 'parsedResponse' asserts the final state after every frame
                 // was replayed — live structures like orderbooks keep updating
                 // after the first resolution, so serialize only at the end
-                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; let mut __g = 0; if matches!(&method, Value::Str(__m) if __m.starts_with("unWatch")) { drainWsMessages(&mut exchange, url.clone()).await;
+                preloadWsMessages(exchange.clone(), url.clone(), messages); let mut __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; let mut __g = 0; if matches!(&method, Value::Str(__m) if __m.starts_with("unWatch")) { drainWsMessages(&mut exchange, url.clone()).await;
                     } else { while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; __g += 1; } } let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);
                 let mut results: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
                 let mut unifiedResult: Value = jsonParse(jsonStringify(results.get(0).cloned().unwrap_or(Value::Null)));
@@ -3017,7 +3017,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
-            sum = exchange.sum(&[std::mem::take(&mut sum), resultsLength.clone()]);
+            sum = exchange.sum(&[std::mem::take(&mut sum), resultsLength]);
         }
         }
         return sum;
@@ -3118,7 +3118,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 continue;
             }
             let mut numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
-            sum = exchange.sum(&[std::mem::take(&mut sum), numberOfTests.clone()]);
+            sum = exchange.sum(&[std::mem::take(&mut sum), numberOfTests]);
             if (type_var.as_str() == Some("request")) {
                 promises.push(self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }  else if (type_var.as_str() == Some("ws")) {
@@ -4682,7 +4682,7 @@ if _try_result.is_err() {
         // making a prior (offline-unreachable) public/auth network call
         ccxt::set_value(&mut exchange, &Value::Str("token".into()), Value::Str("token".into()));
         let mut tokenExpires: Value = (match (&(Value::Int(exchange.milliseconds())), &(Value::Int(100000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("v2TokenExpires".into()), tokenExpires.clone());
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("v2TokenExpires".into()), tokenExpires);
         add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("portfolio".into()), Value::Str("random".into()));
         let mut id: Value = Value::Str("ccxt".into());
         assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str("id not in options".into())]);
@@ -4926,7 +4926,7 @@ if _try_result.is_err() {
             });
             ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into()));
             ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".into()));
-            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LBTC/USDC".into()), Value::Str("limit".into()), Value::Str("sell".into()), Value::Float(0.01), Value::Int(3000), params.clone()]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LBTC/USDC".into()), Value::Str("limit".into()), Value::Str("sell".into()), Value::Float(0.01), Value::Int(3000), params]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));

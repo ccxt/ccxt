@@ -434,17 +434,17 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
     {
         Box::pin(async move {
             match method {
-                "build_clob_order_body" => self.build_clob_order_body(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "build_clob_order_body" => self.build_clob_order_body(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_api_key" => self.create_api_key(&args[..]).await,
+                "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_or_derive_api_key" => self.create_or_derive_api_key(&args[..]).await,
+                "create_or_derive_api_key" => self.create_or_derive_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "derive_api_key" => self.derive_api_key(&args[..]).await,
+                "derive_api_key" => self.derive_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_events" => crate::types::IntoRaw::into_raw(self.fetch_events(args.get(0).cloned().unwrap_or_default()).await),
@@ -460,8 +460,8 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "fetch_outcomes" => self.fetch_outcomes(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_events_by_search" => self.fetch_raw_events_by_search(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_raw_events_list" => self.fetch_raw_events_list(&args[..]).await,
+                "fetch_raw_events_by_search" => self.fetch_raw_events_by_search(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_events_list" => self.fetch_raw_events_list(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -492,7 +492,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-                "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "tag_to_slug" => self.tag_to_slug(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -1432,9 +1432,9 @@ impl Polymarket {
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[&Value::from(&rest)]).await.into_list();
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_list(&[&Value::Dict(rest)]).await.into_list();
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: indexmap::IndexMap<String, Value> = ({
@@ -1479,7 +1479,7 @@ impl Polymarket {
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-    pub async fn fetch_raw_events_by_search(&mut self, mut queries: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_raw_events_by_search(&mut self, mut queries: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1670,7 +1670,7 @@ impl Polymarket {
  * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
  * @returns {object[]} an array of raw gamma event objects
  */
-    pub async fn fetch_raw_events_list(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_raw_events_list(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1720,7 +1720,7 @@ impl Polymarket {
                     m
                 }), &[&params]);
                 std::sync::Arc::make_mut(&mut singleTagParams).insert("tags".into(), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
-                let mut tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[Value::Dict(singleTagParams)])).await.into_list();
+                let mut tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[&Value::Dict(singleTagParams)])).await.into_list();
                 {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1417: bool = true;
@@ -1811,7 +1811,7 @@ impl Polymarket {
         }
         let mut allRawEventsLength: i64 = allRawEvents.len() as i64;
         if (limit.is_some() && Some(allRawEventsLength) > limit) {
-            return self.array_slice(Value::from(allRawEvents), Value::Int(0), &[Value::from(limit)]);
+            return Value::Arr(self.array_slice(Value::from(allRawEvents), Value::Int(0), &[Value::from(limit)]));
         }
         return Value::from(allRawEvents);
 
@@ -2048,8 +2048,8 @@ impl Polymarket {
             let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             if rawMarketsLength > 0 {
-                if (self.markets == Value::Null) {
-                    { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+                if (self.markets.is_none()) {
+                    { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
                 }
                 let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2106,8 +2106,8 @@ impl Polymarket {
         }
         let mut tokenIdsLength: i64 = tokenIds.len() as i64;
         if tokenIdsLength > 0 {
-            if (self.markets == Value::Null) {
-                { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+            if (self.markets.is_none()) {
+                { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
             }
             // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
             let mut chunkSize: i64 = self.safe_integer_k(&self.options, "fetchOutcomesBatchSize", &[Value::Int(50)]).as_i64().unwrap_or(50);
@@ -2202,7 +2202,7 @@ impl Polymarket {
     m
 })]).await, self.clob_public_get_last_trade_price(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("token_id".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
     m
 })]).await]);
         let midpointResponsebookResponselastTradeResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
@@ -2648,7 +2648,7 @@ impl Polymarket {
         let mut candles: crate::value::List = self.sort_by_t(Value::from(unsortedCandles), Value::Int(0), &[]);
         let mut candlesLength: i64 = candles.len() as i64;
         if (limit != Value::Null) && ((limit.as_i64().is_some() && Some(candlesLength) > limit.as_i64())) {
-            return self.array_slice(Value::from(&candles), (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
+            return Value::Arr(self.array_slice(Value::from(&candles), (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]));
         }
         return Value::Arr(candles);
         Value::Null
@@ -2999,7 +2999,7 @@ impl Polymarket {
             }
         }
         }
-        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -3330,7 +3330,7 @@ impl Polymarket {
 }));
         self.load_api_credentials().await;
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
+        let mut built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), amount, &[&price, &params]).into_dict();
         let mut response: crate::value::Dict = self.call_method_t("clob_private_post_order", &[&self.safe_dict_k(&built, "body", &[])]).await;
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(&built, "request", &[]);
@@ -3397,7 +3397,7 @@ impl Polymarket {
     m
 })]);
             }
-            let mut built: crate::value::Dict = self.build_clob_order_body(self.safe_string_k(&o, "outcome", &[]).as_str(), self.safe_string_k(&o, "type", &[]).as_str(), self.safe_string_k(&o, "side", &[]).as_str(), self.safe_number_k(&o, "amount", &[]), &[self.safe_number_k(&o, "price", &[]), Value::Dict(orderParams)]).into_dict();
+            let mut built: crate::value::Dict = self.build_clob_order_body(self.safe_string_k(&o, "outcome", &[]).as_str(), self.safe_string_k(&o, "type", &[]).as_str(), self.safe_string_k(&o, "side", &[]).as_str(), self.safe_number_k(&o, "amount", &[]), &[&self.safe_number_k(&o, "price", &[]), &Value::Dict(orderParams)]).into_dict();
             bodies.push(self.safe_dict_k(&built, "body", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3442,7 +3442,7 @@ impl Polymarket {
  * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
  * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
  */
-    pub fn build_clob_order_body(&mut self, outcome: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn build_clob_order_body(&mut self, outcome: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4100,9 +4100,9 @@ impl Polymarket {
             let mut responseIsArray: bool = response.is_some();
             rawEvents = (if (responseIsArray) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(Value::from(&queries), &[Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_by_search(Value::from(&queries), &[&Value::from(&rest)]).await.into_list();
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_list(&[&Value::Dict(rest)]).await.into_list();
         }
         // Parse and merge into class-level caches
         if (self.exchange.events.clone() == Value::Null) {
@@ -4111,8 +4111,8 @@ impl Polymarket {
                 m
             });
         }
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -4348,12 +4348,12 @@ impl Polymarket {
         m.insert("url".to_string(), __ws_arg_21);
         m.insert("image".to_string(), __ws_arg_22);
         m.insert("created".to_string(), Value::from(__ws_arg_23));
-        m.insert("createdDatetime".to_string(), createdAt.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("createdDatetime".to_string(), createdAt.map(Value::from).unwrap_or(Value::Null));
         m.insert("end".to_string(), Value::from(__ws_arg_24));
-        m.insert("endDatetime".to_string(), endDate.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("endDatetime".to_string(), endDate.map(Value::from).unwrap_or(Value::Null));
         m.insert("category".to_string(), __ws_arg_25);
         m.insert("lastUpdatedAt".to_string(), Value::from(__ws_arg_26));
-        m.insert("lastUpdatedAtDatetime".to_string(), updatedAt.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("lastUpdatedAtDatetime".to_string(), updatedAt.map(Value::from).unwrap_or(Value::Null));
         m.insert("resolutionSource".to_string(), __ws_arg_27);
         m.insert("resolved".to_string(), __ws_arg_28);
         m.insert("info".to_string(), rawEvent);
@@ -4513,7 +4513,7 @@ impl Polymarket {
  * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-    pub async fn derive_api_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn derive_api_key(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4533,7 +4533,7 @@ impl Polymarket {
  * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-    pub async fn create_api_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4552,17 +4552,17 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-    pub async fn create_or_derive_api_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn create_or_derive_api_key(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut creds: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            creds = self.derive_api_key(&[params.clone()]).await.into_opt_dict();
+            creds = self.derive_api_key(&[&params]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            creds = self.create_api_key(&[params]).await.into_opt_dict();
+            creds = self.create_api_key(&[&params]).await.into_opt_dict();
         }
         if (creds.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrDeriveApiKey() returned no credentials")));
@@ -4896,7 +4896,7 @@ if _try_result.is_err() {
         });
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), subscribeHash.as_str(), Value::Null).await.into();
-        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -5041,7 +5041,7 @@ if _try_result.is_err() {
             let mut outcomeName: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", "orders::", outcomeName);
         }
-        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[params]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[&params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -5084,7 +5084,7 @@ if _try_result.is_err() {
             let mut outcomeName: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", "myTrades::", outcomeName);
         }
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[&params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -5094,7 +5094,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub async fn subscribe_user_channel(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_user_channel(&mut self, messageHash: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

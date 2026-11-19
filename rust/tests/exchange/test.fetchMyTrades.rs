@@ -21,7 +21,7 @@ pub async fn testFetchMyTrades(mut exchange: Value, mut skippedProperties: Value
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(false));
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), trades.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, trades]);
     return Value::Bool(true);
 
     Value::Null

@@ -245,7 +245,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
@@ -261,7 +261,7 @@ impl P2b {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -288,7 +288,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut watchTickerOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchTicker");
@@ -327,7 +327,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
@@ -415,7 +415,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
@@ -446,7 +446,7 @@ impl P2b {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -474,7 +474,7 @@ impl P2b {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -578,7 +578,7 @@ impl P2b {
             let mut __for_first_575: bool = true;
             while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (trades.len() as i64) } {
             let mut item: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(item), Some(&market)).into_dict();
+            let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(item), Some(&market));
             tradesArray.append(Value::Dict(trade));
         }
         }
@@ -634,15 +634,15 @@ impl P2b {
         let mut ticker: Value = Value::Null;
         if (method.as_deref() == Some("price.update")) {
             let mut lastPrice: Option<String> = self.safe_string_opt(&data, Value::Int(1), &[]);
-            ticker = self.safe_ticker(Value::Map({
+            ticker = Value::Dict(self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("last".to_string(), lastPrice.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("close".to_string(), lastPrice.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m
-            }), None);
+            }), None));
         }  else {
-            ticker = self.parse_ticker(tickerData.map_or(Value::Null, Value::Dict), Some(&market));
+            ticker = Value::Dict(self.parse_ticker(tickerData.map_or(Value::Null, Value::Dict), Some(&market)));
         }
         let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }

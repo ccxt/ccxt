@@ -48,7 +48,7 @@ impl Lbank {
 }
 
 impl crate::exchange::DerivedExchange for Lbank {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         // spot: fetchTicker, fetchTickers
@@ -90,7 +90,7 @@ impl crate::exchange::DerivedExchange for Lbank {
         let mut tickerData: crate::value::Dict = self.safe_dict_k_t(&ticker, "ticker");
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut data: Value = (if (marketResolved).contract { ticker.clone() } else { Value::Dict(tickerData) });
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -113,11 +113,11 @@ impl crate::exchange::DerivedExchange for Lbank {
         m.insert("quoteVolume".to_string(), self.safe_string_k(&data, "turnover", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades (old) spotPublicGetTrades
@@ -207,7 +207,7 @@ impl crate::exchange::DerivedExchange for Lbank {
                 m
             }));
         }
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -225,7 +225,7 @@ impl crate::exchange::DerivedExchange for Lbank {
     m
 }), market));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -635,7 +635,7 @@ impl crate::exchange::DerivedExchange for Lbank {
         m.insert("withdraw".to_string(), self.safe_bool_k(&networkEntry, "canWithDraw", &[]));
         m.insert("fee".to_string(), self.safe_number_k(&networkEntry, "fee", &[]));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&networkEntry, "transferAmtScale", &[])]), &[]));
-        m.insert("info".to_string(), networkEntry.clone().map_or(Value::Null, Value::Dict));
+        m.insert("info".to_string(), networkEntry.map_or(Value::Null, Value::Dict));
     m
 }));
             }
@@ -1086,8 +1086,8 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_deposit_address_default" => self.fetch_deposit_address_default(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "fetch_deposit_address_supplement" => self.fetch_deposit_address_supplement(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_deposit_address_default" => self.fetch_deposit_address_default(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_deposit_address_supplement" => self.fetch_deposit_address_supplement(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_deposit_withdraw_fees" => crate::types::IntoRaw::into_raw(self.fetch_deposit_withdraw_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1098,13 +1098,13 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_default" => self.fetch_order_default(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
-                "fetch_order_supplement" => self.fetch_order_supplement(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
+                "fetch_order_default" => self.fetch_order_default(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_order_supplement" => self.fetch_order_supplement(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_private_deposit_withdraw_fees" => self.fetch_private_deposit_withdraw_fees(&args[..]).await,
-                "fetch_private_transaction_fees" => self.fetch_private_transaction_fees(&args[..]).await,
-                "fetch_public_deposit_withdraw_fees" => self.fetch_public_deposit_withdraw_fees(&args[..]).await,
-                "fetch_public_transaction_fees" => self.fetch_public_transaction_fees(&args[..]).await,
+                "fetch_private_deposit_withdraw_fees" => self.fetch_private_deposit_withdraw_fees(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_private_transaction_fees" => self.fetch_private_transaction_fees(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_public_deposit_withdraw_fees" => self.fetch_public_deposit_withdraw_fees(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_public_transaction_fees" => self.fetch_public_transaction_fees(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
                 "fetch_swap_markets" => self.fetch_swap_markets(&args[..]).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1123,9 +1123,9 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_public_deposit_withdraw_fees" => self.parse_public_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_public_deposit_withdraw_fees" => self.parse_public_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -2202,7 +2202,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2241,7 +2241,7 @@ impl Lbank {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &first, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2267,7 +2267,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2369,7 +2369,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2476,7 +2476,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2555,7 +2555,7 @@ impl Lbank {
     m
 }));
         // endpoint doesnt work
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2608,7 +2608,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2639,7 +2639,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -2701,7 +2701,7 @@ impl Lbank {
 }));
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchBalance");
@@ -2833,7 +2833,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2886,7 +2886,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2928,7 +2928,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3062,7 +3062,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut method: Option<String> = self.safe_string_k_opt(&params, "method", &[]);
@@ -3071,14 +3071,14 @@ impl Lbank {
             method = self.safe_string_k_opt(&options, "method", &[Value::Str("fetchOrderSupplement".into())]);
         }
         if (method.as_deref() == Some("fetchOrderSupplement")) {
-            return self.fetch_order_supplement(id.as_str().unwrap_or_default(), symbol.as_str(), &[params.clone()]).await;
+            return self.fetch_order_supplement(id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]).await;
         }
-        return self.fetch_order_default(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).await;
+        return self.fetch_order_default(id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_order_supplement(&mut self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_supplement(&mut self, id: &str, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3086,7 +3086,7 @@ impl Lbank {
         if (symbol.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3125,7 +3125,7 @@ impl Lbank {
     Value::Null
 }
 
-    pub async fn fetch_order_default(&mut self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_default(&mut self, id: &str, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3134,7 +3134,7 @@ impl Lbank {
         if (symbol.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3207,7 +3207,7 @@ impl Lbank {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3282,7 +3282,7 @@ impl Lbank {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3357,7 +3357,7 @@ impl Lbank {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3430,7 +3430,7 @@ impl Lbank {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
@@ -3489,7 +3489,7 @@ impl Lbank {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3554,7 +3554,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchDepositAddress");
@@ -3563,21 +3563,21 @@ impl Lbank {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("fetchDepositAddressSupplement")) {
-            response = self.fetch_deposit_address_supplement(code.as_str().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
+            response = self.fetch_deposit_address_supplement(code.as_str().unwrap_or_default(), &[&Value::from(&paramsOmitted)]).await;
         }  else {
-            response = self.fetch_deposit_address_default(code.as_str().unwrap_or_default(), &[Value::Dict(paramsOmitted)]).await;
+            response = self.fetch_deposit_address_default(code.as_str().unwrap_or_default(), &[&Value::Dict(paramsOmitted)]).await;
         }
         return response;
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_deposit_address_default(&mut self, code: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_address_default(&mut self, code: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(Value::from(code));
@@ -3622,13 +3622,13 @@ impl Lbank {
     Value::Null
 }
 
-    pub async fn fetch_deposit_address_supplement(&mut self, code: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_address_supplement(&mut self, code: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         // returns the address for whatever the default network is...
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(Value::from(code));
@@ -3706,7 +3706,7 @@ impl Lbank {
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.1;
         self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut fee: Option<String> = self.safe_string_k_opt(&paramsWithdrawTag, "fee", &[]);
@@ -3812,7 +3812,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3883,7 +3883,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3949,7 +3949,7 @@ impl Lbank {
     m
 }));
         // private only returns information for currencies with non-zero balance
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isAuthorized: bool = self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true);
@@ -3959,23 +3959,23 @@ impl Lbank {
             let mut method: Option<String> = self.safe_string_k_opt(&params, "method", &[Value::from(defaultMethod)]);
             let mut paramsOmitted: Value = self.omit(&params, Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicTransactionFees")) {
-                return self.fetch_public_transaction_fees(&[paramsOmitted.clone()]).await;
+                return self.fetch_public_transaction_fees(&[&paramsOmitted]).await;
             }
-            return self.fetch_private_transaction_fees(&[paramsOmitted]).await;
+            return self.fetch_private_transaction_fees(&[&paramsOmitted]).await;
         }
-        return self.fetch_public_transaction_fees(&[params]).await;
+        return self.fetch_public_transaction_fees(&[&params]).await;
 
     Value::Null
 }
 
-    pub async fn fetch_private_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_private_transaction_fees(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         // complete response
         // incl. for coins which undefined in public method
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_user_info", &[]).await;
@@ -4068,14 +4068,14 @@ impl Lbank {
     Value::Null
 }
 
-    pub async fn fetch_public_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_public_transaction_fees(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         // extremely incomplete response
         // vast majority fees undefined
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut code: Option<String> = self.safe_string2_opt(&params, Value::Str("coin".into()), Value::Str("assetCode".into()), &[]);
@@ -4179,7 +4179,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isAuthorized: bool = self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true);
@@ -4189,16 +4189,16 @@ impl Lbank {
             let mut method: Option<String> = self.safe_string_k_opt(&params, "method", &[Value::from(defaultMethod)]);
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params.clone(), Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicDepositWithdrawFees")) {
-                return self.fetch_public_deposit_withdraw_fees(&[codes.clone(), Value::from(&paramsOmitted)]).await;
+                return self.fetch_public_deposit_withdraw_fees(&[&codes, &Value::from(&paramsOmitted)]).await;
             }
-            return self.fetch_private_deposit_withdraw_fees(&[codes.clone(), Value::Dict(paramsOmitted)]).await;
+            return self.fetch_private_deposit_withdraw_fees(&[&codes, &Value::Dict(paramsOmitted)]).await;
         }
-        return self.fetch_public_deposit_withdraw_fees(&[codes, params]).await;
+        return self.fetch_public_deposit_withdraw_fees(&[&codes, &params]).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_private_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_private_deposit_withdraw_fees(&mut self, optional_args: &[&Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4206,7 +4206,7 @@ impl Lbank {
 }));
         // complete response
         // incl. for coins which undefined in public method
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.call_method_t("spot_private_post_supplement_user_info", &[&params]).await;
@@ -4246,7 +4246,7 @@ impl Lbank {
     Value::Null
 }
 
-    pub async fn fetch_public_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_public_deposit_withdraw_fees(&mut self, optional_args: &[&Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4254,7 +4254,7 @@ impl Lbank {
 }));
         // extremely incomplete response
         // vast majority fees undefined
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4285,12 +4285,12 @@ impl Lbank {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_public_deposit_withdraw_fees(&data, &[codes]);
+        return self.parse_public_deposit_withdraw_fees(&data, &[&codes]);
 
     Value::Null
 }
 
-    pub fn parse_public_deposit_withdraw_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_public_deposit_withdraw_fees(&self, response: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut response: Value = response.into();
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let __response_empty = Vec::new();

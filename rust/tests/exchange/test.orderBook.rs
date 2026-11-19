@@ -29,7 +29,7 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         m
     });
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("nonce".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format.clone(), emptyAllowedFor.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone()]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());

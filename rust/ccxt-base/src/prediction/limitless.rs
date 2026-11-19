@@ -801,7 +801,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
     {
         Box::pin(async move {
             match method {
-                "apply_scale" => self.apply_scale(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]),
+                "apply_scale" => self.apply_scale(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "approve" => self.approve(&args[..]).await,
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -820,15 +820,15 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_ids" => self.fetch_orders_by_ids(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
+                "fetch_orders_by_ids" => self.fetch_orders_by_ids(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_active_markets" => self.fetch_raw_active_markets(&args[..]).await,
-                "fetch_raw_markets_by_tags" => self.fetch_raw_markets_by_tags(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_raw_active_markets" => self.fetch_raw_active_markets(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_markets_by_tags" => self.fetch_raw_markets_by_tags(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
-                "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]),
+                "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
@@ -1508,7 +1508,7 @@ impl Limitless {
         self.exchange.events = Value::Map(eventsDict);
         let mut marketsLength: i64 = markets.len() as i64;
         if (maxMarkets.is_some() && Some(marketsLength) > maxMarkets) {
-            return self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(maxMarkets)]);
+            return Value::Arr(self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(maxMarkets)]));
         }
         return Value::from(markets);
         Value::Null
@@ -2693,7 +2693,7 @@ impl Limitless {
             result.push(self.safe_value(&candles, bucketOrder.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
         }
         }
-        return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Int(0)]);
+        return Value::Arr(self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Int(0)]));
         Value::Null
         }).await?))
     }
@@ -2830,7 +2830,7 @@ impl Limitless {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-    pub async fn fetch_orders_by_ids(&mut self, mut ids: Value, outcome: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_ids(&mut self, mut ids: Value, outcome: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3002,7 +3002,7 @@ impl Limitless {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
         }
-        let mut orders: crate::value::List = self.fetch_orders_by_ids(Value::from(vec![id.clone()]), outcome.as_str(), &[params]).await.into_list();
+        let mut orders: crate::value::List = self.fetch_orders_by_ids(Value::from(vec![id.clone()]), outcome.as_str(), &[&params]).await.into_list();
         let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order ").into()), id)));
@@ -3081,7 +3081,7 @@ impl Limitless {
         return self.safe_string_opt(&sides, Value::from(side), &[Value::from(side)]);
 }
 
-    pub fn apply_scale(&self, amount: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn apply_scale(&self, amount: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut multiply = get_arg(optional_args, 0, Value::Bool(false));
         let mut decimals: i64 = self.safe_integer_k(&self.options, "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
         let mut scale: Option<String> = self.number_to_string(Value::Float(f64::powf(10.0, (decimals as f64))));
@@ -3276,8 +3276,8 @@ if _try_result.is_err() {
             }
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
-        signRequest.insert("makerAmount".into(), Value::from(self.parse_to_int(self.apply_scale(makerAmount.as_deref(), &[Value::Bool(true)]))));
-        signRequest.insert("takerAmount".into(), (if isMarket { Value::Int(1) } else { Value::from(self.parse_to_int(self.apply_scale(takerAmount.as_deref(), &[Value::Bool(true)]))) }));
+        signRequest.insert("makerAmount".into(), Value::from(self.parse_to_int(self.apply_scale(makerAmount.as_deref(), &[&Value::Bool(true)]))));
+        signRequest.insert("takerAmount".into(), (if isMarket { Value::Int(1) } else { Value::from(self.parse_to_int(self.apply_scale(takerAmount.as_deref(), &[&Value::Bool(true)]))) }));
         let mut signature: Option<String> = self.sign_order_request(Value::Map(signRequest.clone()), marketSymbol.as_deref());
         signRequest.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
@@ -3979,7 +3979,7 @@ if _try_result.is_err() {
                 let mut __for_first_1329: bool = true;
                 while { if !__for_first_1329 { j += 1; } __for_first_1329 = false; j < (labels.len() as i64) } {
                 let mut label: Option<String> = self.safe_string_opt(&labels, Value::Int(j), &[]);
-                let mut position: Value = self.get_position_from_clob_entry(label.as_deref(), &[entry.clone().map_or(Value::Null, Value::Dict)]);
+                let mut position: Value = self.get_position_from_clob_entry(label.as_deref(), &[&entry.clone().map_or(Value::Null, Value::Dict)]);
                 if (position != Value::Null) {
                     result.push(position);
                 }
@@ -3992,7 +3992,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn get_position_from_clob_entry(&self, label: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn get_position_from_clob_entry(&self, label: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut entry = get_arg(optional_args, 0, Value::Null);
         if (entry == Value::Null) {
             return Value::Null;
@@ -4118,7 +4118,7 @@ if _try_result.is_err() {
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             let mut requestedTags: crate::value::List = self.safe_list_k_t(&params, "tags");
-            let mut listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(Value::Arr(requestedTags), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
+            let mut listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(Value::Arr(requestedTags), &[&params]).await.as_array().cloned().unwrap_or_default();
             let mut listRawLength: i64 = listRaw.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -4134,8 +4134,8 @@ if _try_result.is_err() {
                 m
             });
         }
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         let mut eventGroups: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4225,7 +4225,7 @@ if _try_result.is_err() {
  * @param {string} [categoryId] a limitless category id — pages only that category's listing
  * @returns {object[]} raw limitless market objects
  */
-    pub async fn fetch_raw_active_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_raw_active_markets(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4288,7 +4288,7 @@ if _try_result.is_err() {
  * @param {int} [params.limit] max number of raw markets to collect per category
  * @returns {object[]} raw limitless market objects, deduped by slug
  */
-    pub async fn fetch_raw_markets_by_tags(&mut self, mut tags: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_raw_markets_by_tags(&mut self, mut tags: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4322,9 +4322,6 @@ if _try_result.is_err() {
                                 let mut wi: i64 = 0;
                 let mut __for_first_1338: bool = true;
                 while { if !__for_first_1338 { wi += 1; } __for_first_1338 = false; wi < (wanted.len() as i64) } {
-                if (false) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchRawMarketsByTags() missing name")));
-                }
                 if ((if let (Some(__h), Some(__n)) = (Some(name.as_str()), (wanted.get(wi as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                     matched = true;
                     break;
@@ -4349,7 +4346,7 @@ if _try_result.is_err() {
                         let mut ci: i64 = 0;
             let mut __for_first_1341: bool = true;
             while { if !__for_first_1341 { ci += 1; } __for_first_1341 = false; ci < categoryIdsLength } {
-            let mut categoryMarkets: Vec<Value> = self.fetch_raw_active_markets(&[params.clone(), categoryIds.get(ci as usize).cloned().unwrap_or(Value::Null)]).await.as_array().cloned().unwrap_or_default();
+            let mut categoryMarkets: Vec<Value> = self.fetch_raw_active_markets(&[&params, &categoryIds.get(ci as usize).cloned().unwrap_or(Value::Null)]).await.as_array().cloned().unwrap_or_default();
             let mut categoryMarketsLength: i64 = categoryMarkets.len() as i64;
             {
                                 let mut mi: i64 = 0;

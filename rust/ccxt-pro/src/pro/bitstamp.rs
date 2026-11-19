@@ -69,7 +69,8 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
                 "prune_cached_by_symbols" => self.prune_cached_by_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_private" => self.subscribe_private(&mut { let mut __m = args.get(0).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "un_watch_channel" => self.un_watch_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "un_watch_channel" => self.un_watch_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
@@ -220,7 +221,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -264,14 +265,14 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str("diff_order_book_".into()), Value::from((market).id.as_deref().unwrap_or("")));
         let mut subHash: String = format!("{}{}", "orderbook:", symbolValue);
-        return self.un_watch_channel(channel.as_str(), subHash.as_str(), "orderbook", Value::from(vec![Value::from(symbolValue)]), &[params]).await;
+        return self.un_watch_channel(channel.as_str(), subHash.as_str(), "orderbook", Value::from(vec![Value::from(symbolValue)]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -287,7 +288,7 @@ impl Bitstamp {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-    pub async fn un_watch_channel(&mut self, channel: &str, subHash: &str, topic: &str, mut symbols: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_channel(&mut self, channel: &str, subHash: &str, topic: &str, mut symbols: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -453,7 +454,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -476,7 +477,7 @@ impl Bitstamp {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -501,14 +502,14 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut channel: String = format!("{}{}", Value::Str("live_trades_".into()), Value::from((market).id.as_deref().unwrap_or("")));
         let mut subHash: String = format!("{}{}", "trades:", symbolValue);
-        return self.un_watch_channel(channel.as_str(), subHash.as_str(), "trades", Value::from(vec![Value::from(symbolValue)]), &[params]).await;
+        return self.un_watch_channel(channel.as_str(), subHash.as_str(), "trades", Value::from(vec![Value::from(symbolValue)]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -626,7 +627,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -706,7 +707,7 @@ impl Bitstamp {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -725,7 +726,7 @@ impl Bitstamp {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -753,7 +754,7 @@ impl Bitstamp {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " unWatchOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -764,7 +765,7 @@ impl Bitstamp {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " unWatchOrders() requires a userId from authenticate()")));
         }
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("private-my_orders_".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "-").into()), userId.as_deref().unwrap_or("null"));
-        return self.un_watch_channel(channel.as_str(), channel.as_str(), "orders", Value::from(vec![Value::from(symbolValue)]), &[params]).await;
+        return self.un_watch_channel(channel.as_str(), channel.as_str(), "orders", Value::from(vec![Value::from(symbolValue)]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -796,7 +797,7 @@ impl Bitstamp {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchMyTrades() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -816,7 +817,7 @@ impl Bitstamp {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, Some(symbolValue.as_str()), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, Some(symbolValue.as_str()), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -844,7 +845,7 @@ impl Bitstamp {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " unWatchMyTrades() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -855,7 +856,7 @@ impl Bitstamp {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " unWatchMyTrades() requires a userId from authenticate()")));
         }
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("private-my_trades_".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "-").into()), userId.as_deref().unwrap_or("null"));
-        return self.un_watch_channel(channel.as_str(), channel.as_str(), "myTrades", Value::from(vec![Value::from(symbolValue)]), &[params]).await;
+        return self.un_watch_channel(channel.as_str(), channel.as_str(), "myTrades", Value::from(vec![Value::from(symbolValue)]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -883,7 +884,7 @@ impl Bitstamp {
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::Dict = message.key_dict("data");
-        let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+        let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)) });
         let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -987,7 +988,7 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).as_map().cloned().unwrap_or_default();
-        let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+        let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)) });
         let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;

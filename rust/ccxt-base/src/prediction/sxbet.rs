@@ -255,9 +255,9 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_markets_paged" => self.fetch_raw_markets_paged(&args[..]).await,
+                "fetch_raw_markets_paged" => self.fetch_raw_markets_paged(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_settlements" => crate::types::IntoRaw::into_raw(self.fetch_settlements(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..]).await,
+                "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_sxbet_book_snapshot" => self.fetch_sxbet_book_snapshot(args.get(0).and_then(crate::Value::as_text).as_deref()).await,
                 "fetch_sxbet_proxy" => self.fetch_sxbet_proxy().await,
                 "fetch_sxbet_realtime_token" => self.fetch_sxbet_realtime_token().await,
@@ -637,7 +637,7 @@ impl Sxbet {
 }));
         let mut rest: crate::value::Dict = self.omit_t(params.clone(), &["limit"], &[]);
         let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
-        let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[Value::Dict(rest), Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
+        let mut rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
         let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
         {
@@ -649,7 +649,7 @@ impl Sxbet {
         }
         let mut marketsLength: i64 = markets.len() as i64;
         if (userLimit.is_some()) && ((userLimit.is_some() && Some(marketsLength) > userLimit)) {
-            return self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(userLimit)]);
+            return Value::Arr(self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(userLimit)]));
         }
         return Value::from(markets);
         Value::Null
@@ -665,7 +665,7 @@ impl Sxbet {
  * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
  * @returns {object[]} the raw (unparsed) sx.bet market objects
  */
-    pub async fn fetch_raw_markets_paged(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_raw_markets_paged(&mut self, optional_args: &[&Value]) -> Value {
         let mut extra = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -946,7 +946,7 @@ impl Sxbet {
         m.insert("sportXeventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&rest]);
-            rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_1, Value::Null]).await;
+            rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_1, &Value::Null]).await;
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
             // returning every fixture) — enforce the scope client-side
             rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets, eventId.as_deref().unwrap_or_default());
@@ -956,18 +956,18 @@ impl Sxbet {
         m.insert("leagueId".to_string(), leagueId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&rest]);
-            rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_2, Value::Null]).await;
+            rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_2, &Value::Null]).await;
         }  else if (sportId.is_some()) {
             let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sportId".to_string(), sportId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&rest]);
-            rawMarkets = self.fetch_raw_markets_paged(&[__ws_arg_3, Value::Null]).await;
+            rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_3, &Value::Null]).await;
         }  else {
             // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
             // bound, then filter client-side (the venue's /search covers team names only)
-            rawMarkets = self.fetch_raw_markets_paged(&[Value::Dict(rest), Value::Null]).await;
+            rawMarkets = self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::Null]).await;
         }
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
@@ -1006,8 +1006,8 @@ impl Sxbet {
             if let Some(__k) = sportXeventId.as_deref() { if let Value::Arr(__a) = grouped.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(raw); } }
         }
         }
-        if (self.markets == Value::Null) {
-            { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
+        if (self.markets.is_none()) {
+            { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         }
         let mut result: Vec<Value> = Vec::new();
         let mut orderLength: i64 = order.len() as i64;
@@ -1063,7 +1063,7 @@ impl Sxbet {
         m.insert("sportXeventId".to_string(), id.clone());
     m
 }), &[params]);
-        let mut rawMarkets: Value = self.fetch_raw_markets_paged(&[__ws_arg_4, Value::Null]).await;
+        let mut rawMarkets: Value = self.fetch_raw_markets_paged(&[&__ws_arg_4, &Value::Null]).await;
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets, id.as_str().unwrap_or_default());
         let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
@@ -1930,7 +1930,7 @@ impl Sxbet {
                 end = self.parse_to_int(Value::from(idsLength));
             }
             let mut orderItems: Vec<Value> = Vec::new();
-            let mut chunkIds: crate::value::List = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]).into_list();
+            let mut chunkIds: crate::value::List = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]);
             let mut chunkIdsLength: i64 = chunkIds.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -2240,7 +2240,7 @@ impl Sxbet {
         // the venue serves the tape newest-first - the unified contract is ascending by timestamp
         trades = self.sort_by_t(Value::Arr(trades), Value::Str("timestamp".into()), &[]);
         let mut sym: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
-        return self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2302,7 +2302,7 @@ impl Sxbet {
         }
         trades = self.sort_by_t(Value::Arr(trades), Value::Str("timestamp".into()), &[]);
         let mut sym: Option<String> = (if (outcomeObj.is_some()) { self.safe_string_k_opt(&outcomeObj, "outcome", &[]) } else { None });
-        return self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2792,7 +2792,7 @@ impl Sxbet {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
  */
-    pub async fn fetch_sxbet_best_odds(&mut self, marketHashes: Vec<String>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_sxbet_best_odds(&mut self, marketHashes: Vec<String>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2926,8 +2926,8 @@ impl Sxbet {
             if chunkEnd > Some(hashesLength) {
                 end = self.parse_to_int(Value::from(hashesLength));
             }
-            let mut chunk: Value = self.array_slice(Value::Arr(hashesOrder.clone()), Value::from(start), &[Value::from(end)]);
-            let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[params.clone()]).await.as_array().cloned().unwrap_or_default();
+            let mut chunk: Value = Value::Arr(self.array_slice(Value::Arr(hashesOrder.clone()), Value::from(start), &[Value::from(end)]));
+            let mut rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[&params]).await.as_array().cloned().unwrap_or_default();
             let mut rowsLength: i64 = rows.len() as i64;
             {
                                 let mut j: i64 = 0;
@@ -3107,11 +3107,11 @@ impl Sxbet {
         if (limit != Value::Null) {
             let mut bidsLength: i64 = sortedBids.len() as i64;
             if (limit.as_i64().is_some() && limit.as_i64() < Some(bidsLength)) {
-                sortedBids = self.array_slice(Value::Arr(sortedBids), Value::Int(0), &[limit.clone()]).into_list();
+                sortedBids = self.array_slice(Value::Arr(sortedBids), Value::Int(0), &[limit.clone()]);
             }
             let mut asksLength: i64 = sortedAsks.len() as i64;
             if (limit.as_i64().is_some() && limit.as_i64() < Some(asksLength)) {
-                sortedAsks = self.array_slice(Value::Arr(sortedAsks), Value::Int(0), &[limit]).into_list();
+                sortedAsks = self.array_slice(Value::Arr(sortedAsks), Value::Int(0), &[limit]);
             }
         }
         let mut timestamp: i64 = self.milliseconds();
@@ -3747,7 +3747,7 @@ impl Sxbet {
         let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trades::", sym);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_sxbet_channel(messageHash.as_str(), "recent_trades_v3:global").await.into();
-        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -3873,7 +3873,7 @@ impl Sxbet {
         }
         let mut channel: String = format!("{}{}", "account:fills_v3_#", self.walletAddress.clone());
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_sxbet_channel(messageHash.as_str(), channel.as_str()).await.into();
-        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -3945,7 +3945,7 @@ impl Sxbet {
         }
         let mut channel: String = format!("{}{}", "account:orders_v3_#", self.walletAddress.clone());
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_sxbet_channel(messageHash.as_str(), channel.as_str()).await.into();
-        return self.filter_by_since_limit(&orders, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&orders, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

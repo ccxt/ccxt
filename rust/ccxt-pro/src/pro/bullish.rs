@@ -324,7 +324,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -341,7 +341,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -421,7 +421,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -488,14 +488,14 @@ impl Bullish {
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(Value::from(&data), Some(&market)).as_map().cloned().unwrap_or_default();
+        let mut parsed: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(Value::from(&data), Some(&market)));
         if (updateType.as_deref() == Some("update")) {
             let mut ticker: crate::value::Dict = if let Some(Value::Dict(__m)) = self.tickers.get(crate::runtime::stringify_param(&symbol).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned() { __m } else { Default::default() };
             let __ws_arg_2 = self.extend(self.safe_dict_k(&ticker, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[&data]);
-            parsed = self.parse_ticker(__ws_arg_2, Some(&market)).as_map().cloned().unwrap_or_default();
+            parsed = std::sync::Arc::unwrap_or_clone(self.parse_ticker(__ws_arg_2, Some(&market)));
         }
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(parsed)); }
         let mut messageHash: String = format!("{}{}", "ticker::", symbol);
@@ -524,7 +524,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -642,7 +642,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "orders".to_string();
@@ -667,7 +667,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -790,7 +790,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "myTrades".to_string();
@@ -815,7 +815,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -883,7 +883,7 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_183: bool = true;
                 while { if !__for_first_183 { i += 1; } __for_first_183 = false; i < (rawTrades.len() as i64) } {
-                let mut parsedTrade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+                let mut parsedTrade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
                 trades.append(Value::from(&parsedTrade));
                 let mut symbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -925,7 +925,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1056,7 +1056,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "positions".to_string();
@@ -1078,7 +1078,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

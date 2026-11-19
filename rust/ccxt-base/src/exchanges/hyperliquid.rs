@@ -53,7 +53,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         //     {
@@ -74,7 +74,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut marketId: Option<String> = self.coin_to_market_id(name.as_deref());
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut bidAsk: crate::value::List = self.safe_list_k_t(&ticker, "impactPxs");
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
@@ -87,11 +87,11 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("quoteVolume".to_string(), self.safe_number_k(&ticker, "dayNtlVlm", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         //     {
@@ -133,7 +133,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if (builderFee.is_some()) {
             fee = crate::precise::Precise::stringAdd(&fee, &builderFee).as_str().map(str::to_owned);
         }
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -157,7 +157,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -819,7 +819,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.as_deref(), None, &[]));
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         // swap ids are asset indexes, so the market is looked up by symbol
-        if (symbol.is_some()) && (self.markets != Value::Null) && (matches!((&self.markets, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+        if (symbol.is_some()) && (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
             marketResolved = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()));
         }
         let mut side: Option<String> = self.safe_string_k_opt(&liquidation, "side", &[]);
@@ -976,10 +976,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " market() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " markets not loaded")));
         }
-        if !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.markets, &symbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut symbolParts: crate::value::List = crate::value::List::new(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
             let mut baseName: Option<String> = self.safe_string_opt(&symbolParts, Value::Int(0), &[]);
             let mut spotCurrencyMapping: crate::value::Dict = self.safe_dict_k_t(&self.options, "spotCurrencyMapping");
@@ -987,8 +987,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
                 let mut unifiedBaseName: Option<String> = self.safe_string_opt(&spotCurrencyMapping, baseName.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut quote: Option<String> = self.safe_string_opt(&symbolParts, Value::Int(1), &[]);
                 let mut newSymbol: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.as_deref(), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
-                if (matches!((&self.markets, Some(newSymbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    return (if let Some(__m) = self.markets.as_map() { __m.get(newSymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                if (matches!((&self.markets, Some(newSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
+                    return (if let Some(__m) = self.markets.as_deref() { __m.get(newSymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 }
             }
         }
@@ -1119,24 +1119,24 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_for_symbols" => crate::types::IntoRaw::into_raw(self.cancel_orders_for_symbols(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]),
-                "cancel_twap_order" => self.cancel_twap_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
-                "construct_phantom_agent" => self.construct_phantom_agent(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "cancel_twap_order" => self.cancel_twap_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "construct_phantom_agent" => self.construct_phantom_agent(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_text).as_deref(), &args[5.min(args.len())..]),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_text).as_deref(), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "create_orders_request" => self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "create_orders_request" => self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_twap_order" => crate::types::IntoRaw::into_raw(self.create_twap_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-                "create_vault" => self.create_vault(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "create_vault" => self.create_vault(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "edit_orders_request" => self.edit_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "enable_user_dex_abstraction" => self.enable_user_dex_abstraction(args.get(0).is_some_and(crate::Value::is_truthy), &args[1.min(args.len())..]).await,
-                "extract_type_from_delta" => self.extract_type_from_delta(&args[..]),
+                "edit_orders_request" => self.edit_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "enable_user_dex_abstraction" => self.enable_user_dex_abstraction(args.get(0).is_some_and(crate::Value::is_truthy), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "extract_type_from_delta" => self.extract_type_from_delta(&args[..].iter().collect::<Vec<_>>()),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1147,7 +1147,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_funding_rate" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rates" => crate::types::IntoRaw::into_raw(self.fetch_funding_rates(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_hip3_markets" => self.fetch_hip3_markets(&args[..]).await,
+                "fetch_hip3_markets" => self.fetch_hip3_markets(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_liquidations" => crate::types::IntoRaw::into_raw(self.fetch_my_liquidations(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1175,12 +1175,12 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_public_address" => self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "initialize_client" => self.initialize_client().await,
-                "is_unified_enabled" => self.is_unified_enabled(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
+                "is_unified_enabled" => self.is_unified_enabled(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "market" => crate::types::IntoRaw::into_raw(self.market(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
+                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "nonce" => self.nonce(),
                 "parse_create_edit_order_args" => self.parse_create_edit_order_args(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1192,20 +1192,20 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-                "reserve_request_weight" => self.reserve_request_weight(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "set_agent_abstraction" => self.set_agent_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "reserve_request_weight" => self.reserve_request_weight(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "set_agent_abstraction" => self.set_agent_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_ref" => self.set_ref().await,
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
-                "set_user_abstraction" => self.set_user_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "set_user_abstraction" => self.set_user_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_l1_action" => self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64)),
@@ -1852,7 +1852,7 @@ impl Hyperliquid {
             }  else if (marketType.as_deref() == Some("spot")) {
                 rawPromises.push(self.fetch_spot_markets(&[params.clone()]).await);
             }  else if (marketType.as_deref() == Some("hip3")) {
-                rawPromises.push(self.fetch_hip3_markets(&[params.clone()]).await);
+                rawPromises.push(self.fetch_hip3_markets(&[&params]).await);
             }
         }
         }
@@ -1879,7 +1879,7 @@ impl Hyperliquid {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-    pub async fn fetch_hip3_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_hip3_markets(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2420,7 +2420,7 @@ impl Hyperliquid {
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsMarketType)]);
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
-        let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled("fetchBalance", userAddress.as_deref(), &[Value::Bool(shouldRefresh), Value::Dict(paramsMarginMode)]).await.as_array().cloned().unwrap_or_default();
+        let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled("fetchBalance", userAddress.as_deref(), &[&Value::Bool(shouldRefresh), &Value::Dict(paramsMarginMode)]).await.as_array().cloned().unwrap_or_default();
         let mut isUnifiedEnabled: bool = isUnifiedEnabledparamsValueVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsValue: crate::value::Dict = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue, "dex", &[]);
@@ -2541,7 +2541,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2611,7 +2611,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -2634,7 +2634,7 @@ impl Hyperliquid {
             }
         }
         if (hip3 == Some(true)) {
-            response = self.fetch_hip3_markets(&[self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await.into_list();
+            response = self.fetch_hip3_markets(&[&self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await.into_list();
         }  else if (type_var.as_deref() == Some("spot")) {
             response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await.into_list();
         }  else if (type_var.as_deref() == Some("swap")) {
@@ -2653,7 +2653,7 @@ impl Hyperliquid {
             while { if !__for_first_811 { i += 1; } __for_first_811 = false; i < (response.len() as i64) } {
             let mut market: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: crate::value::Dict = self.safe_dict_k_t(&market, "info");
-            let mut ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &info, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).into_dict();
+            let mut ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &info, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).unwrap_or_default();
             let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
@@ -2716,7 +2716,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -2725,7 +2725,7 @@ impl Hyperliquid {
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
             m
         });
-        let mut dexName: Option<String> = self.get_dex_from_symbols("fetchFundingRates", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        let mut dexName: Option<String> = self.get_dex_from_symbols("fetchFundingRates", &[&symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName.is_some()) {
             request.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
@@ -2816,7 +2816,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2890,7 +2890,7 @@ impl Hyperliquid {
 }));
         let mut userAddress: Option<String> = self.safe_string_opt(self.handle_public_address("fetchTrades", params.clone()), Value::Int(0), &[]);
         let mut paramsPublicAddress: crate::value::Dict = self.safe_dict_t(self.handle_public_address("fetchTrades", params), Value::Int(1));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2976,7 +2976,7 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut hash: Value = hash.into();
         let isTestnet: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut source: String = (if isTestnet { "b".to_string() } else { "a".to_string() });
@@ -3013,7 +3013,7 @@ impl Hyperliquid {
         let mut nonce: Value = nonce.into();
         let mut hash: Value = self.action_hash(action, vaultAdress, nonce, expiresAfter);
         let mut isTestnet: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
-        let mut phantomAgent: crate::value::Dict = self.construct_phantom_agent(hash, &[Value::Bool(isTestnet)]).into_dict();
+        let mut phantomAgent: crate::value::Dict = self.construct_phantom_agent(hash, &[&Value::Bool(isTestnet)]).into_dict();
         // const data: Dict = {
         //     'domain': {
         //         'chainId': 1337,
@@ -3400,7 +3400,7 @@ if _try_result.is_err() {
 
     pub async fn initialize_client(&mut self) -> Value {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            promise_all(&Value::from(vec![self.handle_builder_fee_approval().await, self.set_ref().await, self.is_unified_enabled("fetchBalance", None, &[Value::Bool(false), Value::Map({
+            promise_all(&Value::from(vec![self.handle_builder_fee_approval().await, self.set_ref().await, self.is_unified_enabled("fetchBalance", None, &[&Value::Bool(false), &Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).await])).await; // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
@@ -3449,7 +3449,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {bool} enableUnifiedMargin
  */
-    pub async fn is_unified_enabled(&mut self, method: &str, address: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn is_unified_enabled(&mut self, method: &str, address: Option<&str>, optional_args: &[&Value]) -> Value {
         let shouldRefresh: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3522,7 +3522,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
  * @returns dictionary response from the exchange
  */
-    pub async fn set_user_abstraction(&mut self, abstraction: &str, optional_args: &[Value]) -> Value {
+    pub async fn set_user_abstraction(&mut self, abstraction: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3574,7 +3574,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
  * @returns dictionary response from the exchange
  */
-    pub async fn enable_user_dex_abstraction(&mut self, enabled: bool, optional_args: &[Value]) -> Value {
+    pub async fn enable_user_dex_abstraction(&mut self, enabled: bool, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3625,7 +3625,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params]
  * @returns dictionary response from the exchange
  */
-    pub async fn set_agent_abstraction(&mut self, abstraction: &str, optional_args: &[Value]) -> Value {
+    pub async fn set_agent_abstraction(&mut self, abstraction: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3688,14 +3688,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let orderglobalParamsVariable: Vec<Value> = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
+        let orderglobalParamsVariable: Vec<Value> = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut created: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
+        let mut created: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
         return created.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -3730,7 +3730,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
@@ -3824,11 +3824,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut request: crate::value::Dict = self.create_orders_request(orders, &[params]).into_dict();
+        let mut request: crate::value::Dict = self.create_orders_request(orders, &[&params]).into_dict();
         let mut response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Dict(request)]).await;
         //
         //     {
@@ -3872,7 +3872,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, price: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, price: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3964,7 +3964,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn create_orders_request(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub fn create_orders_request(&mut self, mut orders: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4032,7 +4032,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut hasStopLoss: bool = stopLoss.is_some();
             let mut hasTakeProfit: bool = takeProfit.is_some();
             orderParams = self.omit_t(&orderParams, &["stopLoss", "takeProfit"], &[]);
-            let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[Value::from(&orderParams)]).into_dict();
+            let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[&Value::from(&orderParams)]).into_dict();
             if hasStopLoss || hasTakeProfit {
                 // grouping opposed orders for sl/tp
                 let mut stopLossOrderTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -4065,7 +4065,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.clone().map(Value::from).unwrap_or(Value::Null), takeProfitOrderLimitPrice.as_deref(), &[__ws_arg_19]).into_dict();
+                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.clone().map(Value::from).unwrap_or(Value::Null), takeProfitOrderLimitPrice.as_deref(), &[&__ws_arg_19]).into_dict();
                     orderReq.push(Value::Dict(orderObj));
                 }
                 if hasStopLoss {
@@ -4075,7 +4075,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.map(Value::from).unwrap_or(Value::Null), stopLossOrderLimitPrice.as_deref(), &[__ws_arg_20]).into_dict();
+                    let mut orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.map(Value::from).unwrap_or(Value::Null), stopLossOrderLimitPrice.as_deref(), &[&__ws_arg_20]).into_dict();
                     orderReq.push(Value::Dict(orderObj));
                 }
             }  else {
@@ -4154,10 +4154,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         if matches!(self.safe_bool_k(&params, "twap", &[Value::Bool(false)]), Value::Bool(true)) {
-            return self.cancel_twap_order(id.as_str().unwrap_or_default(), symbol.as_str(), &[self.omit(&params, Value::Str("twap".into()), &[])]).await;
+            return self.cancel_twap_order(id.as_str().unwrap_or_default(), symbol.as_str(), &[&self.omit(&params, Value::Str("twap".into()), &[])]).await;
         }
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders(vec![id.to_string()], symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut canceled: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
+        let mut canceled: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
         return canceled.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4194,11 +4194,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&params]).into_dict();
         let mut response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Dict(request)]).await;
         //
         //     {
@@ -4247,12 +4247,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_twap_order(&mut self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn cancel_twap_order(&mut self, id: &str, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol.is_none()) {
@@ -4314,7 +4314,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn cancel_orders_request(&mut self, mut ids: Value, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn cancel_orders_request(&mut self, mut ids: Value, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4427,7 +4427,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
@@ -4515,7 +4515,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
@@ -4548,7 +4548,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn edit_orders_request(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub fn edit_orders_request(&mut self, mut orders: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4745,17 +4745,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an id argument")));
         }
-        let orderglobalParamsVariable: Vec<Value> = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
+        let orderglobalParamsVariable: Vec<Value> = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orders: Vec<crate::types::Order> = (match self.edit_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut edited: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
+        let mut edited: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
         return edited.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4781,11 +4781,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let mut request: crate::value::Dict = self.edit_orders_request(orders, &[params]).into_dict();
+        let mut request: crate::value::Dict = self.edit_orders_request(orders, &[&params]).into_dict();
         let mut response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Dict(request)]).await;
         //
         //     {
@@ -4840,13 +4840,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn create_vault(&mut self, name: &str, description: &str, initialUsd: i64, optional_args: &[Value]) -> Value {
+    pub async fn create_vault(&mut self, name: &str, description: &str, initialUsd: i64, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut nonce: i64 = self.incrementing_nonce();
@@ -4900,7 +4900,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
@@ -4955,7 +4955,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let mut sorted: crate::value::List = self.sort_by_t(Value::from(result), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -5003,7 +5003,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let methodparamsMethodVariable = self.handle_option_string_and_params(&paramsPublicAddress, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("frontendOpenOrders".into())]);
         let mut method: Option<String> = methodparamsMethodVariable.0.as_str().map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5081,12 +5081,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
         let mut closedOrders: crate::value::List = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("closed".into())]), &[Value::Bool(false)]).into_list();
-        return self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -5115,12 +5115,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
         let mut closedOrders: crate::value::List = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into())]), &[Value::Bool(false)]).into_list();
-        return self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -5149,12 +5149,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }); // don't filter here because we don't want to catch open orders
         let mut closedOrders: crate::value::List = self.filter_by_array(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::from(vec![Value::Str("canceled".into()), Value::Str("closed".into()), Value::Str("rejected".into())]), &[Value::Bool(false)]).into_list();
-        return self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
     }
@@ -5187,7 +5187,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut userAddress: Option<String> = self.safe_string_opt(self.handle_public_address("fetchOrders", params.clone()), Value::Int(0), &[]);
         let mut paramsPublicAddress: crate::value::Dict = self.safe_dict_t(self.handle_public_address("fetchOrders", params), Value::Int(1));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -5289,7 +5289,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -5408,7 +5408,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut userAddress: Option<String> = self.safe_string_opt(self.handle_public_address("fetchMyTrades", params.clone()), Value::Int(0), &[]);
         let mut paramsPublicAddress: crate::value::Dict = self.safe_dict_t(self.handle_public_address("fetchMyTrades", params), Value::Int(1));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -5468,7 +5468,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut userAddress: Option<String> = self.safe_string_opt(self.handle_public_address("fetchMyLiquidations", params.clone()), Value::Int(0), &[]);
         let mut paramsPublicAddress: crate::value::Dict = self.safe_dict_t(self.handle_public_address("fetchMyLiquidations", params), Value::Int(1));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -5569,7 +5569,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn get_dex_from_symbols(&self, methodName: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn get_dex_from_symbols(&self, methodName: &str, optional_args: &[&Value]) -> Option<String> {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if (symbols == Value::Null) {
             return None;
@@ -5619,7 +5619,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string_opt(self.handle_public_address("fetchPositions", params.clone()), Value::Int(0), &[]);
@@ -5631,7 +5631,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Option<String> = self.get_dex_from_symbols("fetchPositions", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        let mut dexName: Option<String> = self.get_dex_from_symbols("fetchPositions", &[&symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName.is_some()) {
             request.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
@@ -5724,7 +5724,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setMarginMode() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5789,7 +5789,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5851,7 +5851,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "add", &[params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "add", &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -5880,17 +5880,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "reduce", &[params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "reduce", &[&params]).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, type_var: &str, optional_args: &[Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, type_var: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5968,7 +5968,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut isSandboxMode: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
@@ -6046,7 +6046,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut useSendAsset: bool = transferMethod.as_deref() == Some("sendAsset");
         if (transferMethod.is_none()) {
             let mut isUnified: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[Value::Bool(false), query.clone()]).await.as_array().cloned().unwrap_or_default(); isUnified = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[&Value::Bool(false), &query]).await.as_array().cloned().unwrap_or_default(); isUnified = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             useSendAsset = (isUnified == Some(true));
         }
         if useSendAsset {
@@ -6181,7 +6181,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[&address]);
@@ -6263,7 +6263,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = self.safe_string_opt(self.handle_public_address("fetchTradingFee", params.clone()), Value::Int(0), &[]);
@@ -6400,7 +6400,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
@@ -6468,7 +6468,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
@@ -6510,7 +6510,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // ]
         //
-        let mut records: crate::value::List = self.extract_type_from_delta(&[Value::Arr(depositLedger)]).into_list();
+        let mut records: crate::value::List = self.extract_type_from_delta(&[&Value::Arr(depositLedger)]).into_list();
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
@@ -6563,7 +6563,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
@@ -6602,7 +6602,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // ]
         //
-        let mut records: crate::value::List = self.extract_type_from_delta(&[Value::Arr(withdrawalLedger)]).into_list();
+        let mut records: crate::value::List = self.extract_type_from_delta(&[&Value::Arr(withdrawalLedger)]).into_list();
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
@@ -6649,7 +6649,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
@@ -6657,7 +6657,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut dexName: Option<String> = self.get_dex_from_symbols("fetchOpenInterests", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        let mut dexName: Option<String> = self.get_dex_from_symbols("fetchOpenInterests", &[&symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName.is_some()) {
             request.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
@@ -6688,7 +6688,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut symbolValue: String = self.symbol(symbol);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ois: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -6723,7 +6723,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -6762,7 +6762,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a response object
  */
-    pub async fn reserve_request_weight(&mut self, mut weight: Value, optional_args: &[Value]) -> Value {
+    pub async fn reserve_request_weight(&mut self, mut weight: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6829,7 +6829,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn extract_type_from_delta(&self, optional_args: &[Value]) -> Value {
+    pub fn extract_type_from_delta(&self, optional_args: &[&Value]) -> Value {
         let mut data = get_arg(optional_args, 0, Value::from(vec![]));
         let mut records: Vec<Value> = Vec::new();
         {
@@ -6924,7 +6924,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn parse_create_edit_order_args(&self, id: Option<&str>, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_create_edit_order_args(&self, id: Option<&str>, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();

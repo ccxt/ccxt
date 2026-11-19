@@ -12,7 +12,7 @@ use super::*;
 pub async fn testFetchOpenInterestHistory(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchOpenInterestHistory".into());
     let mut openInterestHistory: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_open_interest_history", vec![symbol.clone()]).await;
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), openInterestHistory.clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), openInterestHistory.clone(), symbol]);
     {
                 let mut i: i64 = 0;
         let mut __for_first_1590: bool = true;

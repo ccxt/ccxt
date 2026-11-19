@@ -21,7 +21,7 @@ pub async fn testFetchDeposits(mut exchange: Value, mut skippedProperties: Value
         testDepositWithdrawal(exchange.clone(), skippedProperties.clone(), method.clone(), transactions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone(), now.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), transactions.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code, transactions]);
     return Value::Bool(true);
 
     Value::Null

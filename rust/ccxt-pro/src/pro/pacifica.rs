@@ -127,7 +127,7 @@ impl Pacifica {
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
-            "setup_api_key_headers" => { self.setup_api_key_headers(&args[..]); crate::Value::Null },
+            "setup_api_key_headers" => { self.setup_api_key_headers(&args[..].iter().collect::<Vec<_>>()); crate::Value::Null },
             "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
             "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
@@ -249,7 +249,7 @@ impl Pacifica {
     Value::Null
 }
 
-    pub fn setup_api_key_headers(&mut self, optional_args: &[Value]) {
+    pub fn setup_api_key_headers(&mut self, optional_args: &[&Value]) {
         let mut key = get_arg(optional_args, 0, Value::Null);
         let mut headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -313,10 +313,10 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let requestoperationTypeVariable: Vec<Value> = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
+        let requestoperationTypeVariable: Vec<Value> = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[&price, &params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -427,11 +427,11 @@ impl Pacifica {
     m
 }));
         let mut batchOperationType: String = "edit_order".to_string();
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[&params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -512,13 +512,13 @@ impl Pacifica {
     m
 }));
         let mut batchOperationType: String = "batch_orders".to_string();
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, "cancelOrders() requires a \"symbol\" argument!")));
         }
-        let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -620,7 +620,7 @@ impl Pacifica {
     m
 }));
         let mut operationType: String = "cancel_order".to_string();
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
@@ -705,11 +705,11 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut operationType: String = "cancel_all_orders".to_string();
-        let mut request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[&params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -757,7 +757,7 @@ impl Pacifica {
     m
 }));
         self.setup_api_key_headers(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -816,7 +816,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -964,7 +964,7 @@ impl Pacifica {
     m
 }));
         self.setup_api_key_headers(&[]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
@@ -1020,7 +1020,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
@@ -1081,7 +1081,7 @@ impl Pacifica {
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("watchMyTrades", params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
@@ -1118,7 +1118,7 @@ impl Pacifica {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1144,7 +1144,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {
@@ -1228,7 +1228,7 @@ impl Pacifica {
 }
 
     pub fn parse_ws_ticker(&self, mut rawTicker: Value, market: Option<&crate::types::Market>) -> Value {
-        return self.parse_ticker(rawTicker, market);
+        return Value::Dict(self.parse_ticker(rawTicker, market));
 
     Value::Null
 }
@@ -1325,7 +1325,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1359,7 +1359,7 @@ impl Pacifica {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1384,7 +1384,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1579,7 +1579,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1615,7 +1615,7 @@ impl Pacifica {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1642,7 +1642,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1746,7 +1746,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("watchOrders", params).as_array().cloned().unwrap_or_default();
@@ -1788,7 +1788,7 @@ impl Pacifica {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1814,7 +1814,7 @@ impl Pacifica {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {

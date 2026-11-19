@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "cancel_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_orders_ws(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+                "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -88,9 +88,9 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "un_watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_positions" => crate::types::IntoRaw::into_raw(self.un_watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_private" => self.un_watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "un_watch_private" => self.un_watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_public" => self.un_watch_public(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
-                "un_watch_public_multiple" => self.un_watch_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "un_watch_public_multiple" => self.un_watch_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_tickers" => crate::types::IntoRaw::into_raw(self.un_watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -106,7 +106,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
                 "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
-                "watch_public_multiple" => self.watch_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "watch_public_multiple" => self.watch_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -129,7 +129,7 @@ impl Nado {
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "cancel_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_orders_ws", args.to_vec()); crate::Value::Null },
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
-            "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
             "edit_order_ws" => { crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.to_vec()); crate::Value::Null },
             "handle_all_bids_asks" => { self.handle_all_bids_asks(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_authentication" => { self.handle_authentication(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -325,7 +325,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -397,14 +397,14 @@ impl Nado {
             messageHashes.push(Value::Str(format!("{}{}", "trade:", Value::from((market).symbol.clone())).into()));
         }
         }
-        let mut trades: Value = self.watch_public_multiple(Some("trade"), Value::from(markets), Value::from(messageHashes), &[params]).await;
+        let mut trades: Value = self.watch_public_multiple(Some("trade"), Value::from(markets), Value::from(messageHashes), &[&params]).await;
         let mut first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -446,7 +446,7 @@ impl Nado {
             messageHashes.push(Value::Str(format!("{}{}", "trade:", Value::from((market).symbol.clone())).into()));
         }
         }
-        return self.un_watch_public_multiple(Some("trade"), Value::from(markets), Value::from(messageHashes), &[params]).await;
+        return self.un_watch_public_multiple(Some("trade"), Value::from(markets), Value::from(messageHashes), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -478,7 +478,7 @@ impl Nado {
         let mut messageHash: String = format!("{}{}", "orderbook:", Value::from((market).symbol.clone()));
         if !(self.orderbooks.has(&(Value::from((market).symbol.clone())))) {
             let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            { let __cv = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), limit.clone()]); CacheStore::put(&mut self.orderbooks, &(Value::from((market).symbol.clone())), __cv); }
+            { let __cv = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), limit]); CacheStore::put(&mut self.orderbooks, &(Value::from((market).symbol.clone())), __cv); }
         }
         let mut orderbook: Value = self.watch_public(Some("book_depth"), Some(&market), messageHash.as_str(), &[params]).await;
         return orderbook.limit();
@@ -557,7 +557,7 @@ impl Nado {
             }
         }
         }
-        let mut orderbook: Value = self.watch_public_multiple(Some("book_depth"), Value::from(markets), Value::from(messageHashes), &[params]).await;
+        let mut orderbook: Value = self.watch_public_multiple(Some("book_depth"), Value::from(markets), Value::from(messageHashes), &[&params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -600,7 +600,7 @@ impl Nado {
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", Value::from((market).symbol.clone())).into()));
         }
         }
-        return self.un_watch_public_multiple(Some("book_depth"), Value::from(markets), Value::from(messageHashes), &[params]).await;
+        return self.un_watch_public_multiple(Some("book_depth"), Value::from(markets), Value::from(messageHashes), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -646,7 +646,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -701,7 +701,7 @@ impl Nado {
             }), &[&params]));
         }
         }
-        let mut resultSymbolresultTimeframestoredVariable = self.watch_public_multiple(Some("latest_candlestick"), Value::from(markets), Value::from(messageHashes), &[params, Value::from(subscriptionParams)]).await;
+        let mut resultSymbolresultTimeframestoredVariable = self.watch_public_multiple(Some("latest_candlestick"), Value::from(markets), Value::from(messageHashes), &[&params, &Value::from(subscriptionParams)]).await;
         let mut resultSymbol: Value = get_value(&resultSymbolresultTimeframestoredVariable, &Value::Int(0));
         let mut resultTimeframe: Value = get_value(&resultSymbolresultTimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&resultSymbolresultTimeframestoredVariable, &Value::Int(2));
@@ -709,7 +709,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(resultSymbol.as_str(), limit.as_i64());
         }
-        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(resultSymbol, resultTimeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
@@ -789,7 +789,7 @@ impl Nado {
             }), &[&params]));
         }
         }
-        return self.un_watch_public_multiple(Some("latest_candlestick"), Value::from(markets), Value::from(messageHashes), &[params, Value::from(subscriptionParams)]).await;
+        return self.un_watch_public_multiple(Some("latest_candlestick"), Value::from(markets), Value::from(messageHashes), &[&params, &Value::from(subscriptionParams)]).await;
         Value::Null
         }).await?))
     }
@@ -1083,7 +1083,7 @@ impl Nado {
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("watchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order_update".into()));
@@ -1096,7 +1096,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1143,7 +1143,7 @@ impl Nado {
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("unWatchOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order_update".into()));
@@ -1151,7 +1151,7 @@ impl Nado {
                 m.insert("product_id".to_string(), Value::from(productId));
             m
         });
-        return self.un_watch_private(Value::Map(stream), messageHash.as_str(), &[Value::Dict(paramsSubaccount)]).await;
+        return self.un_watch_private(Value::Map(stream), messageHash.as_str(), &[&Value::Dict(paramsSubaccount)]).await;
         Value::Null
         }).await?))
     }
@@ -1205,7 +1205,7 @@ impl Nado {
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fill".into()));
@@ -1218,7 +1218,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1265,7 +1265,7 @@ impl Nado {
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("unWatchMyTrades".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("fill".into()));
@@ -1273,7 +1273,7 @@ impl Nado {
                 m.insert("product_id".to_string(), Value::from(productId));
             m
         });
-        return self.un_watch_private(Value::Map(stream), messageHash.as_str(), &[Value::Dict(paramsSubaccount)]).await;
+        return self.un_watch_private(Value::Map(stream), messageHash.as_str(), &[&Value::Dict(paramsSubaccount)]).await;
         Value::Null
         }).await?))
     }
@@ -1328,7 +1328,7 @@ impl Nado {
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("watchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("position_change".into()));
@@ -1340,7 +1340,7 @@ impl Nado {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1390,7 +1390,7 @@ impl Nado {
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("unWatchPositions".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut stream: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("position_change".into()));
@@ -1398,7 +1398,7 @@ impl Nado {
                 m.insert("product_id".to_string(), Value::from(productId));
             m
         });
-        return self.un_watch_private(Value::Map(stream), messageHash.as_str(), &[Value::Dict(paramsSubaccount)]).await;
+        return self.un_watch_private(Value::Map(stream), messageHash.as_str(), &[&Value::Dict(paramsSubaccount)]).await;
         Value::Null
         }).await?))
     }
@@ -1453,7 +1453,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
         }
-        let mut request: crate::value::Dict = self.parent.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, Value::Dict(paramsExtended)]).await.into_dict();
+        let mut request: crate::value::Dict = self.parent.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[&price, &Value::Dict(paramsExtended)]).await.into_dict();
         let mut placeOrder: crate::value::Dict = self.safe_dict_k_t(&request, "place_order");
         if (placeOrder.contains_key("trigger")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrderWs() does not support trigger orders, use createOrder() instead")));
@@ -1524,7 +1524,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
         }
-        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, Value::Dict(paramsExtended)]).await.into_dict();
+        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &Value::Dict(paramsExtended)]).await.into_dict();
         let mut response: crate::value::Dict = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), &request).await.into_dict();
         //
         //     {
@@ -1630,7 +1630,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
         }
-        let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[Value::Dict(paramsExtended)]).await.into_dict();
+        let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[&Value::Dict(paramsExtended)]).await.into_dict();
         let mut response: crate::value::Dict = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), &request).await.into_dict();
         //
         //     {
@@ -1706,7 +1706,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
         }
-        let mut request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[Value::Dict(paramsExtended)]).await.into_dict();
+        let mut request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[&Value::Dict(paramsExtended)]).await.into_dict();
         let mut response: crate::value::Dict = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), &request).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut cancelledOrders: crate::value::List = self.safe_list_k_t(&data, "cancelled_orders");
@@ -1820,7 +1820,7 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn un_watch_private(&mut self, stream: impl Into<crate::Value>, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_private(&mut self, stream: impl Into<crate::Value>, messageHash: &str, optional_args: &[&Value]) -> Value {
         let mut stream: Value = stream.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1878,7 +1878,7 @@ impl Nado {
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.1;
         let mut id: i64 = self.request_id();
-        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
+        let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[&subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut expiration: Option<i64> = (if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None });
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1937,7 +1937,7 @@ impl Nado {
         return self.parent.sign_hash(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
-    pub fn create_public_subscription_request(&self, method: &str, mut streamType: Value, optional_args: &[Value]) -> Value {
+    pub fn create_public_subscription_request(&self, method: &str, mut streamType: Value, optional_args: &[&Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut id = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1963,7 +1963,7 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn watch_public_multiple(&mut self, streamType: Option<&str>, mut markets: Value, mut messageHashes: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_public_multiple(&mut self, streamType: Option<&str>, mut markets: Value, mut messageHashes: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1983,7 +1983,7 @@ impl Nado {
                 let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut id: i64 = self.request_id();
                 let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
-                let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request("subscribe", Value::from(streamType), &[market.clone(), Value::from(id), requestParams]).as_map().cloned().unwrap_or_default();
+                let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request("subscribe", Value::from(streamType), &[&market, &Value::from(id), &requestParams]).as_map().cloned().unwrap_or_default();
                 let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null)));
                 let streamSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(subscribeHash.clone()), &[]) != Value::Null;
                 if (!streamSubscription) {
@@ -2015,7 +2015,7 @@ impl Nado {
 }));
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "subscriptions", &[]);
         let mut id: i64 = self.request_id();
-        let mut request: crate::value::Dict = self.create_public_subscription_request("unsubscribe", Value::from(streamType), &[market, Value::from(id), params]).into_dict();
+        let mut request: crate::value::Dict = self.create_public_subscription_request("unsubscribe", Value::from(streamType), &[&market, &Value::from(id), &params]).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(id));
@@ -2035,7 +2035,7 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn un_watch_public_multiple(&mut self, streamType: Option<&str>, mut markets: Value, mut messageHashes: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_public_multiple(&mut self, streamType: Option<&str>, mut markets: Value, mut messageHashes: Value, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2053,7 +2053,7 @@ impl Nado {
             let mut id: i64 = self.request_id();
             let mut unsubscribeHash: String = format!("{}{}", "unsubscribe:", messageHash);
             let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
-            let mut request: crate::value::Dict = self.create_public_subscription_request("unsubscribe", Value::from(streamType), &[markets.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(id), requestParams]).into_dict();
+            let mut request: crate::value::Dict = self.create_public_subscription_request("unsubscribe", Value::from(streamType), &[&markets.get(i as usize).cloned().unwrap_or(Value::Null), &Value::from(id), &requestParams]).into_dict();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));
@@ -2461,7 +2461,7 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k_opt(&bidask, "product_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.parse_ws_timestamp(bidask.clone(), Value::Str("timestamp".into())).as_i64();
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2472,7 +2472,7 @@ impl Nado {
         m.insert("bidVolume".to_string(), self.parent.parse_x18(self.safe_string_k(&bidask, "bid_qty", &[])));
         m.insert("info".to_string(), bidask);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -2526,7 +2526,7 @@ impl Nado {
             let mut ask: Option<String> = self.safe_string_k_opt(&bbo, "ask", &[]);
             let mut maxPrice: String = "170141183460469231731687303715884105727".to_string();
             if crate::precise::Precise::stringGt(&bid, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&ask, &Value::Str("0".into())).as_bool() == Some(true) && !(crate::precise::Precise::stringEquals(&bid, &maxPrice).as_bool() == Some(true)) && !(crate::precise::Precise::stringEquals(&ask, &maxPrice).as_bool() == Some(true)) {
-                let mut ticker: indexmap::IndexMap<String, Value> = self.safe_ticker(Value::Map({
+                let mut ticker: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.safe_ticker(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2535,7 +2535,7 @@ impl Nado {
                         m.insert("bid".to_string(), self.parent.parse_x18(bid.map(Value::from).unwrap_or(Value::Null)));
                         m.insert("info".to_string(), Value::Dict(bbo));
                     m
-                }), Some(&market)).as_map().cloned().unwrap_or_default();
+                }), Some(&market)));
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
             }

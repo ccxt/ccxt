@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testWatchTickers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut withoutSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol]), &[]).await;
+    let mut withSymbol: Value = testWatchTickersHelper(exchange.clone(), skippedProperties, Value::from(vec![symbol]), &[]).await;
     promise_all(&Value::from(vec![withSymbol, withoutSymbol])).await;
 
     Value::Null
@@ -75,7 +75,7 @@ if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
                     if (tickerSymbol.is_some()) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
                         ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.map(Value::from).unwrap_or(Value::Null), Value::Str("1d".into()), Value::Null, Value::Int(5)]).await;
                     }
-                    crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone(), ohlcv.clone());
+                    crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker, ohlcv);
                 }
             }
             }

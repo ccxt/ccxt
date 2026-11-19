@@ -63,5 +63,5 @@ pub fn testFilterBy() {
         m.insert("bar".to_string(), Value::Str("b".into()));
     m
 })]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testFilterBy".into()).clone(), currentValue.clone(), storedValue.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testFilterBy".into()).clone(), currentValue, storedValue]);
 }

@@ -51,7 +51,7 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
     });
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()),
         Value::Str("postOnly".into()), Value::Str("side".into()), Value::Str("price".into()), Value::Str("amount".into()), Value::Str("cost".into()), Value::Str("filled".into()), Value::Str("remaining".into()), Value::Str("status".into()), Value::Str("fee".into())]); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("timeInForce".into()).clone(), Value::from(vec![Value::Str("GTC".into()), Value::Str("GTK".into()), Value::Str("IOC".into()), Value::Str("FOK".into()), Value::Str("PO".into())]).clone()]);
@@ -86,5 +86,5 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             }
         }
     }
-    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()).clone()]);
+    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("fee".into()).clone()]);
 }

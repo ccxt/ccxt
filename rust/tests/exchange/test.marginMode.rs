@@ -21,5 +21,5 @@ pub fn testMarginMode(mut exchange: Value, mut skippedProperties: Value, mut met
         m
     });
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("symbol".into())]);
-    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
+    crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method, entry, format, emptyAllowedFor]);
 }

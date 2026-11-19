@@ -48,7 +48,7 @@ impl Alpaca {
 }
 
 impl crate::exchange::DerivedExchange for Alpaca {
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // fetchTrades
@@ -93,7 +93,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         let mut priceString: Option<String> = self.safe_string2_opt(&trade, Value::Str("p".into()), Value::Str("price".into()), &[]);
         let mut amountString: Option<String> = self.safe_string2_opt(&trade, Value::Str("s".into()), Value::Str("qty".into()), &[]);
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("i".into()), Value::Str("id".into()), &[]));
@@ -111,7 +111,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
     m
 }), market));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -676,7 +676,7 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -1701,7 +1701,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1797,7 +1797,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1888,7 +1888,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2039,7 +2039,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -2071,7 +2071,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
@@ -2156,7 +2156,7 @@ impl Alpaca {
             let mut latestQuote: crate::value::Dict = self.safe_dict_k_t(&entry, "latestQuote");
             let mut latestTrade: crate::value::Dict = self.safe_dict_k_t(&entry, "latestTrade");
             let mut datetime: Option<String> = self.safe_string_k_opt(&latestQuote, "t", &[]);
-            let mut ticker: Value = self.safe_ticker(Value::Map({
+            let mut ticker: Value = Value::Dict(self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.map_or(Value::Null, Value::Dict));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
@@ -2179,7 +2179,7 @@ impl Alpaca {
                     m.insert("baseVolume".to_string(), self.safe_string_k(&dailyBar, "v", &[]));
                     m.insert("quoteVolume".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(&dailyBar, "v", &[]), &self.safe_string_k(&dailyBar, "vw", &[])));
                 m
-            }), Some(&market));
+            }), Some(&market)));
             results.push(ticker);
         }
         }
@@ -2228,7 +2228,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2264,7 +2264,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2300,7 +2300,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2345,7 +2345,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2382,7 +2382,7 @@ impl Alpaca {
         let mut defaultTIF: Option<String> = defaultTIFparamsTimeInForceVariable.0.as_str().map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.1;
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.clone().map(Value::from).unwrap_or(Value::Null) }));
+        request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.map(Value::from).unwrap_or(Value::Null) }));
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);
@@ -2446,7 +2446,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.call_method(Value::Str("trader_private_delete_v2_orders".into()), &[&params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
@@ -2485,7 +2485,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2528,7 +2528,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2671,7 +2671,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2774,7 +2774,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2828,7 +2828,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -2874,7 +2874,7 @@ impl Alpaca {
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.1;
         self.check_address(&[&address, &code, &tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -2910,7 +2910,7 @@ impl Alpaca {
 
     pub async fn fetch_transactions_helper(&mut self, type_var: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, mut params: Value) -> Value {
         let mut type_var: Value = type_var.into();
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Option<crate::types::Currency> = None;
@@ -3141,7 +3141,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // the two calls stay sequential deliberately — the static request harness records one request per case,

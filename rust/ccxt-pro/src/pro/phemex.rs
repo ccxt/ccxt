@@ -61,16 +61,16 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-                "from_ep" => crate::Value::from(self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
+                "from_ep" => crate::Value::from(self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "from_er" => crate::Value::from(self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
-                "from_ev" => crate::Value::from(self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
+                "from_ev" => crate::Value::from(self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -95,12 +95,12 @@ impl Phemex {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "custom_handle_delta" => { self.custom_handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
+            "custom_handle_delta" => { self.custom_handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); crate::Value::Null },
             "custom_handle_deltas" => { self.custom_handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
             "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-            "from_ep" => crate::Value::from(self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
+            "from_ep" => crate::Value::from(self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
             "from_er" => crate::Value::from(self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
-            "from_ev" => crate::Value::from(self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
+            "from_ev" => crate::Value::from(self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
             "handle_authenticate" => { self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -207,7 +207,7 @@ impl Phemex {
         return to_string_val(&precise).as_str().map(str::to_owned);
 }
 
-    pub fn from_ep(&self, mut ep: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn from_ep(&self, mut ep: Value, optional_args: &[&Value]) -> Option<String> {
         let mut market = get_arg(optional_args, 0, Value::Null);
         if (ep == Value::Null) || (market == Value::Null) {
             return ep.as_str().map(str::to_owned);
@@ -215,7 +215,7 @@ impl Phemex {
         return self.from_en(ep, self.safe_integer_k(market, "priceScale", &[]));
 }
 
-    pub fn from_ev(&self, mut ev: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn from_ev(&self, mut ev: Value, optional_args: &[&Value]) -> Option<String> {
         let mut market = get_arg(optional_args, 0, Value::Null);
         if (ev == Value::Null) || (market == Value::Null) {
             return ev.as_str().map(str::to_owned);
@@ -262,27 +262,27 @@ impl Phemex {
         let marketValue: &crate::types::Market = &marketResolved;
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&ticker, "timestamp", Value::Float(0.000001), &[]).as_i64();
-        let mut lastString: Option<String> = self.from_ep(self.safe_string_k(&ticker, "close", &[]), &[crate::Value::from(marketValue)]);
+        let mut lastString: Option<String> = self.from_ep(self.safe_string_k(&ticker, "close", &[]), &[&crate::Value::from(marketValue)]);
         let mut last: Value = self.parse_number(Value::from(lastString.as_deref()), &[]);
-        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(&ticker, "turnover", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(&ticker, "volume", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(&ticker, "turnover", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(&ticker, "volume", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
         let mut change: Option<f64> = None;
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
-        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(&ticker, "open", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(&ticker, "open", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
         let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString.is_some()) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "high", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "low", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "high", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "low", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("bid".to_string(), Value::Null);
         m.insert("bidVolume".to_string(), Value::Null);
         m.insert("ask".to_string(), Value::Null);
@@ -297,11 +297,11 @@ impl Phemex {
         m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
-        m.insert("markPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "markPrice", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("indexPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "indexPrice", &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("markPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "markPrice", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("indexPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(&ticker, "indexPrice", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("info".to_string(), ticker);
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -327,27 +327,27 @@ impl Phemex {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let marketValue: &crate::types::Market = &marketResolved;
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        let mut lastString: Option<String> = self.from_ep(self.safe_string(&ticker, Value::Int(4), &[]), &[crate::Value::from(marketValue)]);
+        let mut lastString: Option<String> = self.from_ep(self.safe_string(&ticker, Value::Int(4), &[]), &[&crate::Value::from(marketValue)]);
         let mut last: Value = self.parse_number(Value::from(lastString.as_deref()), &[]);
-        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(&ticker, Value::Int(6), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string(&ticker, Value::Int(5), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(&ticker, Value::Int(6), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string(&ticker, Value::Int(5), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
         let mut change: Option<f64> = None;
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
-        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(&ticker, Value::Int(1), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(&ticker, Value::Int(1), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
         let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString.is_some()) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".into())), &Value::Str("100".into())), &[]).as_f64();
         }
-        return self.safe_ticker(Value::Map({
+        return Value::Dict(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string(&ticker, Value::Int(2), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string(&ticker, Value::Int(3), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string(&ticker, Value::Int(2), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string(&ticker, Value::Int(3), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("bid".to_string(), Value::Null);
         m.insert("bidVolume".to_string(), Value::Null);
         m.insert("ask".to_string(), Value::Null);
@@ -364,7 +364,7 @@ impl Phemex {
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("info".to_string(), ticker);
     m
-}), None);
+}), None));
 
     Value::Null
 }
@@ -453,7 +453,7 @@ impl Phemex {
             tickers.push(self.parse_swap_ticker(&ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
             let mut ticker: crate::value::Dict = __pro_message.key_dict("spot_market24h");
-            tickers.push(self.parse_ticker(Value::Dict(ticker), None));
+            tickers.push(Value::Dict(self.parse_ticker(Value::Dict(ticker), None)));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
             let mut data: crate::value::List = __pro_message.key_list("data");
             {
@@ -501,7 +501,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params]);
@@ -734,7 +734,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -785,7 +785,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
@@ -859,7 +859,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -888,7 +888,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -918,7 +918,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -976,7 +976,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1005,12 +1005,12 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
 
-    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, marketParams: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, marketParams: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut marketParams: Value = marketParams.into();
         let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -1077,7 +1077,7 @@ impl Phemex {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
             m
         });
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from((market).id.as_deref())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from((market).id.as_deref())]), Value::Map(subscription), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1122,7 +1122,7 @@ impl Phemex {
         });
         // phemex drops only the given interval when it is sent along with the symbol
         let mut marketParams: crate::value::List = std::sync::Arc::new(vec![Value::from((market).id.as_deref()), self.safe_integer(&self.timeframes, timeframe.clone(), &[])]);
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), &marketParams, Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), &marketParams, Value::Map(subscription), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1165,9 +1165,9 @@ impl Phemex {
         }
 }
 
-    pub fn custom_handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value, optional_args: &[Value]) {
+    pub fn custom_handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value, optional_args: &[&Value]) {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut bidAsk: crate::value::List = self.parent.custom_parse_bid_ask(delta, &[Value::Int(0), Value::Int(1), market]).into_list();
+        let mut bidAsk: crate::value::List = self.parent.custom_parse_bid_ask(delta, &[&Value::Int(0), &Value::Int(1), &market]).into_list();
         bookside.store_array(Value::Arr(bidAsk));
 }
 
@@ -1180,7 +1180,7 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_632: bool = true;
             while { if !__for_first_632 { i += 1; } __for_first_632 = false; i < (deltas.len() as i64) } {
-            self.custom_handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            self.custom_handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null), &[&market]);
         }
         }
 }
@@ -1242,7 +1242,7 @@ impl Phemex {
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&message, "timestamp", Value::Float(0.000001), &[]).as_i64();
         if (type_var.as_deref() == Some("snapshot")) {
             let mut book: crate::value::Dict = self.safe_dict2_t(&message, Value::Str("book".into()), Value::Str("orderbook_p".into()));
-            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_deref().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), crate::Value::from(&market)]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_deref().unwrap_or_default(), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Int(0), &Value::Int(1), &crate::Value::from(&market)]).into_dict();
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -1296,7 +1296,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -1335,7 +1335,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1459,7 +1459,7 @@ impl Phemex {
             let mut rawTrade: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawTrade, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let mut parsed: crate::value::Dict = self.parse_trade(rawTrade, None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_trade(rawTrade, None);
             cachedTrades.append(Value::from(&parsed));
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             if (type_var.is_none()) {
@@ -1509,7 +1509,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders:".to_string();
@@ -1548,7 +1548,7 @@ impl Phemex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1928,12 +1928,12 @@ impl Phemex {
         let mut status: Option<String> = self.parent.parse_order_status(self.safe_string_k(&order, "ordStatus", &[]).as_str());
         let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
         let mut type_var: Option<String> = self.parent.parse_order_type(self.safe_string_k(&order, "ordType", &[]).as_str());
-        let mut price: Value = self.safe_string_k(&order, "priceRp", &[self.from_ep(self.safe_string(&order, Value::Str("priceEp".into()), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null)]);
+        let mut price: Value = self.safe_string_k(&order, "priceRp", &[self.from_ep(self.safe_string(&order, Value::Str("priceEp".into()), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null)]);
         let mut amount: Option<String> = self.safe_string_k_opt(&order, "orderQty", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(&order, "cumQty", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(&order, "leavesQty", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&order, "actionTimeNs", Value::Float(0.000001), &[]).as_i64();
-        let mut cost: Value = self.safe_string_k(&order, "cumValueRv", &[self.from_ev(self.safe_string(&order, Value::Str("cumValueEv".into()), &[]), &[crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null)]);
+        let mut cost: Value = self.safe_string_k(&order, "cumValueRv", &[self.from_ev(self.safe_string(&order, Value::Str("cumValueEv".into()), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null)]);
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer_product_k(&order, "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
         if (lastTradeTimestamp == Some(0)) {
             lastTradeTimestamp = None;
@@ -2146,7 +2146,7 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;

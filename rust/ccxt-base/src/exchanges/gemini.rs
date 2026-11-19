@@ -57,7 +57,7 @@ impl crate::exchange::DerivedExchange for Gemini {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut ticker: Value = ticker.into();
         //
         // fetchTickers
@@ -130,7 +130,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         let mut open: Option<String> = self.safe_string_k_opt(&ticker, "open", &[]);
         let mut baseVolume: Option<String> = self.safe_string_opt(&volume, baseId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quoteVolume: Option<String> = self.safe_string_opt(&volume, quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
-        return self.safe_ticker(Value::Map({
+        return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -153,11 +153,11 @@ impl crate::exchange::DerivedExchange for Gemini {
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
-    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         //
         // public fetchTrades
@@ -207,7 +207,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         let mut amountString: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(&trade, "type", &[]);
         let mut symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        return Value::Dict(self.safe_trade(std::sync::Arc::new({
+        return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -225,7 +225,7 @@ impl crate::exchange::DerivedExchange for Gemini {
     m
 }), market));
 
-    Value::Null
+    None
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
@@ -628,7 +628,7 @@ impl crate::exchange::DerivedExchange for Gemini {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -874,13 +874,13 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_currencies_from_web" => self.fetch_currencies_from_web(&args[..]).await,
+                "fetch_currencies_from_web" => self.fetch_currencies_from_web(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses_by_network" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_markets_from_api" => self.fetch_markets_from_api(&args[..]).await,
-                "fetch_markets_from_web" => self.fetch_markets_from_web(&args[..]).await,
+                "fetch_markets_from_api" => self.fetch_markets_from_api(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_markets_from_web" => self.fetch_markets_from_web(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_my_trades" => crate::types::IntoRaw::into_raw(self.fetch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_open_interest" => crate::types::IntoRaw::into_raw(self.fetch_open_interest(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -888,13 +888,13 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_ticker_v1" => self.fetch_ticker_v1(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "fetch_ticker_v1_and_v2" => self.fetch_ticker_v1_and_v2(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "fetch_ticker_v2" => self.fetch_ticker_v2(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "fetch_ticker_v1" => self.fetch_ticker_v1(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_ticker_v1_and_v2" => self.fetch_ticker_v1_and_v2(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_ticker_v2" => self.fetch_ticker_v2(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_usdt_markets" => self.fetch_usdt_markets(&args[..]).await,
+                "fetch_usdt_markets" => self.fetch_usdt_markets(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
@@ -905,8 +905,8 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "parse_market_active" => self.parse_market_active(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -1892,7 +1892,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_currencies_from_web(&[params]).await;
+        return self.fetch_currencies_from_web(&[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1905,7 +1905,7 @@ impl Gemini {
  * @param {object} [params] extra parameters specific to the endpoint
  * @returns {object} an associative dictionary of currencies
  */
-    pub async fn fetch_currencies_from_web(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_currencies_from_web(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1966,17 +1966,17 @@ impl Gemini {
         let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchMarketsMethod", &[Value::Str("fetch_markets_from_api".into())]);
         if (method.as_deref() == Some("fetch_markets_from_web")) {
             let mut promises: Vec<Value> = Vec::new();
-            promises.push(self.fetch_markets_from_web(&[params.clone()]).await); // get usd markets
-            promises.push(self.fetch_usdt_markets(&[params.clone()]).await); // get usdt markets
+            promises.push(self.fetch_markets_from_web(&[&params]).await); // get usd markets
+            promises.push(self.fetch_usdt_markets(&[&params]).await); // get usdt markets
             let mut promisesResult: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
             return self.array_concat(promisesResult.get(0).cloned().unwrap_or(Value::Null), promisesResult.get(1).cloned().unwrap_or(Value::Null));
         }
-        return self.fetch_markets_from_api(&[params]).await;
+        return self.fetch_markets_from_api(&[&params]).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_markets_from_web(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_markets_from_web(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2125,7 +2125,7 @@ impl Gemini {
     Value::Null
 }
 
-    pub async fn fetch_usdt_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_usdt_markets(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2161,7 +2161,7 @@ impl Gemini {
     Value::Null
 }
 
-    pub async fn fetch_markets_from_api(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_markets_from_api(&mut self, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2280,7 +2280,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2300,12 +2300,12 @@ impl Gemini {
         }).await?))
     }
 
-    pub async fn fetch_ticker_v1(&mut self, symbol: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ticker_v1(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2316,17 +2316,17 @@ impl Gemini {
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_v1_pubticker_symbol", &[&__ws_arg_3]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
 
-    pub async fn fetch_ticker_v2(&mut self, symbol: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ticker_v2(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2337,18 +2337,18 @@ impl Gemini {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_v2_ticker_symbol", &[&__ws_arg_4]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
 
-    pub async fn fetch_ticker_v1_and_v2(&mut self, symbol: &str, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ticker_v1_and_v2(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol, &[params.clone()]).await.into_dict();
-        let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol, &[params]).await.into_dict();
+        let mut tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol, &[&params]).await.into_dict();
+        let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol, &[&params]).await.into_dict();
         let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.as_array().cloned().unwrap_or_default();
         let mut tickerA: Value = tickerAtickerBVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut tickerB: crate::value::Dict = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2391,12 +2391,12 @@ impl Gemini {
 }));
         let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTickerMethod", &[Value::Str("fetchTickerV1".into())]);
         if (method.as_deref() == Some("fetchTickerV1")) {
-            return self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[params.clone()]).await;
+            return self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[&params]).await;
         }
         if (method.as_deref() == Some("fetchTickerV2")) {
-            return self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[params.clone()]).await;
+            return self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[&params]).await;
         }
-        return self.fetch_ticker_v1_and_v2(symbol.as_str().unwrap_or_default(), &[params]).await;
+        return self.fetch_ticker_v1_and_v2(symbol.as_str().unwrap_or_default(), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -2422,7 +2422,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::List = self.public_get_v1_pricefeed(&[&params]).await.unwrap_or_default();
@@ -2472,7 +2472,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2539,7 +2539,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.call_method_t("private_post_v1_notionalvolume", &[&params]).await;
@@ -2622,7 +2622,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::List = self.private_post_v1_balances(&[&params]).await.unwrap_or_default();
@@ -2654,7 +2654,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2693,7 +2693,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::List = self.private_post_v1_orders(&[&params]).await.unwrap_or_default();
@@ -2759,7 +2759,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (type_var.as_str() != Some("limit")) {
@@ -2848,7 +2848,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2890,7 +2890,7 @@ impl Gemini {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument")));
         }
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2941,7 +2941,7 @@ impl Gemini {
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.1;
         self.check_address(&[&address, &code, &tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -3011,7 +3011,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3064,11 +3064,11 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut indexedByNetwork: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut networkCode: Option<String> = self.handle_network_code_and_params(params).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut networkCode: Option<String> = (self.handle_network_code_and_params(params)).0.as_str().map(str::to_owned);
         return self.safe_dict(crate::types::IntoRaw::into_raw(indexedByNetwork), networkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
         }).await?))
@@ -3095,14 +3095,14 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut codeValue: Option<String> = crate::value::KeyRead::key_read(&&currency, "code").as_str().map(str::to_owned);
-        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
+        let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
+        let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.1;
         if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositAddresses() requires a network parameter")));
         }
@@ -3147,7 +3147,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
@@ -3199,7 +3199,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3248,7 +3248,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets == Value::Null) {
+        if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
